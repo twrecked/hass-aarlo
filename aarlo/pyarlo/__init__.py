@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger('cc.aarlo.pyarlo')
 
 class PyArlo(object):
 
-    def __init__( self,username,password,name='arlo',store='/config/state-arlo',preload=False ):
+    def __init__( self,username,password,name='arlo',store='/config/state-arlo' ):
         self._name = name
         self._bg   = ArloBackground( self )
         self._st   = ArloStorage( self,store )
@@ -53,7 +53,7 @@ class PyArlo(object):
                 self.info('skipping ' + dname + ': state unknown')
             elif dtype == 'basestation':
                 self._bases.append( ArloBase( dname,self,device ) )
-            elif dtype == 'camera':
+            elif dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
                 self._cameras.append( ArloCamera( dname,self,device ) )
             elif dtype == 'doorbell':
                 self._doorbells.append( ArloDoorBell( dname,self,device ) )
