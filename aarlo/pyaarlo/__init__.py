@@ -20,7 +20,7 @@ from custom_components.aarlo.pyaarlo.constant import ( BLANK_IMAGE,
                                 TOTAL_BELLS_KEY,
                                 TOTAL_CAMERAS_KEY )
 
-_LOGGER = logging.getLogger('cc.aarlo.pyaarlo')
+_LOGGER = logging.getLogger('pyaarlo')
 
 class PyArlo(object):
 
