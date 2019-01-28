@@ -19,19 +19,21 @@ alarm_control_panel:
   - platform: aarlo
     home_mode_name: Home
     away_mode_name: Armed
-    
-- platform: aarlo
-  monitored_conditions:
-  - motion
-  - sound
-  
-- platform: aarlo
-  monitored_conditions:
-  - last_capture
-  - total_cameras
-  - battery_level
-  - captured_today
-  - signal_strength
+
+binary_sensor:
+  - platform: aarlo
+    monitored_conditions:
+    - motion
+    - sound
+
+sensor:
+  - platform: aarlo
+    monitored_conditions:
+    - last_capture
+    - total_cameras
+    - battery_level
+    - captured_today
+    - signal_strength
 ```
 
 Restart your home assistant system.
