@@ -44,7 +44,7 @@ def setup(hass, config):
     password = conf.get(CONF_PASSWORD)
 
     try:
-        from custom_components.aarlo.pyarlo import PyArlo
+        from custom_components.aarlo.pyaarlo import PyArlo
 
         arlo = PyArlo( username,password )
         if not arlo.is_connected:

@@ -1,8 +1,8 @@
 
 import pprint
-from custom_components.aarlo.pyarlo.device import ArloDevice
+from custom_components.aarlo.pyaarlo.device import ArloDevice
 
-from custom_components.aarlo.pyarlo.constant import ( DEFAULT_MODES,
+from custom_components.aarlo.pyaarlo.constant import ( DEFAULT_MODES,
                                 MODES_KEY,
                                 MODE_ID_TO_NAME_KEY,
                                 MODE_KEY,

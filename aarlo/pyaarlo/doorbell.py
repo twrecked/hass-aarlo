@@ -1,6 +1,6 @@
 
 import pprint
-from custom_components.aarlo.pyarlo.device import ArloChildDevice
+from custom_components.aarlo.pyaarlo.device import ArloChildDevice
 
 class ArloDoorBell(ArloChildDevice):
 

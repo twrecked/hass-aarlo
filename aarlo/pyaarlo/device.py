@@ -1,9 +1,9 @@
 
 import pprint
 import threading
-import custom_components.aarlo.pyarlo.storage
+import custom_components.aarlo.pyaarlo.storage
 
-from custom_components.aarlo.pyarlo.constant import( BATTERY_KEY,
+from custom_components.aarlo.pyaarlo.constant import( BATTERY_KEY,
                                 PARENT_ID_KEY,
                                 RESOURCE_KEYS,
                                 RESOURCE_UPDATE_KEYS,

@@ -3,9 +3,9 @@ import time
 import threading
 from datetime import datetime
 from datetime import timedelta
-from custom_components.aarlo.pyarlo.constant import ( LIBRARY_URL,
+from custom_components.aarlo.pyaarlo.constant import ( LIBRARY_URL,
                                 PRELOAD_DAYS )
-from custom_components.aarlo.pyarlo.util import ( arlotime_strftime,
+from custom_components.aarlo.pyaarlo.util import ( arlotime_strftime,
                             arlotime_to_datetime,
                             http_stream,
                             http_get )

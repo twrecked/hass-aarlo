@@ -6,8 +6,8 @@ import json
 import requests
 import pprint
 
-from custom_components.aarlo.pyarlo.sseclient import ( SSEClient )
-from custom_components.aarlo.pyarlo.constant import ( LOGOUT_URL,NOTIFY_URL,
+from custom_components.aarlo.pyaarlo.sseclient import ( SSEClient )
+from custom_components.aarlo.pyaarlo.constant import ( LOGOUT_URL,NOTIFY_URL,
                                 SUBSCRIBE_URL,
                                 UNSUBSCRIBE_URL,
                                 TRANSID_PREFIX )
