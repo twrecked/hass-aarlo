@@ -57,8 +57,8 @@ def setup(hass, config):
     password     = conf.get(CONF_PASSWORD)
     packet_dump  = conf.get(CONF_PACKET_DUMP)
     cache_videos = conf.get(CONF_CACHE_VIDEOS)
-    motion_time  = conf.get(CONF_DB_MOTION_TIME)
-    ding_time    = conf.get(CONF_DB_DING_TIME)
+    motion_time  = conf.get(CONF_DB_MOTION_TIME).total_seconds()
+    ding_time    = conf.get(CONF_DB_DING_TIME).total_seconds()
 
     try:
         from custom_components.aarlo.pyaarlo import PyArlo
