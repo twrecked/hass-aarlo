@@ -91,7 +91,7 @@ class ArloCam(Camera):
                     self._state = 'Offline, Too Cold'
                 elif value == 'userStreamActive':
                     self._state = STATE_STREAMING
-                elif self._state == 'alertStreamActive':
+                elif value == 'alertStreamActive':
                     self._state = STATE_RECORDING
                 else:
                     self._state = STATE_IDLE
