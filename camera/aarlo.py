@@ -87,13 +87,13 @@ class ArloCam(Camera):
             _LOGGER.info( 'callback:' + self._name + ':' + attr + ':' + str(value)[:80])
 
             # set state and pretty state
-            if attr == 'activityState' or if attr == 'connectionState':
+            if attr == 'activityState' or attr == 'connectionState':
                 self._state = value
-                if self._state = 'thermalShutdownCold':
+                if self._state == 'thermalShutdownCold':
                     self._pretty_state = 'Offline, Too Cold'
-                elif self._state = 'userStreamActive':
+                elif self._state == 'userStreamActive':
                     self._pretty_state = 'Live Streaming'
-                elif self._state = 'alertStreamActive':
+                elif self._state == 'alertStreamActive':
                     self._pretty_state = 'Recording Activity'
                 else:
                     self._pretty_state = 'Idle'
