@@ -13,12 +13,12 @@ class ArloDoorBell(ArloChildDevice):
 
     def _motion_stopped( self ):
         self._save_and_do_callbacks( 'motionDetected',False )
-        with self._lock():
+        with self._lock:
             self._mt_job = None
 
     def _button_unpressed( self ):
         self._save_and_do_callbacks( 'buttonPressed',False )
-        with self._lock():
+        with self._lock:
             self._dt_job = None
 
     def _event_handler( self,resource,event ):
@@ -31,12 +31,12 @@ class ArloDoorBell(ArloChildDevice):
             #acts = event.get('properties',{}).get('activityState',False)
             if cons and cons == 'available':
                 self._save_and_do_callbacks( 'motionDetected',True )
-                with self._lock():
+                with self._lock:
                     self._bg.cancel( self._mt_job )
                     self._mt_job = self._arlo._bg.run_in( self._motion_stopped,self._mt )
             if butp:
                 self._save_and_do_callbacks( 'buttonPressed',True )
-                with self._lock():
+                with self._lock:
                     self._bg.cancel( self._dt_job )
                     self._dt_job = self._arlo._bg.run_in( self._button_unpressed,self._dt )
             #  if acts and acts == 'idle':
