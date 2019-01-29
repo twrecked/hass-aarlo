@@ -154,7 +154,7 @@ class ArloCamera(ArloChildDevice):
     def has_capability( self,cap ):
         if cap in ( 'last_capture','captured_today','battery_level','signal_strength' ):
             return True
-        if cap in ( 'audioDetected' ) and self.model_id.startswith('VMC4030'):
+        if cap in ( 'audio','audioDetected','sound' ) and self.model_id.startswith('VMC4030'):
             return True
         return super().has_capability( cap )
 

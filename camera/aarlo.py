@@ -71,7 +71,7 @@ class ArloCam(Camera):
         self._unique_id     = self._name.lower().replace(' ','_')
         self._camera        = camera
         self._state         = None
-        self._on            = True
+        self._pretty_state  = ''
         self._motion_status = False
         self._ffmpeg           = hass.data[DATA_FFMPEG]
         self._ffmpeg_arguments = device_info.get(CONF_FFMPEG_ARGUMENTS)
@@ -86,11 +86,17 @@ class ArloCam(Camera):
         def update_state( device,attr,value ):
             _LOGGER.info( 'callback:' + self._name + ':' + attr + ':' + str(value)[:80])
 
-            # set state
-            if attr == 'activityState':
+            # set state and pretty state
+            if attr == 'activityState' or if attr == 'connectionState':
                 self._state = value
-            if attr == 'connectionState':
-                self._on = value != 'thermalShutdownCold'
+                if self._state = 'thermalShutdownCold':
+                    self._pretty_state = 'Offline, Too Cold'
+                elif self._state = 'userStreamActive':
+                    self._pretty_state = 'Live Streaming'
+                elif self._state = 'alertStreamActive':
+                    self._pretty_state = 'Recording Activity'
+                else:
+                    self._pretty_state = 'Idle'
 
             self.async_schedule_update_ha_state()
 
@@ -132,7 +138,7 @@ class ArloCam(Camera):
 
     @property
     def is_on(self):
-        return self._on
+        return True
 
     @property
     def state(self):
@@ -163,6 +169,7 @@ class ArloCam(Camera):
         attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
         attrs['brand']          = DEFAULT_BRAND
         attrs['friendly_name']  = self._name
+        attrs['pretty_state']  = self._pretty_state
 
         return attrs
 

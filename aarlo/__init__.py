@@ -26,13 +26,26 @@ DOMAIN = 'aarlo'
 NOTIFICATION_ID = 'aarlo_notification'
 NOTIFICATION_TITLE = 'aarlo Component Setup'
 
-SCAN_INTERVAL = timedelta(seconds=60)
+CONF_PACKET_DUMP    = 'packet_dump'
+CONF_CACHE_VIDEOS   = 'cache_videos'
+CONF_DB_MOTION_TIME = 'db_motion_time'
+CONF_DB_DING_TIME   = 'db_ding_time'
+
+SCAN_INTERVAL  = timedelta(seconds=60)
+PACKET_DUMP    = False
+CACHE_VIDEOS   = False
+DB_MOTION_TIME = timedelta(seconds=30)
+DB_DING_TIME   = timedelta(seconds=10)
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
+        vol.Optional(CONF_PACKET_DUMP, default=PACKET_DUMP): cv.boolean,
+        vol.Optional(CONF_CACHE_VIDEOS, default=CACHE_VIDEOS): cv.boolean,
+        vol.Optional(CONF_DB_MOTION_TIME, default=DB_MOTION_TIME): cv.time_period,
+        vol.Optional(CONF_DB_DING_TIME, default=DB_DING_TIME): cv.time_period,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -40,13 +53,19 @@ CONFIG_SCHEMA = vol.Schema({
 def setup(hass, config):
     """Set up an Arlo component."""
     conf = config[DOMAIN]
-    username = conf.get(CONF_USERNAME)
-    password = conf.get(CONF_PASSWORD)
+    username     = conf.get(CONF_USERNAME)
+    password     = conf.get(CONF_PASSWORD)
+    packet_dump  = conf.get(CONF_PACKET_DUMP)
+    cache_videos = conf.get(CONF_CACHE_VIDEOS)
+    motion_time  = conf.get(CONF_DB_MOTION_TIME)
+    ding_time    = conf.get(CONF_DB_DING_TIME)
 
     try:
         from custom_components.aarlo.pyaarlo import PyArlo
 
-        arlo = PyArlo( username,password )
+        arlo = PyArlo( username,password,
+                            dump=packet_dump,
+                            db_motion_time=motion_time,db_ding_time=ding_time )
         if not arlo.is_connected:
             return False
 

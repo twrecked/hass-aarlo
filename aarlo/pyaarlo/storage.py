@@ -6,9 +6,9 @@ import pprint
 
 class ArloStorage(object):
 
-    def __init__( self,arlo,file_name ):
+    def __init__( self,arlo,name,storage_dir ):
         self._arlo = arlo
-        self.file  = file_name + '.pickle'
+        self.file  = storage_dir + '/' + name + '.pickle'
         self.db    = {}
         self.lock  = threading.Lock()
         self.load()

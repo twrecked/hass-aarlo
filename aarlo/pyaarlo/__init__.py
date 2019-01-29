@@ -1,4 +1,5 @@
 
+import os
 import logging
 import time
 import datetime
@@ -24,12 +25,20 @@ _LOGGER = logging.getLogger('pyaarlo')
 
 class PyArlo(object):
 
-    def __init__( self,username,password,name='arlo',store='/config/state-arlo' ):
+    def __init__( self,username,password,name='aarlo',
+                        storage_dir='/config/.aarlo',dump=False,max_days=365,
+                        db_motion_time=30,db_ding_time=10 ):
+
+        try:
+            os.mkdir( storage_dir )
+        except:
+            pass
+
         self._name = name
         self._bg   = ArloBackground( self )
-        self._st   = ArloStorage( self,store )
-        self._be   = ArloBackEnd( self,username,password )
-        self._ml   = ArloMediaLibrary( self )
+        self._st   = ArloStorage( self,name=name,storage_dir=storage_dir )
+        self._be   = ArloBackEnd( self,username,password,dump=dump,storage_dir=storage_dir )
+        self._ml   = ArloMediaLibrary( self,max_days=max_days )
         self._lock = threading.Lock()
         self._bases     = []
         self._cameras   = []
@@ -56,7 +65,8 @@ class PyArlo(object):
             elif dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
                 self._cameras.append( ArloCamera( dname,self,device ) )
             elif dtype == 'doorbell':
-                self._doorbells.append( ArloDoorBell( dname,self,device ) )
+                self._doorbells.append( ArloDoorBell( dname,self,device,
+                                            motion_time=db_motion_time,ding_time=db_ding_time ) )
 
         # save out unchanging stats!
         self._st.set( ['ARLO',TOTAL_CAMERAS_KEY],len(self._cameras) )

@@ -13,7 +13,7 @@ from custom_components.aarlo.pyaarlo.util import ( arlotime_strftime,
 class ArloMediaLibrary(object):
     """Arlo Library Media module implementation."""
 
-    def __init__( self,arlo ):
+    def __init__( self,arlo,max_days ):
         self._arlo      = arlo
         self._lock      = threading.Lock()
         self._load_cbs_ = []
