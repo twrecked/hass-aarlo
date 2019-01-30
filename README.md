@@ -10,10 +10,10 @@ The component supports:
 * camera audio detection
 * door bell motion detection
 * door bell button press
-* on the Lovelace UI it will report camera streaming state on the picture entity - ie, a clip is being recorded or somebody is view a stream on the Arlo app
+* on the Lovelace UI it will report camera streaming state on the picture entity - ie, a clip is being recorded or somebody is view a stream on the Arlo app or if the camera is too cold to operate
 * saving of state across restarts
 
-This is an alpha release!
+**This is an alpha release - it's working great for me - 3 base stations, 11 cameras, 2 doorbells - but I haven't had chance to test it against many different configurations!**
 
 ## Installation
 
@@ -79,7 +79,14 @@ aarlo:
 * `db_motion_time` sets how long a doorbell motion will last. Arlo doorbell only indicates motion is present not that it stops. You can adjust the stop time out here.
 * `db_ding_time` sets how long a doorbell button press will last. As with motion Arlo doorbell only tells us it's pressed not released.
 
-## Finally
-
 Now restart your home assistant system.
+
+## To Do
+
+* turn cameras on/off
+* custom mode - like SmartThings to better control motion detection
+* caching of last video to speed up showing of it
+* live streaming???
+
+
 
