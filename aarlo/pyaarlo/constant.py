@@ -25,9 +25,10 @@ POWER_SAVE_KEY      = 'powerSaveMode'
 SIGNAL_STR_KEY      = 'signalStrength'
 
 # we can get these from the resource; doorbell is subset
-RESOURCE_KEYS = [ BATTERY_KEY, BRIGHTNESS_KEY, CONNECTION_KEY,
-                            FLIP_KEY, MIRROR_KEY, MOTION_ENABLED_KEY, MOTION_SENS_KEY,
-                            POWER_SAVE_KEY, SIGNAL_STR_KEY ]
+RESOURCE_KEYS = [ ACTIVITY_STATE, AUDIO_DETECTED_KEY, BATTERY_KEY,
+                            BRIGHTNESS_KEY, CONNECTION_KEY, FLIP_KEY,
+                            MIRROR_KEY, MOTION_DETECTED_KEY, MOTION_ENABLED_KEY,
+                            MOTION_SENS_KEY, POWER_SAVE_KEY, SIGNAL_STR_KEY ]
 
 RESOURCE_UPDATE_KEYS = [ ACTIVITY_STATE, AUDIO_DETECTED_KEY, BATTERY_KEY,
                             MOTION_DETECTED_KEY, SIGNAL_STR_KEY ]

@@ -1,4 +1,5 @@
 
+import os
 import logging
 import time
 import datetime
@@ -6,30 +7,38 @@ import base64
 import pprint
 import threading
 
-from custom_components.aarlo.pyarlo.background import ArloBackground
-from custom_components.aarlo.pyarlo.storage import ArloStorage
-from custom_components.aarlo.pyarlo.backend import ArloBackEnd
-from custom_components.aarlo.pyarlo.media import ArloMediaLibrary
-from custom_components.aarlo.pyarlo.base import ArloBase
-from custom_components.aarlo.pyarlo.camera import ArloCamera
-from custom_components.aarlo.pyarlo.doorbell import ArloDoorBell
+from custom_components.aarlo.pyaarlo.background import ArloBackground
+from custom_components.aarlo.pyaarlo.storage import ArloStorage
+from custom_components.aarlo.pyaarlo.backend import ArloBackEnd
+from custom_components.aarlo.pyaarlo.media import ArloMediaLibrary
+from custom_components.aarlo.pyaarlo.base import ArloBase
+from custom_components.aarlo.pyaarlo.camera import ArloCamera
+from custom_components.aarlo.pyaarlo.doorbell import ArloDoorBell
 
-from custom_components.aarlo.pyarlo.constant import ( BLANK_IMAGE,
+from custom_components.aarlo.pyaarlo.constant import ( BLANK_IMAGE,
                                 DEVICE_KEYS,
                                 DEVICES_URL,
                                 TOTAL_BELLS_KEY,
                                 TOTAL_CAMERAS_KEY )
 
-_LOGGER = logging.getLogger('cc.aarlo.pyarlo')
+_LOGGER = logging.getLogger('pyaarlo')
 
 class PyArlo(object):
 
-    def __init__( self,username,password,name='arlo',store='/config/state-arlo',preload=False ):
+    def __init__( self,username,password,name='aarlo',
+                        storage_dir='/config/.aarlo',dump=False,max_days=365,
+                        db_motion_time=30,db_ding_time=10 ):
+
+        try:
+            os.mkdir( storage_dir )
+        except:
+            pass
+
         self._name = name
         self._bg   = ArloBackground( self )
-        self._st   = ArloStorage( self,store )
-        self._be   = ArloBackEnd( self,username,password )
-        self._ml   = ArloMediaLibrary( self )
+        self._st   = ArloStorage( self,name=name,storage_dir=storage_dir )
+        self._be   = ArloBackEnd( self,username,password,dump=dump,storage_dir=storage_dir )
+        self._ml   = ArloMediaLibrary( self,max_days=max_days )
         self._lock = threading.Lock()
         self._bases     = []
         self._cameras   = []
@@ -53,10 +62,11 @@ class PyArlo(object):
                 self.info('skipping ' + dname + ': state unknown')
             elif dtype == 'basestation':
                 self._bases.append( ArloBase( dname,self,device ) )
-            elif dtype == 'camera':
+            elif dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
                 self._cameras.append( ArloCamera( dname,self,device ) )
             elif dtype == 'doorbell':
-                self._doorbells.append( ArloDoorBell( dname,self,device ) )
+                self._doorbells.append( ArloDoorBell( dname,self,device,
+                                            motion_time=db_motion_time,ding_time=db_ding_time ) )
 
         # save out unchanging stats!
         self._st.set( ['ARLO',TOTAL_CAMERAS_KEY],len(self._cameras) )

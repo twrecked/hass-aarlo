@@ -71,7 +71,6 @@ class ArloCam(Camera):
         self._unique_id     = self._name.lower().replace(' ','_')
         self._camera        = camera
         self._state         = None
-        self._on            = True
         self._motion_status = False
         self._ffmpeg           = hass.data[DATA_FFMPEG]
         self._ffmpeg_arguments = device_info.get(CONF_FFMPEG_ARGUMENTS)
@@ -86,11 +85,16 @@ class ArloCam(Camera):
         def update_state( device,attr,value ):
             _LOGGER.info( 'callback:' + self._name + ':' + attr + ':' + str(value)[:80])
 
-            # set state
-            if attr == 'activityState':
-                self._state = value
-            if attr == 'connectionState':
-                self._on = value != 'thermalShutdownCold'
+            # set state 
+            if attr == 'activityState' or attr == 'connectionState':
+                if value == 'thermalShutdownCold':
+                    self._state = 'Offline, Too Cold'
+                elif value == 'userStreamActive':
+                    self._state = STATE_STREAMING
+                elif value == 'alertStreamActive':
+                    self._state = STATE_RECORDING
+                else:
+                    self._state = STATE_IDLE
 
             self.async_schedule_update_ha_state()
 
@@ -128,20 +132,16 @@ class ArloCam(Camera):
 
     @property
     def is_recording(self):
-        return self._state == 'alertStreamActive'
+        return self._state == STATE_RECORDING
 
     @property
     def is_on(self):
-        return self._on
+        return True
 
     @property
     def state(self):
         """Return the camera state."""
-        if self.is_recording:
-            return STATE_RECORDING
-        if self._state == 'userStreamActive':
-            return STATE_STREAMING
-        return STATE_IDLE
+        return self._state
 
     @property
     def device_state_attributes(self):

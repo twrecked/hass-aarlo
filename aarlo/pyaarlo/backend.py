@@ -6,8 +6,8 @@ import json
 import requests
 import pprint
 
-from custom_components.aarlo.pyarlo.sseclient import ( SSEClient )
-from custom_components.aarlo.pyarlo.constant import ( LOGOUT_URL,NOTIFY_URL,
+from custom_components.aarlo.pyaarlo.sseclient import ( SSEClient )
+from custom_components.aarlo.pyaarlo.constant import ( LOGOUT_URL,NOTIFY_URL,
                                 SUBSCRIBE_URL,
                                 UNSUBSCRIBE_URL,
                                 TRANSID_PREFIX )
@@ -15,12 +15,15 @@ from custom_components.aarlo.pyarlo.constant import ( LOGOUT_URL,NOTIFY_URL,
 # include token and session details
 class ArloBackEnd(object):
 
-    def __init__( self,arlo,username,password ):
+    def __init__( self,arlo,username,password,dump,storage_dir ):
 
         self._arlo = arlo
         self.session       = requests.Session()
         self.request_lock_ = threading.Lock()
         self.lock_         = threading.Condition()
+
+        self._dump      = dump
+        self._dump_file = storage_dir + '/' + 'packets.dump'
 
         self.requests_      = {}
         self.subscriptions_ = {}
@@ -126,8 +129,9 @@ class ArloBackEnd(object):
                     break
 
                 response = json.loads( event.data )
-                with open('/config/packets.dump','a') as dump:
-                    dump.write( pprint.pformat( response,indent=2 ) + '\n' )
+                if self._dump:
+                    with open( self._dump_file,'a' ) as dump:
+                        dump.write( pprint.pformat( response,indent=2 ) + '\n' )
 
                 # logged out? signal exited
                 if response.get('action') == 'logout':
