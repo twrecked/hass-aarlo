@@ -30,12 +30,14 @@ CONF_PACKET_DUMP    = 'packet_dump'
 CONF_CACHE_VIDEOS   = 'cache_videos'
 CONF_DB_MOTION_TIME = 'db_motion_time'
 CONF_DB_DING_TIME   = 'db_ding_time'
+CONF_RECENT_TIME    = 'recent_time'
 
 SCAN_INTERVAL  = timedelta(seconds=60)
 PACKET_DUMP    = False
 CACHE_VIDEOS   = False
 DB_MOTION_TIME = timedelta(seconds=30)
 DB_DING_TIME   = timedelta(seconds=10)
+RECENT_TIME    = timedelta(minutes=10)
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
@@ -46,6 +48,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_CACHE_VIDEOS, default=CACHE_VIDEOS): cv.boolean,
         vol.Optional(CONF_DB_MOTION_TIME, default=DB_MOTION_TIME): cv.time_period,
         vol.Optional(CONF_DB_DING_TIME, default=DB_DING_TIME): cv.time_period,
+        vol.Optional(CONF_RECENT_TIME, default=RECENT_TIME): cv.time_period,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -59,13 +62,15 @@ def setup(hass, config):
     cache_videos = conf.get(CONF_CACHE_VIDEOS)
     motion_time  = conf.get(CONF_DB_MOTION_TIME).total_seconds()
     ding_time    = conf.get(CONF_DB_DING_TIME).total_seconds()
+    recent_time  = conf.get(CONF_RECENT_TIME).total_seconds()
 
     try:
         from custom_components.aarlo.pyaarlo import PyArlo
 
         arlo = PyArlo( username,password,
                             dump=packet_dump,
-                            db_motion_time=motion_time,db_ding_time=ding_time )
+                            db_motion_time=motion_time,db_ding_time=ding_time,
+                            recent_time=recent_time )
         if not arlo.is_connected:
             return False
 
