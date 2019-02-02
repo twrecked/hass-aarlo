@@ -33,7 +33,7 @@ ATTR_MOTION = 'motion_detection_sensitivity'
 ATTR_POWERSAVE = 'power_save_mode'
 ATTR_SIGNAL_STRENGTH = 'signal_strength'
 ATTR_UNSEEN_VIDEOS = 'unseen_videos'
-ATTR_LAST_REFRESH = 'last_refresh'
+ATTR_RECENT_ACTIVITY = 'recent_activity'
 
 CONF_FFMPEG_ARGUMENTS = 'ffmpeg_arguments'
 
@@ -71,6 +71,7 @@ class ArloCam(Camera):
         self._unique_id     = self._name.lower().replace(' ','_')
         self._camera        = camera
         self._state         = None
+        self._recent        = False
         self._motion_status = False
         self._ffmpeg           = hass.data[DATA_FFMPEG]
         self._ffmpeg_arguments = device_info.get(CONF_FFMPEG_ARGUMENTS)
@@ -95,9 +96,12 @@ class ArloCam(Camera):
                     self._state = STATE_RECORDING
                 else:
                     self._state = STATE_IDLE
+            if attr == 'recentActivity':
+                self._recent = value
 
             self.async_schedule_update_ha_state()
 
+        self._camera.add_attr_callback( 'recentActivity',update_state )
         self._camera.add_attr_callback( 'activityState',update_state )
         self._camera.add_attr_callback( 'connectionState',update_state )
         self._camera.add_attr_callback( 'presignedLastImageData',update_state )
@@ -141,6 +145,8 @@ class ArloCam(Camera):
     @property
     def state(self):
         """Return the camera state."""
+        if self._recent and self._state == 'idle':
+            return 'Recently Active'
         return self._state
 
     @property
@@ -157,6 +163,7 @@ class ArloCam(Camera):
                     self._camera.powersave_mode)),
                 (ATTR_SIGNAL_STRENGTH, self._camera.signal_strength),
                 (ATTR_UNSEEN_VIDEOS, self._camera.unseen_videos),
+                (ATTR_RECENT_ACTIVITY, self._camera.recent),
             ) if value is not None
         }
 

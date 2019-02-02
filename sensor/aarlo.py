@@ -29,6 +29,7 @@ DEPENDENCIES = ['aarlo']
 SENSOR_TYPES = {
     'last_capture': ['Last', None, 'run-fast','lastCapture'],
     'total_cameras': ['Arlo Cameras', None, 'video','totalCameras' ],
+    'recent_activity': ['Recent Activity', None, 'run-fast','recentActivity'],
     'captured_today': ['Captured Today', None, 'file-video', 'capturedToday'],
     'battery_level': ['Battery Level', '%', 'battery-50','batteryLevel'],
     'signal_strength': ['Signal Strength', None, 'signal','signalStrength'],

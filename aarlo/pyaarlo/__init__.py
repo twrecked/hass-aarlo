@@ -27,7 +27,8 @@ class PyArlo(object):
 
     def __init__( self,username,password,name='aarlo',
                         storage_dir='/config/.aarlo',dump=False,max_days=365,
-                        db_motion_time=30,db_ding_time=10 ):
+                        db_motion_time=30,db_ding_time=10,
+                        recent_time=600 ):
 
         try:
             os.mkdir( storage_dir )
@@ -40,9 +41,10 @@ class PyArlo(object):
         self._be   = ArloBackEnd( self,username,password,dump=dump,storage_dir=storage_dir )
         self._ml   = ArloMediaLibrary( self,max_days=max_days )
         self._lock = threading.Lock()
-        self._bases     = []
-        self._cameras   = []
-        self._doorbells = []
+        self._bases       = []
+        self._cameras     = []
+        self._doorbells   = []
+        self._recent_time = recent_time
 
         # on day flip we reload image count
         self._today = datetime.date.today()
@@ -155,6 +157,10 @@ class PyArlo(object):
     @property
     def blank_image( self ):
         return self._blank_image
+
+    @property
+    def recent_time( self ):
+        return self._recent_time
 
     def lookup_camera_by_id( self,device_id ):
         camera = list(filter( lambda cam: cam.device_id == device_id, self.cameras ))

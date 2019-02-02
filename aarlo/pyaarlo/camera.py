@@ -1,9 +1,10 @@
 
+import time
 import threading
 import pprint
 
 from custom_components.aarlo.pyaarlo.device import ArloChildDevice
-from custom_components.aarlo.pyaarlo.util import ( http_get )
+from custom_components.aarlo.pyaarlo.util import ( arlotime_to_time,http_get )
 from custom_components.aarlo.pyaarlo.constant import( BRIGHTNESS_KEY,
                                 CAPTURED_TODAY_KEY,
                                 FLIP_KEY,
@@ -20,11 +21,20 @@ class ArloCamera(ArloChildDevice):
 
     def __init__( self,name,arlo,attrs ):
         super().__init__( name,arlo,attrs )
+        self._recent = False
+        self._recent_job = None
         self._cache_count = None
         self._cached_videos = None
         self._min_days_vdo_cache = PRELOAD_DAYS
         self._lock = threading.Lock()
         self._arlo._bg.run_in( self._update_media,10 )
+
+    def _clear_recent( self ):
+        with self._lock:
+            self._recent = False
+            self._recent_job = None
+        self._arlo.info( 'turning recent OFF for ' + self._name )
+        self._do_callbacks( 'recentActivity',False )
 
     # media library finished. Update our counts
     def _update_media( self ):
@@ -33,19 +43,41 @@ class ArloCamera(ArloChildDevice):
         if videos:
             captured_today = len([video for video in videos if video.created_today])
             last_captured = videos[0].created_at_pretty('%Y-%m-%d %H:%M:%S')
+            last_time = arlotime_to_time( videos[0].created_at )
         else:
             captured_today = 0
             last_captured = None
+            last_time = 0
 
         # update local copies
         with self._lock:
             self._cache_count = count
             self._cached_videos = videos
 
-        # signal up!
+        # signal video up!
         self._save_and_do_callbacks( CAPTURED_TODAY_KEY,captured_today )
         self._save_and_do_callbacks( LAST_CAPTURE_KEY,last_captured )
         self._do_callbacks( 'mediaUploadNotification',True )
+
+        # is this capture considered recent? if so signal recently seen
+        now = int( time.time() )
+        self._arlo.info( 'now=' + str(now) + ',last=' + str(last_time) )
+        if now >= last_time:
+            delta = now - last_time
+        else:
+            delta = 1
+        recent = self._arlo._recent_time
+
+        self._arlo.debug( 'delta=' + str(delta) + ',recent=' + str(recent) )
+        if delta < recent:
+            with self._lock:
+                self._recent = True
+                self._arlo._bg.cancel( self._recent_job )
+                self._recent_job = self._arlo._bg.run_in( self._clear_recent,recent - delta )
+            self._arlo.info( 'turning recent ON for ' + self._name )
+            self._do_callbacks( 'recentActivity',True )
+        else:
+            self._clear_recent()
 
     def _update_last_image( self ):
         self._arlo.info('getting image for ' + self.name )
@@ -139,6 +171,10 @@ class ArloCamera(ArloChildDevice):
     def min_days_vdo_cache(self):
         return self._min_days_vdo_cache
 
+    @property
+    def recent( self ):
+        return self._recent
+
     @min_days_vdo_cache.setter
     def min_days_vdo_cache(self, value):
         self._min_days_vdo_cache = value
@@ -152,7 +188,7 @@ class ArloCamera(ArloChildDevice):
         self._arlo._bg.run_low( self._update_last_image )
 
     def has_capability( self,cap ):
-        if cap in ( 'last_capture','captured_today','battery_level','signal_strength' ):
+        if cap in ( 'last_capture','captured_today','recent_activity','battery_level','signal_strength' ):
             return True
         if cap in ( 'audio','audioDetected','sound' ) and self.model_id.startswith('VMC4030'):
             return True
