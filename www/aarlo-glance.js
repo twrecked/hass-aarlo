@@ -55,6 +55,9 @@ class AarloGlance extends LitElement {
 				padding: 2px;
 				color: #a9a9a9;
 			}
+			ha-icon.state-update {
+				color: #cccccc;
+			}
 			ha-icon.state-on {
 				color: white;
 			}
@@ -169,8 +172,8 @@ class AarloGlance extends LitElement {
 					<ha-icon class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
 					<ha-icon class$="state-off ${capturedHidden}" icon="mdi:library-shelves" title="${last_text}"></ha-icon>
-					<ha-icon class$="state-off ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
-					<ha-icon class$="state-off ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
+					<ha-icon class$="state-update ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
+					<ha-icon class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
 				</div>
 				<div class="status">
 					${camera.state}
