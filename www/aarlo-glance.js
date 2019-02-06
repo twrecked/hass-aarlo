@@ -171,7 +171,7 @@ class AarloGlance extends LitElement {
 				<div>
 					<ha-icon class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
-					<ha-icon class$="state-off ${capturedHidden}" icon="mdi:library-shelves" title="${last_text}"></ha-icon>
+					<ha-icon class$="state-update ${capturedHidden}" icon="mdi:library-shelves" title="${last_text}"></ha-icon>
 					<ha-icon class$="state-update ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
 					<ha-icon class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
 				</div>
