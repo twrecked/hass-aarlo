@@ -163,7 +163,7 @@ class AarloGlance extends LitElement {
 			var captured   = hass.states[this._captureId].state;
 			var last       = hass.states[this._lastId].state;
 			var last_text = captured == 0 ? 'Captured: nothing today' :
-								'Captured: today=' + captured + ',last=' + last
+								'Captured: today ' + captured + ',last at ' + last
 		} else {
 			var last_text = 'not-used';
 		}
@@ -182,11 +182,11 @@ class AarloGlance extends LitElement {
 				${name} 
 				</div>
 				<div>
-					<ha-icon on-click="${(e) => { this.moreInfo(e,this._motionId); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
-					<ha-icon on-click="${(e) => { this.moreInfo(e,this._soundId); }}" class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
-					<ha-icon on-click="${(e) => { this.moreInfo(e,this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="mdi:file-video" title="${last_text}"></ha-icon>
-					<ha-icon on-click="${(e) => { this.moreInfo(e,this._batteryId); }}" class$="state-update ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
-					<ha-icon on-click="${(e) => { this.moreInfo(e,this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.moreInfo(this._soundId); }}" class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.moreInfo(this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="mdi:file-video" title="${last_text}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.moreInfo(this._batteryId); }}" class$="state-update ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.moreInfo(this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
 				</div>
 				<div class="status">
 					${camera.state}
@@ -227,18 +227,14 @@ class AarloGlance extends LitElement {
 		this._lastId    = 'sensor.aarlo_last_' + config.camera;
     }
 
-	moreInfo( ev,id ) {
-		var inner = 'testing';
-		const node = this.shadowRoot;
-        const options = {};
-        const detail = { entityId: id };
+	moreInfo( id ) {
         const event = new Event('hass-more-info', {
-          bubbles: options.bubbles === undefined ? true : options.bubbles,
-          cancelable: Boolean(options.cancelable),
-          composed: options.composed === undefined ? true : options.composed,
+          bubbles: true,
+          cancelable: false,
+          composed: true,
         });
-        event.detail = detail;
-        node.dispatchEvent(event);
+        event.detail = { entityId: id };
+        this.shadowRoot.dispatchEvent(event);
         return event;
 	}
 
