@@ -1,7 +1,6 @@
 
 import { LitElement, html } from 'https://unpkg.com/@polymer/lit-element@^0.5.2/lit-element.js?module';
 
-
 class AarloGlance extends LitElement {
 
 	static get properties() {
@@ -9,6 +8,7 @@ class AarloGlance extends LitElement {
 			_hass: Object,
 			_config: Object,
 			_img: String,
+			_video: String,
 		}
 	}
 
@@ -81,6 +81,11 @@ class AarloGlance extends LitElement {
 					transition: filter 0.2s linear;
 					width: 100%;
 				}
+				video {
+					display: block;
+					height: auto;
+					width: 100%;
+				}
 				.error {
 					text-align: center;
 				}
@@ -108,14 +113,26 @@ class AarloGlance extends LitElement {
 		`;
 	}
 
-	_render( { _hass,_config } ) {
+	_render( { _hass,_config,_img,_video } ) {
 
 		const camera = _hass.states[this._cameraId];
 		const cameraName = _config.name ? _config.name : camera.attributes.friendly_name;
 
-		// do we have a valid image?
-		var imageHidden = this._img != null ? '':'hidden';
-		var brokeHidden = this._img == null ? '':'hidden';
+		if( _video ) {
+			var imageHidden = 'hidden';
+			var brokeHidden = 'hidden';
+			var videoHidden = '';
+			var videoUrl = _video;
+		} else {
+			// do we have a valid image?
+			var imageHidden = _img != null ? '':'hidden';
+			var brokeHidden = _img == null ? '':'hidden';
+			var videoHidden = 'hidden';
+			var videoUrl = 'not-used';
+		}
+
+		var awrap = document.getElementById( 'aarlo-wrapper' );
+		var aimg = document.getElementById( 'aarlo-image' );
 
 		// what are we showing?
 		var show = _config.show || [];
@@ -169,15 +186,19 @@ class AarloGlance extends LitElement {
 			var captured  = _hass.states[this._captureId].state;
 			var last      = _hass.states[this._lastId].state;
 			var last_text = 'Captured: ' + ( captured == 0 ? 'nothing today' :
-												'today ' + captured + ',last at ' + last )
+												captured + ' clips today, last at ' + last.split(' ')[1] )
+			var lastIcon  = _video ? 'mdi:stop' : 'mdi:file-video'
 		} else {
 			var last_text = 'not-used';
 		}
 
 		var img = html`
 			${AarloGlance.innerStyleTemplate}
-			<div id="wrapper">
-				<img class$="${imageHidden}" id="image" src="${this._img}" />
+			<div id="aarlo-wrapper">
+				<video class$="${videoHidden}" src="${videoUrl}" type="video/mp4" width="${this.clientWidth}" height="${this.clientHeight}" autoplay>
+					Your browser does not support the video tag.
+				</video>
+				<img class$="${imageHidden}" id="aarlo-image" src="${_img}" />
 				<div class$="${brokeHidden}" style="height: 100px" id="brokenImage"></div>
 			</div>
 		`;
@@ -190,7 +211,7 @@ class AarloGlance extends LitElement {
 				<div>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._soundId); }}" class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
-					<ha-icon on-click="${(e) => { this.moreInfo(this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="mdi:file-video" title="${last_text}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.showVideo(this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="${lastIcon}" title="${last_text}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._batteryId); }}" class$="${batteryState} ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
 				</div>
@@ -246,6 +267,14 @@ class AarloGlance extends LitElement {
         return event;
 	}
 
+	showVideo( id ) {
+		if( this._video )
+		{
+			this._video = null
+		} else {
+			this._video = this._hass.states[id].attributes.video_url;
+		}
+	}
 
 	async _updateCameraImageSrc() {
 		try {
