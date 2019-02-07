@@ -182,7 +182,7 @@ class AarloGlance extends LitElement {
 				${name} 
 				</div>
 				<div>
-					<ha-icon class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.moreInfo(e); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
 					<ha-icon class$="${capturedOn} ${capturedHidden}" icon="mdi:file-video" title="${last_text}"></ha-icon>
 					<ha-icon class$="state-update ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
@@ -226,6 +226,13 @@ class AarloGlance extends LitElement {
 		this._captureId = 'sensor.aarlo_captured_today_' + config.camera;
 		this._lastId    = 'sensor.aarlo_last_' + config.camera;
     }
+
+	moreInfo( ev ) {
+		var inner = 'testing';
+		fireEvent()
+
+	}
+
 
 	async _updateCameraImageSrc() {
 		try {
