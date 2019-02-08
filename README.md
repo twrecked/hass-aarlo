@@ -26,7 +26,7 @@ Wherever you see `/config` in this README it refers to your home-assistant confi
 ### Manually
 Copy the `aarlo`, `alarm_control_panel`, `binary_sensor`, `camera` and `sensor` directories into your `/config/custom_components` directory.
 
-Copy the www directory into you `/config` directory.
+Copy the `www` directory into you `/config` directory.
 
 ### Script
 Run the install script. Run it once to make sure the operations look sane and run it a second time with the `go` paramater to do the actual work. If you update just rerun the script, it will overwrite all installed files.
@@ -119,6 +119,12 @@ You don't need to reoboot to see the GUI changes, a reload is sufficient. And if
 ![Aarlo Glance](/images/aarlo-glance-02.png)
 
 Reading from left to right you have the camera name, motion detection indicator, captured clip indicator, battery levels, signal level and current state. If you click the captured clip icon the last video will play directly on the card. (The video streams directly from Arlo which solves some weird speed issues I was seeing.)
+The states are:
+* `Idle` camera is doing nothing
+* `Recording` camera has detected something and is recording
+* `Streaming` camera is streaming live video other login
+* `Recently Active` camera has seen activity within the last few minutes
+* `Too Cold!` the camera is shutdown until it warms up
 
 See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/lovelace_custom_card.html) page for further information.
 
