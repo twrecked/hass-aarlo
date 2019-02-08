@@ -10,7 +10,7 @@ fi
 
 DEST="${1}"
 if [[ -z "${DEST}" ]]; then
-	echo "*** please supply the custom_components directory"
+	echo "*** please supply the home-assistant /config directory"
 	exit 1
 fi	
 if [[ ! -d "${DEST}" ]]; then
@@ -22,9 +22,13 @@ if [[ -n "${ECHO}" ]]; then
 	echo "**** would run the following commands, use './install go $1' to do the work"
 fi
 
-${ECHO} cp -afv aarlo "${DEST}"
-${ECHO} cp -afv alarm_control_panel "${DEST}"
-${ECHO} cp -afv binary_sensor "${DEST}"
-${ECHO} cp -afv camera "${DEST}"
-${ECHO} cp -afv sensor "${DEST}"
+${ECHO} mkdir -p "${DEST}/www"
+${ECHO} cp -afv www/aarlo*.js "${DEST}/www"
+
+${ECHO} mkdir -p "${DEST}/custom_components"
+${ECHO} cp -afv aarlo "${DEST}/custom_components"
+${ECHO} cp -afv alarm_control_panel "${DEST}/custom_components"
+${ECHO} cp -afv binary_sensor "${DEST}/custom_components"
+${ECHO} cp -afv camera "${DEST}/custom_components"
+${ECHO} cp -afv sensor "${DEST}/custom_components"
 

@@ -42,7 +42,7 @@ class ArloCamera(ArloChildDevice):
         count,videos = self._arlo._ml.videos_for( self )
         if videos:
             captured_today = len([video for video in videos if video.created_today])
-            last_captured = videos[0].created_at_pretty('%Y-%m-%d %H:%M:%S')
+            last_captured = videos[0].created_at_pretty('%m-%d %H:%M')
             last_time = arlotime_to_time( videos[0].created_at )
         else:
             captured_today = 0

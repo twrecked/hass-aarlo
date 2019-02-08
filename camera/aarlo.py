@@ -159,8 +159,7 @@ class ArloCam(Camera):
                 (ATTR_FLIPPED, self._camera.flip_state),
                 (ATTR_MIRRORED, self._camera.mirror_state),
                 (ATTR_MOTION, self._camera.motion_detection_sensitivity),
-                (ATTR_POWERSAVE, POWERSAVE_MODE_MAPPING.get(
-                    self._camera.powersave_mode)),
+                (ATTR_POWERSAVE, POWERSAVE_MODE_MAPPING.get( self._camera.powersave_mode )),
                 (ATTR_SIGNAL_STRENGTH, self._camera.signal_strength),
                 (ATTR_UNSEEN_VIDEOS, self._camera.unseen_videos),
                 (ATTR_RECENT_ACTIVITY, self._camera.recent),
@@ -170,6 +169,10 @@ class ArloCam(Camera):
         attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
         attrs['brand']          = DEFAULT_BRAND
         attrs['friendly_name']  = self._name
+
+        video = self._camera.last_video
+        if video:
+            attrs['video_url'] = video.video_url
 
         return attrs
 
