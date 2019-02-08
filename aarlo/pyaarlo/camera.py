@@ -29,6 +29,14 @@ class ArloCamera(ArloChildDevice):
         self._lock = threading.Lock()
         self._arlo._bg.run_in( self._update_media,10 )
 
+    def _set_recent( self,timeo ):
+        with self._lock:
+            self._recent = True
+            self._arlo._bg.cancel( self._recent_job )
+            self._recent_job = self._arlo._bg.run_in( self._clear_recent,timeo )
+        self._arlo.info( 'turning recent ON for ' + self._name )
+        self._do_callbacks( 'recentActivity',True )
+
     def _clear_recent( self ):
         with self._lock:
             self._recent = False
@@ -42,7 +50,7 @@ class ArloCamera(ArloChildDevice):
         count,videos = self._arlo._ml.videos_for( self )
         if videos:
             captured_today = len([video for video in videos if video.created_today])
-            last_captured = videos[0].created_at_pretty('%m-%d %H:%M')
+            last_captured = videos[0].created_at_pretty( self._arlo._last_format )
             last_time = arlotime_to_time( videos[0].created_at )
         else:
             captured_today = 0
@@ -60,24 +68,19 @@ class ArloCamera(ArloChildDevice):
         self._do_callbacks( 'mediaUploadNotification',True )
 
         # is this capture considered recent? if so signal recently seen
-        now = int( time.time() )
-        self._arlo.info( 'now=' + str(now) + ',last=' + str(last_time) )
-        if now >= last_time:
-            delta = now - last_time
-        else:
-            delta = 1
-        recent = self._arlo._recent_time
+        #  now = int( time.time() )
+        #  self._arlo.info( 'now=' + str(now) + ',last=' + str(last_time) )
+        #  if now >= last_time:
+            #  delta = now - last_time
+        #  else:
+            #  delta = 1
+        #  recent = self._arlo._recent_time
 
-        self._arlo.debug( 'delta=' + str(delta) + ',recent=' + str(recent) )
-        if delta < recent:
-            with self._lock:
-                self._recent = True
-                self._arlo._bg.cancel( self._recent_job )
-                self._recent_job = self._arlo._bg.run_in( self._clear_recent,recent - delta )
-            self._arlo.info( 'turning recent ON for ' + self._name )
-            self._do_callbacks( 'recentActivity',True )
-        else:
-            self._clear_recent()
+        #  self._arlo.debug( 'delta=' + str(delta) + ',recent=' + str(recent) )
+        #  if delta < recent:
+            #  self._set_recent( recent - delta )
+        #  else:
+            #  self._clear_recent()
 
     def _update_last_image( self ):
         self._arlo.info('getting image for ' + self.name )
@@ -113,6 +116,9 @@ class ArloCamera(ArloChildDevice):
             if event.get('recordingStopped',False) == True:
                 self._arlo.debug( 'recording stopped, updating library' )
                 self._arlo._ml.queue_load( self._update_media )
+
+            # something just happened!
+            self._set_recent( self._arlo._recent_time )
 
             return
 

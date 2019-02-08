@@ -186,7 +186,7 @@ class AarloGlance extends LitElement {
 			var captured  = _hass.states[this._captureId].state;
 			var last      = _hass.states[this._lastId].state;
 			var last_text = 'Captured: ' + ( captured == 0 ? 'nothing today' :
-												captured + ' clips today, last at ' + last.split(' ')[1] )
+												captured + ' clips today, last at ' + last )
 			var lastIcon  = _video ? 'mdi:stop' : 'mdi:file-video'
 		} else {
 			var last_text = 'not-used';

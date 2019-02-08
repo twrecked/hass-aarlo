@@ -28,7 +28,7 @@ class PyArlo(object):
     def __init__( self,username,password,name='aarlo',
                         storage_dir='/config/.aarlo',dump=False,max_days=365,
                         db_motion_time=30,db_ding_time=10,
-                        recent_time=600 ):
+                        recent_time=600,last_format='%m-%d %H:%M' ):
 
         try:
             os.mkdir( storage_dir )
@@ -45,6 +45,7 @@ class PyArlo(object):
         self._cameras     = []
         self._doorbells   = []
         self._recent_time = recent_time
+        self._last_format = last_format
 
         # on day flip we reload image count
         self._today = datetime.date.today()
