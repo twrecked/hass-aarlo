@@ -117,7 +117,7 @@ class PyArlo(object):
 
         # alway ping bases
         for base in self._bases:
-            self._bg.run( self._be.ping,base=base )
+            self._bg.run( self._be.async_ping,base=base )
 
         # if day changes then reload camera counts
         today = datetime.date.today()

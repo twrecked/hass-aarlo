@@ -22,16 +22,18 @@ MOTION_DETECTED_KEY = 'motionDetected'
 MOTION_ENABLED_KEY  = 'motionSetupModeEnabled'
 MOTION_SENS_KEY     = 'motionSetupModeSensitivity'
 POWER_SAVE_KEY      = 'powerSaveMode'
+PRIVACY_KEY         = 'privacyActive'
 SIGNAL_STR_KEY      = 'signalStrength'
 
 # we can get these from the resource; doorbell is subset
 RESOURCE_KEYS = [ ACTIVITY_STATE, AUDIO_DETECTED_KEY, BATTERY_KEY,
                             BRIGHTNESS_KEY, CONNECTION_KEY, FLIP_KEY,
                             MIRROR_KEY, MOTION_DETECTED_KEY, MOTION_ENABLED_KEY,
-                            MOTION_SENS_KEY, POWER_SAVE_KEY, SIGNAL_STR_KEY ]
+                            MOTION_SENS_KEY, POWER_SAVE_KEY, PRIVACY_KEY,
+                            SIGNAL_STR_KEY ]
 
 RESOURCE_UPDATE_KEYS = [ ACTIVITY_STATE, AUDIO_DETECTED_KEY, BATTERY_KEY,
-                            MOTION_DETECTED_KEY, SIGNAL_STR_KEY ]
+                            MOTION_DETECTED_KEY, PRIVACY_KEY, SIGNAL_STR_KEY ]
 
 # device keys
 DEVICE_ID_KEY   = 'deviceId'

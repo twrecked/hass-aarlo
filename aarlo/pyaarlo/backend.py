@@ -102,8 +102,13 @@ class ArloBackEnd(object):
                 if device_id != 'resource':
                     responses.append( (device_id,resource,response[device_id]) )
 
+        # answer for async ping
+        elif resource.startswith('subscriptions/'):
+            self._arlo.debug( 'async ping response ' + resource )
+            return
+
         else:
-            print( 'unhandled response ' + resource )
+            self._arlo.info( 'unhandled response ' + resource )
             return
 
         # now find something waiting for this/these
@@ -210,13 +215,21 @@ class ArloBackEnd(object):
             if ( mnow >= mend ):
                 return self.requests_.pop( tid )
 
-    def _ping( self,base ):
-        return self._notify_and_get_response( base,{ "action":"set","resource":self.sub_id,
-                                                                "publishResponse":False,"properties":{"devices":[base.device_id]} } )
-
     def ping( self,base ):
         with self.lock_:
-            return self._ping( base )
+            return self._notify_and_get_response( base,{ "action":"set","resource":self.sub_id,
+                                                                    "publishResponse":False,"properties":{"devices":[base.device_id]} } )
+
+    def async_ping( self,base ):
+        with self.lock_:
+            return self._notify( base,{ "action":"set","resource":self.sub_id,
+                                                                    "publishResponse":False,"properties":{"devices":[base.device_id]} } )
+
+    def async_on_off( self,base,device,privacy_on ):
+        with self.lock_:
+            return self._notify( base,{ "action":"set","resource":device.resource_id,
+                                                                    "publishResponse":True,
+                                                                    "properties":{"privacyActive":privacy_on} } )
 
     # login and set up session
     def login( self,username,password ):

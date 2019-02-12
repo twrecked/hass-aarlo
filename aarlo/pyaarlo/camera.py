@@ -5,7 +5,8 @@ import pprint
 
 from custom_components.aarlo.pyaarlo.device import ArloChildDevice
 from custom_components.aarlo.pyaarlo.util import ( arlotime_to_time,http_get )
-from custom_components.aarlo.pyaarlo.constant import( BRIGHTNESS_KEY,
+from custom_components.aarlo.pyaarlo.constant import( ACTIVITY_STATE,
+                                BRIGHTNESS_KEY,
                                 CAPTURED_TODAY_KEY,
                                 FLIP_KEY,
                                 LAST_CAPTURE_KEY,
@@ -126,6 +127,10 @@ class ArloCamera(ArloChildDevice):
         super()._event_handler( resource,event )
 
     @property
+    def resource_id(self):
+        return 'cameras/' + self._device_id
+
+    @property
     def last_image(self):
         return self._arlo._st.get( [self._device_id,LAST_IMAGE_KEY],None )
 
@@ -199,4 +204,26 @@ class ArloCamera(ArloChildDevice):
         if cap in ( 'audio','audioDetected','sound' ) and self.model_id.startswith('VMC4030'):
             return True
         return super().has_capability( cap )
+
+    @property
+    def is_recording( self ):
+        return self._arlo._st.get( [self._device_id,ACTIVITY_STATE],'unknown' ) == 'alertStreamActive'
+
+    @property
+    def is_streaming( self ):
+        return self._arlo._st.get( [self._device_id,ACTIVITY_STATE],'unknown' ) == 'userStreamActive'
+
+    @property
+    def was_recently_active( self ):
+        return self._recent
+
+    @property
+    def state( self ):
+        if self.is_recording:
+            return 'recording'
+        if self.is_streaming:
+            return 'streaming'
+        if self.was_recently_active:
+            return 'recently active'
+        return super().state
 
