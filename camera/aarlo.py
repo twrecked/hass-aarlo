@@ -101,6 +101,7 @@ class ArloCam(Camera):
 
             self.async_schedule_update_ha_state()
 
+        self._camera.add_attr_callback( 'privacyActive',update_state )
         self._camera.add_attr_callback( 'recentActivity',update_state )
         self._camera.add_attr_callback( 'activityState',update_state )
         self._camera.add_attr_callback( 'connectionState',update_state )
@@ -136,18 +137,23 @@ class ArloCam(Camera):
 
     @property
     def is_recording(self):
-        return self._state == STATE_RECORDING
+        return self._camera.is_recording
 
     @property
     def is_on(self):
+        return self._camera.is_on
+
+    def turn_off( self ):
+        self._camera.turn_off()
+        return True
+
+    def turn_on( self ):
+        self._camera.turn_on()
         return True
 
     @property
     def state(self):
-        """Return the camera state."""
-        if self._recent and self._state == 'idle':
-            return 'Recently Active'
-        return self._state
+        return self._camera.state
 
     @property
     def device_state_attributes(self):

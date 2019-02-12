@@ -112,7 +112,7 @@ class PyArlo(object):
             self._bg.run( self._be.notify,base=base,body={"action":"get","resource":"doorbells","publishResponse":False} )
 
     def _run_every_1( self ):
-        self.info( 'fast refresh' )
+        self.debug( 'fast refresh' )
         self._st.save()
 
         # alway ping bases
@@ -127,7 +127,7 @@ class PyArlo(object):
             self._today = today
 
     def _run_every_15( self ):
-        self.info( 'slow refresh' )
+        self.debug( 'slow refresh' )
         self._refresh_bases()
         #self._bg.run( self._ml.load )
 
