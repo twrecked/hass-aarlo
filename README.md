@@ -12,6 +12,7 @@ The component supports:
 * door bell button press
 * on the Lovelace UI it will report camera streaming state on the picture entity - ie, a clip is being recorded or somebody is view a stream on the Arlo app or if the camera is too cold to operate
 * saving of state across restarts
+* camera on/off
 
 It provides a custom lovelace resource that is a specialised version of a picture-glance that allows you to see the last snapshot taken and give quick access to clip counts, the last recorded video and signal and battery levels.
 
@@ -83,11 +84,15 @@ aarlo:
   db_motion_time: 30
   db_ding_time: 10
   recent_time: 10
+  last_format: '%m-%d %H:%M'
+  conf_dir: /config/.aarlo
 ```
 * If `packet_dump` is True `aarlo` will store all the packets it sees in `/config/.aarlo/packets.dump` file.
 * `db_motion_time` sets how long a doorbell motion will last. Arlo doorbell only indicates motion is present not that it stops. You can adjust the stop time out here.
 * `db_ding_time` sets how long a doorbell button press will last. As with motion Arlo doorbell only tells us it's pressed not released.
 * `recent_time` is used to hold the cameras in a `recent activity` state after a recording or streaming event. The actually streaming or recording can be over in a few seconds and without this the camera will revert back to idle possible looking like nothing has happend.
+* `last_format` is a `strftime` compatible string indicating how you want the last captured time displayed
+* `config_dir` is where the component stores its state. The default is fine for hassio and docker system, if you are using a virtualenv you will need to change this to somewhere you have permission to write to.
 
 Now restart your home assistant system.
 
@@ -104,14 +109,14 @@ You configure a camera with the following yaml. The `show` parameters are option
 
 ```yaml
 type: 'custom:aarlo-glance'
-camera: front_door_camera
+entity: camera.aarlo_front_door_camera
 name: Front Door
 show:
   - motion
   - sound
-  - battery
+  - battery_level
   - signal_strength
-  - captured
+  - captured_today
 ```
 
 You don't need to reoboot to see the GUI changes, a reload is sufficient. And if all goes will see a card that looks like this:
@@ -121,6 +126,7 @@ You don't need to reoboot to see the GUI changes, a reload is sufficient. And if
 Reading from left to right you have the camera name, motion detection indicator, captured clip indicator, battery levels, signal level and current state. If you click the captured clip icon the last video will play directly on the card. (The video streams directly from Arlo which solves some weird speed issues I was seeing.)
 The states are:
 * `Idle` camera is doing nothing
+* `Turned Off` user has turned the camera off
 * `Recording` camera has detected something and is recording
 * `Streaming` camera is streaming live video other login
 * `Recently Active` camera has seen activity within the last few minutes
@@ -128,10 +134,55 @@ The states are:
 
 See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/lovelace_custom_card.html) page for further information.
 
+## Other Lovelace Options
+
+Using the conditional card you can have badges of cameras appear after activity or if they go off line. I use the following to get quick updates on an overview view.
+
+```yaml
+cards:
+type: vertical-stack
+  - card:
+      show_state: false
+      type: glance
+    entities:
+      - entity: camera.aarlo_front_door_camera
+        name: Front Door
+      - entity: camera.aarlo_front_camera
+        name: Front
+      - entity: camera.aarlo_driveway_camera
+        name: Driveway
+      - entity: camera.aarlo_back_door_camera
+        name: Back Door
+    show_empty: false
+    state_filter:
+      - recently active
+      - streaming
+      - recording
+    type: entity-filter
+  - card:
+      show_state: true
+      type: glance
+    entities:
+      - entity: camera.aarlo_front_door_camera
+        name: Front Door
+      - entity: camera.aarlo_front_camera
+        name: Front
+      - entity: camera.aarlo_driveway_camera
+        name: Driveway
+      - entity: camera.aarlo_back_door_camera
+        name: Back Door
+    show_empty: false
+    state_filter:
+      - 'offline, too cold'
+      - turned off
+    type: entity-filter
+```
+When things happen it will look something like:
+
+![Recent Activity](/images/activity.png)
+
 ## To Do
 
-* turn cameras on/off
 * custom mode - like SmartThings to better control motion detection
 * live streaming???
-* last-seen custom format
-
+* baby arlo
