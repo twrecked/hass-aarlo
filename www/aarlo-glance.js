@@ -114,12 +114,12 @@ class AarloGlance extends LitElement {
 	}
 
 	safe_state( _hass,_id,def='' ) {
-		return _id in _hass.states ? _hass.states[_id] : { 'state':def,'attributes':{} };
+		return _id in _hass.states ? _hass.states[_id] : { 'state':def,'attributes':{ 'friendly_name':'unknown' } };
 	}
 
 	_render( { _hass,_config,_img,_video } ) {
 
-		const camera = _hass.states[this._cameraId];
+		const camera = this.safe_state(_hass,this._cameraId,'unknown')
 		const cameraName = _config.name ? _config.name : camera.attributes.friendly_name;
 
 		if( _video ) {
@@ -199,7 +199,7 @@ class AarloGlance extends LitElement {
 		var img = html`
 			${AarloGlance.innerStyleTemplate}
 			<div id="aarlo-wrapper">
-				<video class$="${videoHidden}" src="${videoUrl}" type="video/mp4" width="${this.clientWidth}" height="${this.clientHeight}" autoplay>
+				<video class$="${videoHidden}" src="${videoUrl}" type="video/mp4" width="${this.clientWidth}" height="${this.clientHeight}" autoplay playsinline controls poster="${_img}" onended="${(e) => { this.showVideo(this._cameraId); }}">
 					Your browser does not support the video tag.
 				</video>
 				<img class$="${imageHidden}" id="aarlo-image" src="${_img}" />
@@ -208,7 +208,7 @@ class AarloGlance extends LitElement {
 		`;
 
 		var state = html`
-			<div class="box">
+			<div class$="box ${imageHidden}">
 				<div class="title">
 				${cameraName} 
 				</div>
@@ -264,6 +264,10 @@ class AarloGlance extends LitElement {
 		this._signalId  = 'sensor.aarlo_signal_strength_' + camera;
 		this._captureId = 'sensor.aarlo_captured_today_' + camera;
 		this._lastId    = 'sensor.aarlo_last_' + camera;
+
+		if ( this._hass && this._hass.states[this._cameraId] == undefined ) {
+			throw new Error( 'unknown camera' );
+		}
 
 		this._updateCameraImageSrc()
     }
