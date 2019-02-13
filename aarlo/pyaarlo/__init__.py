@@ -63,11 +63,13 @@ class PyArlo(object):
             dtype = device.get('deviceType')
             if device.get('state','unknown') != 'provisioned':
                 self.info('skipping ' + dname + ': state unknown')
-            elif dtype == 'basestation':
+                continue
+
+            if dtype == 'basestation' or device.get('modelId') == 'ABC1000':
                 self._bases.append( ArloBase( dname,self,device ) )
-            elif dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
+            if dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
                 self._cameras.append( ArloCamera( dname,self,device ) )
-            elif dtype == 'doorbell':
+            if dtype == 'doorbell':
                 self._doorbells.append( ArloDoorBell( dname,self,device,
                                             motion_time=db_motion_time,ding_time=db_ding_time ) )
 

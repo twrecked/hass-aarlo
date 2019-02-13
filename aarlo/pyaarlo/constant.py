@@ -11,12 +11,14 @@ TRANSID_PREFIX  = 'web'
 PRELOAD_DAYS = 30
 
 # update keys
-ACTIVITY_STATE      = 'activityState'
+ACTIVITY_STATE_KEY  = 'activityState'
+AIR_QUALITY_KEY     = 'airQuality'
 AUDIO_DETECTED_KEY  = 'audioDetected'
 BATTERY_KEY         = 'batteryLevel'
 BRIGHTNESS_KEY      = 'brightness'
 CONNECTION_KEY      = 'connectionState'
 FLIP_KEY            = 'flip'
+HUMIDITY_KEY        = 'humidity'
 MIRROR_KEY          = 'mirror'
 MOTION_DETECTED_KEY = 'motionDetected'
 MOTION_ENABLED_KEY  = 'motionSetupModeEnabled'
@@ -24,16 +26,17 @@ MOTION_SENS_KEY     = 'motionSetupModeSensitivity'
 POWER_SAVE_KEY      = 'powerSaveMode'
 PRIVACY_KEY         = 'privacyActive'
 SIGNAL_STR_KEY      = 'signalStrength'
+TEMPERATURE_KEY     = 'temperature'
 
 # we can get these from the resource; doorbell is subset
-RESOURCE_KEYS = [ ACTIVITY_STATE, AUDIO_DETECTED_KEY, BATTERY_KEY,
-                            BRIGHTNESS_KEY, CONNECTION_KEY, FLIP_KEY,
+RESOURCE_KEYS = [ ACTIVITY_STATE_KEY, AIR_QUALITY_KEY, AUDIO_DETECTED_KEY, BATTERY_KEY,
+                            BRIGHTNESS_KEY, CONNECTION_KEY, FLIP_KEY, HUMIDITY_KEY,
                             MIRROR_KEY, MOTION_DETECTED_KEY, MOTION_ENABLED_KEY,
                             MOTION_SENS_KEY, POWER_SAVE_KEY, PRIVACY_KEY,
-                            SIGNAL_STR_KEY ]
+                            SIGNAL_STR_KEY, TEMPERATURE_KEY ]
 
-RESOURCE_UPDATE_KEYS = [ ACTIVITY_STATE, AUDIO_DETECTED_KEY, BATTERY_KEY,
-                            MOTION_DETECTED_KEY, PRIVACY_KEY, SIGNAL_STR_KEY ]
+RESOURCE_UPDATE_KEYS = [ ACTIVITY_STATE_KEY, AIR_QUALITY_KEY, AUDIO_DETECTED_KEY, BATTERY_KEY,
+                            HUMIDITY_KEY, MOTION_DETECTED_KEY, PRIVACY_KEY, SIGNAL_STR_KEY, TEMPERATURE_KEY ]
 
 # device keys
 DEVICE_ID_KEY   = 'deviceId'
