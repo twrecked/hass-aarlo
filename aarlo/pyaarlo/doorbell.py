@@ -46,6 +46,10 @@ class ArloDoorBell(ArloChildDevice):
         # pass on to lower layer
         super()._event_handler( resource,event )
 
+    @property
+    def resource_id(self):
+        return 'doorbells/' + self._device_id
+
     def has_capability( self,cap ):
         if cap.startswith( 'button' ):
             return True

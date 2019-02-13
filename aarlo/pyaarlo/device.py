@@ -4,7 +4,9 @@ import threading
 import custom_components.aarlo.pyaarlo.storage
 
 from custom_components.aarlo.pyaarlo.constant import( BATTERY_KEY,
+                                CONNECTION_KEY,
                                 PARENT_ID_KEY,
+                                PRIVACY_KEY,
                                 RESOURCE_KEYS,
                                 RESOURCE_UPDATE_KEYS,
                                 SIGNAL_STR_KEY,
@@ -63,6 +65,10 @@ class ArloDevice(object):
         return self._device_id
 
     @property
+    def resource_id(self):
+        return self._device_id
+
+    @property
     def serial_number(self):
         return self._device_id
 
@@ -112,6 +118,10 @@ class ArloDevice(object):
 
     def has_capability( self,cap ):
         return False
+
+    @property
+    def state( self ):
+        return 'idle'
 
 
 class ArloChildDevice(ArloDevice):
@@ -164,3 +174,26 @@ class ArloChildDevice(ArloDevice):
         if cap in ( 'motionDetected' ):
             return True
         return False
+
+    @property
+    def too_cold( self ):
+        return self._arlo._st.get( [self._device_id,CONNECTION_KEY],'unknown' ) == 'thermalShutdownCold'
+
+    @property
+    def is_on( self ):
+        return not self._arlo._st.get( [self._device_id,PRIVACY_KEY],False )
+
+    def turn_on( self ):
+        self._arlo._bg.run( self._arlo._be.async_on_off,base=self.base_station,device=self,privacy_on=False )
+
+    def turn_off( self ):
+        self._arlo._bg.run( self._arlo._be.async_on_off,base=self.base_station,device=self,privacy_on=True )
+
+    @property
+    def state( self ):
+        if not self.is_on:
+            return 'turned off'
+        if self.too_cold:
+            return 'offline, too cold'
+        return 'idle'
+

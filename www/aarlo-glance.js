@@ -113,6 +113,10 @@ class AarloGlance extends LitElement {
 		`;
 	}
 
+	safe_state( _hass,_id,def='' ) {
+		return _id in _hass.states ? _hass.states[_id] : { 'state':def,'attributes':{} };
+	}
+
 	_render( { _hass,_config,_img,_video } ) {
 
 		const camera = _hass.states[this._cameraId];
@@ -136,14 +140,14 @@ class AarloGlance extends LitElement {
 
 		// what are we showing?
 		var show = _config.show || [];
-		var batteryHidden  = show.includes('battery') ? '' : 'hidden';
+		var batteryHidden  = show.includes('battery') || show.includes('battery_level') ? '' : 'hidden';
 		var signalHidden   = show.includes('signal_strength') ? '' : 'hidden';
 		var motionHidden   = show.includes('motion') ? '' : 'hidden';
 		var soundHidden    = show.includes('sound') ? '' : 'hidden';
-		var capturedHidden = show.includes('captured') ? '' : 'hidden';
+		var capturedHidden = show.includes('captured') || show.includes('captured_today') ? '' : 'hidden';
 
 		if( batteryHidden == '' ) {
-			var battery      = _hass.states[this._batteryId];
+			var battery      = this.safe_state(_hass,this._batteryId,0);
 			var batteryText  = 'Battery Strength: ' + battery.state +'%';
 			var batteryIcon  = battery.state < 10 ? 'battery-outline' :
 								( battery.state > 90 ? 'battery' : 'battery-' + Math.round(battery.state/10) +'0' );
@@ -156,7 +160,7 @@ class AarloGlance extends LitElement {
 		}
 
 		if( signalHidden == '' ) {
-			var signal      = _hass.states[this._signalId];
+			var signal      = this.safe_state(_hass,this._signalId,0);
 			var signal_text = 'Signal Strength: ' + signal.state;
 			var signalIcon  = signal.state == 0 ? 'mdi:wifi-outline' : 'mdi:wifi-strength-' + signal.state;
 		} else {
@@ -165,7 +169,7 @@ class AarloGlance extends LitElement {
 		}
 
 		if( motionHidden == '' ) {
-			var motionOn   = _hass.states[this._motionId].state == 'on' ? 'state-on' : '';
+			var motionOn   = this.safe_state(_hass,this._motionId,'off').state == 'on' ? 'state-on' : '';
 			var motionText = 'Motion: ' + (motionOn != '' ? 'detected' : 'clear');
 		} else {
 			var motionOn   = 'not-used';
@@ -173,23 +177,23 @@ class AarloGlance extends LitElement {
 		}
 
 		if( soundHidden == '' ) {
-			var soundOn    = _hass.states[this._soundId].state == 'on' ? 'state-on' : '';
+			var soundOn    = this.safe_state(_hass,this._soundId,'off').state == 'on' ? 'state-on' : '';
 			var soundText  = 'Sound: ' + (soundOn != '' ? 'detected' : 'clear');
-			var capturedOn = 'state-update'
 		} else {
 			var soundOn    = 'not-used'
 			var soundText  = 'not-used'
-			var capturedOn = ''
 		}
 
 		if( capturedHidden == '' ) {
-			var captured  = _hass.states[this._captureId].state;
-			var last      = _hass.states[this._lastId].state;
-			var last_text = 'Captured: ' + ( captured == 0 ? 'nothing today' :
+			var captured     = this.safe_state(_hass,this._captureId,0).state;
+			var last         = this.safe_state(_hass,this._lastId,0).state;
+			var capturedText = 'Captured: ' + ( captured == 0 ? 'nothing today' :
 												captured + ' clips today, last at ' + last )
-			var lastIcon  = _video ? 'mdi:stop' : 'mdi:file-video'
+			var capturedIcon = _video ? 'mdi:stop' : 'mdi:file-video'
+			var capturedOn   = captured != 0 ? 'state-update' : ''
 		} else {
-			var last_text = 'not-used';
+			var capturedText = 'not-used';
+			var capturedOn   = ''
 		}
 
 		var img = html`
@@ -211,7 +215,7 @@ class AarloGlance extends LitElement {
 				<div>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._soundId); }}" class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
-					<ha-icon on-click="${(e) => { this.showVideo(this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="${lastIcon}" title="${last_text}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.showVideo(this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="${capturedIcon}" title="${capturedText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._batteryId); }}" class$="${batteryState} ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
 				</div>
@@ -237,21 +241,29 @@ class AarloGlance extends LitElement {
 
     setConfig(config) {
 
-        if( !config.camera ) {
-            throw new Error( 'missing a camera' )
+        var camera = undefined;
+        if( config.entity ) {
+            camera = config.entity.replace( 'camera.aarlo_','' );
         }
+        if( config.camera ) {
+            camera = config.camera;
+        }
+        if ( camera == undefined ) {
+            throw new Error( 'missing a camera definition' );
+        }
+
         if( !config.show ) {
-            throw new Error( 'missing a show' )
+            throw new Error( 'missing show components' );
         }
 
         this._config = config;
-		this._cameraId  = 'camera.aarlo_' + config.camera;
-		this._motionId  = 'binary_sensor.aarlo_motion_' + config.camera;
-		this._soundId   = 'binary_sensor.aarlo_sound_' + config.camera;
-		this._batteryId = 'sensor.aarlo_battery_level_' + config.camera;
-		this._signalId  = 'sensor.aarlo_signal_strength_' + config.camera;
-		this._captureId = 'sensor.aarlo_captured_today_' + config.camera;
-		this._lastId    = 'sensor.aarlo_last_' + config.camera;
+		this._cameraId  = 'camera.aarlo_' + camera;
+		this._motionId  = 'binary_sensor.aarlo_motion_' + camera;
+		this._soundId   = 'binary_sensor.aarlo_sound_' + camera;
+		this._batteryId = 'sensor.aarlo_battery_level_' + camera;
+		this._signalId  = 'sensor.aarlo_signal_strength_' + camera;
+		this._captureId = 'sensor.aarlo_captured_today_' + camera;
+		this._lastId    = 'sensor.aarlo_last_' + camera;
 
 		this._updateCameraImageSrc()
     }

@@ -63,11 +63,13 @@ class PyArlo(object):
             dtype = device.get('deviceType')
             if device.get('state','unknown') != 'provisioned':
                 self.info('skipping ' + dname + ': state unknown')
-            elif dtype == 'basestation':
+                continue
+
+            if dtype == 'basestation' or device.get('modelId') == 'ABC1000':
                 self._bases.append( ArloBase( dname,self,device ) )
-            elif dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
+            if dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
                 self._cameras.append( ArloCamera( dname,self,device ) )
-            elif dtype == 'doorbell':
+            if dtype == 'doorbell':
                 self._doorbells.append( ArloDoorBell( dname,self,device,
                                             motion_time=db_motion_time,ding_time=db_ding_time ) )
 
@@ -112,12 +114,12 @@ class PyArlo(object):
             self._bg.run( self._be.notify,base=base,body={"action":"get","resource":"doorbells","publishResponse":False} )
 
     def _run_every_1( self ):
-        self.info( 'fast refresh' )
+        self.debug( 'fast refresh' )
         self._st.save()
 
         # alway ping bases
         for base in self._bases:
-            self._bg.run( self._be.ping,base=base )
+            self._bg.run( self._be.async_ping,base=base )
 
         # if day changes then reload camera counts
         today = datetime.date.today()
@@ -127,7 +129,7 @@ class PyArlo(object):
             self._today = today
 
     def _run_every_15( self ):
-        self.info( 'slow refresh' )
+        self.debug( 'slow refresh' )
         self._refresh_bases()
         #self._bg.run( self._ml.load )
 
