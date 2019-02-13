@@ -33,9 +33,9 @@ SENSOR_TYPES = {
     'captured_today': ['Captured Today', None, 'file-video', 'capturedToday'],
     'battery_level': ['Battery Level', '%', 'battery-50','batteryLevel'],
     'signal_strength': ['Signal Strength', None, 'signal','signalStrength'],
-    'temperature': ['Temperature', TEMP_CELSIUS, 'thermometer',None],
-    'humidity': ['Humidity', '%', 'water-percent',None],
-    'air_quality': ['Air Quality', 'ppm', 'biohazard',None]
+    'temperature': ['Temperature', TEMP_CELSIUS, 'thermometer','temperature'],
+    'humidity': ['Humidity', '%', 'water-percent','humidity'],
+    'air_quality': ['Air Quality', 'ppm', 'biohazard','airQuality']
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -60,10 +60,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
                     name = '{0} {1}'.format( SENSOR_TYPES[sensor_type][0], camera.name)
                     sensors.append(ArloSensor(name,camera, sensor_type))
 
-            for base_station in arlo.base_stations:
-                if base_station.has_capability( sensor_type ):
-                    name = '{0} {1}'.format( SENSOR_TYPES[sensor_type][0], base_station.name)
-                    sensors.append(ArloSensor(name,base_station, sensor_type))
+            # move into cameras...
+            #  for base_station in arlo.base_stations:
+                #  if base_station.has_capability( sensor_type ):
+                    #  name = '{0} {1}'.format( SENSOR_TYPES[sensor_type][0], base_station.name)
+                    #  sensors.append(ArloSensor(name,base_station, sensor_type))
 
     async_add_entities(sensors, True)
 
