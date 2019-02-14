@@ -211,7 +211,11 @@ class AarloGlance extends LitElement {
 		var img = html`
 			${AarloGlance.innerStyleTemplate}
 			<div id="aarlo-wrapper">
-				<video class$="${videoHidden}" src="${videoUrl}" type="video/mp4" width="${this.clientWidth}" height="${this.clientHeight}" autoplay playsinline controls poster="${_img}" onended="${(e) => { this.showVideo(this._cameraId); }}">
+				<video class$="${videoHidden}" src="${videoUrl}"
+							type="video/mp4" width="${this.clientWidth}" height="${this.clientHeight}"
+							autoplay playsinline controls poster="${_img}"
+							onended="${(e) => { this.showVideo(this._cameraId); }}"
+							on-click="${(e) => { this.showVideo(this._cameraId); }}">
 					Your browser does not support the video tag.
 				</video>
 				<img class$="${imageHidden}" id="aarlo-image" src="${_img}" />
