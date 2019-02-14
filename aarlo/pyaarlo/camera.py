@@ -16,7 +16,9 @@ from custom_components.aarlo.pyaarlo.constant import( ACTIVITY_STATE_KEY,
                                 MEDIA_UPLOAD_KEYS,
                                 MIRROR_KEY,
                                 MOTION_SENS_KEY,
-                                PRELOAD_DAYS )
+                                PRELOAD_DAYS,
+                                SNAPSHOT_KEY,
+                                SNAPSHOT_URL )
 
 class ArloCamera(ArloChildDevice):
 
@@ -96,6 +98,15 @@ class ArloCamera(ArloChildDevice):
         # signal up if nedeed
         self._save_and_do_callbacks( LAST_IMAGE_DATA_KEY,img )
 
+    def _update_last_image_from_snapshot( self ):
+        self._arlo.info('getting image for ' + self.name )
+        url = self._arlo._st.get( [self.device_id,SNAPSHOT_KEY],None )
+        if url is not None:
+            img = http_get( url )
+            if img is not None:
+                # signal up if nedeed
+                self._save_and_do_callbacks( LAST_IMAGE_DATA_KEY,img )
+
     def _event_handler( self,resource,event ):
         self._arlo.info( self.name + ' CAMERA got one ' + resource )
 
@@ -122,6 +133,15 @@ class ArloCamera(ArloChildDevice):
             self._set_recent( self._arlo._recent_time )
 
             return
+
+        # get it an update last image
+        if event.get('action','') == 'fullFrameSnapshotAvailable':
+            value = event.get('properties',{}).get('presignedFullFrameSnapshotUrl',{})
+            if value is not None:
+                self._arlo.info( 'queing snapshot update' )
+                self._arlo._st.set( [self.device_id,SNAPSHOT_KEY],value )
+                self._arlo._bg.run_low( self._update_last_image_from_snapshot )
+
 
         # pass on to lower layer
         super()._event_handler( resource,event )
@@ -207,6 +227,22 @@ class ArloCamera(ArloChildDevice):
             return True
         return super().has_capability( cap )
 
+    def take_snapshot( self ):
+        body = {
+            'action': 'set',
+            'from': self.web_id,
+            'properties': {'activityState': 'fullFrameSnapshot'},
+            'publishResponse': 'true',
+            'resource': self.resource_id,
+            'to': self.device_id,
+            'transId': self._arlo._be._gen_trans_id()
+        }
+        self._arlo._bg.run( self._arlo._be.post,url=SNAPSHOT_URL,params=body,headers={ "xcloudId":self.base_station.xcloud_id } )
+
+    @property
+    def is_taking_snapshot( self ):
+        return self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) == 'fullFrameSnapshot'
+
     @property
     def is_recording( self ):
         return self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) == 'alertStreamActive'
@@ -225,6 +261,8 @@ class ArloCamera(ArloChildDevice):
             return 'recording'
         if self.is_streaming:
             return 'streaming'
+        if self.is_taking_snapshot:
+            return 'taking snapshot'
         if self.was_recently_active:
             return 'recently active'
         return super().state

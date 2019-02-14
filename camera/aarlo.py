@@ -10,7 +10,7 @@ import voluptuous as vol
 from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.camera import (
-        Camera, PLATFORM_SCHEMA,
+        Camera, ATTR_ENTITY_ID, CAMERA_SERVICE_SCHEMA, DOMAIN, PLATFORM_SCHEMA,
         STATE_IDLE, STATE_RECORDING, STATE_STREAMING )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
@@ -49,6 +49,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_FFMPEG_ARGUMENTS): cv.string,
 })
 
+SERVICE_REQUEST_SNAPSHOT = 'aarlo_request_snapshot'
+
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up an Arlo IP Camera."""
@@ -59,6 +61,21 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         cameras.append( ArloCam(hass, camera, config) )
 
     async_add_entities(cameras)
+
+    async def service_handler(service):
+        entity_ids = service.data.get(ATTR_ENTITY_ID)
+        if entity_ids:
+            target_devices = [dev for dev in cameras if dev.entity_id in entity_ids]
+        else:
+            target_devices = cameras
+        for target_device in target_devices:
+            target_device.take_snapshot()
+
+    #  hass.data[DOMAIN].async_register_entity_service(
+        #  SERVICE_REQUEST_SNAPSHOT, CAMERA_SERVICE_SCHEMA, service_handler )
+    hass.services.async_register(
+        DOMAIN, SERVICE_REQUEST_SNAPSHOT, service_handler,
+        schema=CAMERA_SERVICE_SCHEMA)
 
 
 class ArloCam(Camera):
@@ -220,3 +237,5 @@ class ArloCam(Camera):
         self._motion_status = False
         self.set_base_station_mode(ARLO_MODE_DISARMED)
 
+    def take_snapshot(self):
+        self._camera.take_snapshot()

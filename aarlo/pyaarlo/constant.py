@@ -6,6 +6,8 @@ NOTIFY_URL      = 'https://arlo.netgear.com/hmsweb/users/devices/notify/'
 SUBSCRIBE_URL   = 'https://arlo.netgear.com/hmsweb/client/subscribe?token='
 UNSUBSCRIBE_URL = 'https://arlo.netgear.com/hmsweb/client/unsubscribe'
 MODES_URL       = 'https://arlo.netgear.com/hmsweb/users/devices/automation/active'
+#SNAPSHOT_URL    = 'https://arlo.netgear.com/hmsweb/users/devices/takeSnapshot'
+SNAPSHOT_URL    = 'https://arlo.netgear.com/hmsweb/users/devices/fullFrameSnapshot'
 TRANSID_PREFIX  = 'web'
 
 PRELOAD_DAYS = 30
@@ -47,11 +49,12 @@ PARENT_ID_KEY   = 'parentId'
 UNIQUE_ID_KEY   = 'uniqueId'
 USER_ID_KEY     = 'userId'
 LAST_IMAGE_KEY  = 'presignedLastImageUrl'
+SNAPSHOT_KEY    = 'presignedFullFrameSnapshotUrl'
 XCLOUD_ID_KEY   = 'xCloudId'
 
 DEVICE_KEYS = [ DEVICE_ID_KEY, DEVICE_NAME_KEY, DEVICE_TYPE_KEY,
                     MEDIA_COUNT_KEY, PARENT_ID_KEY, UNIQUE_ID_KEY,
-                    USER_ID_KEY, LAST_IMAGE_KEY, XCLOUD_ID_KEY, ]
+                    USER_ID_KEY, LAST_IMAGE_KEY, SNAPSHOT_KEY, XCLOUD_ID_KEY, ]
 
 MEDIA_UPLOAD_KEYS = [ MEDIA_COUNT_KEY, LAST_IMAGE_KEY ]
 

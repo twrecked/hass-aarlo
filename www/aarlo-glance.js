@@ -145,6 +145,7 @@ class AarloGlance extends LitElement {
 		var motionHidden   = show.includes('motion') ? '' : 'hidden';
 		var soundHidden    = show.includes('sound') ? '' : 'hidden';
 		var capturedHidden = show.includes('captured') || show.includes('captured_today') ? '' : 'hidden';
+		var snapshotHidden = show.includes('snapshot') ? '' : 'hidden';
 
 		if( batteryHidden == '' ) {
 			var battery      = this.safe_state(_hass,this._batteryId,0);
@@ -194,6 +195,17 @@ class AarloGlance extends LitElement {
 		} else {
 			var capturedText = 'not-used';
 			var capturedOn   = ''
+			var capturedIcon = 'mdi:file-video'
+		}
+
+		if( snapshotHidden == '' ) {
+			var snapshotOn    = '';
+			var snapshotText  = 'click to update image'
+			var snapshotIcon  = 'mdi:camera'
+		} else {
+			var snapshotOn    = 'not-used'
+			var snapshotText  = 'not-used'
+			var snapshotIcon  = 'mdi:camera'
 		}
 
 		var img = html`
@@ -216,6 +228,7 @@ class AarloGlance extends LitElement {
 					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._soundId); }}" class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.showVideo(this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="${capturedIcon}" title="${capturedText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.updateSnapshot(this._cameraId); }}" class$="${snapshotOn} ${snapshotHidden}" icon="${snapshotIcon}" title="${snapshotText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._batteryId); }}" class$="${batteryState} ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
 				</div>
@@ -290,6 +303,10 @@ class AarloGlance extends LitElement {
 		} else {
 			this._video = this._hass.states[id].attributes.video_url;
 		}
+	}
+
+	updateSnapshot( id ) {
+		this._hass.callService( 'camera','aarlo_request_snapshot', { entity_id:id } )
 	}
 
 	async _updateCameraImageSrc() {

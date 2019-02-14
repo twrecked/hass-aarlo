@@ -99,6 +99,10 @@ class ArloDevice(object):
     @property
     def xcloud_id(self):
         return self._arlo._st.get( [self._device_id,XCLOUD_ID_KEY],'UNKNOWN' )
+ 
+    @property
+    def web_id(self):
+        return self.user_id + '_web'
 
     @property
     def unique_id(self):
