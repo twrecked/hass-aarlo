@@ -3,7 +3,7 @@
 
 DEST="${1}"
 if [[ -z "${DEST}" ]]; then
-	echo "*** please supply the custom_components directory"
+	echo "*** please supply the home-assistant /config directory"
 	exit 1
 fi	
 if [[ ! -d "${DEST}" ]]; then
@@ -12,8 +12,8 @@ if [[ ! -d "${DEST}" ]]; then
 fi
 
 echo "**** please run the following commands to remove the old installation"
-echo rm -v ${DEST}/alarm_control_panel/aarlo.py
-echo rm -v ${DEST}/binary_sensor/aarlo.py
-echo rm -v ${DEST}/camera/aarlo.py
-echo rm -v ${DEST}/sensor/aarlo.py
+echo rm -v ${DEST}/custom_components/alarm_control_panel/aarlo.py
+echo rm -v ${DEST}/custom_components/binary_sensor/aarlo.py
+echo rm -v ${DEST}/custom_components/camera/aarlo.py
+echo rm -v ${DEST}/custom_components/sensor/aarlo.py
 
