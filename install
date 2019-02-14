@@ -22,6 +22,14 @@ if [[ -n "${ECHO}" ]]; then
 	echo "**** would run the following commands, use './install go $1' to do the work"
 fi
 
+if [[ -f "${DEST}/custom_components/sensor/aarlo.py" ]]; then
+	echo "****"
+	echo "**** it looks like you have aarlo files using an old layout, you should remove it first with, see how by running:"
+	echo "**** ./remove_old ${1}"
+	echo "****"
+	echo "****"
+fi
+
 ${ECHO} mkdir -p "${DEST}/www"
 ${ECHO} cp -afv www/aarlo*.js "${DEST}/www"
 
