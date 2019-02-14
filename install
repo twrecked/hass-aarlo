@@ -27,8 +27,4 @@ ${ECHO} cp -afv www/aarlo*.js "${DEST}/www"
 
 ${ECHO} mkdir -p "${DEST}/custom_components"
 ${ECHO} cp -afv aarlo "${DEST}/custom_components"
-${ECHO} cp -afv alarm_control_panel "${DEST}/custom_components"
-${ECHO} cp -afv binary_sensor "${DEST}/custom_components"
-${ECHO} cp -afv camera "${DEST}/custom_components"
-${ECHO} cp -afv sensor "${DEST}/custom_components"
 
