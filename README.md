@@ -60,7 +60,7 @@ camera:
 alarm_control_panel:
   - platform: aarlo
     home_mode_name: Home
-    away_mode_name: Armed
+    away_mode_name: armed
 
 binary_sensor:
   - platform: aarlo
@@ -98,6 +98,8 @@ aarlo:
 * `recent_time` is used to hold the cameras in a `recent activity` state after a recording or streaming event. The actually streaming or recording can be over in a few seconds and without this the camera will revert back to idle possible looking like nothing has happend.
 * `last_format` is a `strftime` compatible string indicating how you want the last captured time displayed
 * `config_dir` is where the component stores its state. The default is fine for hassio and docker system, if you are using a virtualenv you will need to change this to somewhere you have permission to write to.
+
+For `alarm_control_panel` you only need to specify the modes if you have custom mode names, see [here](https://www.home-assistant.io/components/arlo/#alarm) for more information.
 
 Now restart your home assistant system.
 
