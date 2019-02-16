@@ -24,13 +24,18 @@ It provides a custom lovelace resource that is a specialised version of a pictur
 Wherever you see `/config` in this README it refers to your home-assistant configuration directory. For me, for example, it's `/home/steve/ha` that is mapped to `/config` inside my docker container.
 
 Many thanks to:
-* [Pyarlo](https://github.com/tchellomello/python-arlo) and [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard working the API out
+* [Pyarlo](https://github.com/tchellomello/python-arlo) and [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard work figuring the API out and the free Python lesson!
 * [Button Card](https://github.com/kuuji/button-card/blob/master/button-card.js) for a working lovelace card I could understand
 
 ## Installation
 
+### Migrating from Old Layout
+**This only needs to be done once and only if you installed an older version of `hass-aarlo`.** 
+
+Home Assitant moved to a new layout for custom components, running the `remove_old` script will show a list of commands needed to remove the old installation. You will need to enter these commands manually. After running the command and, if they are empty, it's safe to remove the `alarm_control_panel`, `binary_sensor`, `sensor` and `camera` directories from your `/config/custom_components` directory
+
 ### Manually
-Copy the `aarlo`, `alarm_control_panel`, `binary_sensor`, `camera` and `sensor` directories into your `/config/custom_components` directory.
+Copy the `aarlo`directory into your `/config/custom_components` directory.
 
 Copy the `www` directory into you `/config` directory.
 
