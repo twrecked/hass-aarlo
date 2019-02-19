@@ -25,6 +25,7 @@ Wherever you see `/config` in this README it refers to your home-assistant confi
 
 Many thanks to:
 * [Pyarlo](https://github.com/tchellomello/python-arlo) and [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard work figuring the API out and the free Python lesson!
+* [sseclient](https://github.com/btubbs/sseclient) for reading from the event stream
 * [Button Card](https://github.com/kuuji/button-card/blob/master/button-card.js) for a working lovelace card I could understand
 
 ## Installation
@@ -102,7 +103,7 @@ aarlo:
 * `db_ding_time` sets how long a doorbell button press will last. As with motion Arlo doorbell only tells us it's pressed not released.
 * `recent_time` is used to hold the cameras in a `recent activity` state after a recording or streaming event. The actually streaming or recording can be over in a few seconds and without this the camera will revert back to idle possible looking like nothing has happend.
 * `last_format` is a `strftime` compatible string indicating how you want the last captured time displayed
-* `config_dir` is where the component stores its state. The default is fine for hassio and docker system, if you are using a virtualenv you will need to change this to somewhere you have permission to write to.
+* `config_dir` is where the component stores its state. The default is fine for hassio, docker system and virtualenv systems. You shoudn't have to change this.
 
 For `alarm_control_panel` you only need to specify the modes if you have custom mode names, see [here](https://www.home-assistant.io/components/arlo/#alarm) for more information.
 
@@ -200,4 +201,5 @@ When things happen it will look something like:
 * custom mode - like SmartThings to better control motion detection
 * live streaming???
 * baby arlo
+* arlo q cameras
 
