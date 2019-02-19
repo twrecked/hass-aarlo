@@ -218,7 +218,7 @@ class AarloGlance extends LitElement {
 							on-click="${(e) => { this.showVideo(this._cameraId); }}">
 					Your browser does not support the video tag.
 				</video>
-				<img class$="${imageHidden}" id="aarlo-image" src="${_img}" />
+				<img class$="${imageHidden}" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" />
 				<div class$="${brokeHidden}" style="height: 100px" id="brokenImage"></div>
 			</div>
 		`;
