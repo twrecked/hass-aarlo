@@ -184,7 +184,7 @@ class ArloCamera(ArloChildDevice):
                 self._arlo._bg.run_low( self._update_last_image_from_snapshot )
 
         # ambient sensors update
-        if event.get('type','') == 'ambientSensor':
+        if resource.endswith('/ambientSensors/history'):
             data = self._decode_sensor_data( event.get('properties',{}) )
             if data is not None:
                 self._save_and_do_callbacks( 'temperature',data.get('temperature') )
