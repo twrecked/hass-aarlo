@@ -2,6 +2,8 @@
 import time
 import threading
 import pprint
+import base64
+import zlib
 
 from custom_components.aarlo.pyaarlo.device import ArloChildDevice
 from custom_components.aarlo.pyaarlo.util import ( arlotime_to_time,http_get )
@@ -107,6 +109,45 @@ class ArloCamera(ArloChildDevice):
                 # signal up if nedeed
                 self._save_and_do_callbacks( LAST_IMAGE_DATA_KEY,img )
 
+    def _parse_statistic( self,data,scale ):
+        """Parse binary statistics returned from the history API"""
+        i = 0
+        for byte in bytearray(data):
+            i = (i << 8) + byte
+
+        if i == 32768:
+            return None
+
+        if scale == 0:
+            return i
+
+        return float(i) / (scale * 10)
+
+    def _decode_sensor_data( self,properties ):
+        """Decode, decompress, and parse the data from the history API"""
+        b64_input = ""
+        for s in properties.get('payload',[]):
+            # pylint: disable=consider-using-join
+            b64_input += s
+        if b64_input == "":
+            return None
+
+        decoded = base64.b64decode(b64_input)
+        data = zlib.decompress(decoded)
+        points = []
+        i = 0
+
+        while i < len(data):
+            points.append({
+                'timestamp':   int(1e3 * self._parse_statistic( data[i:(i + 4)], 0)),
+                'temperature': self._parse_statistic( data[(i + 8):(i + 10)], 1),
+                'humidity':    self._parse_statistic( data[(i + 14):(i + 16)], 1),
+                'airQuality':  self._parse_statistic( data[(i + 20):(i + 22)], 1)
+            })
+            i += 22
+
+        return points[-1]
+
     def _event_handler( self,resource,event ):
         self._arlo.info( self.name + ' CAMERA got one ' + resource )
 
@@ -142,6 +183,13 @@ class ArloCamera(ArloChildDevice):
                 self._arlo._st.set( [self.device_id,SNAPSHOT_KEY],value )
                 self._arlo._bg.run_low( self._update_last_image_from_snapshot )
 
+        # ambient sensors update
+        if event.get('type','') == 'ambientSensor':
+            data = self._decode_sensor_data( event.get('properties',{}) )
+            if data is not None:
+                self._save_and_do_callbacks( 'temperature',data.get('temperature') )
+                self._save_and_do_callbacks( 'humidity',data.get('humidity') )
+                self._save_and_do_callbacks( 'airQuality',data.get('airQuality') )
 
         # pass on to lower layer
         super()._event_handler( resource,event )
@@ -217,6 +265,15 @@ class ArloCamera(ArloChildDevice):
     def update_last_image( self ):
         self._arlo.info( 'queing image update' )
         self._arlo._bg.run_low( self._update_last_image )
+
+    def update_ambient_sensors( self ):
+        if self.model_id == 'ABC1000':
+            self._arlo._bg.run( self._arlo._be.notify,
+                                base=self.base_station,
+                                body={"action":"get",
+                                        "resource":'cameras/{}/ambientSensors/history'.format(self.device_id),
+                                        "publishResponse":False} )
+
 
     def has_capability( self,cap ):
         if cap in ( 'last_capture','captured_today','recent_activity','battery_level','signal_strength' ):

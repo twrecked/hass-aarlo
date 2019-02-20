@@ -76,9 +76,13 @@ class ArloBackEnd(object):
         device_id = None
         resource  = response.get('resource','' )
 
+        err  = response.get('error',None )
+        if err is not None:
+            self._arlo.info( 'error: code=' + str(err.get('code','xxx')) + ',message=' + str(err.get('message','XXX')) )
+
         # these are camera or doorbell status updates
         if resource.startswith('cameras/') or resource.startswith('doorbells/'):
-            device_id = resource.split('/')[-1]
+            device_id = resource.split('/')[1]
             responses.append( (device_id,resource,response) )
         # this is thumbnail or media library updates
         elif resource == 'mediaUploadNotification':
