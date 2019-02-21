@@ -112,7 +112,7 @@ class ArloBackEnd(object):
             return
 
         else:
-            self._arlo.info( 'unhandled response ' + resource )
+            self._arlo.debug( 'unhandled response ' + resource )
             return
 
         # now find something waiting for this/these
@@ -172,14 +172,14 @@ class ArloBackEnd(object):
         #try:
 
         while True:
-            self._arlo.info( 'starting event loop' )
+            self._arlo.debug( 'starting event loop' )
             stream = SSEClient( SUBSCRIBE_URL + self.token,session=self.session )
             self._ev_loop( stream )
 
             # try relogging in
             with self.lock_:
                 self.lock_.wait( 5 )
-            self._arlo.info( 'logging back in' )
+            self._arlo.debug( 'logging back in' )
             self._connected = self.login( self.username,self.password )
         #except:
             #print( 'connection issues' )

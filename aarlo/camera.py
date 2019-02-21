@@ -109,6 +109,7 @@ class ArloCam(Camera):
         self._motion_status = False
         self._ffmpeg           = hass.data[DATA_FFMPEG]
         self._ffmpeg_arguments = device_info.get(CONF_FFMPEG_ARGUMENTS)
+        _LOGGER.info( 'ArloCam: %s created',self._name )
 
     def camera_image(self):
         """Return a still image response from the camera."""
@@ -118,7 +119,7 @@ class ArloCam(Camera):
         """Register callbacks."""
         @callback
         def update_state( device,attr,value ):
-            _LOGGER.info( 'callback:' + self._name + ':' + attr + ':' + str(value)[:80])
+            _LOGGER.debug( 'callback:' + self._name + ':' + attr + ':' + str(value)[:80])
 
             # set state 
             if attr == 'activityState' or attr == 'connectionState':
@@ -282,7 +283,7 @@ async def websocket_video_url(hass, connection, msg):
 
 @websocket_api.async_response
 async def websocket_stream_url(hass, connection, msg):
-    _LOGGER.info( 'stream_url')
+    _LOGGER.debug( 'stream_url')
     connection.send_message(websocket_api.result_message(
             msg['id'], {
                 'test':'stream_url'

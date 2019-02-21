@@ -40,19 +40,19 @@ class ArloCamera(ArloChildDevice):
             self._recent = True
             self._arlo._bg.cancel( self._recent_job )
             self._recent_job = self._arlo._bg.run_in( self._clear_recent,timeo )
-        self._arlo.info( 'turning recent ON for ' + self._name )
+        self._arlo.debug( 'turning recent ON for ' + self._name )
         self._do_callbacks( 'recentActivity',True )
 
     def _clear_recent( self ):
         with self._lock:
             self._recent = False
             self._recent_job = None
-        self._arlo.info( 'turning recent OFF for ' + self._name )
+        self._arlo.debug( 'turning recent OFF for ' + self._name )
         self._do_callbacks( 'recentActivity',False )
 
     # media library finished. Update our counts
     def _update_media( self ):
-        self._arlo.info('reloading cache for ' + self._name)
+        self._arlo.debug('reloading cache for ' + self._name)
         count,videos = self._arlo._ml.videos_for( self )
         if videos:
             captured_today = len([video for video in videos if video.created_today])
@@ -73,23 +73,8 @@ class ArloCamera(ArloChildDevice):
         self._save_and_do_callbacks( LAST_CAPTURE_KEY,last_captured )
         self._do_callbacks( 'mediaUploadNotification',True )
 
-        # is this capture considered recent? if so signal recently seen
-        #  now = int( time.time() )
-        #  self._arlo.info( 'now=' + str(now) + ',last=' + str(last_time) )
-        #  if now >= last_time:
-            #  delta = now - last_time
-        #  else:
-            #  delta = 1
-        #  recent = self._arlo._recent_time
-
-        #  self._arlo.debug( 'delta=' + str(delta) + ',recent=' + str(recent) )
-        #  if delta < recent:
-            #  self._set_recent( recent - delta )
-        #  else:
-            #  self._clear_recent()
-
     def _update_last_image( self ):
-        self._arlo.info('getting image for ' + self.name )
+        self._arlo.debug('getting image for ' + self.name )
         img = None
         url = self._arlo._st.get( [self.device_id,LAST_IMAGE_KEY],None )
         if url is not None:
@@ -102,7 +87,7 @@ class ArloCamera(ArloChildDevice):
         self._save_and_do_callbacks( LAST_IMAGE_DATA_KEY,img )
 
     def _update_last_image_from_snapshot( self ):
-        self._arlo.info('getting image for ' + self.name )
+        self._arlo.debug('getting image for ' + self.name )
         url = self._arlo._st.get( [self.device_id,SNAPSHOT_KEY],None )
         if url is not None:
             img = http_get( url )
@@ -150,7 +135,7 @@ class ArloCamera(ArloChildDevice):
         return points[-1]
 
     def _event_handler( self,resource,event ):
-        self._arlo.info( self.name + ' CAMERA got one ' + resource )
+        self._arlo.debug( self.name + ' CAMERA got one ' + resource )
 
         # stream has stopped or recording has stopped
         if resource == 'mediaUploadNotification':
@@ -180,7 +165,7 @@ class ArloCamera(ArloChildDevice):
         if event.get('action','') == 'fullFrameSnapshotAvailable':
             value = event.get('properties',{}).get('presignedFullFrameSnapshotUrl',{})
             if value is not None:
-                self._arlo.info( 'queing snapshot update' )
+                self._arlo.debug( 'queing snapshot update' )
                 self._arlo._st.set( [self.device_id,SNAPSHOT_KEY],value )
                 self._arlo._bg.run_low( self._update_last_image_from_snapshot )
 
@@ -260,11 +245,11 @@ class ArloCamera(ArloChildDevice):
         self._min_days_vdo_cache = value
 
     def update_media( self ):
-        self._arlo.info( 'queing media update' )
+        self._arlo.debug( 'queing media update' )
         self._arlo._bg.run_low( self._update_media )
 
     def update_last_image( self ):
-        self._arlo.info( 'queing image update' )
+        self._arlo.debug( 'queing image update' )
         self._arlo._bg.run_low( self._update_last_image )
 
     def update_ambient_sensors( self ):
