@@ -107,6 +107,10 @@ class PyArlo(object):
             camera.update_last_image()
             camera.update_media()
 
+    def _refresh_ambient_sensors( self ):
+        for camera in self._cameras:
+            camera.update_ambient_sensors()
+
     def _refresh_bases( self ):
         for base in self._bases:
             self._bg.run( self._be.notify,base=base,body={"action":"get","resource":"modes","publishResponse":False} )
@@ -120,6 +124,9 @@ class PyArlo(object):
         # alway ping bases
         for base in self._bases:
             self._bg.run( self._be.async_ping,base=base )
+
+        # get ambient updates
+        self._refresh_ambient_sensors()
 
         # if day changes then reload camera counts
         today = datetime.date.today()
