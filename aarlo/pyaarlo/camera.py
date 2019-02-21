@@ -18,6 +18,7 @@ from custom_components.aarlo.pyaarlo.constant import( ACTIVITY_STATE_KEY,
                                 MEDIA_UPLOAD_KEYS,
                                 MIRROR_KEY,
                                 MOTION_SENS_KEY,
+                                POWER_SAVE_KEY,
                                 PRELOAD_DAYS,
                                 SNAPSHOT_KEY,
                                 SNAPSHOT_URL )
@@ -236,7 +237,7 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def powersave_mode(self):
-        return 'optimized'
+        return self._arlo._st.get( [self._device_id,POWER_SAVE_KEY],None )
 
     @property
     def unseen_videos(self):

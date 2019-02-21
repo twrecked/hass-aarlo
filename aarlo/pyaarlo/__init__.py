@@ -79,10 +79,10 @@ class PyArlo(object):
 
         # queue up initial config retrieval
         self.info('getting initial settings' )
-        self._ml.load()
-        self._bg.run_in( self._refresh_cameras,1 )
-        self._bg.run_in( self._run_every_1,2 )
-        self._bg.run_in( self._run_every_15,3 )
+        self._bg.run_in( self._ml.load,1 )
+        self._bg.run_in( self._refresh_cameras,2 )
+        self._bg.run_in( self._run_every_1,3 )
+        self._bg.run_in( self._run_every_15,4 )
 
         # register house keeping cron jobs
         self.info('registering cron jobs')
