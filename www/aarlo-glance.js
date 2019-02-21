@@ -214,11 +214,11 @@ class AarloGlance extends LitElement {
 				<video class$="${videoHidden}" src="${videoUrl}"
 							type="video/mp4" width="${this.clientWidth}" height="${this.clientHeight}"
 							autoplay playsinline controls poster="${_img}"
-							onended="${(e) => { this.showVideo(this._cameraId); }}"
-							on-click="${(e) => { this.showVideo(this._cameraId); }}">
+							onended="${(e) => { this.stopVideo(this._cameraId); }}"
+							on-click="${(e) => { this.stopVideo(this._cameraId); }}">
 					Your browser does not support the video tag.
 				</video>
-				<img class$="${imageHidden}" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" />
+				<img class$="${imageHidden}" id="aarlo-image" on-click="${(e) => { this.startVideo(this._cameraId); }}" src="${_img}" />
 				<div class$="${brokeHidden}" style="height: 100px" id="brokenImage"></div>
 			</div>
 		`;
@@ -231,7 +231,7 @@ class AarloGlance extends LitElement {
 				<div>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._soundId); }}" class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
-					<ha-icon on-click="${(e) => { this.showVideo(this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="${capturedIcon}" title="${capturedText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.startVideo(this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="${capturedIcon}" title="${capturedText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.updateSnapshot(this._cameraId); }}" class$="${snapshotOn} ${snapshotHidden}" icon="${snapshotIcon}" title="${snapshotText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._batteryId); }}" class$="${batteryState} ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
@@ -300,13 +300,21 @@ class AarloGlance extends LitElement {
         return event;
 	}
 
-	showVideo( id ) {
-		if( this._video )
-		{
+	async startVideo( id ) {
+		try {
+			const video = await this._hass.callWS({
+				type: "aarlo_video_url",
+				entity_id: this._cameraId,
+				index: 0,
+			});
+			this._video = video.url
+		} catch (err) {
 			this._video = null
-		} else {
-			this._video = this._hass.states[id].attributes.video_url;
 		}
+	}
+
+	stopVideo( id ) {
+		this._video = null
 	}
 
 	updateSnapshot( id ) {

@@ -210,10 +210,6 @@ class ArloCam(Camera):
         attrs['brand']          = DEFAULT_BRAND
         attrs['friendly_name']  = self._name
 
-        video = self._camera.last_video
-        if video:
-            attrs['video_url'] = video.video_url
-
         return attrs
 
     @property
@@ -263,7 +259,6 @@ def _get_camera_from_entity_id(hass, entity_id):
         raise HomeAssistantError('Camera component not set up')
 
     camera = component.get_entity(entity_id)
-
     if camera is None:
         raise HomeAssistantError('Camera not found')
 
@@ -271,15 +266,17 @@ def _get_camera_from_entity_id(hass, entity_id):
 
 @websocket_api.async_response
 async def websocket_video_url(hass, connection, msg):
-    _LOGGER.info( 'video_url')
-    camera       = _get_camera_from_entity_id( hass,msg['entity_id'] )
-    video        = camera._camera.last_video
-    url          = video.video_url if video is not None else None
-    content_type = video.content_type if video is not None else None
+    camera    = _get_camera_from_entity_id( hass,msg['entity_id'] )
+    video     = camera._camera.last_video
+    url       = video.video_url if video is not None else None
+    url_type  = video.url_type if video is not None else None
+    thumbnail = video.thumbnail if video is not None else None
     connection.send_message(websocket_api.result_message(
             msg['id'], {
                 'url':url,
-                'content_type':content_type
+                'url_type':url_type,
+                'thumbnail':thumbnail,
+                'thumbnail_type':'image/jpeg',
             }
         ))
 
