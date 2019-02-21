@@ -111,6 +111,8 @@ Now restart your home assistant system.
 
 ## Resource Configuration
 
+*This piece is optional, `aarlo` will work with the standard Lovelace cards.*
+
 The new resource `aarlo-glance` is based on `picture-glance` but tailored for the Arlo component to simplify the configuration. To enable it add the following to the top of your UI configuration file.
 
 ```yaml
@@ -200,6 +202,5 @@ When things happen it will look something like:
 
 * custom mode - like SmartThings to better control motion detection
 * live streaming???
-* baby arlo
 * arlo q cameras
 
