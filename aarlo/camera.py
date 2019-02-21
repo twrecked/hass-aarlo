@@ -269,8 +269,8 @@ async def websocket_video_url(hass, connection, msg):
     camera    = _get_camera_from_entity_id( hass,msg['entity_id'] )
     video     = camera._camera.last_video
     url       = video.video_url if video is not None else None
-    url_type  = video.url_type if video is not None else None
-    thumbnail = video.thumbnail if video is not None else None
+    url_type  = video.content_type if video is not None else None
+    thumbnail = video.thumbnail_url if video is not None else None
     connection.send_message(websocket_api.result_message(
             msg['id'], {
                 'url':url,
