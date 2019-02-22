@@ -200,9 +200,19 @@ class ArloCamera(ArloChildDevice):
                 return self._cached_videos[0]
         return None
 
+    def last_N_videos(self,count):
+        with self._lock:
+            if self._cached_videos:
+                return self._cached_videos[:count]
+        return []
+
     @property
     def last_capture(self):
         return self._arlo._st.get( [self._device_id,LAST_CAPTURE_KEY],None )
+
+    @property
+    def last_capture_date_format(self):
+        return self._arlo._last_format
 
     @property
     def brightness(self):
