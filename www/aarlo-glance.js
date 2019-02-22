@@ -38,6 +38,20 @@ class AarloGlance extends LitElement {
 					display: flex;
 					justify-content: space-between;
 			}
+			.box-small {
+				white-space: var(--paper-font-common-nowrap_-_white-space); overflow: var(--paper-font-common-nowrap_-_overflow); text-overflow: var(--paper-font-common-nowrap_-_text-overflow);
+					position: absolute;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					background-color: rgba(0, 0, 0, 0.4);
+					padding: 4px 8px;
+					font-size: 16px;
+					line-height: 30px;
+					color: white;
+					display: flex;
+					justify-content: space-between;
+			}
 			.middle {
 				left: 10%;
 				right: 10%;
@@ -52,11 +66,15 @@ class AarloGlance extends LitElement {
 				margin-right: 4px;
 				text-transform: capitalize;
 			}
+			.library {
+				margin: 2px;
+			}
 			.library-column {
 			  float: left;
-			  width: 30%;
+			  width: 31.75%;
 			  height: 30%;
-			  padding: 5px;
+			  padding: 3px;
+			  border-radius: 3px;
 			}
 			.library-row::after {
 			  content: "";
@@ -140,6 +158,7 @@ class AarloGlance extends LitElement {
 			libraryItem.push( { 'hidden':'hidden','thumbnail':'/static/images/image-broken.svg','captured_at':'' } )
 		}
 
+
 		if( _video ) {
 			var videoHidden   = '';
 			var libraryHidden = 'hidden';
@@ -159,6 +178,10 @@ class AarloGlance extends LitElement {
 			var libraryHidden = 'hidden';
 			var imageHidden   = _img != null ? '':'hidden';
 			var brokeHidden   = _img == null ? '':'hidden';
+
+			// for later use!
+			this._clientWidth  = this.clientWidth
+			this._clientHeight = this.clientHeight
 		}
 
 		// what are we showing?
@@ -235,14 +258,14 @@ class AarloGlance extends LitElement {
 			${AarloGlance.innerStyleTemplate}
 			<div id="aarlo-wrapper">
 				<video class$="${videoHidden}" src="${this._video}"
-							type="video/mp4" width="${this.clientWidth}" height="${this.clientHeight}"
+							type="video/mp4" width="${this._clientWidth}" height="${this._clientHeight}"
 							autoplay playsinline controls poster="${this._video_poster}"
 							onended="${(e) => { this.stopVideo(this._cameraId); }}"
 							on-click="${(e) => { this.stopVideo(this._cameraId); }}">
 					Your browser does not support the video tag.
 				</video>
 				<img class$="${imageHidden}" id="aarlo-image" on-click="${(e) => { this.startVideo(this._cameraId,0); }}" src="${_img}" />
-				<div class$="${libraryHidden}" style="width: ${this.clientWidth}px; height: ${this.clientHeight}px;">
+				<div class$="${libraryHidden} library" style="width: ${this._clientWidth}px; height: ${this._clientHeight}px;">
 					<div class="library-row">
 						<div class="library-column">
 							<img class$="${libraryItem[0].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,0); }}" src="${libraryItem[0].thumbnail}" title="${libraryItem[0].captured_at}"/>
@@ -296,6 +319,17 @@ class AarloGlance extends LitElement {
 				</div>
 				<div class="status">
 					${camera.state}
+				</div>
+			</div>
+			<div class$="box-small ${libraryHidden}">
+				<div >
+					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class="state-on" icon="mdi:chevron-left" title="previous"></ha-icon>
+				</div>
+				<div >
+					<ha-icon on-click="${(e) => { this.stopVideo(); }}" class="state-on" icon="mdi:close" title="close library"></ha-icon>
+				</div>
+				<div >
+					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class="state-on" icon="mdi:chevron-right" title="next"></ha-icon>
 				</div>
 			</div>
 		`;
