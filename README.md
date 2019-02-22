@@ -139,7 +139,7 @@ You don't need to reoboot to see the GUI changes, a reload is sufficient. And if
 
 ![Aarlo Glance](/images/aarlo-glance-02.png)
 
-Reading from left to right you have the camera name, motion detection indicator, captured clip indicator, battery levels, signal level and current state. If you click the captured clip icon the last video will play directly on the card. (The video streams directly from Arlo which solves some weird speed issues I was seeing.) Click the camers (not shown) will take a snapshot and replace the current thumbnail.
+Reading from left to right you have the camera name, motion detection indicator, captured clip indicator, battery levels, signal level and current state. If you click the image the last captured clip will play, if you click the last captured icon up to the last 9 videos will be show as thumbnails on the card. Clicking on a thumbnail starts the appropiate video. (The video streams directly from Arlo which solves some weird speed issues I was seeing.) Click the camers (not shown) will take a snapshot and replace the current thumbnail.
 The states are:
 * `Idle` camera is doing nothing
 * `Turned Off` user has turned the camera off
