@@ -105,7 +105,7 @@ aarlo:
 * `last_format` is a `strftime` compatible string indicating how you want the last captured time displayed
 * `config_dir` is where the component stores its state. The default is fine for hassio, docker system and virtualenv systems. You shoudn't have to change this.
 
-For `alarm_control_panel` you only need to specify the modes if you have custom mode names, see [here](https://www.home-assistant.io/components/arlo/#alarm) for more information.
+For `alarm_control_panel` you only need to specify the modes if you have custom mode names, see [here](https://www.home-assistant.io/components/arlo/#alarm) for more information. Names are case insensitive.
 
 Now restart your home assistant system.
 
