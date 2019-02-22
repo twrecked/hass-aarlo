@@ -10,6 +10,7 @@ class AarloGlance extends LitElement {
 			_img: String,
 			_video: String,
 			_library: String,
+			_library_base: Number,
 		}
 	}
 
@@ -147,7 +148,7 @@ class AarloGlance extends LitElement {
 		return _id in _hass.states ? _hass.states[_id] : { 'state':def,'attributes':{ 'friendly_name':'unknown' } };
 	}
 
-	_render( { _hass,_config,_img,_video,_library } ) {
+	_render( { _hass,_config,_img,_video,_library,_library_base } ) {
 
 		const camera = this.safe_state(_hass,this._cameraId,'unknown')
 		const cameraName = _config.name ? _config.name : camera.attributes.friendly_name;
@@ -159,23 +160,27 @@ class AarloGlance extends LitElement {
 		}
 
 
+		// default is hidden
+		var videoHidden       = 'hidden';
+		var libraryHidden     = 'hidden';
+		var libraryPrevHidden = 'hidden';
+		var libraryNextHidden = 'hidden';
+		var imageHidden       = 'hidden';
+		var brokeHidden       = 'hidden';
 		if( _video ) {
 			var videoHidden   = '';
-			var libraryHidden = 'hidden';
-			var imageHidden   = 'hidden';
-			var brokeHidden   = 'hidden';
 		} else if ( _library ) {
-			var videoHidden   = 'hidden';
-			var libraryHidden = '';
-			var imageHidden   = 'hidden';
-			var brokeHidden   = 'hidden';
+			var libraryHidden     = '';
+			var libraryPrevHidden = _library_base > 0 ? '' : 'hidden';
+			var libraryNextHidden = _library_base + 9 < _library.length ? '' : 'hidden';
 			var i;
-			for( i = 0; i < _library.length; i++ ) {
-				libraryItem[i] = ( { 'hidden':'','thumbnail':_library[i].thumbnail,'captured_at':'captured: ' + _library[i].created_at_pretty } );
+			var j;
+			for( i = 0, j = _library_base; j < _library.length; i++,j++ ) {
+				libraryItem[i] = ( { 'hidden':'',
+											'thumbnail':_library[j].thumbnail,
+											'captured_at':'captured: ' + _library[j].created_at_pretty } );
 			}
 		} else {
-			var videoHidden   = 'hidden';
-			var libraryHidden = 'hidden';
 			var imageHidden   = _img != null ? '':'hidden';
 			var brokeHidden   = _img == null ? '':'hidden';
 
@@ -264,39 +269,39 @@ class AarloGlance extends LitElement {
 							on-click="${(e) => { this.stopVideo(this._cameraId); }}">
 					Your browser does not support the video tag.
 				</video>
-				<img class$="${imageHidden}" id="aarlo-image" on-click="${(e) => { this.startVideo(this._cameraId,0); }}" src="${_img}" />
+				<img class$="${imageHidden}" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" />
 				<div class$="${libraryHidden} library" style="width: ${this._clientWidth}px; height: ${this._clientHeight}px;">
 					<div class="library-row">
 						<div class="library-column">
-							<img class$="${libraryItem[0].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,0); }}" src="${libraryItem[0].thumbnail}" title="${libraryItem[0].captured_at}"/>
+							<img class$="${libraryItem[0].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,0); }}" src="${libraryItem[0].thumbnail}" title="${libraryItem[0].captured_at}"/>
 						</div>
 						<div class="library-column">
-							<img class$="${libraryItem[1].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,1); }}" src="${libraryItem[1].thumbnail}" title="${libraryItem[1].captured_at}"/>
+							<img class$="${libraryItem[1].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,1); }}" src="${libraryItem[1].thumbnail}" title="${libraryItem[1].captured_at}"/>
 						</div>
 						<div class="library-column">
-							<img class$="${libraryItem[2].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,2); }}" src="${libraryItem[2].thumbnail}" title="${libraryItem[2].captured_at}"/>
-						</div>
-					</div>
-					<div class="library-row">
-						<div class="library-column">
-							<img class$="${libraryItem[3].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,3); }}" src="${libraryItem[3].thumbnail}" title="${libraryItem[3].captured_at}"/>
-						</div>
-						<div class="library-column">
-							<img class$="${libraryItem[4].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,4); }}" src="${libraryItem[4].thumbnail}" title="${libraryItem[4].captured_at}"/>
-						</div>
-						<div class="library-column">
-							<img class$="${libraryItem[5].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,5); }}" src="${libraryItem[5].thumbnail}" title="${libraryItem[5].captured_at}"/>
+							<img class$="${libraryItem[2].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,2); }}" src="${libraryItem[2].thumbnail}" title="${libraryItem[2].captured_at}"/>
 						</div>
 					</div>
 					<div class="library-row">
 						<div class="library-column">
-							<img class$="${libraryItem[6].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,6); }}" src="${libraryItem[6].thumbnail}" title="${libraryItem[6].captured_at}"/>
+							<img class$="${libraryItem[3].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,3); }}" src="${libraryItem[3].thumbnail}" title="${libraryItem[3].captured_at}"/>
 						</div>
 						<div class="library-column">
-							<img class$="${libraryItem[7].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,7); }}" src="${libraryItem[7].thumbnail}" title="${libraryItem[7].captured_at}"/>
+							<img class$="${libraryItem[4].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,4); }}" src="${libraryItem[4].thumbnail}" title="${libraryItem[4].captured_at}"/>
 						</div>
 						<div class="library-column">
-							<img class$="${libraryItem[8].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,8); }}" src="${libraryItem[8].thumbnail}" title="${libraryItem[8].captured_at}"/>
+							<img class$="${libraryItem[5].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,5); }}" src="${libraryItem[5].thumbnail}" title="${libraryItem[5].captured_at}"/>
+						</div>
+					</div>
+					<div class="library-row">
+						<div class="library-column">
+							<img class$="${libraryItem[6].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,6); }}" src="${libraryItem[6].thumbnail}" title="${libraryItem[6].captured_at}"/>
+						</div>
+						<div class="library-column">
+							<img class$="${libraryItem[7].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,7); }}" src="${libraryItem[7].thumbnail}" title="${libraryItem[7].captured_at}"/>
+						</div>
+						<div class="library-column">
+							<img class$="${libraryItem[8].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,8); }}" src="${libraryItem[8].thumbnail}" title="${libraryItem[8].captured_at}"/>
 						</div>
 					</div>
 				</div>
@@ -312,7 +317,7 @@ class AarloGlance extends LitElement {
 				<div>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._soundId); }}" class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
-					<ha-icon on-click="${(e) => { this.readLibrary(this._cameraId); }}" class$="${capturedOn} ${capturedHidden}" icon="${capturedIcon}" title="${capturedText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.showLibrary(this._cameraId,0); }}" class$="${capturedOn} ${capturedHidden}" icon="${capturedIcon}" title="${capturedText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.updateSnapshot(this._cameraId); }}" class$="${snapshotOn} ${snapshotHidden}" icon="${snapshotIcon}" title="${snapshotText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._batteryId); }}" class$="${batteryState} ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
@@ -323,13 +328,13 @@ class AarloGlance extends LitElement {
 			</div>
 			<div class$="box-small ${libraryHidden}">
 				<div >
-					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class="state-on" icon="mdi:chevron-left" title="previous"></ha-icon>
+					<ha-icon on-click="${(e) => { this.setLibraryBase(this._library_base - 9); }}" class$="${libraryPrevHidden} state-on" icon="mdi:chevron-left" title="previous"></ha-icon>
 				</div>
 				<div >
-					<ha-icon on-click="${(e) => { this.stopVideo(); }}" class="state-on" icon="mdi:close" title="close library"></ha-icon>
+					<ha-icon on-click="${(e) => { this.stopLibrary(); }}" class="state-on" icon="mdi:close" title="close library"></ha-icon>
 				</div>
 				<div >
-					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class="state-on" icon="mdi:chevron-right" title="next"></ha-icon>
+					<ha-icon on-click="${(e) => { this.setLibraryBase(this._library_base + 9); }}" class$="${libraryNextHidden} state-on" icon="mdi:chevron-right" title="next"></ha-icon>
 				</div>
 			</div>
 		`;
@@ -392,34 +397,58 @@ class AarloGlance extends LitElement {
 		return event;
 	}
 
-	async startVideo( id,index ) {
-		if ( !this._library ) {
-			await this.readLibrary( id );
+	async readLibrary( id,at_most ) {
+		try {
+			const library = await this._hass.callWS({
+				type: "aarlo_library",
+				entity_id: this._cameraId,
+				at_most: at_most,
+			});
+			return ( library.videos.length > 0 ) ? library.videos : null;
+		} catch (err) {
+			return null
 		}
-		if ( this._library && index < this._library.length ) {
-			this._video = this._library[index].url;
-			this._video_poster = this._library[index].thumbnail;
+	}
+
+	async showVideo( id ) {
+		var video = await this.readLibrary( id,1 );
+		if ( video ) {
+			this._video = video[0].url;
+			this._video_poster = video[0].thumbnail;
 		} else {
 			this._video = null
+			this._video_poster = null
 		}
 	}
 
 	stopVideo( id ) {
 		this._video = null
-		this._library = null
 	}
 
-	async readLibrary( id ) {
-		try {
-			const library = await this._hass.callWS({
-				type: "aarlo_library",
-				entity_id: this._cameraId,
-				at_most: 9,
-			});
-			this._library = ( library.videos.length > 0 ) ? library.videos : null;
-		} catch (err) {
-			this._library = null
+	async showLibrary( id,base ) {
+		this._video = null
+		this._library = await this.readLibrary( id,99 )
+		this._library_base = base
+	}
+
+	async showLibraryVideo( id,index ) {
+		index += this._library_base
+		if ( this._library && index < this._library.length ) {
+			this._video = this._library[index].url;
+			this._video_poster = this._library[index].thumbnail;
+		} else {
+			this._video = null
+			this._video_poster = null
 		}
+	}
+
+	setLibraryBase( base ) {
+		this._library_base = base
+	}
+
+	stopLibrary( ) {
+		this._video = null
+		this._library = null
 	}
 
 	updateSnapshot( id ) {
