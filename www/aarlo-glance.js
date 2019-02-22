@@ -242,7 +242,7 @@ class AarloGlance extends LitElement {
 					Your browser does not support the video tag.
 				</video>
 				<img class$="${imageHidden}" id="aarlo-image" on-click="${(e) => { this.startVideo(this._cameraId,0); }}" src="${_img}" />
-				<div class$="${libraryHidden}" style="width: ${this.clientWidth}px; height: ${this.clientHeight}px;" on-click="${(e) => { this.stopVideo(); }}">
+				<div class$="${libraryHidden}" style="width: ${this.clientWidth}px; height: ${this.clientHeight}px;">
 					<div class="library-row">
 						<div class="library-column">
 							<img class$="${libraryItem[0].hidden}" on-click="${(e) => { this.startVideo(this._cameraId,0); }}" src="${libraryItem[0].thumbnail}" title="${libraryItem[0].captured_at}"/>
