@@ -264,11 +264,11 @@ class ArloBackEnd(object):
                 return False
 
             # save new login information
-            self._update_session_headers( body['token'] )
             self._token   = body['token']
             self._user_id = body['userId']
             self._web_id  = self._user_id + '_web'
             self._sub_id  = 'subscriptions/' + self._web_id
+            self._update_session_headers( self._token )
             return True
 
     def is_connected( self ):
