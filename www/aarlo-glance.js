@@ -176,9 +176,13 @@ class AarloGlance extends LitElement {
 			var i;
 			var j;
 			for( i = 0, j = _library_base; j < _library.length; i++,j++ ) {
+				var captured_text = _library[j].created_at_pretty
+				if ( _library[j].object && _library[j].object != '' ) {
+					captured_text += ' (' + _library[j].object.toLowerCase() + ')'
+				}
 				libraryItem[i] = ( { 'hidden':'',
 											'thumbnail':_library[j].thumbnail,
-											'captured_at':'captured: ' + _library[j].created_at_pretty } );
+											'captured_at':'captured: ' + captured_text } );
 			}
 		} else {
 			var imageHidden   = _img != null ? '':'hidden';
