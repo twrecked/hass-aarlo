@@ -14,6 +14,7 @@ The component supports:
 * saving of state across restarts
 * camera on/off
 * request thumbnail updates
+* direct video streaming from arlo where possible
 
 It provides a custom lovelace resource that is a specialised version of a picture-glance that allows you to see the last snapshot taken and give quick access to clip counts, the last recorded video and signal and battery levels.
 
@@ -139,7 +140,7 @@ You don't need to reoboot to see the GUI changes, a reload is sufficient. And if
 
 ![Aarlo Glance](/images/aarlo-glance-02.png)
 
-Reading from left to right you have the camera name, motion detection indicator, captured clip indicator, battery levels, signal level and current state. If you click the image the last captured clip will play, if you click the last captured icon up to the last 9 videos will be show as thumbnails on the card. Clicking on a thumbnail starts the appropiate video. (The video streams directly from Arlo which solves some weird speed issues I was seeing.) Click the camers (not shown) will take a snapshot and replace the current thumbnail.
+Reading from left to right you have the camera name, motion detection indicator, captured clip indicator, battery levels, signal level and current state. If you click the image the last captured clip will play, if you click the last captured icon you will be show the video library thumbnails - see below. Click the camera (not shown) will take a snapshot and replace the current thumbnail.
 The states are:
 * `Idle` camera is doing nothing
 * `Turned Off` user has turned the camera off
@@ -148,6 +149,10 @@ The states are:
 * `Taking Snapshot` camers is updating the thumbnail
 * `Recently Active` camera has seen activity within the last few minutes
 * `Too Cold!` the camera is shutdown until it warms up
+
+![Aarlo Thumbnails](/images/thumbnails.png)
+
+Clicking on a thumbnail starts the appropiate video.  You can currently only see the last 99 videos. If you move your mouse over a thumbnail it will show you time of capture and, if you have a Smart subscription, a reason for the capture. **>** takes you to the next page, **<** to the previous and **X** closes the window.
 
 See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/lovelace_custom_card.html) page for further information.
 
