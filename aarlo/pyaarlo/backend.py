@@ -6,6 +6,7 @@ import json
 import requests
 import pprint
 
+#from sseclient import ( SSEClient )
 from custom_components.aarlo.pyaarlo.sseclient import ( SSEClient )
 from custom_components.aarlo.pyaarlo.constant import ( LOGIN_URL,
                                 LOGOUT_URL,
@@ -41,7 +42,7 @@ class ArloBackEnd(object):
 
     def _request( self,url,method='GET',params={},headers={},stream=False,raw=False,timeout=30 ):
         with self._req_lock:
-            self._arlo.info( 'starting request=' + str(url) )
+            self._arlo.debug( 'starting request=' + str(url) )
             try:
                 if method == 'GET':
                     r = self._session.get( url,params=params,headers=headers,stream=stream,timeout=timeout )
@@ -53,8 +54,9 @@ class ArloBackEnd(object):
                     r = self._session.post( url,json=params,headers=headers,timeout=timeout )
             except:
                 self._arlo.warning( 'timeout with backend request' )
+                self._ev_stream.resp.close()
                 return None
-            
+
             if r.status_code != 200:
                 self._arlo.warning( 'error with request' )
                 return None
@@ -147,12 +149,13 @@ class ArloBackEnd(object):
                 cb( resource,response )
 
     def _ev_loop( self,stream ):
+        #for event in stream.events():
         for event in stream:
 
                 # stopped?
                 if event is None:
                     with self._lock:
-                        self._ev_ok_ = False
+                        self._ev_connected_ = False
                         self._lock.notify_all()
                     break
 
@@ -164,7 +167,7 @@ class ArloBackEnd(object):
                 # logged out? signal exited
                 if response.get('action') == 'logout':
                     with self._lock:
-                        self._ev_ok_ = False
+                        self._ev_connected_ = False
                         self._lock.notify_all()
                         self._arlo.warning( 'logged out? did you log in from elsewhere?' )
                     break
@@ -172,7 +175,7 @@ class ArloBackEnd(object):
                 # connected - yay!
                 if response.get('status') == 'connected':
                     with self._lock:
-                        self._ev_ok_ = True
+                        self._ev_connected_ = True
                         self._lock.notify_all()
                     continue
 
@@ -188,27 +191,46 @@ class ArloBackEnd(object):
 
 
     def _ev_thread( self ):
-        while True:
-            self._arlo.debug( 'starting event loop' )
-            stream = SSEClient( SUBSCRIBE_URL + self._token,session=self._session )
-            self._ev_loop( stream )
 
-            # try relogging in
-            with self._lock:
-                self._lock.wait( 5 )
-            self._arlo.debug( 'logging back in' )
-            self._connected = self.login( self.username,self.password )
+        self._arlo.debug( 'starting event loop' )
+        while True:
+
+            # login again if not first iteration
+            while not self._connected:
+                with self._lock:
+                    self._lock.wait( 5 )
+                self._arlo.debug( 're-logging in' )
+                self._connected = self.login( self.username,self.password )
+
+            # recreate session
+            self._arlo.debug( 're-creating session' )
+            self._create_session()
+            self._update_session_headers( self._token )
+
+            # get stream, restart after 2 minutes of inactivity or forced close
+            try:
+                #  self._ev_stream = SSEClient( self.get( SUBSCRIBE_URL + self._token,stream=True,raw=True,timeout=121 ) )
+                self._ev_stream = SSEClient( SUBSCRIBE_URL + self._token,session=self._session,timeout=121 )
+                self._ev_loop( self._ev_stream )
+            except requests.exceptions.ConnectionError as e:
+                self._arlo.warning( 'event loop timeout' )
+            except AttributeError as e:
+                self._arlo.warning( 'forced close' )
+
+            # restart login...
+            self._connected = False
 
     def _ev_start( self ):
-        self._ev_ok_ = False
-        self._evt = threading.Thread( name="EventStream",target=self._ev_thread,args=() )
+        self._ev_stream     = None
+        self._ev_connected_ = False
+        self._evt           = threading.Thread( name="EventStream",target=self._ev_thread,args=() )
         self._evt.setDaemon(True)
         self._evt.start()
 
         # give time to start
         with self._lock:
             self._lock.wait( 30 )
-        if not self._ev_ok_:
+        if not self._ev_connected_:
             self._arlo.warning( 'event loop failed to start' )
             self._evt = None
             return False
