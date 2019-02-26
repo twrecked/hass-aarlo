@@ -17,3 +17,9 @@ echo rm -v ${DEST}/custom_components/binary_sensor/aarlo.py
 echo rm -v ${DEST}/custom_components/camera/aarlo.py
 echo rm -v ${DEST}/custom_components/sensor/aarlo.py
 
+echo "**** please run the following commands to remove a newer installation"
+echo rm -v ${DEST}/custom_components/aarlo/alarm_control_panel.py
+echo rm -v ${DEST}/custom_components/aarlo/binary_sensor.py
+echo rm -v ${DEST}/custom_components/aarlo/camera.py
+echo rm -v ${DEST}/custom_components/aarlo/sensor.py
+
