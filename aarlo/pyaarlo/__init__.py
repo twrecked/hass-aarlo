@@ -65,7 +65,7 @@ class PyArlo(object):
                 self.info('skipping ' + dname + ': state unknown')
                 continue
 
-            if dtype == 'basestation' or device.get('modelId') == 'ABC1000':
+            if dtype == 'basestation' or device.get('modelId') == 'ABC1000' or dtype == 'arloq' or dtype == 'arloqs':
                 self._bases.append( ArloBase( dname,self,device ) )
             if dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
                 self._cameras.append( ArloCamera( dname,self,device ) )
