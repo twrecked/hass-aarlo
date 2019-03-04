@@ -134,9 +134,14 @@ show:
   - battery_level
   - signal_strength
   - captured_today
+top_title: false
+top_status: false
+door: binary_switch.front_door
+door_lock: lock.front_door_lock
+door_bell: binary_switch.aarlo_ding_front_door_bell
 ```
 
-You don't need to reoboot to see the GUI changes, a reload is sufficient. And if all goes will see a card that looks like this:
+You don't need to reboot to see the GUI changes, a reload is sufficient. And if all goes will see a card that looks like this:
 
 ![Aarlo Glance](/images/aarlo-glance-02.png)
 
@@ -150,9 +155,11 @@ The states are:
 * `Recently Active` camera has seen activity within the last few minutes
 * `Too Cold!` the camera is shutdown until it warms up
 
-![Aarlo Thumbnails](/images/thumbnails.png)
+The `door` options are useful if the camera is pointed at a door. And `top_title` and `top_status` move the title and status to the top to clear some space at the bottom for small displays.
 
-Clicking on a thumbnail starts the appropiate video.  You can currently only see the last 99 videos. If you move your mouse over a thumbnail it will show you time of capture and, if you have a Smart subscription, a reason for the capture. **>** takes you to the next page, **<** to the previous and **X** closes the window.
+Clicking on the last captured clip will display thumbnail mode. Clicking on a thumbnail starts the appropiate video.  You can currently only see the last 99 videos. If you move your mouse over a thumbnail it will show you time of capture and, if you have a Smart subscription, a reason for the capture. **>** takes you to the next page, **<** to the previous and **X** closes the window.
+
+![Aarlo Thumbnails](/images/thumbnails.png)
 
 See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/lovelace_custom_card.html) page for further information.
 
