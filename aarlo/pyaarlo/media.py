@@ -109,7 +109,7 @@ class ArloMediaLibrary(object):
                     camera_videos.append( video )
             return ( self._count,camera_videos )
 
-    def queue_load( self,cb ):
+    def queue_update( self,cb ):
         with self._lock:
             if not self._load_cbs_:
                 self._arlo.debug( 'queueing image library update' )
