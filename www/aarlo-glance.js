@@ -96,35 +96,27 @@ class AarloGlance extends LitElement {
 	static get innerStyleTemplate() {
 		return html`
 			<style>
-				img {
-					display: block;
-					height: auto;
-					transition: filter 0.2s linear;
+				div.sixteen-nine-img {
 					width: 100%;
+					overflow: hidden;
+					margin: 0;
+					padding-top: 55%;
+					position: relative;
+				}
+				div.sixteen-nine-img img,video {
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					width: 100%;
+					transform: translate(-50%, -50%);
 				}
 				video {
 					display: block;
 					height: auto;
 					width: 100%;
 				}
-				.error {
-					text-align: center;
-				}
 				.hidden {
 					display: none;
-				}
-				.ratio {
-					position: relative;
-					width: 100%;
-					height: 0;
-				}
-				.ratio img,
-				.ratio div {
-					position: absolute;
-					top: 0;
-					left: 0;
-					width: 100%;
-					height: 100%;
 				}
 				#brokenImage {
 					background: grey url("/static/images/image-broken.svg") center/36px
@@ -295,7 +287,7 @@ class AarloGlance extends LitElement {
 
 		var img = html`
 			${AarloGlance.innerStyleTemplate}
-			<div id="aarlo-wrapper">
+			<div id="aarlo-wrapper" class="sixteen-nine-img">
 				<video class$="${videoHidden}" src="${this._video}"
 							type="video/mp4" width="${this._clientWidth}" height="${this._clientHeight}"
 							autoplay playsinline controls poster="${this._video_poster}"
