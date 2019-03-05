@@ -369,7 +369,15 @@ class AarloGlance extends LitElement {
 
 	set hass( hass ) {
 		this._hass = hass
-		this._updateCameraImageSrc()
+		const camera = this.safe_state(hass,this._cameraId,'unknown')
+		if ( this._old_state && this._old_state == 'taking snapshot' && camera.state == 'idle' ) {
+			setTimeout( this._updateCameraImageSrc,5000 )
+			setTimeout( this._updateCameraImageSrc,10000 )
+			setTimeout( this._updateCameraImageSrc,15000 )
+		} else {
+			this._updateCameraImageSrc()
+		}
+		this._old_state = camera.state
 	}
 
     setConfig(config) {
