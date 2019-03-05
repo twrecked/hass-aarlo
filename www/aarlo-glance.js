@@ -145,6 +145,7 @@ class AarloGlance extends LitElement {
 		var libraryNextHidden = 'hidden';
 		var imageHidden       = 'hidden';
 		var topHidden         = 'hidden';
+		var bottomHidden      = 'hidden';
 		var doorStatusHidden  = 'hidden';
 		var brokeHidden       = 'hidden';
 		if( _video ) {
@@ -167,7 +168,8 @@ class AarloGlance extends LitElement {
 		} else {
 			var imageHidden   = _img != null ? '':'hidden';
 			var brokeHidden   = _img == null ? '':'hidden';
-			var topHidden     = this._topTitle || this._topStatus ? imageHidden:'hidden';
+			var topHidden     = this._topTitle || this._topStatus ? '':'hidden';
+			var bottomHidden  = '';
 
 			// for later use!
 			this._clientWidth  = this.clientWidth
@@ -324,7 +326,7 @@ class AarloGlance extends LitElement {
 					${camera.state}
 				</div>
 			</div>
-			<div class$="box box-bottom ${imageHidden}">
+			<div class$="box box-bottom ${bottomHidden}">
 				<div class$="box-title ${this._topTitle?'hidden':''}">
 					${cameraName} 
 				</div>
