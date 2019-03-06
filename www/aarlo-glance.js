@@ -57,21 +57,6 @@ class AarloGlance extends LitElement {
 				margin-right: 4px;
 				text-transform: capitalize;
 			}
-			.library {
-				margin: 2px;
-			}
-			.library-column {
-			  float: left;
-			  width: 31.75%;
-			  height: 30%;
-			  padding: 3px;
-			  border-radius: 3px;
-			}
-			.library-row::after {
-			  content: "";
-			  clear: both;
-			  display: table;
-			}
 			ha-icon {
 				cursor: pointer;
 				padding: 2px;
@@ -96,40 +81,43 @@ class AarloGlance extends LitElement {
 	static get innerStyleTemplate() {
 		return html`
 			<style>
-				img {
-					display: block;
-					height: auto;
-					transition: filter 0.2s linear;
+				div.base-16x9 {
 					width: 100%;
+					overflow: hidden;
+					margin: 0;
+					padding-top: 55%;
+					position: relative;
+				}
+				.img-16x9 {
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					width: 100%;
+					transform: translate(-50%, -50%);
+				}
+				.library-16x9 {
+				  width: 100%;
 				}
 				video {
-					display: block;
 					height: auto;
 					width: 100%;
-				}
-				.error {
-					text-align: center;
 				}
 				.hidden {
 					display: none;
-				}
-				.ratio {
-					position: relative;
-					width: 100%;
-					height: 0;
-				}
-				.ratio img,
-				.ratio div {
-					position: absolute;
-					top: 0;
-					left: 0;
-					width: 100%;
-					height: 100%;
 				}
 				#brokenImage {
 					background: grey url("/static/images/image-broken.svg") center/36px
 					no-repeat;
 				}
+				.lrow {
+				  display: flex;
+				  margin: 6px 2px 6px 2px;
+				}
+				.lcolumn {
+				  flex: 32%;
+				  padding: 2px;
+				}
+
 			</style>
 		`;
 	}
@@ -157,6 +145,7 @@ class AarloGlance extends LitElement {
 		var libraryNextHidden = 'hidden';
 		var imageHidden       = 'hidden';
 		var topHidden         = 'hidden';
+		var bottomHidden      = 'hidden';
 		var doorStatusHidden  = 'hidden';
 		var brokeHidden       = 'hidden';
 		if( _video ) {
@@ -179,7 +168,8 @@ class AarloGlance extends LitElement {
 		} else {
 			var imageHidden   = _img != null ? '':'hidden';
 			var brokeHidden   = _img == null ? '':'hidden';
-			var topHidden     = this._topTitle || this._topStatus ? imageHidden:'hidden';
+			var topHidden     = this._topTitle || this._topStatus ? '':'hidden';
+			var bottomHidden  = '';
 
 			// for later use!
 			this._clientWidth  = this.clientWidth
@@ -295,51 +285,35 @@ class AarloGlance extends LitElement {
 
 		var img = html`
 			${AarloGlance.innerStyleTemplate}
-			<div id="aarlo-wrapper">
-				<video class$="${videoHidden}" src="${this._video}"
+			<div id="aarlo-wrapper" class="base-16x9">
+				<video class$="${videoHidden} img-16x9" src="${this._video}"
 							type="video/mp4" width="${this._clientWidth}" height="${this._clientHeight}"
 							autoplay playsinline controls poster="${this._video_poster}"
 							onended="${(e) => { this.stopVideo(this._cameraId); }}"
 							on-click="${(e) => { this.stopVideo(this._cameraId); }}">
 					Your browser does not support the video tag.
 				</video>
-				<img class$="${imageHidden}" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" />
-				<div class$="${libraryHidden} library" style="width: ${this._clientWidth}px; height: ${this._clientHeight}px;">
-					<div class="library-row">
-						<div class="library-column">
-							<img class$="${libraryItem[0].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,0); }}" src="${libraryItem[0].thumbnail}" title="${libraryItem[0].captured_at}"/>
+				<img class$="${imageHidden} img-16x9" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" />
+				<div class$="${libraryHidden} img-16x9" >
+					<div class="lrow">
+						<div class="lcolumn">
+							<img class$="${libraryItem[0].hidden} library-16x9" on-click="${(e) => { this.showLibraryVideo(this._cameraId,0); }}" src="${libraryItem[0].thumbnail}" title="${libraryItem[0].captured_at}"/>
+							<img class$="${libraryItem[3].hidden} library-16x9" on-click="${(e) => { this.showLibraryVideo(this._cameraId,3); }}" src="${libraryItem[3].thumbnail}" title="${libraryItem[3].captured_at}"/>
+							<img class$="${libraryItem[6].hidden} library-16x9" on-click="${(e) => { this.showLibraryVideo(this._cameraId,6); }}" src="${libraryItem[6].thumbnail}" title="${libraryItem[6].captured_at}"/>
 						</div>
-						<div class="library-column">
-							<img class$="${libraryItem[1].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,1); }}" src="${libraryItem[1].thumbnail}" title="${libraryItem[1].captured_at}"/>
+						<div class="lcolumn">
+							<img class$="${libraryItem[1].hidden} library-16x9" on-click="${(e) => { this.showLibraryVideo(this._cameraId,1); }}" src="${libraryItem[1].thumbnail}" title="${libraryItem[1].captured_at}"/>
+							<img class$="${libraryItem[4].hidden} library-16x9" on-click="${(e) => { this.showLibraryVideo(this._cameraId,4); }}" src="${libraryItem[4].thumbnail}" title="${libraryItem[4].captured_at}"/>
+							<img class$="${libraryItem[7].hidden} library-16x9" on-click="${(e) => { this.showLibraryVideo(this._cameraId,7); }}" src="${libraryItem[7].thumbnail}" title="${libraryItem[7].captured_at}"/>
 						</div>
-						<div class="library-column">
-							<img class$="${libraryItem[2].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,2); }}" src="${libraryItem[2].thumbnail}" title="${libraryItem[2].captured_at}"/>
-						</div>
-					</div>
-					<div class="library-row">
-						<div class="library-column">
-							<img class$="${libraryItem[3].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,3); }}" src="${libraryItem[3].thumbnail}" title="${libraryItem[3].captured_at}"/>
-						</div>
-						<div class="library-column">
-							<img class$="${libraryItem[4].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,4); }}" src="${libraryItem[4].thumbnail}" title="${libraryItem[4].captured_at}"/>
-						</div>
-						<div class="library-column">
-							<img class$="${libraryItem[5].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,5); }}" src="${libraryItem[5].thumbnail}" title="${libraryItem[5].captured_at}"/>
-						</div>
-					</div>
-					<div class="library-row">
-						<div class="library-column">
-							<img class$="${libraryItem[6].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,6); }}" src="${libraryItem[6].thumbnail}" title="${libraryItem[6].captured_at}"/>
-						</div>
-						<div class="library-column">
-							<img class$="${libraryItem[7].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,7); }}" src="${libraryItem[7].thumbnail}" title="${libraryItem[7].captured_at}"/>
-						</div>
-						<div class="library-column">
-							<img class$="${libraryItem[8].hidden}" on-click="${(e) => { this.showLibraryVideo(this._cameraId,8); }}" src="${libraryItem[8].thumbnail}" title="${libraryItem[8].captured_at}"/>
+						<div class="lcolumn">
+							<img class$="${libraryItem[2].hidden} library-16x9" on-click="${(e) => { this.showLibraryVideo(this._cameraId,2); }}" src="${libraryItem[2].thumbnail}" title="${libraryItem[2].captured_at}"/>
+							<img class$="${libraryItem[5].hidden} library-16x9" on-click="${(e) => { this.showLibraryVideo(this._cameraId,5); }}" src="${libraryItem[5].thumbnail}" title="${libraryItem[5].captured_at}"/>
+							<img class$="${libraryItem[8].hidden} library-16x9" on-click="${(e) => { this.showLibraryVideo(this._cameraId,8); }}" src="${libraryItem[8].thumbnail}" title="${libraryItem[8].captured_at}"/>
 						</div>
 					</div>
 				</div>
-				<div class$="${brokeHidden}" style="height: 100px" id="brokenImage"></div>
+				<div class$="${brokeHidden} img-16x9" style="height: 100px" id="brokenImage"></div>
 			</div>
 		`;
 
@@ -352,7 +326,7 @@ class AarloGlance extends LitElement {
 					${camera.state}
 				</div>
 			</div>
-			<div class$="box box-bottom ${imageHidden}">
+			<div class$="box box-bottom ${bottomHidden}">
 				<div class$="box-title ${this._topTitle?'hidden':''}">
 					${cameraName} 
 				</div>
@@ -397,7 +371,15 @@ class AarloGlance extends LitElement {
 
 	set hass( hass ) {
 		this._hass = hass
-		this._updateCameraImageSrc()
+		const camera = this.safe_state(hass,this._cameraId,'unknown')
+		if ( this._old_state && this._old_state == 'taking snapshot' && camera.state == 'idle' ) {
+			setTimeout( this._updateCameraImageSrc,5000 )
+			setTimeout( this._updateCameraImageSrc,10000 )
+			setTimeout( this._updateCameraImageSrc,15000 )
+		} else {
+			this._updateCameraImageSrc()
+		}
+		this._old_state = camera.state
 	}
 
     setConfig(config) {
