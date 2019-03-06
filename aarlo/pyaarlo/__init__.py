@@ -23,10 +23,6 @@ from custom_components.aarlo.pyaarlo.constant import ( BLANK_IMAGE,
                                 TOTAL_BELLS_KEY,
                                 TOTAL_CAMERAS_KEY )
 
-#  logging.basicConfig(
-    #  format='%(asctime)s %(levelname)s %(message)s',
-    #  level=logging.DEBUG,
-    #  datefmt='%Y-%m-%d %H:%M:%S')
 _LOGGER = logging.getLogger('pyaarlo')
 
 class PyArlo(object):
