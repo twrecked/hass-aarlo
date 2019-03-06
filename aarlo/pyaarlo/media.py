@@ -46,7 +46,7 @@ class ArloMediaLibrary(object):
 
             key = '{0}:{1}'.format( video.get('deviceId'), arlotime_strftime( video.get('localCreatedDate' ) ) )
             if key in keys:
-                self._arlo.debug( 'skipping {0}, already present'.format( key ) )
+                #self._arlo.debug( 'skipping {0}, already present'.format( key ) )
                 continue
 
             self._arlo.debug( 'adding {0}'.format( key ) )
