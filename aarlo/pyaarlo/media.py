@@ -1,7 +1,6 @@
 
 import time
 import threading
-import pprint
 from datetime import datetime
 from datetime import timedelta
 from custom_components.aarlo.pyaarlo.constant import ( LIBRARY_URL,
