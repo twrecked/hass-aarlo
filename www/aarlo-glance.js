@@ -22,9 +22,6 @@ class AarloGlance extends LitElement {
 				min-height: 48px;
 				overflow: hidden;
 			}
-			hui-image.clickable {
-				cursor: pointer;
-			}
 			.box {
 				white-space: var(--paper-font-common-nowrap_-_white-space); overflow: var(--paper-font-common-nowrap_-_overflow); text-overflow: var(--paper-font-common-nowrap_-_text-overflow);
 				position: absolute;
@@ -94,20 +91,19 @@ class AarloGlance extends LitElement {
 					left: 50%;
 					width: 100%;
 					transform: translate(-50%, -50%);
+					cursor: pointer;
+				}
+				.video-16x9 {
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					width: 100%;
+					height: auto;
+					transform: translate(-50%, -50%);
 				}
 				.library-16x9 {
-				  width: 100%;
-				}
-				video {
-					height: auto;
+					cursor: pointer;
 					width: 100%;
-				}
-				.hidden {
-					display: none;
-				}
-				#brokenImage {
-					background: grey url("/static/images/image-broken.svg") center/36px
-					no-repeat;
 				}
 				.lrow {
 				  display: flex;
@@ -117,7 +113,13 @@ class AarloGlance extends LitElement {
 				  flex: 32%;
 				  padding: 2px;
 				}
-
+				.hidden {
+					display: none;
+				}
+				#brokenImage {
+					background: grey url("/static/images/image-broken.svg") center/36px
+					no-repeat;
+				}
 			</style>
 		`;
 	}
@@ -286,7 +288,7 @@ class AarloGlance extends LitElement {
 		var img = html`
 			${AarloGlance.innerStyleTemplate}
 			<div id="aarlo-wrapper" class="base-16x9">
-				<video class$="${videoHidden} img-16x9" src="${this._video}"
+				<video class$="${videoHidden} video-16x9" src="${this._video}"
 							type="video/mp4" width="${this._clientWidth}" height="${this._clientHeight}"
 							autoplay playsinline controls poster="${this._video_poster}"
 							onended="${(e) => { this.stopVideo(this._cameraId); }}"
