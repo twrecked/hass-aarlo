@@ -6,8 +6,8 @@ import json
 import requests
 import pprint
 
-from sseclient import ( SSEClient )
-#from custom_components.aarlo.pyaarlo.sseclient import ( SSEClient )
+#from sseclient import ( SSEClient )
+from custom_components.aarlo.pyaarlo.sseclient import ( SSEClient )
 from custom_components.aarlo.pyaarlo.constant import ( EVENT_STREAM_TIMEOUT,
                                 LOGIN_URL,
                                 LOGOUT_URL,
@@ -141,8 +141,8 @@ class ArloBackEnd(object):
                 cb( resource,response )
 
     def _ev_loop( self,stream ):
-        for event in stream.events():
-        #for event in stream:
+        #for event in stream.events():
+        for event in stream:
 
                 # stopped?
                 if event is None:
@@ -171,13 +171,14 @@ class ArloBackEnd(object):
                         self._lock.notify_all()
                     continue
 
-                # is this from a notify?
+                # is this from a notify? then signal to waiting entity, also
+                # pass into dispatcher
                 tid = response.get('transId')
                 with self._lock:
                     if tid and tid in self._requests:
                         self._requests[ tid ] = response
                         self._lock.notify_all()
-                        continue
+                        #continue
 
                 self._ev_dispatcher( response )
 
@@ -198,12 +199,12 @@ class ArloBackEnd(object):
             try:
                 if self._stream_timeout == 0:
                     self._arlo.debug( 'starting stream with no timeout' )
-                    self._ev_stream = SSEClient( self.get( SUBSCRIBE_URL + self._token,stream=True,raw=True ) )
-                    #self._ev_stream = SSEClient( SUBSCRIBE_URL + self._token,session=self._session )
+                    #self._ev_stream = SSEClient( self.get( SUBSCRIBE_URL + self._token,stream=True,raw=True ) )
+                    self._ev_stream = SSEClient( SUBSCRIBE_URL + self._token,session=self._session )
                 else:
                     self._arlo.debug( 'starting stream with {} timeout'.format( self._stream_timeout ) )
-                    self._ev_stream = SSEClient( self.get( SUBSCRIBE_URL + self._token,stream=True,raw=True,timeout=self._stream_timeout ) )
-                    #self._ev_stream = SSEClient( SUBSCRIBE_URL + self._token,session=self._session,timeout=self._stream_timeout )
+                    #self._ev_stream = SSEClient( self.get( SUBSCRIBE_URL + self._token,stream=True,raw=True,timeout=self._stream_timeout ) )
+                    self._ev_stream = SSEClient( SUBSCRIBE_URL + self._token,session=self._session,timeout=self._stream_timeout )
                 self._ev_loop( self._ev_stream )
             except requests.exceptions.ConnectionError as e:
                 self._arlo.warning( 'event loop timeout' )
