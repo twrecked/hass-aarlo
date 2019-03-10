@@ -47,7 +47,6 @@ class ArloBackEnd(object):
 
     def _request( self,url,method='GET',params={},headers={},stream=False,raw=False,timeout=None ):
         if timeout is None:
-            self._arlo.debug( 'using default timeout' )
             timeout = self._request_timeout
         with self._req_lock:
             self._arlo.debug( 'starting request=' + str(url) )
@@ -200,11 +199,11 @@ class ArloBackEnd(object):
                 if self._stream_timeout == 0:
                     self._arlo.debug( 'starting stream with no timeout' )
                     #self._ev_stream = SSEClient( self.get( SUBSCRIBE_URL + self._token,stream=True,raw=True ) )
-                    self._ev_stream = SSEClient( SUBSCRIBE_URL + self._token,session=self._session )
+                    self._ev_stream = SSEClient( self._arlo,SUBSCRIBE_URL + self._token,session=self._session )
                 else:
                     self._arlo.debug( 'starting stream with {} timeout'.format( self._stream_timeout ) )
                     #self._ev_stream = SSEClient( self.get( SUBSCRIBE_URL + self._token,stream=True,raw=True,timeout=self._stream_timeout ) )
-                    self._ev_stream = SSEClient( SUBSCRIBE_URL + self._token,session=self._session,timeout=self._stream_timeout )
+                    self._ev_stream = SSEClient( self._arlo,SUBSCRIBE_URL + self._token,session=self._session,timeout=self._stream_timeout )
                 self._ev_loop( self._ev_stream )
             except requests.exceptions.ConnectionError as e:
                 self._arlo.warning( 'event loop timeout' )
@@ -240,7 +239,6 @@ class ArloBackEnd(object):
 
     def _notify_and_get_response( self,base,body,timeout=None ):
         if timeout is None:
-            self._arlo.debug( 'using default2 timeout' )
             timeout = self._request_timeout
         tid = self._notify( base,body )
         self._requests[ tid ] = None
@@ -275,9 +273,10 @@ class ArloBackEnd(object):
         with self._lock:
 
             # attempt login
-            self.username  = username
-            self.password  = password
+            self.username = username
+            self.password = password
             self._session = requests.Session()
+            self._session.mount('https://',requests.adapters.HTTPAdapter(pool_connections=5, pool_maxsize=10) )
             body = self.post( LOGIN_URL, { 'email':self.username,'password':self.password } )
             if body is None:
                 self._arlo.debug( 'login failed' )
