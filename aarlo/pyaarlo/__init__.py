@@ -117,9 +117,9 @@ class PyArlo(object):
 
     def _refresh_bases( self ):
         for base in self._bases:
-            self._be.notify_and_get_response( base=base,body={"action":"get","resource":"modes","publishResponse":False} )
-            self._be.notify_and_get_response( base=base,body={"action":"get","resource":"cameras","publishResponse":False} )
-            self._be.notify_and_get_response( base=base,body={"action":"get","resource":"doorbells","publishResponse":False} )
+            self._be.notify( base=base,body={"action":"get","resource":"modes","publishResponse":False} )
+            self._be.notify( base=base,body={"action":"get","resource":"cameras","publishResponse":False} )
+            self._be.notify( base=base,body={"action":"get","resource":"doorbells","publishResponse":False} )
 
     def _fast_refresh( self ):
         self.debug( 'fast refresh' )
@@ -127,7 +127,7 @@ class PyArlo(object):
 
         # alway ping bases
         for base in self._bases:
-            self._bg.run( self._be.ping,base=base )
+            self._bg.run( self._be.async_ping,base=base )
 
         # if day changes then reload recording library and camera counts
         today = datetime.date.today()

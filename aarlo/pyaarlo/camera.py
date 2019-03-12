@@ -264,7 +264,7 @@ class ArloCamera(ArloChildDevice):
 
     def update_ambient_sensors( self ):
         if self.model_id == 'ABC1000':
-            self._arlo._bg.run( self._arlo._be.notify_and_get_response,
+            self._arlo._bg.run( self._arlo._be.notify,
                                 base=self.base_station,
                                 body={"action":"get",
                                         "resource":'cameras/{}/ambientSensors/history'.format(self.device_id),
