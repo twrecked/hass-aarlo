@@ -97,9 +97,6 @@ class PyArlo(object):
         # Representation string of object.
         return "<{0}: {1}>".format(self.__class__.__name__, self._name)
 
-    def _ml_update_cb( self ):
-        self.debug( 'ml update finished' )
-
     def _parse_devices( self ):
         for device in self._devices:
             device_id = device.get('deviceId',None)
@@ -144,7 +141,6 @@ class PyArlo(object):
         self.debug( 'slow refresh' )
         self._bg.run( self._refresh_bases )
         self._bg.run( self._refresh_ambient_sensors )
-        #self._bg.run( self._ml.queue_update,cb=self._ml_update_cb )
 
     def stop( self ):
         self._st.save()
