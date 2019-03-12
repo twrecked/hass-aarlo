@@ -61,8 +61,8 @@ class ArloBackEnd(object):
                     r = self._session.post( url,json=params,headers=headers,timeout=timeout )
             except:
                 self._arlo.warning( 'timeout with backend request' )
-                self._ev_stream.close()
-                #self._ev_stream.resp.close()
+                #self._ev_stream.close()
+                self._ev_stream.resp.close()
                 return None
 
             if r.status_code != 200:
