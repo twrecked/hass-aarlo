@@ -173,6 +173,14 @@ class AarloGlance extends LitElement {
 			var topHidden     = this._topTitle || this._topStatus ? '':'hidden';
 			var bottomHidden  = '';
 
+			// image title
+			var imageTitle = camera.attributes.image_source ? imageTitle = camera.attributes.image_source : '';
+			if( imageTitle.startsWith('capture/') ) { 
+				imageTitle = 'automatically captured at ' + imageTitle.substr(8);
+			} else if( imageTitle.startsWith('snapshot/') ) { 
+				imageTitle = 'snapshot captured at ' + imageTitle.substr(9);
+			}
+
 			// for later use!
 			this._clientWidth  = this.clientWidth
 			this._clientHeight = this.clientHeight
@@ -295,7 +303,7 @@ class AarloGlance extends LitElement {
 							on-click="${(e) => { this.stopVideo(this._cameraId); }}">
 					Your browser does not support the video tag.
 				</video>
-				<img class$="${imageHidden} img-16x9" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" />
+				<img class$="${imageHidden} img-16x9" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" title="${imageTitle}"/>
 				<div class$="${libraryHidden} img-16x9" >
 					<div class="lrow">
 						<div class="lcolumn">

@@ -10,7 +10,7 @@ def arlotime_to_time( timestamp ):
 def arlotime_to_datetime( timestamp ):
     return datetime.fromtimestamp( int(timestamp/1000) )
 
-def now_strftime( timestamp,date_format='%Y-%m-%dT%H:%M:%S' ):
+def now_strftime( date_format='%Y-%m-%dT%H:%M:%S' ):
     return datetime.now().strftime( date_format )
 
 def arlotime_strftime( timestamp,date_format='%Y-%m-%dT%H:%M:%S' ):

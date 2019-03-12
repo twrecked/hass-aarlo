@@ -35,7 +35,7 @@ ATTR_POWERSAVE = 'power_save_mode'
 ATTR_SIGNAL_STRENGTH = 'signal_strength'
 ATTR_UNSEEN_VIDEOS = 'unseen_videos'
 ATTR_RECENT_ACTIVITY = 'recent_activity'
-ATTR_IMAGE_SRC = 'capture_source'
+ATTR_IMAGE_SRC = 'image_source'
 
 CONF_FFMPEG_ARGUMENTS = 'ffmpeg_arguments'
 
