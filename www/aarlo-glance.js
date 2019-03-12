@@ -176,7 +176,7 @@ class AarloGlance extends LitElement {
 			// image title
 			var imageTitle = camera.attributes.image_source ? imageTitle = camera.attributes.image_source : '';
 			if( imageTitle.startsWith('capture/') ) { 
-				imageTitle = 'automatically captured at ' + imageTitle.substr(8);
+				imageTitle = 'automatically captured at ' + this.safe_state(_hass,this._lastId,0).state;
 			} else if( imageTitle.startsWith('snapshot/') ) { 
 				imageTitle = 'snapshot captured at ' + imageTitle.substr(9);
 			}
