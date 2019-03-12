@@ -174,11 +174,14 @@ class AarloGlance extends LitElement {
 			var bottomHidden  = '';
 
 			// image title
-			var imageTitle = camera.attributes.image_source ? imageTitle = camera.attributes.image_source : '';
-			if( imageTitle.startsWith('capture/') ) { 
-				imageTitle = 'automatically captured at ' + this.safe_state(_hass,this._lastId,0).state;
-			} else if( imageTitle.startsWith('snapshot/') ) { 
-				imageTitle = 'snapshot captured at ' + imageTitle.substr(9);
+			var imageFullDate = camera.attributes.image_source ? imageFullDate = camera.attributes.image_source : '';
+			var imageDate = ''
+			if( imageFullDate.startsWith('capture/') ) { 
+				imageDate = this.safe_state(_hass,this._lastId,0).state;
+				imageFullDate = 'automatically captured at ' + imageDate;
+			} else if( imageFullDate.startsWith('snapshot/') ) { 
+				imageDate = imageFullDate.substr(9);
+				imageFullDate = 'snapshot captured at ' + imageDate;
 			}
 
 			// for later use!
@@ -194,6 +197,7 @@ class AarloGlance extends LitElement {
 		var soundHidden    = show.includes('sound') ? '' : 'hidden';
 		var capturedHidden = show.includes('captured') || show.includes('captured_today') ? '' : 'hidden';
 		var snapshotHidden = show.includes('snapshot') ? '' : 'hidden';
+		var dateHidden     = show.includes('image_date') ? '' : 'hidden';
 
 		var doorHidden     = this._doorId == undefined ? 'hidden':''
 		var doorLockHidden = this._doorLockId == undefined ? 'hidden':''
@@ -302,7 +306,7 @@ class AarloGlance extends LitElement {
 							on-click="${(e) => { this.stopVideo(this._cameraId); }}">
 					Your browser does not support the video tag.
 				</video>
-				<img class$="${imageHidden} img-16x9" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" title="${imageTitle}"/>
+				<img class$="${imageHidden} img-16x9" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" title="${imageFullDate}"/>
 				<div class$="${libraryHidden} img-16x9" >
 					<div class="lrow">
 						<div class="lcolumn">
@@ -331,6 +335,9 @@ class AarloGlance extends LitElement {
 				<div class$="box-title ${this._topTitle?'':'hidden'}">
 					${cameraName} 
 				</div>
+				<div class$="box-status ${this._topDate?'':'hidden'} ${dateHidden}" title="${imageFullDate}">
+					${imageDate}
+				</div>
 				<div class$="box-status ${this._topStatus?'':'hidden'}">
 					${camera.state}
 				</div>
@@ -346,6 +353,9 @@ class AarloGlance extends LitElement {
 					<ha-icon on-click="${(e) => { this.updateSnapshot(this._cameraId); }}" class$="${snapshotOn} ${snapshotHidden}" icon="${snapshotIcon}" title="${snapshotText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._batteryId); }}" class$="${batteryState} ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
+				</div>
+				<div class$="box-title ${this._topDate?'hidden':''} ${dateHidden}" title="${imageFullDate}">
+					${imageDate}
 				</div>
 				<div class$="box-status ${doorStatusHidden}">
 					<ha-icon on-click="${(e) => { this.moreInfo(this._doorId); }}" class$="${doorOn} ${doorHidden}" icon="${doorIcon}" title="${doorText}"></ha-icon>
@@ -436,7 +446,8 @@ class AarloGlance extends LitElement {
 		}
 
 		// ui configuration
-		this._topTitle = config.top_title ? config.top_title : false
+		this._topTitle  = config.top_title ? config.top_title : false
+		this._topDate   = config.top_date ? config.top_date : false
 		this._topStatus = config.top_status ? config.top_status : false
 
 		this._updateCameraImageSrc()
