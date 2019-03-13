@@ -321,13 +321,14 @@ class ArloCamera(ArloChildDevice):
             'to': self.parent_id,
             'transId': self._arlo._be._gen_trans_id()
         }
+        self._snapshot_state = self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' );
         self._arlo._bg.run( self._arlo._be.post,url=IDLE_SNAPSHOT_URL,params=body,headers={ "xcloudId":self.xcloud_id } )
 
     def take_snapshot( self ):
         if self.is_streaming or self.is_recording:
             self._arlo.debug('streaming snapshot')
             self.take_streaming_snapshot()
-        else:
+        elif not self.is_taking_snapshot:
             self.take_idle_snapshot()
             self._arlo.debug('idle snapshot')
 
