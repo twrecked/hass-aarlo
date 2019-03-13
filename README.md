@@ -13,7 +13,7 @@ The component supports:
 * on the Lovelace UI it will report camera streaming state on the picture entity - ie, a clip is being recorded or somebody is view a stream on the Arlo app or if the camera is too cold to operate
 * saving of state across restarts
 * camera on/off
-* request thumbnail updates from streaming or idle camera
+* request thumbnail updates from recording or idle camera
 * direct video streaming from arlo where possible
 
 It provides a custom lovelace resource that is a specialised version of a picture-glance that allows you to see the last snapshot taken and give quick access to clip counts, the last recorded video and signal and battery levels.
@@ -209,6 +209,31 @@ type: vertical-stack
 When things happen it will look something like:
 
 ![Recent Activity](/images/activity.png)
+
+## Automations
+
+The following example automation will update the image 3 seconds after a recording event happens.
+
+```yaml
+- id: 'automation-0100'
+  alias: Camera Snapshot
+  trigger:
+  - entity_id: camera.aarlo_camera1,camera.aarlo_camera2
+    for: 00:00:03
+    from: 'idle'
+    platform: state
+    to: 'recording'
+  - entity_id: camera.aarlo_camera1,camera.aarlo_camera2
+    for: 00:00:03
+    from: 'recently active'
+    platform: state
+    to: 'recording'
+  condition: []
+  action:
+  - data_template:
+      entity_id: "{{ trigger.entity_id }}"
+    service: camera.aarlo_request_snapshot
+```
 
 ## To Do
 
