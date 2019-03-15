@@ -77,10 +77,13 @@ class ArloCamera(ArloChildDevice):
     def _update_media_and_thumbnail( self ):
         self._arlo.debug('getting media image for ' + self.name )
         self._update_media()
+        url = None
         with self._lock:
-            if self._cache_count != 0:
-                self._arlo._st.set( [self.device_id,LAST_IMAGE_KEY],self._cached_videos[0].thumbnail_url )
-                self._update_last_image()
+            if self._cached_videos:
+                url = self._cached_videos[0].thumbnail_url
+        if url is not None:
+            self._arlo._st.set( [self.device_id,LAST_IMAGE_KEY],url )
+            self._update_last_image()
 
     def _update_last_image( self ):
         self._arlo.debug('getting image for ' + self.name )
