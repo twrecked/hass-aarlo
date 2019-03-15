@@ -91,3 +91,21 @@ class ArloBase(ArloDevice):
             return True
         return super().has_capability( cap )
 
+    def siren_on( self ):
+        body = {
+            'action':'set',
+            'resource':'siren',
+            'publishResponse':True,
+            'properties':{'sirenState':'on','duration':300,'volume':8,'pattern':'alarm'}
+        }
+        self._arlo._bg.run( self._arlo._be.notify,base=self,body=body )
+
+    def siren_off( self ):
+        body = {
+            'action':'set',
+            'resource':'siren',
+            'publishResponse':True,
+            'properties':{'sirenState':'off','duration':300,'volume':8,'pattern':'alarm'}
+        }
+        self._arlo._bg.run( self._arlo._be.notify,base=self,body=body )
+
