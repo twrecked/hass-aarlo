@@ -12,7 +12,9 @@ from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (
-        Camera, ATTR_ENTITY_ID, CAMERA_SERVICE_SCHEMA, DOMAIN, PLATFORM_SCHEMA,
+        Camera, DOMAIN, PLATFORM_SCHEMA,
+        ATTR_ENTITY_ID, ATTR_FILENAME,
+        CAMERA_SERVICE_SCHEMA, CAMERA_SERVICE_SNAPSHOT,
         STATE_IDLE, STATE_RECORDING, STATE_STREAMING )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
@@ -53,6 +55,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 })
 
 SERVICE_REQUEST_SNAPSHOT = 'aarlo_request_snapshot'
+SERVICE_REQUEST_SNAPSHOT_TO_FILE = 'aarlo_request_snapshot_to_file'
 
 WS_TYPE_VIDEO_URL = 'aarlo_video_url'
 SCHEMA_WS_VIDEO_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
@@ -83,22 +86,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     async_add_entities(cameras)
 
-    async def service_handler(service):
-        entity_ids = service.data.get(ATTR_ENTITY_ID)
-        if entity_ids:
-            target_devices = [dev for dev in cameras if dev.entity_id in entity_ids]
-        else:
-            target_devices = cameras
-        for target_device in target_devices:
-            target_device.take_snapshot()
-
-    #  hass.services.async_register(
-        #  DOMAIN, SERVICE_REQUEST_SNAPSHOT, aarlo_snapshot_service_handler,
-        #  schema=CAMERA_SERVICE_SCHEMA)
     component.async_register_entity_service(
         SERVICE_REQUEST_SNAPSHOT,CAMERA_SERVICE_SCHEMA,
-        aarlo_snapshot_service_handler)
-
+        aarlo_snapshot_service_handler
+    )
+    component.async_register_entity_service(
+        SERVICE_REQUEST_SNAPSHOT_TO_FILE,CAMERA_SERVICE_SNAPSHOT,
+        aarlo_snapshot_to_file_service_handler
+    )
     hass.components.websocket_api.async_register_command(
         WS_TYPE_VIDEO_URL, websocket_video_url,
         SCHEMA_WS_VIDEO_URL
@@ -269,8 +264,18 @@ class ArloCam(Camera):
         self._motion_status = False
         self.set_base_station_mode(ARLO_MODE_DISARMED)
 
-    def take_snapshot(self):
-        self._camera.take_snapshot()
+    def request_snapshot(self):
+        self._camera.request_snapshot()
+
+    def async_get_snapshot(self):
+        return self.hass.async_add_job(self.request_snapshot)
+
+    def get_snapshot(self):
+        return self._camera.get_snapshot()
+
+    def async_get_snapshot(self):
+        return self.hass.async_add_job(self.get_snapshot)
+
 
 def _get_camera_from_entity_id(hass, entity_id):
     component = hass.data.get(DOMAIN)
@@ -331,7 +336,31 @@ async def websocket_stream_url(hass, connection, msg):
         ))
 
 async def aarlo_snapshot_service_handler( camera,service ):
-    _LOGGER.info( "{0} is snapshotting".format( camera.unique_id ) )
-    pprint.pprint( camera )
-    pprint.pprint( service )
+    _LOGGER.info( "{0} is snapshot".format( camera.unique_id ) )
+    camera.request_snapshot()
+
+async def aarlo_snapshot_to_file_service_handler( camera,service ):
+    _LOGGER.info( "{0} is snapshot to file".format( camera.unique_id ) )
+
+    hass = camera.hass
+    filename = service.data[ATTR_FILENAME]
+    filename.hass = hass
+
+    snapshot_file = filename.async_render( variables={ATTR_ENTITY_ID: camera} )
+
+    # check if we allow to access to that file
+    if not hass.config.is_allowed_path(snapshot_file):
+        _LOGGER.error( "Can't write %s, no access to path!", snapshot_file)
+        return
+
+    image = await camera.async_get_snapshot()
+
+    def _write_image(to_file, image_data):
+        with open(to_file, 'wb') as img_file:
+            img_file.write(image_data)
+
+    try:
+        await hass.async_add_executor_job( _write_image, snapshot_file, image )
+    except OSError as err:
+        _LOGGER.error("Can't write image to file: %s", err)
 

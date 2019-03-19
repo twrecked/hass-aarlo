@@ -1,6 +1,6 @@
 
 import threading
-import pprint
+import time
 import base64
 import zlib
 
@@ -330,7 +330,7 @@ class ArloCamera(ArloChildDevice):
         self._snapshot_state = self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' );
         self._arlo._bg.run( self._arlo._be.post,url=IDLE_SNAPSHOT_URL,params=body,headers={ "xcloudId":self.xcloud_id } )
 
-    def _take_snapshot( self ):
+    def _request_snapshot( self ):
         if not self._snapshot_running:
             if self.is_streaming or self.is_recording:
                 self._arlo.debug('streaming snapshot')
@@ -341,18 +341,19 @@ class ArloCamera(ArloChildDevice):
                 self._arlo.debug('idle snapshot')
                 self._snapshot_running = True
 
-    def take_snapshot( self ):
+    def request_snapshot( self ):
         with self._lock:
-            self._take_snapshot()
+            self._request_snapshot()
         
-    def take_snapshot_and_wait( self,timeout=30 ):
+    def get_snapshot( self,timeout=30 ):
         with self._lock:
-            self.take_snapshot()
+            self._request_snapshot()
             mnow = time.monotonic()
             mend = mnow + timeout
             while mnow < mend and self._snapshot_running:
                 self._lock.wait( mend - mnow )
                 mnow = time.monotonic()
+        return self._arlo._st.get( [self._device_id,LAST_IMAGE_DATA_KEY],'' )
 
     @property
     def is_taking_snapshot( self ):
