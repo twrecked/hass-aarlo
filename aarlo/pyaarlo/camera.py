@@ -35,7 +35,8 @@ class ArloCamera(ArloChildDevice):
         self._cached_videos = None
         self._snapshot_state = None
         self._min_days_vdo_cache = PRELOAD_DAYS
-        self._lock = threading.Lock()
+        self._lock = threading.Condition()
+        self._snapshot_running = False
         self._arlo._bg.run_in( self._update_media,10 )
 
     def _set_recent( self,timeo ):
@@ -103,6 +104,11 @@ class ArloCamera(ArloChildDevice):
             self._arlo.debug( 'our snapshot finished, restoring state' )
             self._save_and_do_callbacks( ACTIVITY_STATE_KEY,self._snapshot_state )
             self._snapshot_state = None
+
+        # signal to anybody waiting
+        with self._lock:
+            self._lock.notify_all()
+            self._snapshot_running = False
 
     def _parse_statistic( self,data,scale ):
         """Parse binary statistics returned from the history API"""
@@ -324,13 +330,29 @@ class ArloCamera(ArloChildDevice):
         self._snapshot_state = self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' );
         self._arlo._bg.run( self._arlo._be.post,url=IDLE_SNAPSHOT_URL,params=body,headers={ "xcloudId":self.xcloud_id } )
 
+    def _take_snapshot( self ):
+        if not self._snapshot_running:
+            if self.is_streaming or self.is_recording:
+                self._arlo.debug('streaming snapshot')
+                self.take_streaming_snapshot()
+                self._snapshot_running = True
+            elif not self.is_taking_snapshot:
+                self.take_idle_snapshot()
+                self._arlo.debug('idle snapshot')
+                self._snapshot_running = True
+
     def take_snapshot( self ):
-        if self.is_streaming or self.is_recording:
-            self._arlo.debug('streaming snapshot')
-            self.take_streaming_snapshot()
-        elif not self.is_taking_snapshot:
-            self.take_idle_snapshot()
-            self._arlo.debug('idle snapshot')
+        with self._lock:
+            self._take_snapshot()
+        
+    def take_snapshot_and_wait( self,timeout=30 ):
+        with self._lock:
+            self.take_snapshot()
+            mnow = time.monotonic()
+            mend = mnow + timeout
+            while mnow < mend && self._snapshot_running:
+                self._lock.wait( mend - mnow )
+                mnow = time.monotonic()
 
     @property
     def is_taking_snapshot( self ):
