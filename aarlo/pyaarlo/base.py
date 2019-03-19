@@ -38,7 +38,7 @@ class ArloBase(ArloDevice):
                             mode_name = mode_id
                     if mode_id and mode_name != '':
                         self._arlo.debug( mode_id + '<==>' + mode_name )
-                        self._arlo._st.set( [self.device_id,MODE_ID_TO_NAME_KEY,mode_id],mode_name.lower() )
+                        self._arlo._st.set( [self.device_id,MODE_ID_TO_NAME_KEY,mode_id],mode_name )
                         self._arlo._st.set( [self.device_id,MODE_NAME_TO_ID_KEY,mode_name.lower()],mode_id )
 
             # mode change?

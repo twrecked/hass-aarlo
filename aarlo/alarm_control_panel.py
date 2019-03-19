@@ -70,9 +70,9 @@ class ArloBaseStation(AlarmControlPanel):
         self._name            = device.name
         self._unique_id       = self._name.lower().replace(' ','_')
         self._base            = device
-        self._home_mode_name  = config.get(CONF_HOME_MODE_NAME)
-        self._away_mode_name  = config.get(CONF_AWAY_MODE_NAME)
-        self._night_mode_name = config.get(CONF_NIGHT_MODE_NAME)
+        self._home_mode_name  = config.get(CONF_HOME_MODE_NAME).lower()
+        self._away_mode_name  = config.get(CONF_AWAY_MODE_NAME).lower()
+        self._night_mode_name = config.get(CONF_NIGHT_MODE_NAME).lower()
         self._state           = None
         _LOGGER.info( 'ArloBaseStation: %s created',self._name )
 
@@ -127,15 +127,16 @@ class ArloBaseStation(AlarmControlPanel):
 
     def _get_state_from_mode(self, mode):
         """Convert Arlo mode to Home Assistant state."""
-        if mode == ARMED:
+        lmode = mode.lower()
+        if lmode == ARMED:
             return STATE_ALARM_ARMED_AWAY
-        if mode == DISARMED:
+        if lmode == DISARMED:
             return STATE_ALARM_DISARMED
-        if mode == self._home_mode_name:
+        if lmode == self._home_mode_name:
             return STATE_ALARM_ARMED_HOME
-        if mode == self._away_mode_name:
+        if lmode == self._away_mode_name:
             return STATE_ALARM_ARMED_AWAY
-        if mode == self._night_mode_name:
+        if lmode == self._night_mode_name:
             return STATE_ALARM_ARMED_NIGHT
         return mode
 
