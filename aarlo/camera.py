@@ -5,6 +5,7 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/camera.arlo/
 """
 import logging
+import pprint
 import voluptuous as vol
 
 from homeassistant.core import callback
@@ -74,6 +75,7 @@ SCHEMA_WS_STREAM_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up an Arlo IP Camera."""
     arlo = hass.data[DATA_ARLO]
+    component = hass.data[DOMAIN]
 
     cameras = []
     for camera in arlo.cameras:
@@ -90,9 +92,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         for target_device in target_devices:
             target_device.take_snapshot()
 
-    hass.services.async_register(
-        DOMAIN, SERVICE_REQUEST_SNAPSHOT, service_handler,
-        schema=CAMERA_SERVICE_SCHEMA)
+    #  hass.services.async_register(
+        #  DOMAIN, SERVICE_REQUEST_SNAPSHOT, aarlo_snapshot_service_handler,
+        #  schema=CAMERA_SERVICE_SCHEMA)
+    component.async_register_entity_service(
+        SERVICE_REQUEST_SNAPSHOT,CAMERA_SERVICE_SCHEMA,
+        aarlo_snapshot_service_handler)
+
     hass.components.websocket_api.async_register_command(
         WS_TYPE_VIDEO_URL, websocket_video_url,
         SCHEMA_WS_VIDEO_URL
@@ -323,4 +329,9 @@ async def websocket_stream_url(hass, connection, msg):
                 'test':'stream_url'
             }
         ))
+
+async def aarlo_snapshot_service_handler( camera,service ):
+    _LOGGER.info( "{0} is snapshotting".format( camera.unique_id ) )
+    pprint.pprint( camera )
+    pprint.pprint( service )
 

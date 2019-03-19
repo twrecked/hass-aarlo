@@ -350,7 +350,7 @@ class ArloCamera(ArloChildDevice):
             self.take_snapshot()
             mnow = time.monotonic()
             mend = mnow + timeout
-            while mnow < mend && self._snapshot_running:
+            while mnow < mend and self._snapshot_running:
                 self._lock.wait( mend - mnow )
                 mnow = time.monotonic()
 
