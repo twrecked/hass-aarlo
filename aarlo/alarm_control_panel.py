@@ -9,29 +9,25 @@ import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.core import callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.components.alarm_control_panel import (
         AlarmControlPanel, DOMAIN, PLATFORM_SCHEMA,
         ATTR_ENTITY_ID )
-from custom_components.aarlo import (
-        DATA_ARLO, CONF_ATTRIBUTION )
 from homeassistant.const import (
-        ATTR_ATTRIBUTION, STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME,
-        STATE_ALARM_DISARMED, STATE_ALARM_ARMED_NIGHT)
+        ATTR_ATTRIBUTION,
+        STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME, STATE_ALARM_DISARMED, STATE_ALARM_ARMED_NIGHT )
+from custom_components.aarlo import (
+        CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
 
 _LOGGER = logging.getLogger(__name__)
 
+DEPENDENCIES = ['aarlo']
 ARMED = 'armed'
+DISARMED = 'disarmed'
+ICON = 'mdi:security'
 
 CONF_HOME_MODE_NAME = 'home_mode_name'
 CONF_AWAY_MODE_NAME = 'away_mode_name'
 CONF_NIGHT_MODE_NAME = 'night_mode_name'
-
-DEPENDENCIES = ['aarlo']
-
-DISARMED = 'disarmed'
-
-ICON = 'mdi:security'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_HOME_MODE_NAME, default=ARMED): cv.string,
@@ -55,12 +51,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if not arlo.base_stations:
         return
 
-    home_mode_name  = config.get(CONF_HOME_MODE_NAME)
-    away_mode_name  = config.get(CONF_AWAY_MODE_NAME)
-    night_mode_name = config.get(CONF_NIGHT_MODE_NAME)
     base_stations   = []
     for base_station in arlo.base_stations:
-        base_stations.append(ArloBaseStation( base_station,home_mode_name,away_mode_name,night_mode_name ))
+        base_stations.append(ArloBaseStation( base_station,config ) )
  
     async_add_entities(base_stations, True)
 
@@ -72,14 +65,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class ArloBaseStation(AlarmControlPanel):
     """Representation of an Arlo Alarm Control Panel."""
 
-    def __init__(self, device, home_mode_name, away_mode_name, night_mode_name):
+    def __init__( self,device,config ):
         """Initialize the alarm control panel."""
         self._name            = device.name
         self._unique_id       = self._name.lower().replace(' ','_')
         self._base            = device
-        self._home_mode_name  = home_mode_name.lower()
-        self._away_mode_name  = away_mode_name.lower()
-        self._night_mode_name = night_mode_name.lower()
+        self._home_mode_name  = config.get(CONF_HOME_MODE_NAME)
+        self._away_mode_name  = config.get(CONF_AWAY_MODE_NAME)
+        self._night_mode_name = config.get(CONF_NIGHT_MODE_NAME)
         self._state           = None
         _LOGGER.info( 'ArloBaseStation: %s created',self._name )
 
@@ -90,6 +83,7 @@ class ArloBaseStation(AlarmControlPanel):
 
     async def async_added_to_hass(self):
         """Register callbacks."""
+        @callback
         def update_state( device,attr,value ):
             _LOGGER.debug( 'callback:' + attr + ':' + str(value))
             self._state = self._get_state_from_mode( self._base.attribute( 'activeMode' ) )
@@ -100,23 +94,18 @@ class ArloBaseStation(AlarmControlPanel):
 
     @property
     def state(self):
-        """Return the state of the device."""
         return self._state
 
-    async def async_alarm_disarm(self, code=None):
-        """Send disarm command."""
+    def alarm_disarm(self, code=None):
         self._base.mode = DISARMED
 
-    async def async_alarm_arm_away(self, code=None):
-        """Send arm away command. Uses custom mode."""
+    def alarm_arm_away(self, code=None):
         self._base.mode = self._away_mode_name
 
-    async def async_alarm_arm_home(self, code=None):
-        """Send arm home command. Uses custom mode."""
+    def alarm_arm_home(self, code=None):
         self._base.mode = self._home_mode_name
 
-    async def async_alarm_arm_night(self, code=None):
-        """Send arm night command. Uses custom mode."""
+    def alarm_arm_night(self, code=None):
         self._base.mode = self._night_mode_name
 
     @property
@@ -130,6 +119,7 @@ class ArloBaseStation(AlarmControlPanel):
         attrs = {}
 
         attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
+        attrs['brand']          = DEFAULT_BRAND
         attrs['device_id']      = self._base.device_id
         attrs['friendly_name']  = self._name
 

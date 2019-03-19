@@ -5,7 +5,6 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/camera.arlo/
 """
 import logging
-import pprint
 import voluptuous as vol
 
 from homeassistant.core import callback
@@ -110,7 +109,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
-    def __init__(self, hass, camera, device_info):
+    def __init__( self,hass,camera,config ):
         """Initialize an Arlo camera."""
         super().__init__()
         self._name          = camera.name
@@ -120,7 +119,7 @@ class ArloCam(Camera):
         self._recent        = False
         self._motion_status = False
         self._ffmpeg           = hass.data[DATA_FFMPEG]
-        self._ffmpeg_arguments = device_info.get(CONF_FFMPEG_ARGUMENTS)
+        self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info( 'ArloCam: %s created',self._name )
 
     def camera_image(self):
