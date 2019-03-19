@@ -11,7 +11,8 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.components.alarm_control_panel import (
-        AlarmControlPanel, PLATFORM_SCHEMA)
+        AlarmControlPanel, DOMAIN, PLATFORM_SCHEMA,
+        ATTR_ENTITY_ID )
 from custom_components.aarlo import (
         DATA_ARLO, CONF_ATTRIBUTION )
 from homeassistant.const import (
@@ -38,10 +39,18 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NIGHT_MODE_NAME, default=ARMED): cv.string,
 })
 
+SERVICE_MODE = 'aarlo_set_mode'
+ATTR_MODE    = 'mode'
+
+SERVICE_MODE_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+    vol.Required(ATTR_MODE): cv.string,
+})
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Arlo Alarm Control Panels."""
     arlo = hass.data[DATA_ARLO]
+    component = hass.data[DOMAIN]
 
     if not arlo.base_stations:
         return
@@ -55,6 +64,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
  
     async_add_entities(base_stations, True)
 
+    component.async_register_entity_service(
+        SERVICE_MODE,SERVICE_MODE_SCHEMA,
+        aarlo_mode_service_handler
+    )
 
 class ArloBaseStation(AlarmControlPanel):
     """Representation of an Arlo Alarm Control Panel."""
@@ -135,4 +148,9 @@ class ArloBaseStation(AlarmControlPanel):
         if mode == self._night_mode_name:
             return STATE_ALARM_ARMED_NIGHT
         return mode
+
+async def aarlo_mode_service_handler( base,service ):
+    mode = service.data[ATTR_MODE]
+    _LOGGER.debug( "{0} mode to {1}".format( base.unique_id,mode ) )
+    base._base.mode = mode
 

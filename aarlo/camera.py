@@ -336,11 +336,11 @@ async def websocket_stream_url(hass, connection, msg):
         ))
 
 async def aarlo_snapshot_service_handler( camera,service ):
-    _LOGGER.info( "{0} is snapshot".format( camera.unique_id ) )
+    _LOGGER.debug( "{0} snapshot".format( camera.unique_id ) )
     camera.request_snapshot()
 
 async def aarlo_snapshot_to_file_service_handler( camera,service ):
-    _LOGGER.info( "{0} is snapshot to file".format( camera.unique_id ) )
+    _LOGGER.info( "{0} snapshot to file".format( camera.unique_id ) )
 
     hass = camera.hass
     filename = service.data[ATTR_FILENAME]
