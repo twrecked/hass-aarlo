@@ -1,8 +1,8 @@
 
-import pprint
 from custom_components.aarlo.pyaarlo.device import ArloDevice
 
 from custom_components.aarlo.pyaarlo.constant import ( DEFAULT_MODES,
+                                DEFINITIONS_URL,
                                 MODES_KEY,
                                 MODE_ID_TO_NAME_KEY,
                                 MODE_KEY,
@@ -14,11 +14,28 @@ class ArloBase(ArloDevice):
         super().__init__( name,arlo,attrs )
         self._refresh_rate = 15
 
+        uid = attrs.get('uniqueId','invalid')
+        self._modes = self._arlo._be.get( DEFINITIONS_URL + "?uniqueIds={}".format( uid ) )
+        self._parse_modes( self._modes.get(uid,{}).get('modes',[]) )
+
     def _id_to_name( self,mode_id ):
         return self._arlo._st.get( [self.device_id,MODE_ID_TO_NAME_KEY,mode_id],None )
 
     def _name_to_id( self,mode_name ):
         return self._arlo._st.get( [self.device_id,MODE_NAME_TO_ID_KEY,mode_name.lower()],None )
+
+    def _parse_modes( self,modes ):
+        for mode in modes:
+            mode_id = mode.get( 'id',None )
+            mode_name = mode.get( 'name','' )
+            if mode_name == '':
+                mode_name = mode.get( 'type','' )
+                if mode_name == '':
+                    mode_name = mode_id
+            if mode_id and mode_name != '':
+                self._arlo.debug( mode_id + '<==>' + mode_name )
+                self._arlo._st.set( [self.device_id,MODE_ID_TO_NAME_KEY,mode_id],mode_name )
+                self._arlo._st.set( [self.device_id,MODE_NAME_TO_ID_KEY,mode_name.lower()],mode_id )
 
     def _event_handler( self,resource,event ):
         self._arlo.debug( self.name + ' BASE got ' + resource )
