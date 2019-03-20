@@ -6,15 +6,20 @@ https://home-assistant.io/components/alarm_control_panel.arlo/
 """
 import logging
 import voluptuous as vol
+import time
+from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
+import homeassistant.util.dt as dt_util
+from homeassistant.helpers.event import track_point_in_time
 from homeassistant.core import callback
 from homeassistant.components.alarm_control_panel import (
         AlarmControlPanel, DOMAIN, PLATFORM_SCHEMA,
         ATTR_ENTITY_ID )
 from homeassistant.const import (
         ATTR_ATTRIBUTION,
-        STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME, STATE_ALARM_DISARMED, STATE_ALARM_ARMED_NIGHT )
+        CONF_TRIGGER_TIME,
+        STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME, STATE_ALARM_DISARMED, STATE_ALARM_ARMED_NIGHT, STATE_ALARM_TRIGGERED )
 from custom_components.aarlo import (
         CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
 
@@ -25,14 +30,21 @@ ARMED = 'armed'
 DISARMED = 'disarmed'
 ICON = 'mdi:security'
 
-CONF_HOME_MODE_NAME = 'home_mode_name'
-CONF_AWAY_MODE_NAME = 'away_mode_name'
+CONF_HOME_MODE_NAME  = 'home_mode_name'
+CONF_AWAY_MODE_NAME  = 'away_mode_name'
 CONF_NIGHT_MODE_NAME = 'night_mode_name'
+CONF_ALARM_VOLUME    = 'alarm_volume'
+
+DEFAULT_TRIGGER_TIME = timedelta(seconds=60)
+DISARMED = 'disarmed'
+ALARM_VOLUME = '8'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_HOME_MODE_NAME, default=ARMED): cv.string,
     vol.Optional(CONF_AWAY_MODE_NAME, default=ARMED): cv.string,
     vol.Optional(CONF_NIGHT_MODE_NAME, default=ARMED): cv.string,
+    vol.Optional(CONF_ALARM_VOLUME, default=ALARM_VOLUME): cv.string,
+    vol.Optional(CONF_TRIGGER_TIME, default=DEFAULT_TRIGGER_TIME): vol.All(cv.time_period, cv.positive_timedelta),
 })
 
 SERVICE_MODE = 'aarlo_set_mode'
@@ -67,12 +79,16 @@ class ArloBaseStation(AlarmControlPanel):
 
     def __init__( self,device,config ):
         """Initialize the alarm control panel."""
+        self._hass            = hass
         self._name            = device.name
         self._unique_id       = self._name.lower().replace(' ','_')
         self._base            = device
         self._home_mode_name  = config.get(CONF_HOME_MODE_NAME).lower()
         self._away_mode_name  = config.get(CONF_AWAY_MODE_NAME).lower()
         self._night_mode_name = config.get(CONF_NIGHT_MODE_NAME).lower()
+        self._alarm_volume    = config.get(CONF_ALARM_VOLUME)
+        self._trigger_time    = config.get(CONF_TRIGGER_TIME)
+        self._trigger_till    = None
         self._state           = None
         _LOGGER.info( 'ArloBaseStation: %s created',self._name )
 
@@ -94,6 +110,12 @@ class ArloBaseStation(AlarmControlPanel):
 
     @property
     def state(self):
+        """Return the state of the device."""
+        if self._trigger_till is not None:
+            if self._trigger_till > time.monotonic():
+                return STATE_ALARM_TRIGGERED
+            self._trigger_till = None
+            self._base.siren_off()
         return self._state
 
     def alarm_disarm(self, code=None):
@@ -107,6 +129,14 @@ class ArloBaseStation(AlarmControlPanel):
 
     def alarm_arm_night(self, code=None):
         self._base.mode = self._night_mode_name
+
+    def alarm_trigger(self, code=None):
+        if self._trigger_till is None:
+            _LOGGER.info( '%s: triggered',self._name )
+            self._trigger_till = time.monotonic() + self._trigger_time.total_seconds()
+            self._base.siren_on( duration=self._trigger_time.total_seconds(),volume=self._alarm_volume )
+            self.async_schedule_update_ha_state()
+            track_point_in_time( self._hass,self.async_update_ha_state, dt_util.utcnow() + self._trigger_time )
 
     @property
     def unique_id(self):

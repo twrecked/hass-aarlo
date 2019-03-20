@@ -15,6 +15,7 @@ The component supports:
 * camera on/off
 * request thumbnail updates from recording or idle camera
 * direct video streaming from arlo where possible
+* siren when triggering an alarm
 
 It provides a custom lovelace resource that is a specialised version of a picture-glance that allows you to see the last snapshot taken and give quick access to clip counts, the last recorded video and signal and battery levels.
 
@@ -66,8 +67,10 @@ camera:
 
 alarm_control_panel:
   - platform: aarlo
-    home_mode_name: Home
+    home_mode_name: home
     away_mode_name: armed
+    trigger_time: 30
+    alarm_volume: 8
 
 binary_sensor:
   - platform: aarlo
@@ -85,6 +88,7 @@ sensor:
     - captured_today
     - signal_strength
 ```
+The `alarm_control_panel` can be triggered and a siren, if present, will sound.
 
 The following new parameters can be specified against the aarlo platform:
 
