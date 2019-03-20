@@ -10,10 +10,9 @@ import time
 from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
-#from homeassistant.core import callback
-#from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers.event import track_point_in_time
 import homeassistant.util.dt as dt_util
+from homeassistant.helpers.event import track_point_in_time
+from homeassistant.core import callback
 from homeassistant.components.alarm_control_panel import (
         AlarmControlPanel, PLATFORM_SCHEMA)
 from custom_components.aarlo import (
@@ -94,6 +93,7 @@ class ArloBaseStation(AlarmControlPanel):
 
     async def async_added_to_hass(self):
         """Register callbacks."""
+        @callback
         def update_state( device,attr,value ):
             _LOGGER.debug( 'callback:' + attr + ':' + str(value))
             self._state = self._get_state_from_mode( self._base.attribute( 'activeMode' ) )
@@ -112,23 +112,16 @@ class ArloBaseStation(AlarmControlPanel):
             self._base.siren_off()
         return self._state
 
-    #async def async_alarm_disarm(self, code=None):
     def alarm_disarm(self, code=None):
-        """Send disarm command."""
         self._base.mode = DISARMED
 
-    #async def async_alarm_arm_away(self, code=None):
     def alarm_arm_away(self, code=None):
-        """Send arm away command. Uses custom mode."""
         self._base.mode = self._away_mode_name
 
-    #async def async_alarm_arm_home(self, code=None):
     def alarm_arm_home(self, code=None):
-        """Send arm home command. Uses custom mode."""
         self._base.mode = self._home_mode_name
 
     async def async_alarm_arm_night(self, code=None):
-        """Send arm night command. Uses custom mode."""
         self._base.mode = self._night_mode_name
 
     def alarm_trigger(self, code=None):
