@@ -79,7 +79,6 @@ class ArloBaseStation(AlarmControlPanel):
 
     def __init__( self,device,config ):
         """Initialize the alarm control panel."""
-        self._hass            = hass
         self._name            = device.name
         self._unique_id       = self._name.lower().replace(' ','_')
         self._base            = device
@@ -136,7 +135,7 @@ class ArloBaseStation(AlarmControlPanel):
             self._trigger_till = time.monotonic() + self._trigger_time.total_seconds()
             self._base.siren_on( duration=self._trigger_time.total_seconds(),volume=self._alarm_volume )
             self.async_schedule_update_ha_state()
-            track_point_in_time( self._hass,self.async_update_ha_state, dt_util.utcnow() + self._trigger_time )
+            track_point_in_time( self.hass,self.async_update_ha_state, dt_util.utcnow() + self._trigger_time )
 
     @property
     def unique_id(self):
