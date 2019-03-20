@@ -31,7 +31,8 @@ class PyArlo(object):
                         storage_dir='/config/.aarlo',dump=False,max_days=365,
                         db_motion_time=30,db_ding_time=10,
                         request_timeout=60,stream_timeout=0,
-                        recent_time=600,last_format='%m-%d %H:%M' ):
+                        recent_time=600,last_format='%m-%d %H:%M',
+                        no_media_upload=False):
 
         try:
             os.mkdir( storage_dir )
@@ -44,12 +45,14 @@ class PyArlo(object):
         self._be   = ArloBackEnd( self,username,password,dump=dump,storage_dir=storage_dir,
                                         request_timeout=request_timeout,stream_timeout=stream_timeout )
         self._ml   = ArloMediaLibrary( self,max_days=max_days )
+
         self._lock = threading.Lock()
         self._bases       = []
         self._cameras     = []
         self._doorbells   = []
         self._recent_time = recent_time
         self._last_format = last_format
+        self._no_media_upload = no_media_upload
 
         # on day flip we reload image count
         self._today = datetime.date.today()
