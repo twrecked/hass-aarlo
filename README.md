@@ -114,6 +114,11 @@ For `alarm_control_panel` you only need to specify the modes if you have custom 
 
 Now restart your home assistant system.
 
+### Special Options
+
+Use these only if asked to:
+* `no_media_upload`: some people have seen the Arlo servers dropping stream connections and no image updates when recording stops, if you see this then set this variable to `True` in `aarlo` platform.
+
 ## Resource Configuration
 
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
