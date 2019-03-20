@@ -1,6 +1,7 @@
 
 DEVICES_URL         = 'https://arlo.netgear.com/hmsweb/users/devices'
 DEFINITIONS_URL     = 'https://arlo.netgear.com/hmsweb/users/automation/definitions'
+AUTOMATION_URL      = 'https://arlo.netgear.com/hmsweb/users/devices/automation/active'
 LIBRARY_URL         = 'https://arlo.netgear.com/hmsweb/users/library'
 LOGIN_URL           = 'https://arlo.netgear.com/hmsweb/login/v2'
 LOGOUT_URL          = 'https://arlo.netgear.com/hmsweb/logout'
