@@ -40,6 +40,7 @@ class PyArlo(object):
             pass
 
         self._name = name
+        self._user_agent = user_agent
         self._bg   = ArloBackground( self )
         self._st   = ArloStorage( self,name=name,storage_dir=storage_dir )
         self._be   = ArloBackEnd( self,username,password,dump=dump,storage_dir=storage_dir,
@@ -51,7 +52,6 @@ class PyArlo(object):
         self._doorbells   = []
         self._recent_time = recent_time
         self._last_format = last_format
-        self._user_agent  = user_agent
 
         # on day flip we reload image count
         self._today = datetime.date.today()
