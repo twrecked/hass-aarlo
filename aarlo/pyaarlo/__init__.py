@@ -31,7 +31,8 @@ class PyArlo(object):
                         storage_dir='/config/.aarlo',dump=False,max_days=365,
                         db_motion_time=30,db_ding_time=10,
                         request_timeout=60,stream_timeout=0,
-                        recent_time=600,last_format='%m-%d %H:%M' ):
+                        recent_time=600,last_format='%m-%d %H:%M',
+                        user_agent='apple'):
 
         try:
             os.mkdir( storage_dir )
@@ -50,6 +51,7 @@ class PyArlo(object):
         self._doorbells   = []
         self._recent_time = recent_time
         self._last_format = last_format
+        self._user_agent  = user_agent
 
         # on day flip we reload image count
         self._today = datetime.date.today()
