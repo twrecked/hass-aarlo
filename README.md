@@ -16,6 +16,7 @@ The component supports:
 * request thumbnail updates from recording or idle camera
 * direct video streaming from arlo where possible
 * siren when triggering an alarm
+* supports streaming in virtualenv installation
 
 It provides a custom lovelace resource that is a specialised version of a picture-glance that allows you to see the last snapshot taken and give quick access to clip counts, the last recorded video and signal and battery levels.
 
