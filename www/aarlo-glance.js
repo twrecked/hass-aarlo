@@ -8,6 +8,7 @@ class AarloGlance extends LitElement {
 			_hass: Object,
 			_config: Object,
 			_img: String,
+			_stream: String,
 			_video: String,
 			_library: String,
 			_library_base: Number,
@@ -128,7 +129,7 @@ class AarloGlance extends LitElement {
 		return _id in _hass.states ? _hass.states[_id] : { 'state':def,'attributes':{ 'friendly_name':'unknown' } };
 	}
 
-	_render( { _hass,_config,_img,_video,_library,_library_base } ) {
+	_render( { _hass,_config,_img,_stream,_video,_library,_library_base } ) {
 
 		const camera = this.safe_state(_hass,this._cameraId,'unknown')
 		const cameraName = _config.name ? _config.name : camera.attributes.friendly_name;
@@ -141,6 +142,7 @@ class AarloGlance extends LitElement {
 
 
 		// default is hidden
+		var streamHidden      = 'hidden';
 		var videoHidden       = 'hidden';
 		var libraryHidden     = 'hidden';
 		var libraryPrevHidden = 'hidden';
@@ -150,8 +152,10 @@ class AarloGlance extends LitElement {
 		var bottomHidden      = 'hidden';
 		var doorStatusHidden  = 'hidden';
 		var brokeHidden       = 'hidden';
-		if( _video ) {
-			var videoHidden   = '';
+		if( _stream ) {
+			var streamHidden = '';
+		} else if( _video ) {
+			var videoHidden = '';
 		} else if ( _library ) {
 			var libraryHidden     = '';
 			var libraryPrevHidden = _library_base > 0 ? '' : 'hidden';
@@ -297,16 +301,28 @@ class AarloGlance extends LitElement {
 			var doorBellIcon  = 'not-used'
 		}
 
+		//type="application/x-mpegURL"
+		//type="video/mp4"
 		var img = html`
 			${AarloGlance.innerStyleTemplate}
 			<div id="aarlo-wrapper" class="base-16x9">
-				<video class$="${videoHidden} video-16x9" src="${this._video}" poster="${this._video_poster}"
-							type="video/mp4" autoplay playsinline controls 
-							onended="${(e) => { this.stopVideo(this._cameraId); }}"
-							on-click="${(e) => { this.stopVideo(this._cameraId); }}">
-					Your browser does not support the video tag.
+				<video id="stream-${this._cameraId}"
+					class$="${streamHidden} video-16x9"
+					poster="${this._stream_poster}"
+                    autoplay playsinline controls
+                    onended="${(e) => { this.stopStream(this._cameraId); }}"
+                    on-click="${(e) => { this.stopStream(this._cameraId); }}">
+						Your browser does not support the video tag.
 				</video>
-				<img class$="${imageHidden} img-16x9" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" title="${imageFullDate}"/>
+                <video class$="${videoHidden} video-16x9"
+					src="${this._video}" type="${this._video_type}"
+					poster="${this._video_poster}"
+					autoplay playsinline controls
+                            		onended="${(e) => { this.stopVideo(this._cameraId); }}"
+                            		on-click="${(e) => { this.stopVideo(this._cameraId); }}">
+                    				Your browser does not support the video tag.
+				</video>
+				<img class$="${imageHidden} img-16x9" id="aarlo-image" on-click="${(e) => { this.showLiveStream(this._cameraId); }}" src="${_img}" title="${imageFullDate}"/>
 				<div class$="${libraryHidden} img-16x9" >
 					<div class="lrow">
 						<div class="lcolumn">
@@ -388,18 +404,38 @@ class AarloGlance extends LitElement {
 		`;
 	}
 
-	set hass( hass ) {
-		this._hass = hass
-		const camera = this.safe_state(hass,this._cameraId,'unknown')
-		if ( this._old_state && this._old_state == 'taking snapshot' && camera.state == 'idle' ) {
-			setTimeout( this._updateCameraImageSrc,5000 )
-			setTimeout( this._updateCameraImageSrc,10000 )
-			setTimeout( this._updateCameraImageSrc,15000 )
-		} else {
-			this._updateCameraImageSrc()
-		}
-		this._old_state = camera.state
-	}
+    _didRender(_props, _changedProps, _prevProps) {
+        if ( this._stream ) {
+            var video = this.shadowRoot.getElementById( 'stream-' + this._cameraId )
+            if ( Hls.isSupported() ) {
+                this._hls = new Hls();
+                this._hls.loadSource( this._stream )
+                this._hls.attachMedia(video);
+                this._hls.on(Hls.Events.MANIFEST_PARSED,function() {
+			video.play();
+                });
+            }
+            else if ( video.canPlayType('application/vnd.apple.mpegurl') ) {
+                video.src = this._stream
+                video.addEventListener('loadedmetadata',function() {
+                    video.play();
+                });
+            }
+        }
+    }
+
+    set hass( hass ) {
+        this._hass = hass
+        const camera = this.safe_state(hass,this._cameraId,'unknown')
+        if ( this._old_state && this._old_state == 'taking snapshot' && camera.state == 'idle' ) {
+            setTimeout( this._updateCameraImageSrc,5000 )
+            setTimeout( this._updateCameraImageSrc,10000 )
+            setTimeout( this._updateCameraImageSrc,15000 )
+        } else {
+            this._updateCameraImageSrc()
+        }
+        this._old_state = camera.state
+    }
 
     setConfig(config) {
 
@@ -483,9 +519,45 @@ class AarloGlance extends LitElement {
 		if ( video ) {
 			this._video = video[0].url;
 			this._video_poster = video[0].thumbnail;
+			this._video_type   = "video/mp4"
 		} else {
-			this._video = null
+			this._video        = null
 			this._video_poster = null
+			this._video_type   = null
+		}
+	}
+
+	async readStream( id,at_most ) {
+		try {
+			const stream = await this._hass.callWS({
+				type: "camera/stream",
+				entity_id: this._cameraId,
+			});
+			return stream
+		} catch (err) {
+			return null
+		}
+	}
+
+	stopStream( id ) {
+		this._stream = null
+		if ( this._hls ) {
+			this._hls.stopLoad()
+			this._hls.destroy()
+			this._hls = null
+		}
+	}
+
+	async showLiveStream( id ) {
+		var stream = await this.readStream( id,1 );
+		if ( stream ) {
+			this._stream = stream.url;
+			this._stream_poster = this._img
+			this._stream_type   = 'application/x-mpegURL'
+		} else {
+			this._stream = null
+			this._stream_poster = null
+			this._stream_type   = null
 		}
 	}
 
@@ -548,5 +620,10 @@ class AarloGlance extends LitElement {
     }
 }
 
-customElements.define('aarlo-glance', AarloGlance);
+var s = document.createElement("script");
+s.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest'
+s.onload = function(e){
+	customElements.define('aarlo-glance', AarloGlance);
+};
+document.head.appendChild(s);
 
