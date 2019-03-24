@@ -1,8 +1,8 @@
 {
     "aarlo-glance": {
-      "version": "0.0.2",
-      "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/www/aarlo-glance.js",
-      "visit_repo": "https://github.com/rccoleman/hass-aarlo",
-      "changelog": "https://github.com/rccoleman/hass-aarlo/blob/master/changelog"
+        "changelog": "https://github.com/rccoleman/hass-aarlo/blob/master/changelog",
+        "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/www/aarlo-glance.js",
+        "version": "0.0.2",
+        "visit_repo": "https://github.com/rccoleman/hass-aarlo"
     }
 }
