@@ -1,0 +1,34 @@
+{
+    "aarlo_component": {
+        "version": "0.0.1",
+        "local_location": "/custom_components/aarlo/__init__.py",
+        "remote_location": "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/__init__.py",
+        "visit_repo": "https://github.com/twrecked/hass-aarlo",
+        "changelog": "https://github.com/twrecked/hass-aarlo/add_me",
+        "resources": [
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/binary_sensor.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/sensor.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/alarm_control_panel.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/camera.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/backend.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/storage.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/__init__.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/media.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/util.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/camera.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/background.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/sseclient.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/doorbell.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/base.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/constant.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/device.py"
+        ]
+    },
+    "aarlo_www": {
+        "version": "0.0.1",
+        "local_location": "/www/aarlo-glance.js",
+        "remote_location": "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/www/aarlo-glance.js",
+        "visit_repo": "https://github.com/twrecked/hass-aarlo",
+        "changelog": "https://github.com/twrecked/hass-aarlo/add_me"
+    }
+}
