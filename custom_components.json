@@ -1,6 +1,6 @@
 {
     "aarlo_component": {
-        "version": "0.0.1",
+        "version": "0.0.2",
         "local_location": "/custom_components/aarlo/__init__.py",
         "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/__init__.py",
         "visit_repo": "https://github.com/rccoleman/hass-aarlo",
@@ -25,7 +25,7 @@
         ]
     },
     "aarlo_www": {
-        "version": "0.0.1",
+        "version": "0.0.2",
         "local_location": "/www/aarlo-glance.js",
         "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/www/aarlo-glance.js",
         "visit_repo": "https://github.com/rccoleman/hass-aarlo",
