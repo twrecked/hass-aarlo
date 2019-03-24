@@ -4,7 +4,7 @@
         "local_location": "/custom_components/aarlo/__init__.py",
         "remote_location": "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/__init__.py",
         "visit_repo": "https://github.com/twrecked/hass-aarlo",
-        "changelog": "https://github.com/twrecked/hass-aarlo/add_me",
+        "changelog": "https://github.com/rccoleman/hass-aarlo/blob/master/changelog",
         "resources": [
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/binary_sensor.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/sensor.py",
@@ -29,6 +29,6 @@
         "local_location": "/www/aarlo-glance.js",
         "remote_location": "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/www/aarlo-glance.js",
         "visit_repo": "https://github.com/twrecked/hass-aarlo",
-        "changelog": "https://github.com/twrecked/hass-aarlo/add_me"
+        "changelog": "https://github.com/rccoleman/hass-aarlo/blob/master/changelog"
     }
 }
