@@ -24,10 +24,10 @@
              "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/device.py"
         ]
     },
-    "pyarlo": {
+    "pyaarlo": {
         "version": "0.0.2",
         "local_location": "/custom_components/aarlo/pyaarlo/__init__.py",
-        "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyarlo/__init__.py",
+        "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/__init__.py",
         "visit_repo": "https://github.com/rccoleman/hass-aarlo",
         "changelog": "https://github.com/rccoleman/hass-aarlo/blob/master/changelog",
         "resources": [
