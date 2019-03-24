@@ -26,14 +26,13 @@
     },
     "pyarlo": {
         "version": "0.0.2",
-        "local_location": "/custom_components/aarlo/pyarlo/__init__.py",
+        "local_location": "/custom_components/aarlo/pyaarlo/__init__.py",
         "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyarlo/__init__.py",
         "visit_repo": "https://github.com/rccoleman/hass-aarlo",
         "changelog": "https://github.com/rccoleman/hass-aarlo/blob/master/changelog",
         "resources": [
              "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/backend.py",
              "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/storage.py",
-             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/__init__.py",
              "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/media.py",
              "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/util.py",
              "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/camera.py",
