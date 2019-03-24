@@ -24,11 +24,25 @@
              "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/device.py"
         ]
     },
-    "aarlo_www": {
+    "pyarlo": {
         "version": "0.0.2",
-        "local_location": "/www/aarlo-glance.js",
-        "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/www/aarlo-glance.js",
+        "local_location": "/custom_components/aarlo/pyarlo/__init__.py",
+        "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyarlo/__init__.py",
         "visit_repo": "https://github.com/rccoleman/hass-aarlo",
-        "changelog": "https://github.com/rccoleman/hass-aarlo/blob/master/changelog"
+        "changelog": "https://github.com/rccoleman/hass-aarlo/blob/master/changelog",
+        "resources": [
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/backend.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/storage.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/__init__.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/media.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/util.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/camera.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/background.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/sseclient.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/doorbell.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/base.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/constant.py",
+             "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/pyaarlo/device.py"
+        ]
     }
 }
