@@ -1,5 +1,5 @@
 {
-    "aarlo_component": {
+    "aarlo": {
         "version": "0.0.2",
         "local_location": "/custom_components/aarlo/__init__.py",
         "remote_location": "https://raw.githubusercontent.com/rccoleman/hass-aarlo/master/aarlo/__init__.py",
