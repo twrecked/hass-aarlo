@@ -173,6 +173,20 @@ Clicking on the last captured clip will display thumbnail mode. Clicking on a th
 
 See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/lovelace_custom_card.html) page for further information.
 
+## Streaming
+
+The support for stream is experimental and works but with a couple of caveats.
+* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
+* the stream doesn't stop - I'm looking at this
+
+Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
+```
+source your-env/bin/activate
+sudo apt install libavformat-dev
+sudo apt install libavdevice-dev
+pip install av==6.1.2
+```
+
 ## Other Lovelace Options
 
 Using the conditional card you can have badges of cameras appear after activity or if they go off line. I use the following to get quick updates on an overview view.
