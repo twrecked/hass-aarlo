@@ -146,6 +146,7 @@ show:
   - captured_today
 top_title: false
 top_status: false
+image_click: play
 door: binary_switch.front_door
 door_lock: lock.front_door_lock
 door_bell: binary_switch.aarlo_ding_front_door_bell
@@ -186,6 +187,7 @@ sudo apt install libavformat-dev
 sudo apt install libavdevice-dev
 pip install av==6.1.2
 ```
+Set `image_click` to `play` on the aarlo glance card.
 
 ## Other Lovelace Options
 
