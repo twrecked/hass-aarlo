@@ -146,6 +146,7 @@ show:
   - captured_today
 top_title: false
 top_status: false
+image_click: play
 door: binary_switch.front_door
 door_lock: lock.front_door_lock
 door_bell: binary_switch.aarlo_ding_front_door_bell
@@ -172,6 +173,21 @@ Clicking on the last captured clip will display thumbnail mode. Clicking on a th
 ![Aarlo Thumbnails](/images/thumbnails.png)
 
 See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/lovelace_custom_card.html) page for further information.
+
+## Streaming
+
+The support for stream is experimental and works but with a couple of caveats.
+* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
+* the stream doesn't stop - I'm looking at this
+
+Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
+```
+source your-env/bin/activate
+sudo apt install libavformat-dev
+sudo apt install libavdevice-dev
+pip install av==6.1.2
+```
+Set `image_click` to `play` on the aarlo glance card.
 
 ## Other Lovelace Options
 
