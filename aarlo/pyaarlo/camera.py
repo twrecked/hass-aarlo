@@ -375,12 +375,12 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def state( self ):
+        if self.is_taking_snapshot:
+            return 'taking snapshot'
         if self.is_recording:
             return 'recording'
         if self.is_streaming:
             return 'streaming'
-        if self.is_taking_snapshot:
-            return 'taking snapshot'
         if self.was_recently_active:
             return 'recently active'
         return super().state
