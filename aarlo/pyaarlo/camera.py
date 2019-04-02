@@ -373,6 +373,8 @@ class ArloCamera(ArloChildDevice):
             'transId': self._arlo._be._gen_trans_id()
         }
         reply = self._arlo._be.post( STREAM_START_URL,body,headers={ "xcloudId":self.xcloud_id } )
+        if reply is None:
+            return None
         url = reply['url'].replace("rtsp://", "rtsps://")
         self._arlo.debug( 'url={}'.format(url) )
         return url
