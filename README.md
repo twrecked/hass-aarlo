@@ -53,7 +53,7 @@ install go /config
 ```
 
 ## Component Configuration
-For the simplest use replace all instances of the `arlo` with `aalro` in your home-assistant configuration files. To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list.
+For the simplest use replace all instances of the `arlo` with `aarlo` in your home-assistant configuration files. To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list.
 
 The following is an example configuration:
 
