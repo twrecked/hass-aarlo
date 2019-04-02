@@ -357,6 +357,8 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def is_taking_snapshot( self ):
+        if self._snapshot_running:
+            return True
         return self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) == 'fullFrameSnapshot'
 
     @property
