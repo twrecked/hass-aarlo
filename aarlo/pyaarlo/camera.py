@@ -100,11 +100,10 @@ class ArloCamera(ArloChildDevice):
                 self._arlo._st.set( [self.device_id,LAST_IMAGE_SRC_KEY],'snapshot/' + now_strftime(self._arlo._last_format) )
                 self._save_and_do_callbacks( LAST_IMAGE_DATA_KEY,img )
 
-        # we saved state around the snapshot
-        if self._snapshot_state is not None and self.is_taking_snapshot:
-            self._arlo.debug( 'our snapshot finished, restoring state' )
-            self._save_and_do_callbacks( ACTIVITY_STATE_KEY,self._snapshot_state )
-            self._snapshot_state = None
+        # start using our real state, signal to anybody listening
+        if self._snapshot_running:
+            self._arlo.debug( 'our snapshot finished, signal real state' )
+            self._save_and_do_callbacks( ACTIVITY_STATE_KEY,self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) )
 
         # signal to anybody waiting
         with self._lock:
@@ -314,7 +313,7 @@ class ArloCamera(ArloChildDevice):
             'deviceId': self.device_id,
             'olsonTimeZone': self.timezone,
         }
-        self._snapshot_state = self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' );
+        self._snapshot_state = self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' )
         self._save_and_do_callbacks( ACTIVITY_STATE_KEY,'fullFrameSnapshot' )
         self._arlo._bg.run( self._arlo._be.post,url=STREAM_SNAPSHOT_URL,params=body,headers={ "xcloudId":self.xcloud_id } )
 
@@ -328,7 +327,7 @@ class ArloCamera(ArloChildDevice):
             'to': self.parent_id,
             'transId': self._arlo._be._gen_trans_id()
         }
-        self._snapshot_state = self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' );
+        self._snapshot_state = self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' )
         self._arlo._bg.run( self._arlo._be.post,url=IDLE_SNAPSHOT_URL,params=body,headers={ "xcloudId":self.xcloud_id } )
 
     def _request_snapshot( self ):
