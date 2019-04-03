@@ -16,6 +16,7 @@ The component supports:
 * request thumbnail updates from recording or idle camera
 * direct video streaming from arlo where possible
 * siren when triggering an alarm
+* supports streaming in virtualenv installation
 
 It provides a custom lovelace resource that is a specialised version of a picture-glance that allows you to see the last snapshot taken and give quick access to clip counts, the last recorded video and signal and battery levels.
 
@@ -52,7 +53,7 @@ install go /config
 ```
 
 ## Component Configuration
-For the simplest use replace all instances of the `arlo` with `aalro` in your home-assistant configuration files. To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list.
+For the simplest use replace all instances of the `arlo` with `aarlo` in your home-assistant configuration files. To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list.
 
 The following is an example configuration:
 
@@ -114,6 +115,11 @@ For `alarm_control_panel` you only need to specify the modes if you have custom 
 
 Now restart your home assistant system.
 
+### Special Options
+
+Use these only if asked to:
+* `no_media_upload`: some people have seen the Arlo servers dropping stream connections and no image updates when recording stops, if you see this then set this variable to `True` in `aarlo` platform.
+
 ## Resource Configuration
 
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
@@ -140,6 +146,7 @@ show:
   - captured_today
 top_title: false
 top_status: false
+image_click: play
 door: binary_switch.front_door
 door_lock: lock.front_door_lock
 door_bell: binary_switch.aarlo_ding_front_door_bell
@@ -166,6 +173,21 @@ Clicking on the last captured clip will display thumbnail mode. Clicking on a th
 ![Aarlo Thumbnails](/images/thumbnails.png)
 
 See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/lovelace_custom_card.html) page for further information.
+
+## Streaming
+
+The support for stream is experimental and works but with a couple of caveats.
+* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
+* the stream doesn't stop - I'm looking at this
+
+Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
+```
+source your-env/bin/activate
+sudo apt install libavformat-dev
+sudo apt install libavdevice-dev
+pip install av==6.1.2
+```
+Set `image_click` to `play` on the aarlo glance card.
 
 ## Other Lovelace Options
 
