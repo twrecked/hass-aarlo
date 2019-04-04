@@ -36,6 +36,7 @@ CONF_CONF_DIR       = 'conf_dir'
 CONF_REQ_TIMEOUT    = 'request_timeout'
 CONF_STR_TIMEOUT    = 'stream_timeout'
 CONF_NO_MEDIA_UP    = 'no_media_upload'
+CONF_USER_AGENT     = 'user_agent'
 
 SCAN_INTERVAL  = timedelta(seconds=60)
 PACKET_DUMP    = False
@@ -48,6 +49,7 @@ CONF_DIR       = ''
 REQ_TIMEOUT    = timedelta(seconds=60)
 STR_TIMEOUT    = timedelta(seconds=0)
 NO_MEDIA_UP    = False
+USER_AGENT     = 'apple'
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
@@ -64,6 +66,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_REQ_TIMEOUT, default=REQ_TIMEOUT): cv.time_period,
         vol.Optional(CONF_STR_TIMEOUT, default=STR_TIMEOUT): cv.time_period,
         vol.Optional(CONF_NO_MEDIA_UP, default=NO_MEDIA_UP): cv.boolean,
+        vol.Optional(CONF_USER_AGENT, default=USER_AGENT): cv.string,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -85,6 +88,7 @@ def setup(hass, config):
     req_timeout  = conf.get(CONF_REQ_TIMEOUT).total_seconds()
     str_timeout  = conf.get(CONF_STR_TIMEOUT).total_seconds()
     no_media_up  = conf.get(CONF_NO_MEDIA_UP)
+    user_agent   = conf.get(CONF_USER_AGENT)
 
     try:
         from custom_components.aarlo.pyaarlo import PyArlo
@@ -94,7 +98,8 @@ def setup(hass, config):
                             db_motion_time=motion_time,db_ding_time=ding_time,
                             request_timeout=req_timeout,stream_timeout=str_timeout,
                             recent_time=recent_time,last_format=last_format,
-                            no_media_upload=no_media_up)
+                            no_media_upload=no_media_up,
+                            user_agent=user_agent )
         if not arlo.is_connected:
             return False
 

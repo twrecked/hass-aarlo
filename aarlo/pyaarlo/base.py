@@ -76,6 +76,8 @@ class ArloBase(ArloDevice):
             self._arlo.debug( self.name + ':new-mode=' + mode_name + ',id=' + mode_id )
             self._arlo._bg.run( self._arlo._be.notify,base=self,
                                     body={"action":"set","resource":"modes","publishResponse":True,"properties":{"active":mode_id}} )
+        else:
+            self._arlo.warning( '{0}: mode {1} is unrecognised'.format( self.name,mode_name) )
 
     @property
     def refresh_rate(self):
@@ -90,4 +92,24 @@ class ArloBase(ArloDevice):
         if cap in ('temperature', 'humidity', 'air_quality') and self.model_id == 'ABC1000':
             return True
         return super().has_capability( cap )
+
+    def siren_on( self,duration=300,volume=8 ):
+        body = {
+            'action':'set',
+            'resource':'siren',
+            'publishResponse':True,
+            'properties':{'sirenState':'on','duration':int(duration),'volume':int(volume),'pattern':'alarm'}
+        }
+        self._arlo.debug( str(body) )
+        self._arlo._bg.run( self._arlo._be.notify,base=self,body=body )
+
+    def siren_off( self ):
+        body = {
+            'action':'set',
+            'resource':'siren',
+            'publishResponse':True,
+            'properties':{'sirenState':'off'}
+        }
+        self._arlo.debug( str(body) )
+        self._arlo._bg.run( self._arlo._be.notify,base=self,body=body )
 

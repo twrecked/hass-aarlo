@@ -8,6 +8,7 @@ class AarloGlance extends LitElement {
 			_hass: Object,
 			_config: Object,
 			_img: String,
+			_stream: String,
 			_video: String,
 			_library: String,
 			_library_base: Number,
@@ -124,189 +125,216 @@ class AarloGlance extends LitElement {
 		`;
 	}
 
-	safe_state( _hass,_id,def='' ) {
-		return _id in _hass.states ? _hass.states[_id] : { 'state':def,'attributes':{ 'friendly_name':'unknown' } };
-	}
+    safe_state( _hass,_id,def='' ) {
+        return _id in _hass.states ? _hass.states[_id] : { 'state':def,'attributes':{ 'friendly_name':'unknown' } };
+    }
 
-	_render( { _hass,_config,_img,_video,_library,_library_base } ) {
+    _render( { _hass,_config,_img,_stream,_video,_library,_library_base } ) {
 
-		const camera = this.safe_state(_hass,this._cameraId,'unknown')
-		const cameraName = _config.name ? _config.name : camera.attributes.friendly_name;
+        const camera = this.safe_state(_hass,this._cameraId,'unknown')
+        const cameraName = _config.name ? _config.name : camera.attributes.friendly_name;
 
-		// fake out a library
-		var libraryItem = [ ]
-		while( libraryItem.length < 9 ) {
-			libraryItem.push( { 'hidden':'hidden','thumbnail':'/static/images/image-broken.svg','captured_at':'' } )
-		}
+        // fake out a library
+        var libraryItem = [ ]
+        while( libraryItem.length < 9 ) {
+            libraryItem.push( { 'hidden':'hidden','thumbnail':'/static/images/image-broken.svg','captured_at':'' } )
+        }
 
 
-		// default is hidden
-		var videoHidden       = 'hidden';
-		var libraryHidden     = 'hidden';
-		var libraryPrevHidden = 'hidden';
-		var libraryNextHidden = 'hidden';
-		var imageHidden       = 'hidden';
-		var topHidden         = 'hidden';
-		var bottomHidden      = 'hidden';
-		var doorStatusHidden  = 'hidden';
-		var brokeHidden       = 'hidden';
-		if( _video ) {
-			var videoHidden   = '';
-		} else if ( _library ) {
-			var libraryHidden     = '';
-			var libraryPrevHidden = _library_base > 0 ? '' : 'hidden';
-			var libraryNextHidden = _library_base + 9 < _library.length ? '' : 'hidden';
-			var i;
-			var j;
-			for( i = 0, j = _library_base; j < _library.length; i++,j++ ) {
-				var captured_text = _library[j].created_at_pretty
-				if ( _library[j].object && _library[j].object != '' ) {
-					captured_text += ' (' + _library[j].object.toLowerCase() + ')'
-				}
-				libraryItem[i] = ( { 'hidden':'',
-											'thumbnail':_library[j].thumbnail,
-											'captured_at':'captured: ' + captured_text } );
-			}
-		} else {
-			var imageHidden   = _img != null ? '':'hidden';
-			var brokeHidden   = _img == null ? '':'hidden';
-			var topHidden     = this._topTitle || this._topStatus ? '':'hidden';
-			var bottomHidden  = '';
+        // default is hidden
+        var streamHidden      = 'hidden';
+        var videoHidden       = 'hidden';
+        var libraryHidden     = 'hidden';
+        var libraryPrevHidden = 'hidden';
+        var libraryNextHidden = 'hidden';
+        var imageHidden       = 'hidden';
+        var topHidden         = 'hidden';
+        var bottomHidden      = 'hidden';
+        var doorStatusHidden  = 'hidden';
+        var brokeHidden       = 'hidden';
+        if( _stream ) {
+            var streamHidden = '';
+        } else if( _video ) {
+            var videoHidden = '';
+        } else if ( _library ) {
+            var libraryHidden     = '';
+            var libraryPrevHidden = _library_base > 0 ? '' : 'hidden';
+            var libraryNextHidden = _library_base + 9 < _library.length ? '' : 'hidden';
+            var i;
+            var j;
+            for( i = 0, j = _library_base; j < _library.length; i++,j++ ) {
+                var captured_text = _library[j].created_at_pretty
+                if ( _library[j].object && _library[j].object != '' ) {
+                    captured_text += ' (' + _library[j].object.toLowerCase() + ')'
+                }
+                libraryItem[i] = ( { 'hidden':'',
+                    'thumbnail':_library[j].thumbnail,
+                    'captured_at':'captured: ' + captured_text } );
+            }
+        } else {
+            var imageHidden   = _img != null ? '':'hidden';
+            var brokeHidden   = _img == null ? '':'hidden';
+            var topHidden     = this._topTitle || this._topStatus ? '':'hidden';
+            var bottomHidden  = '';
 
-			// image title
-			var imageFullDate = camera.attributes.image_source ? imageFullDate = camera.attributes.image_source : '';
-			var imageDate = ''
-			if( imageFullDate.startsWith('capture/') ) { 
-				imageDate = this.safe_state(_hass,this._lastId,0).state;
-				imageFullDate = 'automatically captured at ' + imageDate;
-			} else if( imageFullDate.startsWith('snapshot/') ) { 
-				imageDate = imageFullDate.substr(9);
-				imageFullDate = 'snapshot captured at ' + imageDate;
-			}
+            // image title
+            var imageFullDate = camera.attributes.image_source ? imageFullDate = camera.attributes.image_source : '';
+            var imageDate = ''
+            if( imageFullDate.startsWith('capture/') ) { 
+                imageDate = this.safe_state(_hass,this._lastId,0).state;
+                imageFullDate = 'automatically captured at ' + imageDate;
+            } else if( imageFullDate.startsWith('snapshot/') ) { 
+                imageDate = imageFullDate.substr(9);
+                imageFullDate = 'snapshot captured at ' + imageDate;
+            }
 
-			// for later use!
-			this._clientWidth  = this.clientWidth
-			this._clientHeight = this.clientHeight
-		}
 
-		// what are we showing?
-		var show = _config.show || [];
-		var batteryHidden  = show.includes('battery') || show.includes('battery_level') ? '' : 'hidden';
-		var signalHidden   = show.includes('signal_strength') ? '' : 'hidden';
-		var motionHidden   = show.includes('motion') ? '' : 'hidden';
-		var soundHidden    = show.includes('sound') ? '' : 'hidden';
-		var capturedHidden = show.includes('captured') || show.includes('captured_today') ? '' : 'hidden';
-		var snapshotHidden = show.includes('snapshot') ? '' : 'hidden';
-		var dateHidden     = show.includes('image_date') ? '' : 'hidden';
+            // for later use!
+            this._clientWidth  = this.clientWidth
+            this._clientHeight = this.clientHeight
+        }
 
-		var doorHidden     = this._doorId == undefined ? 'hidden':''
-		var doorLockHidden = this._doorLockId == undefined ? 'hidden':''
-		var doorBellHidden = this._doorBellId == undefined ? 'hidden':''
+        // what are we showing?
+        var show = _config.show || [];
+        var batteryHidden  = show.includes('battery') || show.includes('battery_level') ? '' : 'hidden';
+        var signalHidden   = show.includes('signal_strength') ? '' : 'hidden';
+        var motionHidden   = show.includes('motion') ? '' : 'hidden';
+        var soundHidden    = show.includes('sound') ? '' : 'hidden';
+        var capturedHidden = show.includes('captured') || show.includes('captured_today') ? '' : 'hidden';
+        var playHidden     = show.includes('play') ? '' : 'hidden';
+        var snapshotHidden = show.includes('snapshot') ? '' : 'hidden';
+        var dateHidden     = show.includes('image_date') ? '' : 'hidden';
 
-		if( batteryHidden == '' ) {
-			var battery      = this.safe_state(_hass,this._batteryId,0);
-			var batteryText  = 'Battery Strength: ' + battery.state +'%';
-			var batteryIcon  = battery.state < 10 ? 'battery-outline' :
-								( battery.state > 90 ? 'battery' : 'battery-' + Math.round(battery.state/10) +'0' );
-			var batteryState = battery.state < 25 ? 'state-warn' :
-								( battery.state < 15 ? 'state-error' : 'state-update' );
-		} else {
-			var batteryText  = 'not-used';
-			var batteryIcon  = 'not-used';
-			var batteryState = 'state-update';
-		}
+        var doorHidden     = this._doorId == undefined ? 'hidden':''
+        var doorLockHidden = this._doorLockId == undefined ? 'hidden':''
+        var doorBellHidden = this._doorBellId == undefined ? 'hidden':''
 
-		if( signalHidden == '' ) {
-			var signal      = this.safe_state(_hass,this._signalId,0);
-			var signal_text = 'Signal Strength: ' + signal.state;
-			var signalIcon  = signal.state == 0 ? 'mdi:wifi-outline' : 'mdi:wifi-strength-' + signal.state;
-		} else {
-			var signal_text = 'not-used';
-			var signalIcon  = 'mdi:wifi-strength-4';
-		}
+        if( batteryHidden == '' ) {
+            var battery      = this.safe_state(_hass,this._batteryId,0);
+            var batteryText  = 'Battery Strength: ' + battery.state +'%';
+            var batteryIcon  = battery.state < 10 ? 'battery-outline' :
+                ( battery.state > 90 ? 'battery' : 'battery-' + Math.round(battery.state/10) +'0' );
+            var batteryState = battery.state < 25 ? 'state-warn' :
+                ( battery.state < 15 ? 'state-error' : 'state-update' );
+        } else {
+            var batteryText  = 'not-used';
+            var batteryIcon  = 'not-used';
+            var batteryState = 'state-update';
+        }
 
-		if( motionHidden == '' ) {
-			var motionOn   = this.safe_state(_hass,this._motionId,'off').state == 'on' ? 'state-on' : '';
-			var motionText = 'Motion: ' + (motionOn != '' ? 'detected' : 'clear');
-		} else {
-			var motionOn   = 'not-used';
-			var motionText = 'not-used';
-		}
+        if( signalHidden == '' ) {
+            var signal      = this.safe_state(_hass,this._signalId,0);
+            var signal_text = 'Signal Strength: ' + signal.state;
+            var signalIcon  = signal.state == 0 ? 'mdi:wifi-outline' : 'mdi:wifi-strength-' + signal.state;
+        } else {
+            var signal_text = 'not-used';
+            var signalIcon  = 'mdi:wifi-strength-4';
+        }
 
-		if( soundHidden == '' ) {
-			var soundOn    = this.safe_state(_hass,this._soundId,'off').state == 'on' ? 'state-on' : '';
-			var soundText  = 'Sound: ' + (soundOn != '' ? 'detected' : 'clear');
-		} else {
-			var soundOn    = 'not-used'
-			var soundText  = 'not-used'
-		}
+        if( motionHidden == '' ) {
+            var motionOn   = this.safe_state(_hass,this._motionId,'off').state == 'on' ? 'state-on' : '';
+            var motionText = 'Motion: ' + (motionOn != '' ? 'detected' : 'clear');
+        } else {
+            var motionOn   = 'not-used';
+            var motionText = 'not-used';
+        }
 
-		if( capturedHidden == '' ) {
-			var captured     = this.safe_state(_hass,this._captureId,0).state;
-			var last         = this.safe_state(_hass,this._lastId,0).state;
-			var capturedText = 'Captured: ' + ( captured == 0 ? 'nothing today' :
-												captured + ' clips today, last at ' + last )
-			var capturedIcon = _video ? 'mdi:stop' : 'mdi:file-video'
-			var capturedOn   = captured != 0 ? 'state-update' : ''
-		} else {
-			var capturedText = 'not-used';
-			var capturedOn   = ''
-			var capturedIcon = 'mdi:file-video'
-		}
+        if( soundHidden == '' ) {
+            var soundOn    = this.safe_state(_hass,this._soundId,'off').state == 'on' ? 'state-on' : '';
+            var soundText  = 'Sound: ' + (soundOn != '' ? 'detected' : 'clear');
+        } else {
+            var soundOn    = 'not-used'
+            var soundText  = 'not-used'
+        }
 
-		if( snapshotHidden == '' ) {
-			var snapshotOn    = '';
-			var snapshotText  = 'click to update image'
-			var snapshotIcon  = 'mdi:camera'
-		} else {
-			var snapshotOn    = 'not-used'
-			var snapshotText  = 'not-used'
-			var snapshotIcon  = 'mdi:camera'
-		}
+        if( capturedHidden == '' ) {
+            var captured     = this.safe_state(_hass,this._captureId,0).state;
+            var last         = this.safe_state(_hass,this._lastId,0).state;
+            var capturedText = 'Captured: ' + ( captured == 0 ? 'nothing today' :
+                captured + ' clips today, last at ' + last )
+            var capturedIcon = _video ? 'mdi:stop' : 'mdi:file-video'
+            var capturedOn   = captured != 0 ? 'state-update' : ''
+        } else {
+            var capturedText = 'not-used';
+            var capturedOn   = ''
+            var capturedIcon = 'mdi:file-video'
+        }
 
-		if( doorHidden == '' ) {
-			var doorStatusHidden = '';
-		    var doorOn       = this.safe_state(_hass,this._doorId,'off').state == 'on' ? 'state-on' : '';
-			var doorText     = 'Door: ' + (doorOn == '' ? 'closed' : 'open');
-			var doorIcon     = doorOn == '' ? 'mdi:door' : 'mdi:door-open';
-		} else {
-			var doorOn    = 'not-used'
-			var doorText  = 'not-used'
-			var doorIcon  = 'not-used'
-		}
+        if( playHidden == '' ) {
+            var playOn    = 'state-on';
+            var playText  = 'click to live-stream'
+            var playIcon  = 'mdi:play'
+        } else {
+            var playOn    = 'not-used'
+            var playText  = 'not-used'
+            var playIcon  = 'mdi:camera'
+        }
 
-		if( doorLockHidden == '' ) {
-			var doorStatusHidden = '';
-		    var doorLockOn       = this.safe_state(_hass,this._doorLockId,'locked').state == 'locked' ? 'state-on' : 'state-warn';
-			var doorLockText     = 'Lock: ' + (doorLockOn == 'state-on' ? 'locked (click to unlock)' : 'unlocked (click to lock)');
-			var doorLockIcon     = doorLockOn == 'state-on' ? 'mdi:lock' : 'mdi:lock-open';
-		} else {
-			var doorLockOn    = 'not-used'
-			var doorLockText  = 'not-used'
-			var doorLockIcon  = 'not-used'
-		}
+        if( snapshotHidden == '' ) {
+            var snapshotOn    = '';
+            var snapshotText  = 'click to update image'
+            var snapshotIcon  = 'mdi:camera'
+        } else {
+            var snapshotOn    = 'not-used'
+            var snapshotText  = 'not-used'
+            var snapshotIcon  = 'mdi:camera'
+        }
 
-		if( doorBellHidden == '' ) {
-			var doorStatusHidden = '';
-		    var doorBellOn       = this.safe_state(_hass,this._doorBellId,'off').state == 'on' ? 'state-on' : '';
-			var doorBellText     = 'Bell: ' + (doorBellOn == 'state-on' ? 'ding ding!' : 'idle');
-			var doorBellIcon     = 'mdi:doorbell-video';
-		} else {
-			var doorBellOn    = 'not-used'
-			var doorBellText  = 'not-used'
-			var doorBellIcon  = 'not-used'
-		}
+        if( doorHidden == '' ) {
+            var doorStatusHidden = '';
+            var doorOn       = this.safe_state(_hass,this._doorId,'off').state == 'on' ? 'state-on' : '';
+            var doorText     = 'Door: ' + (doorOn == '' ? 'closed' : 'open');
+            var doorIcon     = doorOn == '' ? 'mdi:door' : 'mdi:door-open';
+        } else {
+            var doorOn    = 'not-used'
+            var doorText  = 'not-used'
+            var doorIcon  = 'not-used'
+        }
 
+        if( doorLockHidden == '' ) {
+            var doorStatusHidden = '';
+            var doorLockOn       = this.safe_state(_hass,this._doorLockId,'locked').state == 'locked' ? 'state-on' : 'state-warn';
+            var doorLockText     = 'Lock: ' + (doorLockOn == 'state-on' ? 'locked (click to unlock)' : 'unlocked (click to lock)');
+            var doorLockIcon     = doorLockOn == 'state-on' ? 'mdi:lock' : 'mdi:lock-open';
+        } else {
+            var doorLockOn    = 'not-used'
+            var doorLockText  = 'not-used'
+            var doorLockIcon  = 'not-used'
+        }
+
+        if( doorBellHidden == '' ) {
+            var doorStatusHidden = '';
+            var doorBellOn       = this.safe_state(_hass,this._doorBellId,'off').state == 'on' ? 'state-on' : '';
+            var doorBellText     = 'Bell: ' + (doorBellOn == 'state-on' ? 'ding ding!' : 'idle');
+            var doorBellIcon     = 'mdi:doorbell-video';
+        } else {
+            var doorBellOn    = 'not-used'
+            var doorBellText  = 'not-used'
+            var doorBellIcon  = 'not-used'
+        }
+
+		//type="application/x-mpegURL"
+		//type="video/mp4"
 		var img = html`
-			${AarloGlance.innerStyleTemplate}
+		    ${AarloGlance.innerStyleTemplate}
 			<div id="aarlo-wrapper" class="base-16x9">
-				<video class$="${videoHidden} video-16x9" src="${this._video}" poster="${this._video_poster}"
-							type="video/mp4" autoplay playsinline controls 
-							onended="${(e) => { this.stopVideo(this._cameraId); }}"
-							on-click="${(e) => { this.stopVideo(this._cameraId); }}">
-					Your browser does not support the video tag.
+			    <video class$="${streamHidden} video-16x9"
+                    id="stream-${this._cameraId}"
+                    poster="${this._stream_poster}"
+                    autoplay playsinline controls
+                    onended="${(e) => { this.stopStream(this._cameraId); }}"
+                    on-click="${(e) => { this.stopStream(this._cameraId); }}">
+                        Your browser does not support the video tag.
 				</video>
-				<img class$="${imageHidden} img-16x9" id="aarlo-image" on-click="${(e) => { this.showVideo(this._cameraId); }}" src="${_img}" title="${imageFullDate}"/>
+                <video class$="${videoHidden} video-16x9"
+                    src="${this._video}" type="${this._video_type}"
+                    poster="${this._video_poster}"
+                    autoplay playsinline controls
+                    onended="${(e) => { this.stopVideo(this._cameraId); }}"
+                    on-click="${(e) => { this.stopVideo(this._cameraId); }}">
+                        Your browser does not support the video tag.
+				</video>
+				<img class$="${imageHidden} img-16x9" id="aarlo-image" on-click="${(e) => { this.showVideoOrStream(this._cameraId); }}" src="${_img}" title="${imageFullDate}"/>
 				<div class$="${libraryHidden} img-16x9" >
 					<div class="lrow">
 						<div class="lcolumn">
@@ -350,6 +378,7 @@ class AarloGlance extends LitElement {
 					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._soundId); }}" class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.showLibrary(this._cameraId,0); }}" class$="${capturedOn} ${capturedHidden}" icon="${capturedIcon}" title="${capturedText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.showLiveStream(this._cameraId); }}" class$="${playOn} ${playHidden}" icon="${playIcon}" title="${playText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.updateSnapshot(this._cameraId); }}" class$="${snapshotOn} ${snapshotHidden}" icon="${snapshotIcon}" title="${snapshotText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._batteryId); }}" class$="${batteryState} ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
@@ -388,18 +417,38 @@ class AarloGlance extends LitElement {
 		`;
 	}
 
-	set hass( hass ) {
-		this._hass = hass
-		const camera = this.safe_state(hass,this._cameraId,'unknown')
-		if ( this._old_state && this._old_state == 'taking snapshot' && camera.state == 'idle' ) {
-			setTimeout( this._updateCameraImageSrc,5000 )
-			setTimeout( this._updateCameraImageSrc,10000 )
-			setTimeout( this._updateCameraImageSrc,15000 )
-		} else {
-			this._updateCameraImageSrc()
-		}
-		this._old_state = camera.state
-	}
+    _didRender(_props, _changedProps, _prevProps) {
+        if ( this._stream ) {
+            var video = this.shadowRoot.getElementById( 'stream-' + this._cameraId )
+            if ( Hls.isSupported() ) {
+                this._hls = new Hls();
+                this._hls.loadSource( this._stream )
+                this._hls.attachMedia(video);
+                this._hls.on(Hls.Events.MANIFEST_PARSED,function() {
+                    video.play();
+                });
+            }
+            else if ( video.canPlayType('application/vnd.apple.mpegurl') ) {
+                video.src = this._stream
+                video.addEventListener('loadedmetadata',function() {
+                    video.play();
+                });
+            }
+        }
+    }
+
+    set hass( hass ) {
+        this._hass = hass
+        const camera = this.safe_state(hass,this._cameraId,'unknown')
+        if ( this._old_state && this._old_state == 'taking snapshot' && camera.state == 'idle' ) {
+            setTimeout( this._updateCameraImageSrc,5000 )
+            setTimeout( this._updateCameraImageSrc,10000 )
+            setTimeout( this._updateCameraImageSrc,15000 )
+        } else {
+            this._updateCameraImageSrc()
+        }
+        this._old_state = camera.state
+    }
 
     setConfig(config) {
 
@@ -431,6 +480,9 @@ class AarloGlance extends LitElement {
 			throw new Error( 'unknown camera' );
 		}
 
+        // on click
+        this._imageClick = config.image_click ? config.image_click : undefined
+
 		// door definition
 		this._doorId     = config.door ? config.door: undefined
 		this._doorBellId = config.door_bell ? config.door_bell : undefined
@@ -453,100 +505,150 @@ class AarloGlance extends LitElement {
 		this._updateCameraImageSrc()
     }
 
-	moreInfo( id ) {
-		const event = new Event('hass-more-info', {
-			bubbles: true,
-			cancelable: false,
-			composed: true,
-		});
-		event.detail = { entityId: id };
-		this.shadowRoot.dispatchEvent(event);
-		return event;
-	}
+    moreInfo( id ) {
+        const event = new Event('hass-more-info', {
+            bubbles: true,
+            cancelable: false,
+            composed: true,
+        });
+        event.detail = { entityId: id };
+        this.shadowRoot.dispatchEvent(event);
+        return event;
+    }
+
+    async readLibrary( id,at_most ) {
+        try {
+            const library = await this._hass.callWS({
+                type: "aarlo_library",
+                entity_id: this._cameraId,
+                at_most: at_most,
+            });
+            return ( library.videos.length > 0 ) ? library.videos : null;
+        } catch (err) {
+            return null
+        }
+    }
+
+    stopVideo( id ) {
+        this._video = null
+    }
+
+    async showVideo( id ) {
+        var video = await this.readLibrary( id,1 );
+        if ( video ) {
+            this._video = video[0].url;
+            this._video_poster = video[0].thumbnail;
+            this._video_type   = "video/mp4"
+        } else {
+            this._video        = null
+            this._video_poster = null
+            this._video_type   = null
+        }
+    }
+
+    async readStream( id,at_most ) {
+        try {
+            const stream = await this._hass.callWS({
+                type: "camera/stream",
+                entity_id: this._cameraId,
+            });
+            return stream
+        } catch (err) {
+            return null
+        }
+    }
+
+    stopStream( id ) {
+        this._stream = null
+        if ( this._hls ) {
+            this._hls.stopLoad()
+            this._hls.destroy()
+            this._hls = null
+        }
+    }
+
+    async showLiveStream( id ) {
+        var stream = await this.readStream( id,1 );
+        if ( stream ) {
+            this._stream = stream.url;
+            this._stream_poster = this._img
+            this._stream_type   = 'application/x-mpegURL'
+        } else {
+            this._stream = null
+            this._stream_poster = null
+            this._stream_type   = null
+        }
+    }
+
+    async showVideoOrStream( id ) {
+        // on click
+        if ( this._imageClick && this._imageClick == 'play' ) {
+            this.showLiveStream(id)
+        } else {
+            this.showVideo(id)
+        }
+    }
 
 
-	async readLibrary( id,at_most ) {
-		try {
-			const library = await this._hass.callWS({
-				type: "aarlo_library",
-				entity_id: this._cameraId,
-				at_most: at_most,
-			});
-			return ( library.videos.length > 0 ) ? library.videos : null;
-		} catch (err) {
-			return null
-		}
-	}
+    async showLibrary( id,base ) {
+        this._video = null
+        this._library = await this.readLibrary( id,99 )
+        this._library_base = base
+    }
 
-	async showVideo( id ) {
-		var video = await this.readLibrary( id,1 );
-		if ( video ) {
-			this._video = video[0].url;
-			this._video_poster = video[0].thumbnail;
-		} else {
-			this._video = null
-			this._video_poster = null
-		}
-	}
+    async showLibraryVideo( id,index ) {
+        index += this._library_base
+        if ( this._library && index < this._library.length ) {
+            this._video = this._library[index].url;
+            this._video_poster = this._library[index].thumbnail;
+        } else {
+            this._video = null
+            this._video_poster = null
+        }
+    }
 
-	stopVideo( id ) {
-		this._video = null
-	}
+    setLibraryBase( base ) {
+        this._library_base = base
+    }
 
-	async showLibrary( id,base ) {
-		this._video = null
-		this._library = await this.readLibrary( id,99 )
-		this._library_base = base
-	}
+    stopLibrary( ) {
+        this._video = null
+        this._library = null
+    }
 
-	async showLibraryVideo( id,index ) {
-		index += this._library_base
-		if ( this._library && index < this._library.length ) {
-			this._video = this._library[index].url;
-			this._video_poster = this._library[index].thumbnail;
-		} else {
-			this._video = null
-			this._video_poster = null
-		}
-	}
+    updateSnapshot( id ) {
+        this._hass.callService( 'camera','aarlo_request_snapshot', { entity_id:id } )
+    }
 
-	setLibraryBase( base ) {
-		this._library_base = base
-	}
+    async _updateCameraImageSrc() {
+        try {
+            const { content_type: contentType, content } = await this._hass.callWS({
+                type: "camera_thumbnail",
+                entity_id: this._cameraId,
+            });
+            this._img = `data:${contentType};base64, ${content}`;
+        } catch (err) {
+            this._img = null
+        }
+    }
 
-	stopLibrary( ) {
-		this._video = null
-		this._library = null
-	}
-
-	updateSnapshot( id ) {
-		this._hass.callService( 'camera','aarlo_request_snapshot', { entity_id:id } )
-	}
-
-	async _updateCameraImageSrc() {
-		try {
-			const { content_type: contentType, content } = await this._hass.callWS({
-				type: "camera_thumbnail",
-				entity_id: this._cameraId,
-			});
-			this._img = `data:${contentType};base64, ${content}`;
-		} catch (err) {
-			this._img = null
-		}
-	}
-
-	toggleLock( id ) {
-		if ( this.safe_state(this._hass,id,'locked').state == 'locked' ) {
-			this._hass.callService( 'lock','unlock', { entity_id:id } )
-		} else {
-			this._hass.callService( 'lock','lock', { entity_id:id } )
-		}
-	}
+    toggleLock( id ) {
+        if ( this.safe_state(this._hass,id,'locked').state == 'locked' ) {
+            this._hass.callService( 'lock','unlock', { entity_id:id } )
+        } else {
+            this._hass.callService( 'lock','lock', { entity_id:id } )
+        }
+    }
 
     getCardSize() {
         return 3;
     }
 }
 
-customElements.define('aarlo-glance', AarloGlance);
+var s = document.createElement("script");
+s.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest'
+s.onload = function(e) {
+	customElements.define('aarlo-glance', AarloGlance);
+};
+document.head.appendChild(s);
 
