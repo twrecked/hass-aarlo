@@ -76,6 +76,18 @@ class ArloCamera(ArloChildDevice):
         self._save_and_do_callbacks( LAST_CAPTURE_KEY,last_captured )
         self._do_callbacks( 'mediaUploadNotification',True )
 
+    def _clear_snapshot( self ):
+        # start using our real state, signal to anybody listening
+        if self._snapshot_running:
+            self._arlo.debug( 'our snapshot finished, signal real state' )
+            self._save_and_do_callbacks( ACTIVITY_STATE_KEY,self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) )
+
+        # signal to anybody waiting
+        with self._lock:
+            if self._snapshot_running:
+                self._lock.notify_all()
+                self._snapshot_running = False
+
     def _update_last_image( self ):
         self._arlo.debug('getting image for ' + self.name )
         img = None
@@ -90,6 +102,9 @@ class ArloCamera(ArloChildDevice):
         self._arlo._st.set( [self.device_id,LAST_IMAGE_SRC_KEY],'capture/' + now_strftime(self._arlo._last_format) )
         self._save_and_do_callbacks( LAST_IMAGE_DATA_KEY,img )
 
+        # handle snapshot not being handled...
+        self._clear_snapshot()
+
     def _update_last_image_from_snapshot( self ):
         self._arlo.debug('getting image for ' + self.name )
         url = self._arlo._st.get( [self.device_id,SNAPSHOT_KEY],None )
@@ -100,15 +115,8 @@ class ArloCamera(ArloChildDevice):
                 self._arlo._st.set( [self.device_id,LAST_IMAGE_SRC_KEY],'snapshot/' + now_strftime(self._arlo._last_format) )
                 self._save_and_do_callbacks( LAST_IMAGE_DATA_KEY,img )
 
-        # start using our real state, signal to anybody listening
-        if self._snapshot_running:
-            self._arlo.debug( 'our snapshot finished, signal real state' )
-            self._save_and_do_callbacks( ACTIVITY_STATE_KEY,self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) )
-
-        # signal to anybody waiting
-        with self._lock:
-            self._lock.notify_all()
-            self._snapshot_running = False
+        # handle snapshot finished
+        self._clear_snapshot()
 
     def _parse_statistic( self,data,scale ):
         """Parse binary statistics returned from the history API"""
