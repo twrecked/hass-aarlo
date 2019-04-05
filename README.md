@@ -266,6 +266,8 @@ The following example automation will update the image 3 seconds after a recordi
 ## To Do
 
 * custom mode - like SmartThings to better control motion detection
-* live streaming???
-* arlo q cameras
+* enhance live streaming
+* use asyncio loop internally
+* setup pypi
+
 
