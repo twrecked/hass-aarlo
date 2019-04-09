@@ -103,6 +103,7 @@ aarlo:
   recent_time: 10
   last_format: '%m-%d %H:%M'
   conf_dir: /config/.aarlo
+  no_media_upload: True
 ```
 * If `packet_dump` is True `aarlo` will store all the packets it sees in `/config/.aarlo/packets.dump` file.
 * `db_motion_time` sets how long a doorbell motion will last. Arlo doorbell only indicates motion is present not that it stops. You can adjust the stop time out here.
@@ -110,6 +111,7 @@ aarlo:
 * `recent_time` is used to hold the cameras in a `recent activity` state after a recording or streaming event. The actually streaming or recording can be over in a few seconds and without this the camera will revert back to idle possible looking like nothing has happend.
 * `last_format` is a `strftime` compatible string indicating how you want the last captured time displayed
 * `config_dir` is where the component stores its state. The default is fine for hassio, docker system and virtualenv systems. You shoudn't have to change this.
+* `no_media_upload` is used to workaround Arlo issues where the camera never gets a media upload notification. Most people will not need this.
 
 For `alarm_control_panel` you only need to specify the modes if you have custom mode names, see [here](https://www.home-assistant.io/components/arlo/#alarm) for more information. Names are case insensitive.
 
@@ -264,6 +266,8 @@ The following example automation will update the image 3 seconds after a recordi
 ## To Do
 
 * custom mode - like SmartThings to better control motion detection
-* live streaming???
-* arlo q cameras
+* enhance live streaming
+* use asyncio loop internally
+* setup pypi
+
 

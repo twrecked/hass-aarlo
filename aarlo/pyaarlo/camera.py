@@ -88,6 +88,17 @@ class ArloCamera(ArloChildDevice):
         # signal real mode, safe to call multiple times
         self._save_and_do_callbacks( ACTIVITY_STATE_KEY,self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) )
 
+    def _update_media_and_thumbnail( self ):
+        self._arlo.debug('getting media image for ' + self.name )
+        self._update_media()
+        url = None
+        with self._lock:
+            if self._cached_videos:
+                url = self._cached_videos[0].thumbnail_url
+        if url is not None:
+            self._arlo._st.set( [self.device_id,LAST_IMAGE_KEY],url )
+            self._update_last_image()
+
     def _update_last_image( self ):
         self._arlo.debug('getting image for ' + self.name )
         img = None
@@ -191,9 +202,15 @@ class ArloCamera(ArloChildDevice):
 
             return
 
+        # no media uploads and stream stopped?
+        if self._arlo._no_media_upload:
+            if event.get('properties',{}).get('activityState','unknown') == 'idle' and self.is_recording:
+                self._arlo.debug( 'got a stream stop' )
+                self._arlo._bg.run_in( self._arlo._ml.queue_update,5,cb=self._update_media_and_thumbnail )
+
         # get it an update last image
         if event.get('action','') == 'fullFrameSnapshotAvailable':
-            value = event.get('properties',{}).get('presignedFullFrameSnapshotUrl',{})
+            value = event.get('properties',{}).get('presignedFullFrameSnapshotUrl',None)
             if value is not None:
                 self._arlo.debug( 'queing snapshot update' )
                 self._arlo._st.set( [self.device_id,SNAPSHOT_KEY],value )
