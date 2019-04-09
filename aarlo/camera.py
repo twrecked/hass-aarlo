@@ -5,6 +5,7 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/camera.arlo/
 """
 import logging
+import base64
 import voluptuous as vol
 
 from homeassistant.core import callback
@@ -72,6 +73,11 @@ SCHEMA_WS_STREAM_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
     vol.Required('type'): WS_TYPE_STREAM_URL,
     vol.Required('entity_id'): cv.entity_id
 })
+WS_TYPE_SNAPSHOT_IMAGE = 'aarlo_snapshot_image'
+SCHEMA_WS_SNAPSHOT_IMAGE = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required('type'): WS_TYPE_SNAPSHOT_IMAGE,
+    vol.Required('entity_id'): cv.entity_id
+})
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up an Arlo IP Camera."""
@@ -103,6 +109,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.components.websocket_api.async_register_command(
         WS_TYPE_STREAM_URL, websocket_stream_url,
         SCHEMA_WS_STREAM_URL
+    )
+    hass.components.websocket_api.async_register_command(
+        WS_TYPE_SNAPSHOT_IMAGE, websocket_snapshot_image,
+        SCHEMA_WS_SNAPSHOT_IMAGE
     )
 
 class ArloCam(Camera):
@@ -270,7 +280,7 @@ class ArloCam(Camera):
     def request_snapshot(self):
         self._camera.request_snapshot()
 
-    def async_get_snapshot(self):
+    def async_request_snapshot(self):
         return self.hass.async_add_job(self.request_snapshot)
 
     def get_snapshot(self):
@@ -337,6 +347,25 @@ async def websocket_stream_url(hass, connection, msg):
                 'test':'stream_url'
             }
         ))
+
+@websocket_api.async_response
+async def websocket_snapshot_image(hass, connection, msg):
+    camera = _get_camera_from_entity_id( hass,msg['entity_id'] )
+    _LOGGER.debug( 'snapshot_image for ' + str(camera.name) )
+
+    try:
+        image = await camera.async_get_snapshot()
+        connection.send_message(websocket_api.result_message(
+            msg['id'], {
+                'content_type': camera.content_type,
+                'content': base64.b64encode(image).decode('utf-8')
+            }
+        ))
+
+    except HomeAssistantError:
+        connection.send_message(websocket_api.error_message(
+            msg['id'], 'image_fetch_failed', 'Unable to fetch image'))
+
 
 async def aarlo_snapshot_service_handler( camera,service ):
     _LOGGER.debug( "{0} snapshot".format( camera.unique_id ) )

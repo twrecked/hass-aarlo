@@ -19,6 +19,7 @@ from custom_components.aarlo.pyaarlo.constant import( ACTIVITY_STATE_KEY,
                                 MEDIA_UPLOAD_KEYS,
                                 MIRROR_KEY,
                                 MOTION_SENS_KEY,
+                                NOTIFY_URL,
                                 POWER_SAVE_KEY,
                                 PRELOAD_DAYS,
                                 SNAPSHOT_KEY,
@@ -34,10 +35,10 @@ class ArloCamera(ArloChildDevice):
         self._recent_job = None
         self._cache_count = None
         self._cached_videos = None
-        self._snapshot_state = None
         self._min_days_vdo_cache = PRELOAD_DAYS
         self._lock = threading.Condition()
-        self._snapshot_running = False
+        self._snapshot_state = 'idle'
+        self._clear_snapshot_cb = None
         self._arlo._bg.run_in( self._update_media,10 )
 
     def _set_recent( self,timeo ):
@@ -77,16 +78,15 @@ class ArloCamera(ArloChildDevice):
         self._do_callbacks( 'mediaUploadNotification',True )
 
     def _clear_snapshot( self ):
-        # start using our real state, signal to anybody listening
-        if self._snapshot_running:
-            self._arlo.debug( 'our snapshot finished, signal real state' )
-            self._save_and_do_callbacks( ACTIVITY_STATE_KEY,self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) )
-
         # signal to anybody waiting
         with self._lock:
-            if self._snapshot_running:
+            if self._snapshot_state != 'idle':
+                self._arlo.debug( 'our snapshot finished, signal real state' )
+                self._snapshot_state = 'idle'
                 self._lock.notify_all()
-                self._snapshot_running = False
+
+        # signal real mode, safe to call multiple times
+        self._save_and_do_callbacks( ACTIVITY_STATE_KEY,self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) )
 
     def _update_last_image( self ):
         self._arlo.debug('getting image for ' + self.name )
@@ -321,7 +321,6 @@ class ArloCamera(ArloChildDevice):
             'deviceId': self.device_id,
             'olsonTimeZone': self.timezone,
         }
-        self._snapshot_state = self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' )
         self._save_and_do_callbacks( ACTIVITY_STATE_KEY,'fullFrameSnapshot' )
         self._arlo._bg.run( self._arlo._be.post,url=STREAM_SNAPSHOT_URL,params=body,headers={ "xcloudId":self.xcloud_id } )
 
@@ -335,19 +334,21 @@ class ArloCamera(ArloChildDevice):
             'to': self.parent_id,
             'transId': self._arlo._be._gen_trans_id()
         }
-        self._snapshot_state = self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' )
         self._arlo._bg.run( self._arlo._be.post,url=IDLE_SNAPSHOT_URL,params=body,headers={ "xcloudId":self.xcloud_id } )
 
     def _request_snapshot( self ):
-        if not self._snapshot_running:
+        if self._snapshot_state == 'idle':
             if self.is_streaming or self.is_recording:
                 self._arlo.debug('streaming snapshot')
                 self.take_streaming_snapshot()
-                self._snapshot_running = True
+                self._snapshot_state = 'streaming-snapshot'
             elif not self.is_taking_snapshot:
                 self.take_idle_snapshot()
                 self._arlo.debug('idle snapshot')
-                self._snapshot_running = True
+                self._snapshot_state = 'snapshot'
+            self._arlo.debug( 'handle dodgy cameras' )
+            self._arlo._bg.run_in( self._clear_snapshot,45 )
+
 
     def request_snapshot( self ):
         with self._lock:
@@ -358,14 +359,14 @@ class ArloCamera(ArloChildDevice):
             self._request_snapshot()
             mnow = time.monotonic()
             mend = mnow + timeout
-            while mnow < mend and self._snapshot_running:
+            while mnow < mend and self._snapshot_state != 'idle':
                 self._lock.wait( mend - mnow )
                 mnow = time.monotonic()
-        return self._arlo._st.get( [self._device_id,LAST_IMAGE_DATA_KEY],'' )
+        return self.last_image_from_cache
 
     @property
     def is_taking_snapshot( self ):
-        if self._snapshot_running:
+        if self._snapshot_state != 'idle':
             return True
         return self._arlo._st.get( [self._device_id,ACTIVITY_STATE_KEY],'unknown' ) == 'fullFrameSnapshot'
 
@@ -411,3 +412,12 @@ class ArloCamera(ArloChildDevice):
         self._arlo.debug( 'url={}'.format(url) )
         return url
 
+    def stop_stream( self ):
+        self._arlo._bg.run( self._arlo._be.notify,
+                                base=self.base_station,
+                                body={
+                                    'action': 'set',
+                                    'properties': { 'activityState':'idle' },
+                                    'publishResponse': True,
+                                    'resource': self.resource_id,
+                                } )

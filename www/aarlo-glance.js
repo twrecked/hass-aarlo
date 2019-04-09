@@ -616,8 +616,17 @@ class AarloGlance extends LitElement {
         this._library = null
     }
 
-    updateSnapshot( id ) {
-        this._hass.callService( 'camera','aarlo_request_snapshot', { entity_id:id } )
+    async updateSnapshot( id ) {
+        //this._hass.callService( 'camera','aarlo_request_snapshot', { entity_id:id } )
+		try {
+			const { content_type: contentType, content } = await this._hass.callWS({
+				type: "aarlo_snapshot_image",
+				entity_id: this._cameraId,
+			});
+			this._img = `data:${contentType};base64, ${content}`;
+		} catch (err) {
+			this._img = null
+		}
     }
 
     async _updateCameraImageSrc() {
