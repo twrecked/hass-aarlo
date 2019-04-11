@@ -558,7 +558,14 @@ class AarloGlance extends LitElement {
         }
     }
 
-    stopStream( id ) {
+    async stopStream( id ) {
+        try {
+            const stopped = await this._hass.callWS({
+                type: "aarlo_stop_activity",
+                entity_id: this._cameraId,
+            });
+        } catch (err) { }
+
         this._stream = null
         if ( this._hls ) {
             this._hls.stopLoad()

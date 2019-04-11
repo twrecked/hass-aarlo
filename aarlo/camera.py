@@ -79,6 +79,11 @@ SCHEMA_WS_SNAPSHOT_IMAGE = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
     vol.Required('type'): WS_TYPE_SNAPSHOT_IMAGE,
     vol.Required('entity_id'): cv.entity_id
 })
+WS_TYPE_STOP_ACTIVITY = 'aarlo_stop_activity'
+SCHEMA_WS_STOP_ACTIVITY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required('type'): WS_TYPE_STOP_ACTIVITY,
+    vol.Required('entity_id'): cv.entity_id
+})
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up an Arlo IP Camera."""
@@ -118,6 +123,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     hass.components.websocket_api.async_register_command(
         WS_TYPE_SNAPSHOT_IMAGE, websocket_snapshot_image,
         SCHEMA_WS_SNAPSHOT_IMAGE
+    )
+    hass.components.websocket_api.async_register_command(
+        WS_TYPE_STOP_ACTIVITY, websocket_stop_activity,
+        SCHEMA_WS_STOP_ACTIVITY
     )
 
 class ArloCam(Camera):
@@ -376,6 +385,17 @@ async def websocket_snapshot_image(hass, connection, msg):
         connection.send_message(websocket_api.error_message(
             msg['id'], 'image_fetch_failed', 'Unable to fetch image'))
 
+@websocket_api.async_response
+async def websocket_stop_activity(hass, connection, msg):
+    camera = _get_camera_from_entity_id( hass,msg['entity_id'] )
+    _LOGGER.debug( 'stop_activity for ' + str(camera.name) )
+
+    stopped = await camera.async_stop_activity()
+    connection.send_message(websocket_api.result_message(
+        msg['id'], {
+            'stopped': stopped
+        }
+    ))
 
 async def aarlo_snapshot_service_handler( camera,service ):
     _LOGGER.debug( "{0} snapshot".format( camera.unique_id ) )
