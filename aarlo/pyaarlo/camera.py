@@ -429,7 +429,7 @@ class ArloCamera(ArloChildDevice):
         self._arlo.debug( 'url={}'.format(url) )
         return url
 
-    def stop_stream( self ):
+    def stop_activity( self ):
         self._arlo._bg.run( self._arlo._be.notify,
                                 base=self.base_station,
                                 body={
@@ -438,3 +438,5 @@ class ArloCamera(ArloChildDevice):
                                     'publishResponse': True,
                                     'resource': self.resource_id,
                                 } )
+        return True
+

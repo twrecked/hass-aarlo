@@ -55,6 +55,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 SERVICE_REQUEST_SNAPSHOT = 'aarlo_request_snapshot'
 SERVICE_REQUEST_SNAPSHOT_TO_FILE = 'aarlo_request_snapshot_to_file'
+SERVICE_STOP_ACTIVITY = 'aarlo_stop_activity'
 
 WS_TYPE_VIDEO_URL = 'aarlo_video_url'
 SCHEMA_WS_VIDEO_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
@@ -97,6 +98,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     component.async_register_entity_service(
         SERVICE_REQUEST_SNAPSHOT_TO_FILE,CAMERA_SERVICE_SNAPSHOT,
         aarlo_snapshot_to_file_service_handler
+    )
+    component.async_register_entity_service(
+        SERVICE_STOP_ACTIVITY,CAMERA_SERVICE_SCHEMA,
+        aarlo_stop_activity_handler
     )
     hass.components.websocket_api.async_register_command(
         WS_TYPE_VIDEO_URL, websocket_video_url,
@@ -289,6 +294,11 @@ class ArloCam(Camera):
     def async_get_snapshot(self):
         return self.hass.async_add_job(self.get_snapshot)
 
+    def stop_activity( self ):
+        return self._camera.stop_activity()
+
+    def async_stop_activity( self ):
+        return self.hass.async_add_job( self._camera.stop_activity )
 
 def _get_camera_from_entity_id(hass, entity_id):
     component = hass.data.get(DOMAIN)
@@ -395,4 +405,8 @@ async def aarlo_snapshot_to_file_service_handler( camera,service ):
         await hass.async_add_executor_job( _write_image, snapshot_file, image )
     except OSError as err:
         _LOGGER.error("Can't write image to file: %s", err)
+
+async def aarlo_stop_activity_handler( camera,service ):
+    _LOGGER.info( "{0} stop activity".format( camera.unique_id ) )
+    camera.stop_activity()
 
