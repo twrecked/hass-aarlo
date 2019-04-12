@@ -180,7 +180,7 @@ See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/love
 
 The support for stream is experimental and works but with a couple of caveats.
 * virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
-* the stream doesn't stop - I'm looking at this
+* the stream only stops if you use the aarlo-glance card
 
 Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
 ```
@@ -262,6 +262,57 @@ The following example automation will update the image 3 seconds after a recordi
       entity_id: "{{ trigger.entity_id }}"
     service: camera.aarlo_request_snapshot
 ```
+
+## Services
+The component provides the following extra services:
+- camera.aarlo_request_snapshot
+  * entity_id: camera to get snapshot from
+
+  This requests a snapshot be taken. Camera will move from `taking_snapshot` state when finished.
+
+- camera.aarlo_request_snapshot_to_file
+  * entity_id: camera to get snapshot from
+  * filename: where to save snapshot
+
+  This requests a snapshot be taken and written to the passed file. Camera will move from `taking_snapshot` state when finished.
+
+- camera.aarlo_stop_activity
+  * entity_id: camera to get snapshot from
+
+  This moves the camera into the idle state. Can be used to stop streaming.
+
+- alarm_control_panel.aarlo_set_mode
+  * entity_id: base station
+  * mode: custom mode to change to
+
+  Set the alarm to a custom mode.
+
+## Web Socket
+
+The component provides the following extra web sockets:
+- aarlo_video_url
+  url
+  url_type
+  thumbnail
+  thumbnail_type
+- aarlo_library
+  array-of:
+    created_at
+    created_at_pretty
+    url:
+    url_type:
+    thumbnail:
+    thumbnail_type:
+    object:
+    object_region:
+- aarlo_stream_url
+  url:
+- aarlo_snapshot_image
+  content_type:
+  content:
+- aarlo_stop_activity
+  stopped:
+
 
 ## To Do
 
