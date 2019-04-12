@@ -265,53 +265,74 @@ The following example automation will update the image 3 seconds after a recordi
 
 ## Services
 The component provides the following extra services:
-- camera.aarlo_request_snapshot
-  * entity_id: camera to get snapshot from
+
+- `camera.aarlo_request_snapshot(entity_id)`
+  * `entity_id`: camera to get snapshot from
 
   This requests a snapshot be taken. Camera will move from `taking_snapshot` state when finished.
 
-- camera.aarlo_request_snapshot_to_file
-  * entity_id: camera to get snapshot from
-  * filename: where to save snapshot
+- `camera.aarlo_request_snapshot_to_file(entity_id,filename)`
+  * `entity_id`: camera to get snapshot from
+  * `filename`: where to save snapshot
 
   This requests a snapshot be taken and written to the passed file. Camera will move from `taking_snapshot` state when finished.
 
-- camera.aarlo_stop_activity
-  * entity_id: camera to get snapshot from
+- `camera.aarlo_stop_activity(entity_id)`
+  * `entity_id`: camera to get snapshot from
 
   This moves the camera into the idle state. Can be used to stop streaming.
 
-- alarm_control_panel.aarlo_set_mode
-  * entity_id: base station
-  * mode: custom mode to change to
+- `alarm_control_panel.aarlo_set_mode(entity_id)`
+  * `entity_id`: base station
+  * `mode`: custom mode to change to
 
   Set the alarm to a custom mode.
 
 ## Web Socket
 
 The component provides the following extra web sockets:
-- aarlo_video_url
-  url
-  url_type
-  thumbnail
-  thumbnail_type
-- aarlo_library
-  array-of:
-    created_at
-    created_at_pretty
-    url:
-    url_type:
-    thumbnail:
-    thumbnail_type:
-    object:
-    object_region:
-- aarlo_stream_url
-  url:
-- aarlo_snapshot_image
-  content_type:
-  content:
-- aarlo_stop_activity
-  stopped:
+
+- `aarlo_video_url(entity_id)`
+  * `entity_id`: camera to get video details from
+
+  Request details of the last recorded video. Returns:
+  * `url`: video url
+  * `url_type`: video type
+  * `thumbnail`: thumbnail image url
+  * `thumbnail_type`: thumbnail image type
+
+- `aarlo_library(at-most)`
+  * `at-most`: return at most this number of entries
+
+  Request up the details of `at-most` recently recorded videos. Returns an array of:
+  * `created_at`: unix time stamp
+  * `created_at_pretty`: pretty version of the create time
+  * `url`: URL of the video
+  * `url_type`: video type
+  * `thumbnail`: URL of the thumbnail
+  * `thumbnail_type`: thumbnail type
+  * `object`: object in the video that triggered the capture
+  * `object_region`: region in the video that triggered the capture
+
+- `aarlo_stream_url(entity_id,filename)`
+  * `entity_id`: camera to get snapshot from
+  * `filename`: where to save snapshot
+
+  Ask the camera to start streaming. Returns:
+  * `url`: URL of the video stream
+
+- `aarlo_snapshot_image(entity_id)`
+  * `entity_id`: camera to get snapshot from
+
+  Request a snapshot. Returns the image.
+  * `content_type`: the image type
+  * `content`: the image
+
+- `aarlo_stop_activity(entity_id)`
+  * `entity_id`: camera to stop activity on
+
+  Stop all the activity in the camera. Returns:
+  * `stopped`: True if stop request went in
 
 
 ## To Do
