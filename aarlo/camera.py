@@ -150,6 +150,9 @@ class ArloCam(Camera):
         """Return the source of the stream."""
         return self._camera.get_stream()
 
+    def async_stream_source( self ):
+        return self.hass.async_add_job( self._camera.stream_source )
+
     def camera_image(self):
         """Return a still image response from the camera."""
         return self._camera.last_image_from_cache
@@ -360,12 +363,19 @@ async def websocket_library(hass, connection, msg):
 
 @websocket_api.async_response
 async def websocket_stream_url(hass, connection, msg):
-    _LOGGER.debug( 'stream_url')
-    connection.send_message(websocket_api.result_message(
-            msg['id'], {
-                'test':'stream_url'
-            }
-        ))
+    camera = _get_camera_from_entity_id( hass,msg['entity_id'] )
+    _LOGGER.debug( 'stream_url for ' + str(camera.name) )
+    try:
+        stream = await camera.async_stream_source()
+        connection.send_message(websocket_api.result_message(
+                msg['id'], {
+                    'url':stream
+                }
+            ))
+
+    except HomeAssistantError:
+        connection.send_message(websocket_api.error_message(
+            msg['id'], 'image_fetch_failed', 'Unable to fetch stream'))
 
 @websocket_api.async_response
 async def websocket_snapshot_image(hass, connection, msg):
