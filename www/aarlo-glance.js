@@ -205,9 +205,12 @@ class AarloGlance extends LitElement {
         var snapshotHidden = show.includes('snapshot') ? '' : 'hidden';
         var dateHidden     = show.includes('image_date') ? '' : 'hidden';
 
-        var doorHidden     = this._doorId == undefined ? 'hidden':''
-        var doorLockHidden = this._doorLockId == undefined ? 'hidden':''
-        var doorBellHidden = this._doorBellId == undefined ? 'hidden':''
+        var doorHidden      = this._doorId == undefined ? 'hidden':''
+        var doorLockHidden  = this._doorLockId == undefined ? 'hidden':''
+        var doorBellHidden  = this._doorBellId == undefined ? 'hidden':''
+        var door2Hidden     = this._door2Id == undefined ? 'hidden':''
+        var door2LockHidden = this._door2LockId == undefined ? 'hidden':''
+        var door2BellHidden = this._door2BellId == undefined ? 'hidden':''
 
         if( batteryHidden == '' ) {
             var battery      = this.safe_state(_hass,this._batteryId,0);
@@ -286,35 +289,71 @@ class AarloGlance extends LitElement {
 
         if( doorHidden == '' ) {
             var doorStatusHidden = '';
-            var doorOn       = this.safe_state(_hass,this._doorId,'off').state == 'on' ? 'state-on' : '';
-            var doorText     = 'Door: ' + (doorOn == '' ? 'closed' : 'open');
+            var doorState    = this.safe_state(_hass,this._doorId,'off');
+            var doorOn       = doorState.state == 'on' ? 'state-on' : '';
+            var doorText     = doorState.attributes.friendly_name + ': ' + (doorOn == '' ? 'closed' : 'open');
             var doorIcon     = doorOn == '' ? 'mdi:door' : 'mdi:door-open';
         } else {
             var doorOn    = 'not-used'
             var doorText  = 'not-used'
             var doorIcon  = 'not-used'
         }
+        if( door2Hidden == '' ) {
+            var doorStatusHidden = '';
+            var door2State    = this.safe_state(_hass,this._door2Id,'off');
+            var door2On       = door2State.state == 'on' ? 'state-on' : '';
+            var door2Text     = door2State.attributes.friendly_name + ': ' + (door2On == '' ? 'closed' : 'open');
+            var door2Icon     = door2On == '' ? 'mdi:door' : 'mdi:door-open';
+        } else {
+            var door2On    = 'not-used'
+            var door2Text  = 'not-used'
+            var door2Icon  = 'not-used'
+        }
 
         if( doorLockHidden == '' ) {
             var doorStatusHidden = '';
-            var doorLockOn       = this.safe_state(_hass,this._doorLockId,'locked').state == 'locked' ? 'state-on' : 'state-warn';
-            var doorLockText     = 'Lock: ' + (doorLockOn == 'state-on' ? 'locked (click to unlock)' : 'unlocked (click to lock)');
+            var doorLockState    = this.safe_state(_hass,this._doorLockId,'locked');
+            var doorLockOn       = doorLockState.state == 'locked' ? 'state-on' : 'state-warn';
+            var doorLockText     = doorLockState.attributes.friendly_name + ': ' + (doorLockOn == 'state-on' ? 'locked (click to unlock)' : 'unlocked (click to lock)');
             var doorLockIcon     = doorLockOn == 'state-on' ? 'mdi:lock' : 'mdi:lock-open';
         } else {
             var doorLockOn    = 'not-used'
             var doorLockText  = 'not-used'
             var doorLockIcon  = 'not-used'
         }
+        if( door2LockHidden == '' ) {
+            var doorStatusHidden = '';
+            var door2LockState    = this.safe_state(_hass,this._door2LockId,'locked');
+            var door2LockOn       = door2LockState.state == 'locked' ? 'state-on' : 'state-warn';
+            var door2LockText     = door2LockState.attributes.friendly_name + ': ' + (door2LockOn == 'state-on' ? 'locked (click to unlock)' : 'unlocked (click to lock)');
+            var door2LockIcon     = door2LockOn == 'state-on' ? 'mdi:lock' : 'mdi:lock-open';
+        } else {
+            var door2LockOn    = 'not-used'
+            var door2LockText  = 'not-used'
+            var door2LockIcon  = 'not-used'
+        }
 
         if( doorBellHidden == '' ) {
             var doorStatusHidden = '';
-            var doorBellOn       = this.safe_state(_hass,this._doorBellId,'off').state == 'on' ? 'state-on' : '';
-            var doorBellText     = 'Bell: ' + (doorBellOn == 'state-on' ? 'ding ding!' : 'idle');
+            var doorBellState    = this.safe_state(_hass,this._doorBellId,'off');
+            var doorBellOn       = doorBellState.state == 'on' ? 'state-on' : '';
+            var doorBellText     = doorBellState.attributes.friendly_name + ': ' + (doorBellOn == 'state-on' ? 'ding ding!' : 'idle');
             var doorBellIcon     = 'mdi:doorbell-video';
         } else {
             var doorBellOn    = 'not-used'
             var doorBellText  = 'not-used'
             var doorBellIcon  = 'not-used'
+        }
+        if( door2BellHidden == '' ) {
+            var doorStatusHidden = '';
+            var door2BellState    = this.safe_state(_hass,this._door2BellId,'off');
+            var door2BellOn       = door2BellState.state == 'on' ? 'state-on' : '';
+            var door2BellText     = door2BellState.attributes.friendly_name + ': ' + (door2BellOn == 'state-on' ? 'ding ding!' : 'idle');
+            var door2BellIcon     = 'mdi:doorbell-video';
+        } else {
+            var door2BellOn    = 'not-used'
+            var door2BellText  = 'not-used'
+            var door2BellIcon  = 'not-used'
         }
 
 		//type="application/x-mpegURL"
@@ -394,6 +433,9 @@ class AarloGlance extends LitElement {
 					<ha-icon on-click="${(e) => { this.moreInfo(this._doorId); }}" class$="${doorOn} ${doorHidden}" icon="${doorIcon}" title="${doorText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._doorBellId); }}" class$="${doorBellOn} ${doorBellHidden}" icon="${doorBellIcon}" title="${doorBellText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.toggleLock(this._doorLockId); }}" class$="${doorLockOn} ${doorLockHidden}" icon="${doorLockIcon}" title="${doorLockText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.moreInfo(this._door2Id); }}" class$="${door2On} ${door2Hidden}" icon="${door2Icon}" title="${door2Text}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.moreInfo(this._door2BellId); }}" class$="${door2BellOn} ${door2BellHidden}" icon="${door2BellIcon}" title="${door2BellText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.toggleLock(this._door2LockId); }}" class$="${door2LockOn} ${door2LockHidden}" icon="${door2LockIcon}" title="${door2LockText}"></ha-icon>
 				</div>
 				<div class$="box-status ${this._topStatus?'hidden':''}">
 					${camera.state}
@@ -499,6 +541,20 @@ class AarloGlance extends LitElement {
 		}
 		if ( this._hass && this._doorLockId && this._hass.states[this._doorLockId] == undefined ) {
 			throw new Error( 'unknown door lock' )
+		}
+
+		// door2 definition
+		this._door2Id     = config.door2 ? config.door2: undefined
+		this._door2BellId = config.door2_bell ? config.door2_bell : undefined
+		this._door2LockId = config.door2_lock ? config.door2_lock : undefined
+		if ( this._hass && this._door2 && this._hass.states[this._door2] == undefined ) {
+			throw new Error( 'unknown door (#2)' )
+		}
+		if ( this._hass && this._door2BellId && this._hass.states[this._door2BellId] == undefined ) {
+			throw new Error( 'unknown door bell (#2)' )
+		}
+		if ( this._hass && this._door2LockId && this._hass.states[this._door2LockId] == undefined ) {
+			throw new Error( 'unknown door lock (#2)' )
 		}
 
 		// ui configuration
