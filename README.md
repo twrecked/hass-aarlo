@@ -152,6 +152,9 @@ image_click: play
 door: binary_switch.front_door
 door_lock: lock.front_door_lock
 door_bell: binary_switch.aarlo_ding_front_door_bell
+door2: binary_switch.front_door
+door2_lock: lock.front_door_lock
+door2_bell: binary_switch.aarlo_ding_front_door_bell
 ```
 
 You don't need to reboot to see the GUI changes, a reload is sufficient. And if all goes will see a card that looks like this:
