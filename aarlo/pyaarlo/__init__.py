@@ -122,7 +122,7 @@ class PyArlo(object):
 
     def _refresh_bases( self ):
         for base in self._bases:
-            self._be.notify( base=base,body={"action":"get","resource":"modes","publishResponse":False} )
+            base.update_modes()
             self._be.notify( base=base,body={"action":"get","resource":"cameras","publishResponse":False} )
             self._be.notify( base=base,body={"action":"get","resource":"doorbells","publishResponse":False} )
 
