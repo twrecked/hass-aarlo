@@ -264,6 +264,10 @@ class AarloGlance extends LitElement {
             var playOn    = 'state-on';
             var playText  = 'click to live-stream'
             var playIcon  = 'mdi:play'
+            if ( camera.state == 'streaming' ) {
+                playText = 'click to stop stream'
+                playIcon  = 'mdi:stop'
+            }
         } else {
             var playOn    = 'not-used'
             var playText  = 'not-used'
@@ -378,7 +382,7 @@ class AarloGlance extends LitElement {
 					<ha-icon on-click="${(e) => { this.moreInfo(this._motionId); }}" class$="${motionOn} ${motionHidden}" icon="mdi:run-fast" title="${motionText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._soundId); }}" class$="${soundOn} ${soundHidden}" icon="mdi:ear-hearing" title="${soundText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.showLibrary(this._cameraId,0); }}" class$="${capturedOn} ${capturedHidden}" icon="${capturedIcon}" title="${capturedText}"></ha-icon>
-					<ha-icon on-click="${(e) => { this.showLiveStream(this._cameraId); }}" class$="${playOn} ${playHidden}" icon="${playIcon}" title="${playText}"></ha-icon>
+					<ha-icon on-click="${(e) => { this.showOrStopStream(this._cameraId); }}" class$="${playOn} ${playHidden}" icon="${playIcon}" title="${playText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.updateSnapshot(this._cameraId); }}" class$="${snapshotOn} ${snapshotHidden}" icon="${snapshotIcon}" title="${snapshotText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._batteryId); }}" class$="${batteryState} ${batteryHidden}" icon="mdi:${batteryIcon}" title="${batteryText}"></ha-icon>
 					<ha-icon on-click="${(e) => { this.moreInfo(this._signalId); }}" class$="state-update ${signalHidden}" icon="${signalIcon}" title="${signal_text}"></ha-icon>
@@ -574,7 +578,7 @@ class AarloGlance extends LitElement {
         }
     }
 
-    async showLiveStream( id ) {
+    async showStream( id ) {
         var stream = await this.readStream( id,1 );
         if ( stream ) {
             this._stream = stream.url;
@@ -587,15 +591,23 @@ class AarloGlance extends LitElement {
         }
     }
 
+    async showOrStopStream( id ) {
+        const camera = this.safe_state(this._hass,this._cameraId,'unknown')
+		if ( camera.state == 'streaming' ) {
+			this.stopStream( iD )
+		} else {
+			this.showStream( iD )
+		}
+	}
+
     async showVideoOrStream( id ) {
         // on click
         if ( this._imageClick && this._imageClick == 'play' ) {
-            this.showLiveStream(id)
+            this.showStream(id)
         } else {
             this.showVideo(id)
         }
     }
-
 
     async showLibrary( id,base ) {
         this._video = null
