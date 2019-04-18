@@ -38,6 +38,7 @@ ATTR_SIGNAL_STRENGTH = 'signal_strength'
 ATTR_UNSEEN_VIDEOS = 'unseen_videos'
 ATTR_RECENT_ACTIVITY = 'recent_activity'
 ATTR_IMAGE_SRC = 'image_source'
+ATTR_WIRED = 'wired'
 
 CONF_FFMPEG_ARGUMENTS = 'ffmpeg_arguments'
 
@@ -184,6 +185,7 @@ class ArloCam(Camera):
         self._camera.add_attr_callback( 'connectionState',update_state )
         self._camera.add_attr_callback( 'presignedLastImageData',update_state )
         self._camera.add_attr_callback( 'mediaUploadNotification',update_state )
+        self._camera.add_attr_callback( 'chargingState',update_state )
 
     async def handle_async_mjpeg_stream(self, request):
         """Generate an HTTP MJPEG stream from the camera."""
@@ -247,6 +249,7 @@ class ArloCam(Camera):
                 (ATTR_UNSEEN_VIDEOS, self._camera.unseen_videos),
                 (ATTR_RECENT_ACTIVITY, self._camera.recent),
                 (ATTR_IMAGE_SRC, self._camera.last_image_source),
+                (ATTR_WIRED, self._camera.charging),
             ) if value is not None
         }
 

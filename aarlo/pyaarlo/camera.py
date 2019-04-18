@@ -9,6 +9,7 @@ from custom_components.aarlo.pyaarlo.util import ( now_strftime,http_get )
 from custom_components.aarlo.pyaarlo.constant import( ACTIVITY_STATE_KEY,
                                 BRIGHTNESS_KEY,
                                 CAPTURED_TODAY_KEY,
+                                CHARGING_KEY,
                                 FLIP_KEY,
                                 IDLE_SNAPSHOT_URL,
                                 LAST_CAPTURE_KEY,
@@ -300,6 +301,10 @@ class ArloCamera(ArloChildDevice):
     @property
     def recent( self ):
         return self._recent
+
+    @property
+    def charging( self ):
+        return self._arlo._st.get( [self._device_id,CHARGING_KEY],'off' ).lower() == 'on'
 
     @min_days_vdo_cache.setter
     def min_days_vdo_cache(self, value):
