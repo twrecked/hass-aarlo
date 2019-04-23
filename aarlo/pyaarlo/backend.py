@@ -276,7 +276,7 @@ class ArloBackEnd(object):
             self.username = username
             self.password = password
             self._session = requests.Session()
-            self._session.mount('https://',requests.adapters.HTTPAdapter(pool_connections=5, pool_maxsize=10) )
+            #self._session.mount('https://',requests.adapters.HTTPAdapter(pool_connections=5, pool_maxsize=10) )
             body = self.post( LOGIN_URL, { 'email':self.username,'password':self.password } )
             if body is None:
                 self._arlo.debug( 'login failed' )
