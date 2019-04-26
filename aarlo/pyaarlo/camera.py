@@ -308,8 +308,12 @@ class ArloCamera(ArloChildDevice):
         return self._arlo._st.get( [self._device_id,CHARGING_KEY],'off' ).lower() == 'on'
 
     @property
+    def charger_type( self ):
+        return self._arlo._st.get( [self._device_id,CHARGER_KEY],'None' )
+
+    @property
     def wired( self ):
-        return self._arlo._st.get( [self._device_id,CHARGER_KEY],'none' ).lower() != 'none'
+        return self.charger_type.lower() == 'QuickCharger'
 
     @property
     def wired_only( self ):
