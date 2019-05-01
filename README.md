@@ -146,8 +146,10 @@ show:
   - battery_level
   - signal_strength
   - captured_today
+  - image_date
 top_title: false
 top_status: false
+top_date: false
 image_click: play
 door: binary_switch.front_door
 door_lock: lock.front_door_lock

@@ -213,12 +213,18 @@ class AarloGlance extends LitElement {
         var door2BellHidden = this._door2BellId == undefined ? 'hidden':''
 
         if( batteryHidden == '' ) {
-            var battery      = this.safe_state(_hass,this._batteryId,0);
-            var batteryText  = 'Battery Strength: ' + battery.state +'%';
-            var batteryIcon  = battery.state < 10 ? 'battery-outline' :
-                ( battery.state > 90 ? 'battery' : 'battery-' + Math.round(battery.state/10) +'0' );
-            var batteryState = battery.state < 25 ? 'state-warn' :
-                ( battery.state < 15 ? 'state-error' : 'state-update' );
+            if ( camera.attributes.wired ) {
+                var batteryText  = 'Plugged In';
+                var batteryIcon  = 'power-plug';
+                var batteryState = 'state-update';
+            } else {
+                var battery       = this.safe_state(_hass,this._batteryId,0);
+                var batteryText   = 'Battery Strength: ' + battery.state +'%';
+                var batteryPrefix = camera.attributes.charging ? 'battery-charging' : 'battery'
+                var batteryIcon   = batteryPrefix + ( battery.state < 10 ? '-outline' :
+                                        ( battery.state > 90 ? '' : '-' + Math.round(battery.state/10) + '0' ) );
+                var batteryState  = battery.state < 25 ? 'state-warn' : ( battery.state < 15 ? 'state-error' : 'state-update' );
+            }
         } else {
             var batteryText  = 'not-used';
             var batteryIcon  = 'not-used';
@@ -650,9 +656,9 @@ class AarloGlance extends LitElement {
     async showOrStopStream( id ) {
         const camera = this.safe_state(this._hass,this._cameraId,'unknown')
 		if ( camera.state == 'streaming' ) {
-			this.stopStream( iD )
+			this.stopStream( id )
 		} else {
-			this.showStream( iD )
+			this.showStream( id )
 		}
 	}
 
