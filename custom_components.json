@@ -10,7 +10,7 @@
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/sensor.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/alarm_control_panel.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/camera.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/manifest"
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/manifest.json"
         ]
     },
     "pyaarlo": {
