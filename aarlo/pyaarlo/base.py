@@ -71,7 +71,7 @@ class ArloBase(ArloDevice):
 
     @property
     def mode(self):
-        return self._arlo._st.get( [self.device_id,MODE_KEY,mode_id],'unknown' )
+        return self._arlo._st.get( [self.device_id,MODE_KEY],'unknown' )
 
     @mode.setter
     def mode( self,mode_name ):
