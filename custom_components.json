@@ -10,18 +10,7 @@
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/sensor.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/alarm_control_panel.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/camera.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/backend.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/storage.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/__init__.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/media.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/util.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/camera.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/background.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/sseclient.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/doorbell.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/base.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/constant.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/pyaarlo/device.py"
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/aarlo/manifest.json"
         ]
     },
     "pyaarlo": {
