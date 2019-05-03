@@ -93,7 +93,7 @@ def setup(hass, config):
     user_agent   = conf.get(CONF_USER_AGENT)
 
     try:
-        from custom_components.aarlo.pyaarlo import PyArlo
+        from .pyaarlo import PyArlo
 
         arlo = PyArlo( username,password,
                             storage_dir=conf_dir,dump=packet_dump,

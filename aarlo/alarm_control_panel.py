@@ -20,8 +20,8 @@ from homeassistant.const import (
         ATTR_ATTRIBUTION,
         CONF_TRIGGER_TIME,
         STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME, STATE_ALARM_DISARMED, STATE_ALARM_ARMED_NIGHT, STATE_ALARM_TRIGGERED )
-from custom_components.aarlo import (
-        CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
+
+from . import ( CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -21,8 +21,8 @@ from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.const import (
         ATTR_ATTRIBUTION, ATTR_BATTERY_LEVEL )
-from custom_components.aarlo import (
-        CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
+
+from . import ( CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
 
 _LOGGER = logging.getLogger(__name__)
 

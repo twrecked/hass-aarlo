@@ -1,8 +1,7 @@
 
-from custom_components.aarlo.pyaarlo.device import ArloDevice
-
-from custom_components.aarlo.pyaarlo.util import ( time_to_arlotime )
-from custom_components.aarlo.pyaarlo.constant import ( AUTOMATION_URL,
+from .device import ( ArloDevice )
+from .util import ( time_to_arlotime )
+from .constant import ( AUTOMATION_URL,
                                 DEFAULT_MODES,
                                 DEFINITIONS_URL,
                                 MODES_KEY,

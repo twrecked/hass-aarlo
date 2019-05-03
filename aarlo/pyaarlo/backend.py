@@ -6,9 +6,8 @@ import json
 import requests
 import pprint
 
-#from sseclient import ( SSEClient )
-from custom_components.aarlo.pyaarlo.sseclient import ( SSEClient )
-from custom_components.aarlo.pyaarlo.constant import ( EVENT_STREAM_TIMEOUT,
+from .sseclient import ( SSEClient )
+from .constant import ( EVENT_STREAM_TIMEOUT,
                                 LOGIN_URL,
                                 LOGOUT_URL,
                                 NOTIFY_URL,

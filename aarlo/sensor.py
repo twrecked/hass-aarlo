@@ -16,8 +16,8 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
         ATTR_ATTRIBUTION, CONF_MONITORED_CONDITIONS, TEMP_CELSIUS,
         DEVICE_CLASS_TEMPERATURE, DEVICE_CLASS_HUMIDITY)
-from custom_components.aarlo import (
-        CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
+
+from . import ( CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
 
 _LOGGER = logging.getLogger(__name__)
 
