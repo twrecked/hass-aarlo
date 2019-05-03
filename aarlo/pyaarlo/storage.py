@@ -1,8 +1,9 @@
 
-import pickle
 import fnmatch
-import threading
+import pickle
 import pprint
+import threading
+
 
 class ArloStorage(object):
 

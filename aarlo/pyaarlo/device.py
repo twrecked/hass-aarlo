@@ -3,15 +3,11 @@ import pprint
 import threading
 
 from . import storage
-from .constant import ( BATTERY_KEY,
-                                CONNECTION_KEY,
-                                PARENT_ID_KEY,
-                                PRIVACY_KEY,
-                                RESOURCE_KEYS,
-                                RESOURCE_UPDATE_KEYS,
-                                SIGNAL_STR_KEY,
-                                UNIQUE_ID_KEY,
-                                XCLOUD_ID_KEY )
+from .constant import (BATTERY_KEY, CONNECTION_KEY, PARENT_ID_KEY,
+                       PRIVACY_KEY, RESOURCE_KEYS,
+                       RESOURCE_UPDATE_KEYS, SIGNAL_STR_KEY,
+                       UNIQUE_ID_KEY, XCLOUD_ID_KEY)
+
 
 class ArloDevice(object):
 
@@ -204,4 +200,3 @@ class ArloChildDevice(ArloDevice):
         if self.too_cold:
             return 'offline, too cold'
         return 'idle'
-

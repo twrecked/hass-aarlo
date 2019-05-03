@@ -1,7 +1,8 @@
 
 import pprint
 
-from .device import ( ArloChildDevice )
+from .device import ArloChildDevice
+
 
 class ArloDoorBell(ArloChildDevice):
 
@@ -55,4 +56,3 @@ class ArloDoorBell(ArloChildDevice):
         if cap.startswith( 'button' ):
             return True
         return super().has_capability( cap )
-

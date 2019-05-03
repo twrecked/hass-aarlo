@@ -1,15 +1,12 @@
 
-import time
 import threading
-from datetime import datetime
-from datetime import timedelta
+import time
+from datetime import datetime, timedelta
 
-from .util import ( arlotime_strftime,
-                            arlotime_to_datetime,
-                            http_stream,
-                            http_get )
-from .constant import ( LIBRARY_URL,
-                                PRELOAD_DAYS )
+from .constant import LIBRARY_URL, PRELOAD_DAYS
+from .util import (arlotime_strftime, arlotime_to_datetime, http_get,
+                   http_stream)
+
 
 class ArloMediaLibrary(object):
     """Arlo Library Media module implementation."""

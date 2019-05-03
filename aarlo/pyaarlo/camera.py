@@ -1,33 +1,21 @@
 
+import base64
 import threading
 import time
-import base64
 import zlib
 
-from .device import ( ArloChildDevice )
-from .util import ( now_strftime,http_get )
-from .constant import ( ACTIVITY_STATE_KEY,
-                                BRIGHTNESS_KEY,
-                                CAPTURED_TODAY_KEY,
-                                CHARGER_KEY,
-                                CHARGING_KEY,
-                                FLIP_KEY,
-                                IDLE_SNAPSHOT_URL,
-                                LAST_CAPTURE_KEY,
-                                LAST_IMAGE_DATA_KEY,
-                                LAST_IMAGE_KEY,
-                                LAST_IMAGE_SRC_KEY,
-                                MEDIA_COUNT_KEY,
-                                MEDIA_UPLOAD_KEYS,
-                                MIRROR_KEY,
-                                MOTION_SENS_KEY,
-                                NOTIFY_URL,
-                                POWER_SAVE_KEY,
-                                PRELOAD_DAYS,
-                                SNAPSHOT_KEY,
-                                STREAM_SNAPSHOT_KEY,
-                                STREAM_SNAPSHOT_URL,
-                                STREAM_START_URL )
+from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
+                       CAPTURED_TODAY_KEY, CHARGER_KEY, CHARGING_KEY,
+                       FLIP_KEY, IDLE_SNAPSHOT_URL, LAST_CAPTURE_KEY,
+                       LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY,
+                       LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
+                       MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
+                       NOTIFY_URL, POWER_SAVE_KEY, PRELOAD_DAYS,
+                       SNAPSHOT_KEY, STREAM_SNAPSHOT_KEY,
+                       STREAM_SNAPSHOT_URL, STREAM_START_URL)
+from .device import ArloChildDevice
+from .util import http_get, now_strftime
+
 
 class ArloCamera(ArloChildDevice):
 
@@ -460,4 +448,3 @@ class ArloCamera(ArloChildDevice):
                                     'resource': self.resource_id,
                                 } )
         return True
-

@@ -1,6 +1,7 @@
 
-import time
 import threading
+import time
+
 
 class ArloBackgroundWorker(threading.Thread):
 
@@ -128,4 +129,3 @@ class ArloBackground(threading.Thread):
     def cancel( self,to_delete ):
         if to_delete is not None:
             self._worker.stop_job( to_delete )
-

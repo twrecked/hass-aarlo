@@ -5,23 +5,25 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/alarm_control_panel.arlo/
 """
 import logging
-import voluptuous as vol
 import time
 from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
 import homeassistant.util.dt as dt_util
-from homeassistant.helpers.event import track_point_in_time
-from homeassistant.core import callback
 from homeassistant.components.alarm_control_panel import (
-        AlarmControlPanel, DOMAIN, PLATFORM_SCHEMA,
-        ATTR_ENTITY_ID )
-from homeassistant.const import (
-        ATTR_ATTRIBUTION,
-        CONF_TRIGGER_TIME,
-        STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME, STATE_ALARM_DISARMED, STATE_ALARM_ARMED_NIGHT, STATE_ALARM_TRIGGERED )
+    ATTR_ENTITY_ID, DOMAIN, PLATFORM_SCHEMA, AlarmControlPanel)
+from homeassistant.const import (ATTR_ATTRIBUTION, CONF_TRIGGER_TIME,
+                                 STATE_ALARM_ARMED_AWAY,
+                                 STATE_ALARM_ARMED_HOME,
+                                 STATE_ALARM_ARMED_NIGHT,
+                                 STATE_ALARM_DISARMED,
+                                 STATE_ALARM_TRIGGERED)
+from homeassistant.core import callback
+from homeassistant.helpers.event import track_point_in_time
 
-from . import ( CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
+import voluptuous as vol
+
+from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -174,4 +176,3 @@ async def aarlo_mode_service_handler( base,service ):
     mode = service.data[ATTR_MODE]
     _LOGGER.debug( "{0} mode to {1}".format( base.unique_id,mode ) )
     base._base.mode = mode
-

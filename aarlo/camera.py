@@ -4,25 +4,29 @@ Support for Netgear Arlo IP cameras.
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/camera.arlo/
 """
-import logging
 import base64
-import voluptuous as vol
+import logging
 
-from homeassistant.core import callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components import websocket_api
-from homeassistant.components.camera import (
-        Camera, DOMAIN, PLATFORM_SCHEMA,
-        ATTR_ENTITY_ID, ATTR_FILENAME,
-        CAMERA_SERVICE_SCHEMA, CAMERA_SERVICE_SNAPSHOT,
-        STATE_IDLE, STATE_RECORDING, STATE_STREAMING )
+from homeassistant.components.camera import (ATTR_ENTITY_ID,
+                                             ATTR_FILENAME,
+                                             CAMERA_SERVICE_SCHEMA,
+                                             CAMERA_SERVICE_SNAPSHOT,
+                                             DOMAIN, PLATFORM_SCHEMA,
+                                             STATE_IDLE,
+                                             STATE_RECORDING,
+                                             STATE_STREAMING, Camera)
 from homeassistant.components.ffmpeg import DATA_FFMPEG
-from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
+from homeassistant.const import ATTR_ATTRIBUTION, ATTR_BATTERY_LEVEL
+from homeassistant.core import callback
+from homeassistant.helpers.aiohttp_client import \
+    async_aiohttp_proxy_stream
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.const import (
-        ATTR_ATTRIBUTION, ATTR_BATTERY_LEVEL )
 
-from . import ( CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
+import voluptuous as vol
+
+from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -455,4 +459,3 @@ async def aarlo_snapshot_to_file_service_handler( camera,service ):
 async def aarlo_stop_activity_handler( camera,service ):
     _LOGGER.info( "{0} stop activity".format( camera.unique_id ) )
     camera.stop_activity()
-

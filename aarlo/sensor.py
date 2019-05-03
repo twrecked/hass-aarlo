@@ -5,19 +5,21 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/sensor.arlo/
 """
 import logging
-import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
+from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.const import (ATTR_ATTRIBUTION,
+                                 CONF_MONITORED_CONDITIONS,
+                                 DEVICE_CLASS_HUMIDITY,
+                                 DEVICE_CLASS_TEMPERATURE,
+                                 TEMP_CELSIUS)
 from homeassistant.core import callback
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
-from homeassistant.components.sensor import (
-        PLATFORM_SCHEMA )
-from homeassistant.const import (
-        ATTR_ATTRIBUTION, CONF_MONITORED_CONDITIONS, TEMP_CELSIUS,
-        DEVICE_CLASS_TEMPERATURE, DEVICE_CLASS_HUMIDITY)
 
-from . import ( CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
+import voluptuous as vol
+
+from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 
 _LOGGER = logging.getLogger(__name__)
 

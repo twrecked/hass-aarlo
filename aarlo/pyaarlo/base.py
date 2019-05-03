@@ -1,13 +1,10 @@
 
-from .device import ( ArloDevice )
-from .util import ( time_to_arlotime )
-from .constant import ( AUTOMATION_URL,
-                                DEFAULT_MODES,
-                                DEFINITIONS_URL,
-                                MODES_KEY,
-                                MODE_ID_TO_NAME_KEY,
-                                MODE_KEY,
-                                MODE_NAME_TO_ID_KEY )
+from .constant import (AUTOMATION_URL, DEFAULT_MODES, DEFINITIONS_URL,
+                       MODE_ID_TO_NAME_KEY, MODE_KEY,
+                       MODE_NAME_TO_ID_KEY, MODES_KEY)
+from .device import ArloDevice
+from .util import time_to_arlotime
+
 
 class ArloBase(ArloDevice):
 
@@ -131,4 +128,3 @@ class ArloBase(ArloDevice):
         }
         self._arlo.debug( str(body) )
         self._arlo._bg.run( self._arlo._be.notify,base=self,body=body )
-

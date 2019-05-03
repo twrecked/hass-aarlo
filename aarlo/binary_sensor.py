@@ -5,17 +5,20 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/sensor.arlo/
 """
 import logging
-import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.core import callback
 from homeassistant.components.binary_sensor import (
-        BinarySensorDevice, PLATFORM_SCHEMA )
-from homeassistant.const import (
-        ATTR_ATTRIBUTION, CONF_MONITORED_CONDITIONS, TEMP_CELSIUS,
-        DEVICE_CLASS_TEMPERATURE, DEVICE_CLASS_HUMIDITY ) 
+    PLATFORM_SCHEMA, BinarySensorDevice)
+from homeassistant.const import (ATTR_ATTRIBUTION,
+                                 CONF_MONITORED_CONDITIONS,
+                                 DEVICE_CLASS_HUMIDITY,
+                                 DEVICE_CLASS_TEMPERATURE,
+                                 TEMP_CELSIUS)
+from homeassistant.core import callback
 
-from . import ( CONF_ATTRIBUTION, DEFAULT_BRAND, DATA_ARLO )
+import voluptuous as vol
+
+from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -104,4 +107,3 @@ class ArloBinarySensor(BinarySensorDevice):
     def is_on(self):
         """Return true if the binary sensor is on."""
         return self._state is True
-

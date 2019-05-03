@@ -1,19 +1,17 @@
 
+import json
+import pprint
 import threading
 import time
 import uuid
-import json
-import requests
-import pprint
 
-from .sseclient import ( SSEClient )
-from .constant import ( EVENT_STREAM_TIMEOUT,
-                                LOGIN_URL,
-                                LOGOUT_URL,
-                                NOTIFY_URL,
-                                SUBSCRIBE_URL,
-                                UNSUBSCRIBE_URL,
-                                TRANSID_PREFIX )
+import requests
+
+from .constant import (EVENT_STREAM_TIMEOUT, LOGIN_URL, LOGOUT_URL,
+                       NOTIFY_URL, SUBSCRIBE_URL, TRANSID_PREFIX,
+                       UNSUBSCRIBE_URL)
+from .sseclient import SSEClient
+
 
 # include token and session details
 class ArloBackEnd(object):
@@ -345,4 +343,3 @@ class ArloBackEnd(object):
 
     def del_listener( self,device,callback ):
         pass
-

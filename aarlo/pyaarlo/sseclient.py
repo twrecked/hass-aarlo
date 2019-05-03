@@ -3,10 +3,8 @@ import re
 import time
 import warnings
 
-import six
-
 import requests
-
+import six
 
 # Technically, we should support streams that mix line endings.  This regex,
 # however, assumes that a system will provide consistent line endings.

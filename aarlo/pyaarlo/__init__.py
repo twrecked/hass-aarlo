@@ -1,26 +1,22 @@
 
-import os
-import logging
-import time
-import datetime
 import base64
+import datetime
+import logging
+import os
 import pprint
 import threading
+import time
 
-from .background import ( ArloBackground )
-from .storage import ( ArloStorage )
-from .backend import ( ArloBackEnd )
-from .media import ( ArloMediaLibrary )
-from .base import ( ArloBase )
-from .camera import ( ArloCamera )
-from .doorbell import ( ArloDoorBell )
-from .constant import ( BLANK_IMAGE,
-                                DEVICE_KEYS,
-                                DEVICES_URL,
-                                FAST_REFRESH_INTERVAL,
-                                SLOW_REFRESH_INTERVAL,
-                                TOTAL_BELLS_KEY,
-                                TOTAL_CAMERAS_KEY )
+from .backend import ArloBackEnd
+from .background import ArloBackground
+from .base import ArloBase
+from .camera import ArloCamera
+from .constant import (BLANK_IMAGE, DEVICE_KEYS, DEVICES_URL,
+                       FAST_REFRESH_INTERVAL, SLOW_REFRESH_INTERVAL,
+                       TOTAL_BELLS_KEY, TOTAL_CAMERAS_KEY)
+from .doorbell import ArloDoorBell
+from .media import ArloMediaLibrary
+from .storage import ArloStorage
 
 _LOGGER = logging.getLogger('pyaarlo')
 
@@ -231,4 +227,3 @@ class PyArlo(object):
 
     def debug( self,msg ):
         _LOGGER.debug( msg  )
-
