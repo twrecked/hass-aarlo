@@ -209,6 +209,8 @@ class ArloBackEnd(object):
                 self._arlo.warning( 'event loop timeout' )
             except AttributeError as e:
                 self._arlo.warning( 'forced close' )
+            except:
+                self._arlo.warning( 'general exception' )
 
             # restart login...
             self._ev_stream = None
