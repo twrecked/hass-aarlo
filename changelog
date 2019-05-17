@@ -2,9 +2,11 @@
 0.0.2: Added manifest to aarlo
 
 aarlo:
+0.0.6: mirror pyaarlo version
 0.0.5: mirror pyaarlo version
 0.0.4: mirror pyaarlo version
 
 pyaarlo:
+0.0.6: Handle general exceptions when using requests.
 0.0.5: Add ping to startup sequence. 
 0.0.4: Fix mode lookup in base code
