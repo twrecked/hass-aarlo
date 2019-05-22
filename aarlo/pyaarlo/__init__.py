@@ -89,15 +89,18 @@ class PyArlo(object):
         self._st.set( ['ARLO',TOTAL_BELLS_KEY],len(self._doorbells) )
 
         # always ping bases first!
+        self.debug('ambient: here1')
         self._ping_bases()
 
         # queue up initial config retrieval
+        self.debug('ambient: here2')
         self.debug('getting initial settings' )
         self._bg.run_in( self._refresh_cameras,2 )
         self._bg.run_in( self._initial_refresh,5 )
         self._bg.run_in( self._ml.load,10 )
 
         # register house keeping cron jobs
+        self.debug('ambient: here3')
         self.debug('registering cron jobs')
         self._bg.run_every( self._fast_refresh,FAST_REFRESH_INTERVAL )
         self._bg.run_every( self._slow_refresh,SLOW_REFRESH_INTERVAL )
@@ -116,19 +119,23 @@ class PyArlo(object):
                         self._st.set( [device_id,key],value )
 
     def _refresh_cameras( self ):
+        self.debug('ambient: here20')
         for camera in self._cameras:
             camera.update_last_image()
             camera.update_media()
 
     def _refresh_ambient_sensors( self ):
+        self.debug('ambient: here21')
         for camera in self._cameras:
             camera.update_ambient_sensors()
 
     def _ping_bases( self ):
+        self.debug('ambient: here22')
         for base in self._bases:
             self._bg.run( self._be.async_ping,base=base )
 
     def _refresh_bases( self,initial ):
+        self.debug('ambient: here23')
         for base in self._bases:
             base.update_modes()
             if initial:
