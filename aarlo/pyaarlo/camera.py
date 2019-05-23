@@ -352,7 +352,7 @@ class ArloCamera(ArloChildDevice):
         if cap in ( 'last_capture','captured_today','recent_activity','battery_level','signal_strength' ):
             return True
         if cap in ('temperature','humidity','air_quality','airQuality') and self.model_id == 'ABC1000':
-            self._arlo.debug( 'ambient: reporting for {}'.format(self.name ) )
+            self._arlo.debug( 'ambient: reporting {} for {}'.format(cap,self.name ) )
             return True
         if cap in ( 'audio','audioDetected','sound' ):
             if (self.model_id.startswith('VMC4030') or self.model_id == 'ABC1000'):

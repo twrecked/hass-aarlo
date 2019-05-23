@@ -96,8 +96,11 @@ class ArloBase(ArloDevice):
                     self._save_and_do_callbacks( MODE_KEY,self._id_to_name(active_modes[0]) )
 
     def update_modes( self ):
+        self._arlo.debug( 'ambient: reading modes' )
         self._modes = self._arlo._be.get( DEFINITIONS_URL + "?uniqueIds={}".format( self.unique_id ) )
+        self._arlo.debug( 'ambient: parsing modes' )
         self._parse_modes( self._modes.get(self.unique_id,{}).get('modes',[]) )
+        self._arlo.debug( 'ambient: done with modes' )
 
     @property
     def refresh_rate(self):

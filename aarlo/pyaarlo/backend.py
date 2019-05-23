@@ -62,14 +62,14 @@ class ArloBackEnd(object):
                 elif method == 'POST':
                     r = self._session.post( url,json=params,headers=headers,timeout=timeout )
             except:
-                self._arlo.warning( 'timeout with backend request' )
+                self._arlo.warning( 'ambient: timeout with backend request' )
                 if self._ev_stream is not None:
                     #self._ev_stream.close()
                     self._ev_stream.resp.close()
                 return None
 
             if r.status_code != 200:
-                self._arlo.warning( 'error with request' )
+                self._arlo.warning( 'ambient: error with request' )
                 return None
 
             body = r.json()
