@@ -110,7 +110,7 @@ class ArloBase(ArloDevice):
 
     def update_modes( self ):
         if self._old_modes:
-            self._arlo._be.notify( base=base,body={"action":"get","resource":"modes","publishResponse":False} )
+            self._arlo._be.notify( base=self,body={"action":"get","resource":"modes","publishResponse":False} )
         else:
             self._arlo.debug( 'ambient: reading modes' )
             self._modes = self._arlo._be.get( DEFINITIONS_URL + "?uniqueIds={}".format( self.unique_id ) )
