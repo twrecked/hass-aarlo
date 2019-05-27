@@ -63,7 +63,7 @@ class ArloBase(ArloDevice):
                 self._save_and_do_callbacks( MODE_KEY,self._id_to_name( mode_id ) )
 
     @property
-    def _old_modes(self):
+    def _v1_modes(self):
         if self.model_id == 'ABC1000' or self.device_type == 'arloq' or self.device_type == 'arloqs':
             return True
         else:
@@ -91,12 +91,19 @@ class ArloBase(ArloDevice):
         mode_id = self._name_to_id( mode_name )
         if mode_id:
             self._arlo.debug( self.name + ':new-mode=' + mode_name + ',id=' + mode_id )
-            self._arlo._bg.run( self._arlo._be.post,url=AUTOMATION_URL,
-                            params={'activeAutomations':
-                                [ {'deviceId':self.device_id,
-                                    'timestamp':time_to_arlotime(),
-                                    'activeModes':[mode_id],
-                                    'activeSchedules':[] } ] } )
+            if self._v1_modes:
+                self._arlo._bg.run( self._arlo._be.notify,base=self,
+                                body={"action":"set",
+                                        "resource":"modes",
+                                        "publishResponse":True,
+                                        "properties":{"active":mode_id}} )
+            else:
+                self._arlo._bg.run( self._arlo._be.post,url=AUTOMATION_URL,
+                                params={'activeAutomations':
+                                    [ {'deviceId':self.device_id,
+                                        'timestamp':time_to_arlotime(),
+                                        'activeModes':[mode_id],
+                                        'activeSchedules':[] } ] } )
         else:
             self._arlo.warning( '{0}: mode {1} is unrecognised'.format( self.name,mode_name) )
 
@@ -109,7 +116,7 @@ class ArloBase(ArloDevice):
                     self._save_and_do_callbacks( MODE_KEY,self._id_to_name(active_modes[0]) )
 
     def update_modes( self ):
-        if self._old_modes:
+        if self._v1_modes:
             self._arlo._be.notify( base=self,body={"action":"get","resource":"modes","publishResponse":False} )
         else:
             self._arlo.debug( 'ambient: reading modes' )
