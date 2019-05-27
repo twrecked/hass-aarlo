@@ -63,6 +63,13 @@ class ArloBase(ArloDevice):
                 self._save_and_do_callbacks( MODE_KEY,self._id_to_name( mode_id ) )
 
     @property
+    def _old_modes(self):
+        if self.model_id == 'ABC1000' or self.device_type == 'arloq' or self.device_type == 'arloqs':
+            return True
+        else:
+            return False
+
+    @property
     def available_modes(self):
         return list( self.available_modes_with_ids.keys() )
 
@@ -102,13 +109,15 @@ class ArloBase(ArloDevice):
                     self._save_and_do_callbacks( MODE_KEY,self._id_to_name(active_modes[0]) )
 
     def update_modes( self ):
-        self._arlo.debug( 'ambient: reading modes' )
-        self._modes = self._arlo._be.get( DEFINITIONS_URL + "?uniqueIds={}".format( self.unique_id ) )
-        self._arlo.debug( 'ambient: parsing modes' )
-        self._arlo.debug( 'ambient: modes={}'.format( self._modes ) )
-        self._arlo.debug( 'ambient: modes={}'.format( pprint.pformat(self._modes) ) )
-        self._parse_modes( self._modes.get(self.unique_id,{}).get('modes',[]) )
-        self._arlo.debug( 'ambient: done with modes' )
+        if self._old_modes:
+            self._be.notify( base=base,body={"action":"get","resource":"modes","publishResponse":False} )
+        else:
+            self._arlo.debug( 'ambient: reading modes' )
+            self._modes = self._arlo._be.get( DEFINITIONS_URL + "?uniqueIds={}".format( self.unique_id ) )
+            self._arlo.debug( 'ambient: parsing modes' )
+            self._arlo.debug( 'ambient: modes={}'.format( self._modes ) )
+            self._parse_modes( self._modes.get(self.unique_id,{}).get('modes',[]) )
+            self._arlo.debug( 'ambient: done with modes' )
 
     @property
     def refresh_rate(self):
