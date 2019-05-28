@@ -1,6 +1,4 @@
 
-import pprint
-
 from custom_components.aarlo.pyaarlo.device import ArloDevice
 
 from custom_components.aarlo.pyaarlo.util import ( time_to_arlotime )
@@ -25,7 +23,6 @@ class ArloBase(ArloDevice):
         return self._arlo._st.get( [self.device_id,MODE_NAME_TO_ID_KEY,mode_name.lower()],None )
 
     def _parse_modes( self,modes ):
-        self._arlo.debug( 'ambient: starting mode parse' )
         for mode in modes:
             mode_id = mode.get( 'id',None )
             mode_name = mode.get( 'name','' )
@@ -37,9 +34,6 @@ class ArloBase(ArloDevice):
                 self._arlo.debug( mode_id + '<==>' + mode_name )
                 self._arlo._st.set( [self.device_id,MODE_ID_TO_NAME_KEY,mode_id],mode_name )
                 self._arlo._st.set( [self.device_id,MODE_NAME_TO_ID_KEY,mode_name.lower()],mode_id )
-            else:
-                self._arlo.debug( 'ambient: mode {} ignore'.format( mode ) )
-        self._arlo.debug( 'ambient: ending mode parse' )
 
     def _event_handler( self,resource,event ):
         self._arlo.debug( self.name + ' BASE got ' + resource )
@@ -119,12 +113,8 @@ class ArloBase(ArloDevice):
         if self._v1_modes:
             self._arlo._be.notify( base=self,body={"action":"get","resource":"modes","publishResponse":False} )
         else:
-            self._arlo.debug( 'ambient: reading modes' )
             self._modes = self._arlo._be.get( DEFINITIONS_URL + "?uniqueIds={}".format( self.unique_id ) )
-            self._arlo.debug( 'ambient: parsing modes' )
-            self._arlo.debug( 'ambient: modes={}'.format( self._modes ) )
             self._parse_modes( self._modes.get(self.unique_id,{}).get('modes',[]) )
-            self._arlo.debug( 'ambient: done with modes' )
 
     @property
     def refresh_rate(self):
