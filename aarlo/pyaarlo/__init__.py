@@ -26,7 +26,7 @@ from custom_components.aarlo.pyaarlo.constant import ( BLANK_IMAGE,
 
 _LOGGER = logging.getLogger('pyaarlo')
 
-__version__ = '0.0.8'
+__version__ = '0.0.9'
 
 class PyArlo(object):
 
