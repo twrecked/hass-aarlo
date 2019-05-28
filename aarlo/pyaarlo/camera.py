@@ -219,18 +219,12 @@ class ArloCamera(ArloChildDevice):
                 self._arlo._bg.run_low( self._update_last_image_from_snapshot )
 
         # ambient sensors update
-        if 'ambientSensors' in resource:
-            self._arlo.debug( 'ambient: returned {}'.format( resource ) )
         if resource.endswith('/ambientSensors/history'):
             data = self._decode_sensor_data( event.get('properties',{}) )
-            self._arlo.debug( 'ambient: decoding {}'.format( resource ) )
             if data is not None:
-                self._arlo.debug( 'ambient: decoded {}'.format( resource ) )
                 self._save_and_do_callbacks( 'temperature',data.get('temperature') )
                 self._save_and_do_callbacks( 'humidity',data.get('humidity') )
                 self._save_and_do_callbacks( 'airQuality',data.get('airQuality') )
-            else:
-                self._arlo.debug( 'ambient: not decoded {}'.format( resource ) )
 
         # pass on to lower layer
         super()._event_handler( resource,event )
@@ -338,9 +332,7 @@ class ArloCamera(ArloChildDevice):
         self._arlo._bg.run_low( self._update_last_image )
 
     def update_ambient_sensors( self ):
-        self._arlo.debug( 'ambient: trying for {}={}'.format(self.name,self.model_id ) )
         if self.model_id == 'ABC1000':
-            self._arlo.debug( 'ambient: updating for {}'.format(self.name ) )
             self._arlo._bg.run( self._arlo._be.notify,
                                 base=self.base_station,
                                 body={"action":"get",
@@ -352,7 +344,6 @@ class ArloCamera(ArloChildDevice):
         if cap in ( 'last_capture','captured_today','recent_activity','battery_level','signal_strength' ):
             return True
         if cap in ('temperature','humidity','air_quality','airQuality') and self.model_id == 'ABC1000':
-            self._arlo.debug( 'ambient: reporting {} for {}'.format(cap,self.name ) )
             return True
         if cap in ( 'audio','audioDetected','sound' ):
             if (self.model_id.startswith('VMC4030') or self.model_id == 'ABC1000'):

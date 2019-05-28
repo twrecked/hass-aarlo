@@ -27,7 +27,6 @@ class ArloMediaLibrary(object):
     # grab recordings from last day, add to existing library if not there
     def update( self ):
         self._arlo.debug( 'updating image library' )
-        self._arlo.debug('ambient: here30')
 
         # grab today's images
         date_to = datetime.today().strftime('%Y%m%d')
@@ -75,7 +74,6 @@ class ArloMediaLibrary(object):
     def load( self,days=PRELOAD_DAYS ):
 
         self._arlo.debug( 'loading image library' )
-        self._arlo.debug('ambient: here31')
 
         # set begining and end
         now       = datetime.today()
