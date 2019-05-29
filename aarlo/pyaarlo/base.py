@@ -90,6 +90,13 @@ class ArloBase(ArloDevice):
                 self._save_and_do_callbacks( SCHEDULE_KEY,None )
 
     @property
+    def _v1_modes(self):
+        if self.model_id == 'ABC1000' or self.device_type == 'arloq' or self.device_type == 'arloqs':
+            return True
+        else:
+            return False
+
+    @property
     def available_modes(self):
         return list( self.available_modes_with_ids.keys() )
 
@@ -123,13 +130,19 @@ class ArloBase(ArloDevice):
 
             # Post change.
             self._arlo.debug( self.name + ':new-mode=' + mode_name + ',id=' + mode_id )
-            self._arlo._bg.run( self._arlo._be.post,url=AUTOMATION_URL,
-                            params={'activeAutomations':
-                                [ {'deviceId':self.device_id,
-                                    'timestamp':time_to_arlotime(),
-                                    active:[mode_id],
-                                    inactive:[] } ] } )
-
+            if self._v1_modes:
+                self._arlo._bg.run( self._arlo._be.notify,base=self,
+                                body={"action":"set",
+                                        "resource":"modes",
+                                        "publishResponse":True,
+                                        "properties":{"active":mode_id}} )
+            else:
+                self._arlo._bg.run( self._arlo._be.post,url=AUTOMATION_URL,
+                                params={'activeAutomations':
+                                    [ {'deviceId':self.device_id,
+                                        'timestamp':time_to_arlotime(),
+                                        active:[mode_id],
+                                        inactive:[] } ] } )
         else:
             self._arlo.warning( '{0}: mode {1} is unrecognised'.format( self.name,mode_name) )
 
@@ -145,10 +158,13 @@ class ArloBase(ArloDevice):
                     self._save_and_do_callbacks( SCHEDULE_KEY,self._id_to_name(active_schedules[0]) )
 
     def update_modes( self ):
-        modes = self._arlo._be.get( DEFINITIONS_URL + "?uniqueIds={}".format( self.unique_id ) )
-        self._modes = modes.get( self.unique_id,{} )
-        self._parse_modes( self._modes.get('modes',[]) )
-        self._parse_schedules( self._modes.get('schedules',[]) )
+        if self._v1_modes:
+            self._arlo._be.notify( base=self,body={"action":"get","resource":"modes","publishResponse":False} )
+        else:
+            modes = self._arlo._be.get( DEFINITIONS_URL + "?uniqueIds={}".format( self.unique_id ) )
+            self._modes = modes.get( self.unique_id,{} )
+            self._parse_modes( self._modes.get('modes',[]) )
+            self._parse_schedules( self._modes.get('schedules',[]) )
 
     @property
     def schedule( self ):
