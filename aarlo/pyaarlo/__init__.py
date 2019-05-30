@@ -17,10 +17,11 @@ from .constant import (BLANK_IMAGE, DEVICE_KEYS, DEVICES_URL,
 from .doorbell import ArloDoorBell
 from .media import ArloMediaLibrary
 from .storage import ArloStorage
+from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger('pyaarlo')
 
-__version__ = '0.0.4'
+__version__ = '0.0.11'
 
 class PyArlo(object):
 
@@ -62,7 +63,7 @@ class PyArlo(object):
         # slow piece.
         # get devices and fill local db, and create device instance
         self.info('pyaarlo starting')
-        self._devices = self._be.get( DEVICES_URL )
+        self._devices = self._be.get( DEVICES_URL + "?t={}".format(time_to_arlotime()) )
         self._parse_devices()
         for device in self._devices:
             dname = device.get('deviceName')
@@ -82,6 +83,9 @@ class PyArlo(object):
         # save out unchanging stats!
         self._st.set( ['ARLO',TOTAL_CAMERAS_KEY],len(self._cameras) )
         self._st.set( ['ARLO',TOTAL_BELLS_KEY],len(self._doorbells) )
+
+        # always ping bases first!
+        self._ping_bases()
 
         # queue up initial config retrieval
         self.debug('getting initial settings' )
@@ -116,6 +120,10 @@ class PyArlo(object):
         for camera in self._cameras:
             camera.update_ambient_sensors()
 
+    def _ping_bases( self ):
+        for base in self._bases:
+            self._bg.run( self._be.async_ping,base=base )
+
     def _refresh_bases( self,initial ):
         for base in self._bases:
             base.update_modes()
@@ -127,10 +135,7 @@ class PyArlo(object):
     def _fast_refresh( self ):
         self.debug( 'fast refresh' )
         self._bg.run( self._st.save )
-
-        # alway ping bases
-        for base in self._bases:
-            self._bg.run( self._be.async_ping,base=base )
+        self._ping_bases()
 
         # if day changes then reload recording library and camera counts
         today = datetime.date.today()

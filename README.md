@@ -196,6 +196,10 @@ pip install av==6.1.2
 ```
 Set `image_click` to `play` on the aarlo glance card.
 
+For further information on getting streaming working please read these 2 posts:
+   * https://github.com/twrecked/hass-aarlo/issues/55
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
+
 ## Other Lovelace Options
 
 Using the conditional card you can have badges of cameras appear after activity or if they go off line. I use the following to get quick updates on an overview view.
