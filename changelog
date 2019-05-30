@@ -2,7 +2,7 @@
 0.0.2: Added manifest to aarlo
 
 aarlo:
-0.0.10: mirror pyaarlo version
+0.0.10: Added support for schedules.
 0.0.9: mirror pyaarlo version
 0.0.8: mirror pyaarlo version
 0.0.7: mirror pyaarlo version
