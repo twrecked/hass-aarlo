@@ -53,6 +53,8 @@ class ArloBackEnd(object):
         try:
             with self._req_lock:
                 self._arlo.debug( 'starting request=' + str(url) )
+                self._arlo.debug( 'starting request=' + str(params) )
+                self._arlo.debug( 'starting request=' + str(headers) )
                 if method == 'GET':
                     r = self._session.get( url,params=params,headers=headers,stream=stream,timeout=timeout )
                     if stream is True:
@@ -67,6 +69,7 @@ class ArloBackEnd(object):
                 self._ev_stream.resp.close()
             return None
 
+        self._arlo.debug( 'finish request=' + str(r.status_code) )
         if r.status_code != 200:
             return None
 

@@ -36,14 +36,15 @@ class PyArlo(object):
                         request_timeout=60,stream_timeout=0,
                         recent_time=600,last_format='%m-%d %H:%M',
                         no_media_upload=False,
-                        user_agent='apple'):
+                        user_agent='apple',mode_api='auto'):
 
         try:
             os.mkdir( storage_dir )
         except:
             pass
 
-        self._name = name
+        self._name       = name
+        self._mode_api   = mode_api
         self._user_agent = user_agent
         self._bg   = ArloBackground( self )
         self._st   = ArloStorage( self,name=name,storage_dir=storage_dir )
