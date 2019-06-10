@@ -2,6 +2,7 @@
 0.0.2: Added manifest to aarlo
 
 aarlo:
+0.0.12: Fixed stream_source() api
 0.0.11: Tidied docs, fleshed out services list.
 0.0.10: Added support for schedules.
 0.0.9: mirror pyaarlo version
@@ -12,6 +13,7 @@ aarlo:
 0.0.4: mirror pyaarlo version
 
 pyaarlo:
+0.0.12: mirror aarlo version
 0.0.11: mirror aarlo version
 0.0.10: Added support for schedules.
 0.0.9: Added timestamp to device request.
