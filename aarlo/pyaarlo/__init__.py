@@ -60,7 +60,8 @@ class PyArlo(object):
         self._last_format = last_format
         self._no_media_upload = no_media_upload
 
-        # on day flip we reload image count
+        # on day/hour flip we do extra work
+        self._hour = datetime.datetime.now().hour
         self._today = datetime.date.today()
 
         # default blank image whe waiting for camera image to appear
@@ -69,7 +70,7 @@ class PyArlo(object):
         # slow piece.
         # get devices and fill local db, and create device instance
         self.info('pyaarlo starting')
-        self._devices = self._be.get( DEVICES_URL + "?t={}".format(time_to_arlotime()) )
+        self._refresh_devices()
         self._parse_devices()
         for device in self._devices:
             dname = device.get('deviceName')
@@ -108,6 +109,9 @@ class PyArlo(object):
         # Representation string of object.
         return "<{0}: {1}>".format(self.__class__.__name__, self._name)
 
+    def _refresh_devices( self ):
+        self._devices = self._be.get( DEVICES_URL + "?t={}".format(time_to_arlotime()) )
+
     def _parse_devices( self ):
         for device in self._devices:
             device_id = device.get('deviceId',None)
@@ -145,8 +149,9 @@ class PyArlo(object):
 
         # if day changes then reload recording library and camera counts
         today = datetime.date.today()
+        self.debug( 'day testing with {}!'.format( str(today) ) )
         if self._today != today:
-            self.debug( 'day changed!' )
+            self.debug( 'day changed to {}!'.format( str(today) ) )
             self._today = today
             self._bg.run( self._ml.load )
             self._bg.run( self._refresh_cameras )
@@ -155,6 +160,14 @@ class PyArlo(object):
         self.debug( 'slow refresh' )
         self._bg.run( self._refresh_bases,initial=False )
         self._bg.run( self._refresh_ambient_sensors )
+
+        # if hour has changed run some extra checks
+        hour = datetime.datetime.now().hour
+        self.debug( 'hour testing with {}!'.format( str(hour) ) )
+        if self._hour != hour:
+            self.debug( 'hour changed to {}!'.format( str(hour) ) )
+            self._hour = hour
+            self._bg.run( self._refresh_devices )
 
     def _initial_refresh( self ):
         self.debug( 'initial refresh' )

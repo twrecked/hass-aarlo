@@ -79,6 +79,8 @@ class ArloBackEnd(object):
         if body['success'] == True:
             if 'data' in body:
                 return body['data']
+        else:
+            self._arlo.warning( 'error in response=' + str(body) )
         return None
 
     def _gen_trans_id( self, trans_type=TRANSID_PREFIX ):
@@ -297,7 +299,8 @@ class ArloBackEnd(object):
             # update sessions headers
             # XXX allow different user agent
             headers = {
-                'DNT': '1',
+                #'DNT': '1',
+                'Accept': 'application/json, text/plain, */*',
                 'schemaVersion': '1',
                 'Host': 'arlo.netgear.com',
                 'Content-Type': 'application/json; charset=utf-8;',
