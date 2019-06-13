@@ -163,9 +163,9 @@ class ArloChildDevice(ArloDevice):
 
     @property
     def parent_id(self):
-        if self._parentId is not None:
+        if self._parent_id is not None:
             self._arlo.debug( 'real parent is {}'.format( self._parent_id ) )
-            return self._parentId
+            return self._parent_id
         self._arlo.debug( 'fake parent is {}'.format( self.device_id ) )
         return self.device_id
 
