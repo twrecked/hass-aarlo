@@ -104,6 +104,8 @@ aarlo:
   last_format: '%m-%d %H:%M'
   conf_dir: /config/.aarlo
   no_media_upload: True
+  mode_api: auto
+  refresh_devices_every: 0
 ```
 * If `packet_dump` is True `aarlo` will store all the packets it sees in `/config/.aarlo/packets.dump` file.
 * `db_motion_time` sets how long a doorbell motion will last. Arlo doorbell only indicates motion is present not that it stops. You can adjust the stop time out here.
@@ -121,6 +123,8 @@ Now restart your home assistant system.
 
 Use these only if asked to:
 * `no_media_upload`: some people have seen the Arlo servers dropping stream connections and no image updates when recording stops, if you see this then set this variable to `True` in `aarlo` platform.
+* `mode_api`: Aarlo will pick the mode api to use based on the device type. You can override this by setting this option to `v1` or `v2` to use the old or new version exclusively.
+* `refresh_devices_every`: Some people are seeing mode changes failing after several days of use. If you set this value to a non zero positive integer Aarlo will refresh its device once every that many hours.
 
 ## Resource Configuration
 
