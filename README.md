@@ -146,8 +146,10 @@ show:
   - battery_level
   - signal_strength
   - captured_today
+  - image_date
 top_title: false
 top_status: false
+top_date: false
 image_click: play
 door: binary_switch.front_door
 door_lock: lock.front_door_lock
@@ -193,6 +195,11 @@ sudo apt install libavdevice-dev
 pip install av==6.1.2
 ```
 Set `image_click` to `play` on the aarlo glance card.
+
+For further information on getting streaming working please read these 2 posts:
+   * https://github.com/twrecked/hass-aarlo/issues/55
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
 
 ## Other Lovelace Options
 

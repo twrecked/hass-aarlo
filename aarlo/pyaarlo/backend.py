@@ -35,6 +35,8 @@ class ArloBackEnd(object):
         self._requests  = {}
         self._callbacks = {}
 
+        self._ev_stream = None
+
         # login
         self._session   = None
         self._connected = self.login( username,password )
@@ -48,9 +50,9 @@ class ArloBackEnd(object):
     def _request( self,url,method='GET',params={},headers={},stream=False,raw=False,timeout=None ):
         if timeout is None:
             timeout = self._request_timeout
-        with self._req_lock:
-            self._arlo.debug( 'starting request=' + str(url) )
-            try:
+        try:
+            with self._req_lock:
+                self._arlo.debug( 'starting request=' + str(url) )
                 if method == 'GET':
                     r = self._session.get( url,params=params,headers=headers,stream=stream,timeout=timeout )
                     if stream is True:
@@ -59,23 +61,22 @@ class ArloBackEnd(object):
                     r = self._session.put( url,json=params,headers=headers,timeout=timeout )
                 elif method == 'POST':
                     r = self._session.post( url,json=params,headers=headers,timeout=timeout )
-            except:
-                self._arlo.warning( 'timeout with backend request' )
+        except:
+            if self._ev_stream is not None:
                 #self._ev_stream.close()
                 self._ev_stream.resp.close()
-                return None
-
-            if r.status_code != 200:
-                self._arlo.warning( 'error with request' )
-                return None
-
-            body = r.json()
-            if raw:
-                return body
-            if body['success'] == True:
-                if 'data' in body:
-                    return body['data']
             return None
+
+        if r.status_code != 200:
+            return None
+
+        body = r.json()
+        if raw:
+            return body
+        if body['success'] == True:
+            if 'data' in body:
+                return body['data']
+        return None
 
     def _gen_trans_id( self, trans_type=TRANSID_PREFIX ):
         return trans_type + '!' + str( uuid.uuid4() )
@@ -209,6 +210,8 @@ class ArloBackEnd(object):
                 self._arlo.warning( 'event loop timeout' )
             except AttributeError as e:
                 self._arlo.warning( 'forced close' )
+            except:
+                self._arlo.warning( 'general exception' )
 
             # restart login...
             self._ev_stream = None

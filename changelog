@@ -1,1 +1,28 @@
 0.0.1: Initial version
+0.0.2: Added manifest to aarlo
+
+aarlo:
+0.0.14: Added battery and signal strength for doorbells
+0.0.13: Fix camera.(enable|disable)_motion service.
+0.0.12: Fixed stream_source() api
+0.0.11: Tidied docs, fleshed out services list.
+0.0.10: Added support for schedules.
+0.0.9: mirror pyaarlo version
+0.0.8: mirror pyaarlo version
+0.0.7: mirror pyaarlo version
+0.0.6: mirror pyaarlo version
+0.0.5: mirror pyaarlo version
+0.0.4: mirror pyaarlo version
+
+pyaarlo:
+0.0.14: Added battery and signal strength for doorbells
+0.0.13: Fix camera.(enable|disable)_motion service.
+0.0.12: mirror aarlo version
+0.0.11: mirror aarlo version
+0.0.10: Added support for schedules.
+0.0.9: Added timestamp to device request.
+0.0.8: Restore version 1 of the modes API because it is needed by ArloQ and Arlo Babycams.
+0.0.7: Fix race condition causing crash when initial login times out.
+0.0.6: Handle general exceptions when using requests.
+0.0.5: Add ping to startup sequence. 
+0.0.4: Fix mode lookup in base code

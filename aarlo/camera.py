@@ -39,6 +39,7 @@ ATTR_UNSEEN_VIDEOS = 'unseen_videos'
 ATTR_RECENT_ACTIVITY = 'recent_activity'
 ATTR_IMAGE_SRC = 'image_source'
 ATTR_CHARGING = 'charging'
+ATTR_CHARGER_TYPE = 'charger_type'
 ATTR_WIRED = 'wired'
 
 CONF_FFMPEG_ARGUMENTS = 'ffmpeg_arguments'
@@ -147,8 +148,7 @@ class ArloCam(Camera):
         self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info( 'ArloCam: %s created',self._name )
 
-    @property
-    def stream_source(self):
+    async def stream_source(self):
         """Return the source of the stream."""
         return self._camera.get_stream()
 
@@ -251,6 +251,7 @@ class ArloCam(Camera):
                 (ATTR_RECENT_ACTIVITY, self._camera.recent),
                 (ATTR_IMAGE_SRC, self._camera.last_image_source),
                 (ATTR_CHARGING, self._camera.charging),
+                (ATTR_CHARGER_TYPE, self._camera.charger_type),
                 (ATTR_WIRED, self._camera.wired_only),
             ) if value is not None
         }
@@ -278,16 +279,7 @@ class ArloCam(Camera):
 
     def set_base_station_mode(self, mode):
         """Set the mode in the base station."""
-        # Get the list of base stations identified by library
-        base_stations = self.hass.data[DATA_ARLO].base_stations
-
-        # Some Arlo cameras does not have base station
-        # So check if there is base station detected first
-        # if yes, then choose the primary base station
-        # Set the mode on the chosen base station
-        if base_stations:
-            primary_base_station = base_stations[0]
-            primary_base_station.mode = mode
+        self._camera.base_station.mode = mode
 
     def enable_motion_detection(self):
         """Enable the Motion detection in base station (Arm)."""
@@ -369,7 +361,7 @@ async def websocket_library(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_stream_url(hass, connection, msg):
     camera = _get_camera_from_entity_id( hass,msg['entity_id'] )
-    _LOGGER.debug( 'stream_url for ' + str(camera.name) )
+    _LOGGER.debug( 'stream_url for ' + str(camera.unique_id) )
     try:
         stream = await camera.async_stream_source()
         connection.send_message(websocket_api.result_message(
@@ -385,7 +377,7 @@ async def websocket_stream_url(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_snapshot_image(hass, connection, msg):
     camera = _get_camera_from_entity_id( hass,msg['entity_id'] )
-    _LOGGER.debug( 'snapshot_image for ' + str(camera.name) )
+    _LOGGER.debug( 'snapshot_image for ' + str(camera.unique_id) )
 
     try:
         image = await camera.async_get_snapshot()
@@ -403,7 +395,7 @@ async def websocket_snapshot_image(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_stop_activity(hass, connection, msg):
     camera = _get_camera_from_entity_id( hass,msg['entity_id'] )
-    _LOGGER.debug( 'stop_activity for ' + str(camera.name) )
+    _LOGGER.debug( 'stop_activity for ' + str(camera.unique_id) )
 
     stopped = await camera.async_stop_activity()
     connection.send_message(websocket_api.result_message(
@@ -414,7 +406,12 @@ async def websocket_stop_activity(hass, connection, msg):
 
 async def aarlo_snapshot_service_handler( camera,service ):
     _LOGGER.debug( "{0} snapshot".format( camera.unique_id ) )
-    camera.request_snapshot()
+    await camera.async_get_snapshot()
+    hass = camera.hass
+    _LOGGER.debug( "{0} snapshot event".format( camera.unique_id ) )
+    hass.bus.fire( 'aarlo_snapshot_ready', {
+        'entity_id' : 'aarlo.' + camera.unique_id,
+    })
 
 async def aarlo_snapshot_to_file_service_handler( camera,service ):
     _LOGGER.info( "{0} snapshot to file".format( camera.unique_id ) )
@@ -438,6 +435,10 @@ async def aarlo_snapshot_to_file_service_handler( camera,service ):
 
     try:
         await hass.async_add_executor_job( _write_image, snapshot_file, image )
+        hass.bus.fire( 'aarlo_snapshot_ready', {
+            'entity_id' : 'aarlo.' + camera.unique_id,
+            'file' : snapshot_file
+        })
     except OSError as err:
         _LOGGER.error("Can't write image to file: %s", err)
 

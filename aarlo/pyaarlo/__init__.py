@@ -14,6 +14,7 @@ from custom_components.aarlo.pyaarlo.media import ArloMediaLibrary
 from custom_components.aarlo.pyaarlo.base import ArloBase
 from custom_components.aarlo.pyaarlo.camera import ArloCamera
 from custom_components.aarlo.pyaarlo.doorbell import ArloDoorBell
+from custom_components.aarlo.pyaarlo.util import time_to_arlotime
 
 from custom_components.aarlo.pyaarlo.constant import ( BLANK_IMAGE,
                                 DEVICE_KEYS,
@@ -25,7 +26,7 @@ from custom_components.aarlo.pyaarlo.constant import ( BLANK_IMAGE,
 
 _LOGGER = logging.getLogger('pyaarlo')
 
-__version__ = '0.0.2'
+__version__ = '0.0.14'
 
 class PyArlo(object):
 
@@ -67,7 +68,7 @@ class PyArlo(object):
         # slow piece.
         # get devices and fill local db, and create device instance
         self.info('pyaarlo starting')
-        self._devices = self._be.get( DEVICES_URL )
+        self._devices = self._be.get( DEVICES_URL + "?t={}".format(time_to_arlotime()) )
         self._parse_devices()
         for device in self._devices:
             dname = device.get('deviceName')
@@ -88,12 +89,14 @@ class PyArlo(object):
         self._st.set( ['ARLO',TOTAL_CAMERAS_KEY],len(self._cameras) )
         self._st.set( ['ARLO',TOTAL_BELLS_KEY],len(self._doorbells) )
 
+        # always ping bases first!
+        self._ping_bases()
+
         # queue up initial config retrieval
         self.debug('getting initial settings' )
-        self._bg.run_in( self._ml.load,1 )
         self._bg.run_in( self._refresh_cameras,2 )
-        self._bg.run_in( self._fast_refresh,5 )
-        self._bg.run_in( self._slow_refresh,10 )
+        self._bg.run_in( self._initial_refresh,5 )
+        self._bg.run_in( self._ml.load,10 )
 
         # register house keeping cron jobs
         self.debug('registering cron jobs')
@@ -122,19 +125,22 @@ class PyArlo(object):
         for camera in self._cameras:
             camera.update_ambient_sensors()
 
-    def _refresh_bases( self ):
+    def _ping_bases( self ):
+        for base in self._bases:
+            self._bg.run( self._be.async_ping,base=base )
+
+    def _refresh_bases( self,initial ):
         for base in self._bases:
             base.update_modes()
+            if initial:
+                base.update_mode()
             self._be.notify( base=base,body={"action":"get","resource":"cameras","publishResponse":False} )
             self._be.notify( base=base,body={"action":"get","resource":"doorbells","publishResponse":False} )
 
     def _fast_refresh( self ):
         self.debug( 'fast refresh' )
         self._bg.run( self._st.save )
-
-        # alway ping bases
-        for base in self._bases:
-            self._bg.run( self._be.async_ping,base=base )
+        self._ping_bases()
 
         # if day changes then reload recording library and camera counts
         today = datetime.date.today()
@@ -146,7 +152,12 @@ class PyArlo(object):
 
     def _slow_refresh( self ):
         self.debug( 'slow refresh' )
-        self._bg.run( self._refresh_bases )
+        self._bg.run( self._refresh_bases,initial=False )
+        self._bg.run( self._refresh_ambient_sensors )
+
+    def _initial_refresh( self ):
+        self.debug( 'initial refresh' )
+        self._bg.run( self._refresh_bases,initial=True )
         self._bg.run( self._refresh_ambient_sensors )
 
     def stop( self ):
