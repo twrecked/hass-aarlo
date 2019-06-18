@@ -37,7 +37,7 @@ class PyArlo(object):
                         recent_time=600,last_format='%m-%d %H:%M',
                         no_media_upload=False,
                         user_agent='apple',mode_api='auto',
-                        refresh_devices_every='0',
+                        refresh_devices_every=0,
                         http_connections=5,http_max_size=10 ):
 
         try:
