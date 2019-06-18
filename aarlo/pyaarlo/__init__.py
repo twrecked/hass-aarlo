@@ -26,7 +26,7 @@ from custom_components.aarlo.pyaarlo.constant import ( BLANK_IMAGE,
 
 _LOGGER = logging.getLogger('pyaarlo')
 
-__version__ = '0.0.15'
+__version__ = '0.0.16'
 
 class PyArlo(object):
 
@@ -37,16 +37,32 @@ class PyArlo(object):
                         recent_time=600,last_format='%m-%d %H:%M',
                         no_media_upload=False,
                         user_agent='apple',mode_api='auto',
-                        refresh_devices_every='0'):
+                        refresh_devices_every=0,
+                        http_connections=5,http_max_size=10 ):
 
         try:
             os.mkdir( storage_dir )
         except:
             pass
 
+        # base config
         self._name       = name
         self._mode_api   = mode_api
         self._user_agent = user_agent
+
+        # refresh device config
+        self._refresh_devices_every = refresh_devices_every * 60 * 60
+
+        # custom connection pool config
+        self._http_connections = http_connections
+        self._http_max_size    = http_max_size
+
+        # media config
+        self._recent_time = recent_time
+        self._last_format = last_format
+        self._no_media_upload = no_media_upload
+
+        # create components
         self._bg   = ArloBackground( self )
         self._st   = ArloStorage( self,name=name,storage_dir=storage_dir )
         self._be   = ArloBackEnd( self,username,password,dump=dump,storage_dir=storage_dir,
@@ -57,16 +73,12 @@ class PyArlo(object):
         self._bases       = []
         self._cameras     = []
         self._doorbells   = []
-        self._recent_time = recent_time
-        self._last_format = last_format
-        self._no_media_upload = no_media_upload
 
         # on day flip we do extra work
         self._today = datetime.date.today()
 
-        # we reload devices after a certain amount of time
-        self._refresh_devices_every = refresh_devices_every * 60 * 60
-        self._refresh_devices_at    = time.monotonic() + self._refresh_devices_every
+        # every few hours we refresh the device list
+        self._refresh_devices_at = time.monotonic() + self._refresh_devices_every
 
         # default blank image whe waiting for camera image to appear
         self._blank_image = base64.standard_b64decode( BLANK_IMAGE )

@@ -2,6 +2,7 @@
 0.0.2: Added manifest to aarlo
 
 aarlo:
+0.0.16: Allow https pool parameters to be customized.
 0.0.15: Mode API fixes and optional device list refresh
 0.0.14: Added battery and signal strength for doorbells
 0.0.13: Fix camera.(enable|disable)_motion service.
@@ -16,6 +17,7 @@ aarlo:
 0.0.4: mirror pyaarlo version
 
 pyaarlo:
+0.0.16: Allow https pool parameters to be customized.
 0.0.15: Mode API fixes and optional device list refresh
 0.0.14: Added battery and signal strength for doorbells
 0.0.13: Fix camera.(enable|disable)_motion service.
