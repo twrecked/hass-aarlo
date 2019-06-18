@@ -26,7 +26,7 @@ from custom_components.aarlo.pyaarlo.constant import ( BLANK_IMAGE,
 
 _LOGGER = logging.getLogger('pyaarlo')
 
-__version__ = '0.0.14'
+__version__ = '0.0.15'
 
 class PyArlo(object):
 
@@ -36,14 +36,16 @@ class PyArlo(object):
                         request_timeout=60,stream_timeout=0,
                         recent_time=600,last_format='%m-%d %H:%M',
                         no_media_upload=False,
-                        user_agent='apple'):
+                        user_agent='apple',mode_api='auto',
+                        refresh_devices_every='0'):
 
         try:
             os.mkdir( storage_dir )
         except:
             pass
 
-        self._name = name
+        self._name       = name
+        self._mode_api   = mode_api
         self._user_agent = user_agent
         self._bg   = ArloBackground( self )
         self._st   = ArloStorage( self,name=name,storage_dir=storage_dir )
@@ -59,8 +61,12 @@ class PyArlo(object):
         self._last_format = last_format
         self._no_media_upload = no_media_upload
 
-        # on day flip we reload image count
+        # on day flip we do extra work
         self._today = datetime.date.today()
+
+        # we reload devices after a certain amount of time
+        self._refresh_devices_every = refresh_devices_every * 60 * 60
+        self._refresh_devices_at    = time.monotonic() + self._refresh_devices_every
 
         # default blank image whe waiting for camera image to appear
         self._blank_image = base64.standard_b64decode( BLANK_IMAGE )
@@ -68,7 +74,7 @@ class PyArlo(object):
         # slow piece.
         # get devices and fill local db, and create device instance
         self.info('pyaarlo starting')
-        self._devices = self._be.get( DEVICES_URL + "?t={}".format(time_to_arlotime()) )
+        self._refresh_devices()
         self._parse_devices()
         for device in self._devices:
             dname = device.get('deviceName')
@@ -107,6 +113,9 @@ class PyArlo(object):
         # Representation string of object.
         return "<{0}: {1}>".format(self.__class__.__name__, self._name)
 
+    def _refresh_devices( self ):
+        self._devices = self._be.get( DEVICES_URL + "?t={}".format(time_to_arlotime()) )
+
     def _parse_devices( self ):
         for device in self._devices:
             device_id = device.get('deviceId',None)
@@ -144,8 +153,9 @@ class PyArlo(object):
 
         # if day changes then reload recording library and camera counts
         today = datetime.date.today()
+        self.debug( 'day testing with {}!'.format( str(today) ) )
         if self._today != today:
-            self.debug( 'day changed!' )
+            self.debug( 'day changed to {}!'.format( str(today) ) )
             self._today = today
             self._bg.run( self._ml.load )
             self._bg.run( self._refresh_cameras )
@@ -154,6 +164,17 @@ class PyArlo(object):
         self.debug( 'slow refresh' )
         self._bg.run( self._refresh_bases,initial=False )
         self._bg.run( self._refresh_ambient_sensors )
+
+        # do we need to reload the devices?
+        if self._refresh_devices_every != 0:
+            now = time.monotonic()
+            self.debug( 'device reload check {} {}'.format( str(now),str(self._refresh_devices_at) ) )
+            if now > self._refresh_devices_at:
+                self.debug( 'device reload needed' )
+                self._refresh_devices_at = now + self._refresh_devices_every
+                self._bg.run( self._refresh_devices )
+        else:
+            self.debug( 'no device reload' )
 
     def _initial_refresh( self ):
         self.debug( 'initial refresh' )

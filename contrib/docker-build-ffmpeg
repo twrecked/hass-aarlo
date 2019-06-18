@@ -1,0 +1,36 @@
+#!/bin/bash
+#
+
+# Copied from here:
+# https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
+
+# Copy it into your /config directory.
+# Run this inside your docker environment to enable rtsps support in ffmpeg.
+# You will need to restart the docker.
+# You might break everything, so be prepared to re-install!
+# You will be asked for confirmation at various points.
+
+cd
+apt-get update
+
+apt-get -y install build-essential autoconf automake cmake libtool git
+apt-get install checkinstall yasm libass-dev libfreetype6-dev libtool libvorbis-dev texinfo wget zlib1g-dev gnutls-dev libmp3lame-dev libssh-dev libtheora-dev libvorbis-dev libx264-dev libx265-dev opencl-dev
+
+wget https://ffmpeg.org/releases/ffmpeg-4.1.3.tar.bz2
+tar -xf ffmpeg-4.1.3.tar.bz2
+cd ffmpeg-4.1.3
+
+./configure --enable-gpl --enable-nonfree --enable-shared --enable-libtheora --enable-libvorbis --enable-libxcb --enable-libfreetype --enable-libass --enable-gnutls --enable-libx264 --enable-libmp3lame --enable-opencl --enable-libdrm 
+
+make
+
+apt-get remove ffmpeg
+apt-get -y purge ffmpeg "libav*" "libpostproc*"
+apt-get -y autoremove
+
+checkinstall -y --deldoc=yes --pkgversion=10:4.1.3-1
+apt-get install libpostproc-dev
+
+pip uninstall av
+pip install av==6.1.2
+
