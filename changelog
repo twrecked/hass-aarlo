@@ -2,6 +2,7 @@
 0.0.2: Added manifest to aarlo
 
 aarlo:
+0.0.14: Added battery and signal strength for doorbells
 0.0.13: Fix camera.(enable|disable)_motion service.
 0.0.12: Fixed stream_source() api
 0.0.11: Tidied docs, fleshed out services list.
@@ -14,6 +15,7 @@ aarlo:
 0.0.4: mirror pyaarlo version
 
 pyaarlo:
+0.0.14: Added battery and signal strength for doorbells
 0.0.13: Fix camera.(enable|disable)_motion service.
 0.0.12: mirror aarlo version
 0.0.11: mirror aarlo version

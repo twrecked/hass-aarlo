@@ -199,6 +199,7 @@ Set `image_click` to `play` on the aarlo glance card.
 For further information on getting streaming working please read these 2 posts:
    * https://github.com/twrecked/hass-aarlo/issues/55
    * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
 
 ## Other Lovelace Options
 
