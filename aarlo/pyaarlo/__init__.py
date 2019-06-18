@@ -36,7 +36,8 @@ class PyArlo(object):
                         request_timeout=60,stream_timeout=0,
                         recent_time=600,last_format='%m-%d %H:%M',
                         no_media_upload=False,
-                        user_agent='apple',mode_api='auto'):
+                        user_agent='apple',mode_api='auto',
+                        refresh_devices_every='0'):
 
         try:
             os.mkdir( storage_dir )
@@ -60,9 +61,12 @@ class PyArlo(object):
         self._last_format = last_format
         self._no_media_upload = no_media_upload
 
-        # on day/hour flip we do extra work
-        self._hour = datetime.datetime.now().hour
+        # on day flip we do extra work
         self._today = datetime.date.today()
+
+        # we reload devices after a certain amount of time
+        self._refresh_devices_every = refresh_devices_every * 60 * 60
+        self._refresh_devices_at    = time.monotonic() + self._refresh_devices_every
 
         # default blank image whe waiting for camera image to appear
         self._blank_image = base64.standard_b64decode( BLANK_IMAGE )
@@ -161,13 +165,16 @@ class PyArlo(object):
         self._bg.run( self._refresh_bases,initial=False )
         self._bg.run( self._refresh_ambient_sensors )
 
-        # if hour has changed run some extra checks
-        hour = datetime.datetime.now().hour
-        self.debug( 'hour testing with {}!'.format( str(hour) ) )
-        if self._hour != hour:
-            self.debug( 'hour changed to {}!'.format( str(hour) ) )
-            self._hour = hour
-            self._bg.run( self._refresh_devices )
+        # do we need to reload the devices?
+        if self._refresh_devices_every != 0:
+            now = time.monotonic()
+            self.debug( 'device reload check {} {}'.format( str(now),str(self._refresh_devices_at) ) )
+            if now > self._refresh_devices_at:
+                self.debug( 'device reload needed' )
+                self._refresh_devices_at = now + self._refresh_devices_every
+                self._bg.run( self._refresh_devices )
+        else:
+            self.debug( 'no device reload' )
 
     def _initial_refresh( self ):
         self.debug( 'initial refresh' )

@@ -28,18 +28,19 @@ DOMAIN = 'aarlo'
 NOTIFICATION_ID = 'aarlo_notification'
 NOTIFICATION_TITLE = 'aarlo Component Setup'
 
-CONF_PACKET_DUMP    = 'packet_dump'
-CONF_CACHE_VIDEOS   = 'cache_videos'
-CONF_DB_MOTION_TIME = 'db_motion_time'
-CONF_DB_DING_TIME   = 'db_ding_time'
-CONF_RECENT_TIME    = 'recent_time'
-CONF_LAST_FORMAT    = 'last_format'
-CONF_CONF_DIR       = 'conf_dir'
-CONF_REQ_TIMEOUT    = 'request_timeout'
-CONF_STR_TIMEOUT    = 'stream_timeout'
-CONF_NO_MEDIA_UP    = 'no_media_upload'
-CONF_USER_AGENT     = 'user_agent'
-CONF_MODE_API       = 'mode_api'
+CONF_PACKET_DUMP     = 'packet_dump'
+CONF_CACHE_VIDEOS    = 'cache_videos'
+CONF_DB_MOTION_TIME  = 'db_motion_time'
+CONF_DB_DING_TIME    = 'db_ding_time'
+CONF_RECENT_TIME     = 'recent_time'
+CONF_LAST_FORMAT     = 'last_format'
+CONF_CONF_DIR        = 'conf_dir'
+CONF_REQ_TIMEOUT     = 'request_timeout'
+CONF_STR_TIMEOUT     = 'stream_timeout'
+CONF_NO_MEDIA_UP     = 'no_media_upload'
+CONF_USER_AGENT      = 'user_agent'
+CONF_MODE_API        = 'mode_api'
+CONF_DEVICE_REFRESH  = 'refresh_devices_every'
 
 SCAN_INTERVAL  = timedelta(seconds=60)
 PACKET_DUMP    = False
@@ -54,6 +55,7 @@ STR_TIMEOUT    = timedelta(seconds=0)
 NO_MEDIA_UP    = False
 USER_AGENT     = 'apple'
 MODE_API       = 'auto'
+DEVICE_REFRESH  = 0
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
@@ -72,6 +74,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_NO_MEDIA_UP, default=NO_MEDIA_UP): cv.boolean,
         vol.Optional(CONF_USER_AGENT, default=USER_AGENT): cv.string,
         vol.Optional(CONF_MODE_API, default=MODE_API): cv.string,
+        vol.Optional(CONF_DEVICE_REFRESH, default=DEVICE_REFRESH): cv.positive_int,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -79,22 +82,23 @@ CONFIG_SCHEMA = vol.Schema({
 def setup(hass, config):
     """Set up an Arlo component."""
     conf = config[DOMAIN]
-    username     = conf.get(CONF_USERNAME)
-    password     = conf.get(CONF_PASSWORD)
-    packet_dump  = conf.get(CONF_PACKET_DUMP)
-    cache_videos = conf.get(CONF_CACHE_VIDEOS)
-    motion_time  = conf.get(CONF_DB_MOTION_TIME).total_seconds()
-    ding_time    = conf.get(CONF_DB_DING_TIME).total_seconds()
-    recent_time  = conf.get(CONF_RECENT_TIME).total_seconds()
-    last_format  = conf.get(CONF_LAST_FORMAT)
-    conf_dir     = conf.get(CONF_CONF_DIR)
+    username       = conf.get(CONF_USERNAME)
+    password       = conf.get(CONF_PASSWORD)
+    packet_dump    = conf.get(CONF_PACKET_DUMP)
+    cache_videos   = conf.get(CONF_CACHE_VIDEOS)
+    motion_time    = conf.get(CONF_DB_MOTION_TIME).total_seconds()
+    ding_time      = conf.get(CONF_DB_DING_TIME).total_seconds()
+    recent_time    = conf.get(CONF_RECENT_TIME).total_seconds()
+    last_format    = conf.get(CONF_LAST_FORMAT)
+    conf_dir       = conf.get(CONF_CONF_DIR)
     if conf_dir == '':
         conf_dir = hass.config.config_dir + '/.aarlo'
-    req_timeout  = conf.get(CONF_REQ_TIMEOUT).total_seconds()
-    str_timeout  = conf.get(CONF_STR_TIMEOUT).total_seconds()
-    no_media_up  = conf.get(CONF_NO_MEDIA_UP)
-    user_agent   = conf.get(CONF_USER_AGENT)
-    mode_api     = conf.get(CONF_MODE_API)
+    req_timeout    = conf.get(CONF_REQ_TIMEOUT).total_seconds()
+    str_timeout    = conf.get(CONF_STR_TIMEOUT).total_seconds()
+    no_media_up    = conf.get(CONF_NO_MEDIA_UP)
+    user_agent     = conf.get(CONF_USER_AGENT)
+    mode_api       = conf.get(CONF_MODE_API)
+    device_refresh = conf.get(CONF_DEVICE_REFRESH)
 
     try:
         from custom_components.aarlo.pyaarlo import PyArlo
@@ -105,7 +109,8 @@ def setup(hass, config):
                             request_timeout=req_timeout,stream_timeout=str_timeout,
                             recent_time=recent_time,last_format=last_format,
                             no_media_upload=no_media_up,
-                            user_agent=user_agent, mode_api=mode_api )
+                            user_agent=user_agent, mode_api=mode_api,
+                            refresh_devices_every=device_refresh)
         if not arlo.is_connected:
             return False
 
