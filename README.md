@@ -20,10 +20,10 @@ The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#
    1. [Example](#Example)
 1. [Other Lovelace Options](#Other-Lovelace-Options)
 1. [Streaming](#Streaming)
-1. [Automation](#Automation)
+1. [Automations](#Automations)
 1. [Services](#Services)
 1. [Web Sockets](#Web-Sockets)
-1. [To Do](#To Do)
+1. [To Do](#To-Do)
 
 ## Supported Features
 * Base station mode changes
