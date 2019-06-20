@@ -5,18 +5,18 @@
 The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#/cameras) web site - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system. Currently it only lets you set base station modes.
 
 ## Table of Contents
-* Supported features
-* Notes
-* Installation
-  * Migrating from Old Layout
-  * Manually
-  * From Script
-* Component Configuration
-  * Sample Configuration
-  * Additional Parameters
-* Lovelace Card Configuration
+1. [Supported Features](#Supported-Features)
+1. [Notes](#Notes)
+* [Installation](#)
+  * [Migrating from Old Layout](#)
+  * [Manually](#)
+  * [From Script](#)
+* [Component Configuration](#)
+  * [Sample Configuration](#)
+  * [Additional Parameters](#)
+* [Lovelace Card Configuration](#)
 
-## Supported Features:
+## Supported Features
 * Base station mode changes
 * Camera motion detection
 * Camera audio detection
