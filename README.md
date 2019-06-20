@@ -13,7 +13,7 @@ The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#
    1. [From Script](#From-Script)
 1. [Component Configuration](#Component-Configuration)
    1. [Sample Configuration](#Sample-Configuration)
-   1. [Additional Parameters](#Additional-Parameters)
+   1. [Advanced Platform Parameters](#Advanced-Platform-Parameters)
 1. [Custom Lovelace Card Configuration](#Custom-Lovelace-Card-Configuration)
    1. [Resource Configuration](#Resource-Configuration)
    1. [Card Configuration](#Card-Configuration)
@@ -83,12 +83,23 @@ install go /config
 ## Component Configuration
 For the simplest use replace all instances of the `arlo` with `aarlo` in your home-assistant configuration files. To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list.
 
-The following is an example configuration:
+### Sample Configuration
 
 ```yaml
 aarlo:
   username: !secret arlo_username
   password: !secret arlo_password
+  packet_dump: True
+  db_motion_time: 30
+  db_ding_time: 10
+  recent_time: 10
+  last_format: '%m-%d %H:%M'
+  conf_dir: /config/.aarlo
+  no_media_upload: True
+  mode_api: auto
+  refresh_devices_every: 0
+  http_connections: 5
+  http_max_size: 10
 
 camera:
   - platform: aarlo
@@ -119,24 +130,9 @@ sensor:
 ```
 The `alarm_control_panel` can be triggered and a siren, if present, will sound.
 
-The following additional parameters can be specified against the aarlo platform:
+### Advanced Platform Parameters
+The following additional parameters can be specified against the aarlo platform for more granular control:
 
-```yaml
-aarlo:
-  username: !secret arlo_username
-  password: !secret arlo_password
-  packet_dump: True
-  db_motion_time: 30
-  db_ding_time: 10
-  recent_time: 10
-  last_format: '%m-%d %H:%M'
-  conf_dir: /config/.aarlo
-  no_media_upload: True
-  mode_api: auto
-  refresh_devices_every: 0
-  http_connections: 5
-  http_max_size: 10
-```
 | Field                 | Type     | Default          | Description                                                                                                                                                                                                                               |
 |-----------------------|----------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | packet_dump           | boolean  | `False`          | Causes aarlo to store all the packets it sees in `/config/.aarlo/packets.dump` file.                                                                                                                                                      |
