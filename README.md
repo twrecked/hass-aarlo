@@ -7,14 +7,23 @@ The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#
 ## Table of Contents
 1. [Supported Features](#Supported-Features)
 1. [Notes](#Notes)
-* [Installation](#)
-  * [Migrating from Old Layout](#)
-  * [Manually](#)
-  * [From Script](#)
-* [Component Configuration](#)
-  * [Sample Configuration](#)
-  * [Additional Parameters](#)
-* [Lovelace Card Configuration](#)
+1. [Installation](#Installation)
+   1. [Migrating from Old Layout](#Migrating-from-Old-Layout)
+   1. [Manually](#Manually)
+   1. [From Script](#From-Script)
+1. [Component Configuration](#Component-Configuration)
+   1. [Sample Configuration](#Sample-Configuration)
+   1. [Additional Parameters](#Additional-Parameters)
+1. [Custom Lovelace Card Configuration](#Custom-Lovelace-Card-Configuration)
+   1. [Resource Configuration](#Resource-Configuration)
+   1. [Card Configuration](#Card-Configuration)
+   1. [Example](#Example)
+1. [Other Lovelace Options](#Other-Lovelace-Options)
+1. [Streaming](#Streaming)
+1. [Automation](#Automation)
+1. [Services](#Services)
+1. [Web Sockets](#Web-Sockets)
+1. [To Do](#To Do)
 
 ## Supported Features
 * Base station mode changes
@@ -160,7 +169,7 @@ resources:
     url: /local/aarlo-glance.js
 ```
 
-## Card configuration
+### Card Configuration
 
 | Name | Type | Default | Supported options | Description |
 |-------------|-------------|--------------|---------------------------------------------------------------------------------------|-----------------------------------------|
@@ -216,26 +225,6 @@ Clicking on the last captured clip will display thumbnail mode. Clicking on a th
 
 See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/lovelace_custom_card.html) page for further information.
 
-## Streaming
-
-The support for stream is experimental and works but with a couple of caveats.
-* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
-* the stream only stops if you use the aarlo-glance card
-
-Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
-```
-source your-env/bin/activate
-sudo apt install libavformat-dev
-sudo apt install libavdevice-dev
-pip install av==6.1.2
-```
-Set `image_click` to `play` on the aarlo glance card.
-
-For further information on getting streaming working please read these 2 posts:
-   * https://github.com/twrecked/hass-aarlo/issues/55
-   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
-   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
-
 ## Other Lovelace Options
 
 Using the conditional card you can have badges of cameras appear after activity or if they go off line. I use the following to get quick updates on an overview view.
@@ -282,6 +271,26 @@ type: vertical-stack
 When things happen it will look something like:
 
 ![Recent Activity](/images/activity.png)
+
+## Streaming
+
+The support for stream is experimental and works but with a couple of caveats.
+* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
+* the stream only stops if you use the aarlo-glance card
+
+Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
+```
+source your-env/bin/activate
+sudo apt install libavformat-dev
+sudo apt install libavdevice-dev
+pip install av==6.1.2
+```
+Set `image_click` to `play` on the aarlo glance card.
+
+For further information on getting streaming working please read these 2 posts:
+   * https://github.com/twrecked/hass-aarlo/issues/55
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
 
 ## Automations
 
