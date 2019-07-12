@@ -1,5 +1,7 @@
-
-import { LitElement, html } from 'https://unpkg.com/@polymer/lit-element@^0.5.2/lit-element.js?module';
+const LitElement = Object.getPrototypeOf(
+		customElements.get("ha-panel-lovelace")
+	);
+const html = LitElement.prototype.html;
 
 class AarloGlance extends LitElement {
 
