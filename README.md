@@ -1,22 +1,50 @@
 # hass-aarlo
 
-Asynchronous Arlo Component for Home Assistant.
+### Asynchronous Arlo Component for Home Assistant.
 
 The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#/cameras) web site - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system. Currently it only lets you set base station modes.
 
-The component supports:
-* base station mode changes
-* camera motion detection
-* camera audio detection
-* door bell motion detection
-* door bell button press
-* on the Lovelace UI it will report camera streaming state on the picture entity - ie, a clip is being recorded or somebody is view a stream on the Arlo app or if the camera is too cold to operate
-* saving of state across restarts
-* camera on/off
-* request thumbnail updates from recording or idle camera
-* direct video streaming from arlo where possible
-* siren when triggering an alarm
-* supports streaming in virtualenv installation
+## Table of Contents
+1. [Supported Features](#Supported-Features)
+1. [Notes](#Notes)
+1. [Installation](#Installation)
+   1. [Migrating from Old Layout](#Migrating-from-Old-Layout)
+   1. [Manually](#Manually)
+   1. [From Script](#From-Script)
+1. [Component Configuration](#Component-Configuration)
+   1. [Sample Configuration](#Sample-Configuration)
+   1. [Advanced Platform Parameters](#Advanced-Platform-Parameters)
+1. [Custom Lovelace Card Configuration](#Custom-Lovelace-Card-Configuration)
+   1. [Resource Configuration](#Resource-Configuration)
+   1. [Card Configuration](#Card-Configuration)
+   1. [Example](#Example)
+1. [Other Lovelace Options](#Other-Lovelace-Options)
+1. [Streaming](#Streaming)
+1. [Automations](#Automations)
+1. [Services](#Services)
+1. [Web Sockets](#Web-Sockets)
+1. [To Do](#To-Do)
+
+## Supported Features
+* Base station mode changes
+* Camera motion detection
+* Camera audio detection
+* Door bell motion detection
+* Door bell button press
+* Camera status
+  * `Idle` camera is doing nothing
+  * `Turned Off` user has turned the camera off
+  * `Recording` camera has detected something and is recording
+  * `Streaming` camera is streaming live video other login
+  * `Taking Snapshot` camers is updating the thumbnail
+  * `Recently Active` camera has seen activity within the last few minutes
+  * `Too Cold!` the camera is shutdown until it warms up
+* Saving of state across restarts
+* Camera on/off
+* Requesting thumbnail updates
+* Direct video streaming from arlo where possible
+* Siren when triggering an alarm
+* Streaming (**Note**: in virtualenv installation only)
 
 It provides a custom lovelace resource that is a specialised version of a picture-glance that allows you to see the last snapshot taken and give quick access to clip counts, the last recorded video and signal and battery levels.
 
@@ -43,7 +71,7 @@ Copy the `aarlo`directory into your `/config/custom_components` directory.
 
 Copy the `www` directory into you `/config` directory.
 
-### Script
+### From Script
 Run the install script. Run it once to make sure the operations look sane and run it a second time with the `go` paramater to do the actual work. If you update just rerun the script, it will overwrite all installed files.
 
 ```sh
@@ -55,12 +83,23 @@ install go /config
 ## Component Configuration
 For the simplest use replace all instances of the `arlo` with `aarlo` in your home-assistant configuration files. To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list.
 
-The following is an example configuration:
+### Sample Configuration
 
 ```yaml
 aarlo:
   username: !secret arlo_username
   password: !secret arlo_password
+  packet_dump: True
+  db_motion_time: 30
+  db_ding_time: 10
+  recent_time: 10
+  last_format: '%m-%d %H:%M'
+  conf_dir: /config/.aarlo
+  no_media_upload: True
+  mode_api: auto
+  refresh_devices_every: 0
+  http_connections: 5
+  http_max_size: 10
 
 camera:
   - platform: aarlo
@@ -91,57 +130,61 @@ sensor:
 ```
 The `alarm_control_panel` can be triggered and a siren, if present, will sound.
 
-The following new parameters can be specified against the aarlo platform:
+### Advanced Platform Parameters
+The following additional parameters can be specified against the aarlo platform for more granular control:
 
-```yaml
-aarlo:
-  username: !secret arlo_username
-  password: !secret arlo_password
-  packet_dump: True
-  db_motion_time: 30
-  db_ding_time: 10
-  recent_time: 10
-  last_format: '%m-%d %H:%M'
-  conf_dir: /config/.aarlo
-  no_media_upload: True
-  mode_api: auto
-  refresh_devices_every: 0
-  http_connections: 5
-  http_max_size: 10
-```
-* If `packet_dump` is True `aarlo` will store all the packets it sees in `/config/.aarlo/packets.dump` file.
-* `db_motion_time` sets how long a doorbell motion will last. Arlo doorbell only indicates motion is present not that it stops. You can adjust the stop time out here.
-* `db_ding_time` sets how long a doorbell button press will last. As with motion Arlo doorbell only tells us it's pressed not released.
-* `recent_time` is used to hold the cameras in a `recent activity` state after a recording or streaming event. The actually streaming or recording can be over in a few seconds and without this the camera will revert back to idle possible looking like nothing has happend.
-* `last_format` is a `strftime` compatible string indicating how you want the last captured time displayed
-* `config_dir` is where the component stores its state. The default is fine for hassio, docker system and virtualenv systems. You shoudn't have to change this.
-* `no_media_upload` is used to workaround Arlo issues where the camera never gets a media upload notification. Most people will not need this.
+| Field                 | Type     | Default          | Description                                                                                                                                                                                                                               |
+|-----------------------|----------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| packet_dump           | boolean  | `False`          | Causes aarlo to store all the packets it sees in `/config/.aarlo/packets.dump` file.                                                                                                                                                      |
+| db_motion_time        | integer  | 30 (s)           | Duration of doorbell motion. (Arlo doorbell only indicates motion is present not that it stops.)                                                                                                                                          |
+| db_ding_time          | integer  | 60 (s)           | Duration of doorbell press. (Arlo doorbell only indicates doorbell was pressed, not that it was released.)                                                                                                                                |
+| recent_time           | integer  | 600 (s)          | Used to hold the cameras in a  recent activity state after a recording or streaming event. (Streaming & recording can be over in a few seconds, without this the camera will revert to idle, possibly looking like nothing has happened.) |
+| last_format           | strftime | '%m-%d %H:%M'    | Display format of last captured time                                                                                                                                                                                                      |
+| conf_dir              | string   | '/config/.aarlo' | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems. You shouldn't have to change this.)                                                                                                  |
+| no_media_upload       | boolean  | False            | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.)                                                                                                                 |
+| mode_api              | string   | 'auto'           | available options: ['v1', 'v2'] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device.                                                        |
+| refresh_devices_every | integer  | 0 (hours)        | Used to force a refresh every x hours. 0 = no refreshing. Used to resolve issue with mode changes failing after several days of use.                                                                                                      |
+| http_connections      | integer  | 5                | Adjust the number http connections pools to cache.                                                                                                                                                                                        |
+| http_max_size         | integer  | 10               | Adjust the maximum number connects to save in the pool.                                                                                                                                                                                   |
+
 
 For `alarm_control_panel` you only need to specify the modes if you have custom mode names, see [here](https://www.home-assistant.io/components/arlo/#alarm) for more information. Names are case insensitive.
 
-Now restart your home assistant system.
-
-### Special Options
-
-Use these only if asked to:
-* `no_media_upload`: some people have seen the Arlo servers dropping stream connections and no image updates when recording stops, if you see this then set this variable to `True` in `aarlo` platform.
-* `mode_api`: Aarlo will pick the mode api to use based on the device type. You can override this by setting this option to `v1` or `v2` to use the old or new version exclusively. The default is `auto`, choose based on device.
-* `refresh_devices_every`: Some people are seeing mode changes failing after several days of use. If you set this value to a non zero positive integer Aarlo will refresh its device once every that many hours. The default is `0`, no refreshing.
-* `http_(connections|max_size)`: Adjust the number of allowed http connections. Set both to 0 to use the global https pool. The default is 5 connections and 10 max.
-
-## Resource Configuration
+## Custom Lovelace Card Configuration
 
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
 
-The new resource `aarlo-glance` is based on `picture-glance` but tailored for the Arlo component to simplify the configuration. To enable it add the following to the top of your UI configuration file.
+The new resource `aarlo-glance` is based on `picture-glance` but tailored for the Arlo component to simplify the configuration. 
+
+### Resource Configuration
+Add the following to the top of your UI configuration file.
 
 ```yaml
 resources:
   - type: module
     url: /local/aarlo-glance.js
 ```
-You configure a camera with the following yaml. The `show` parameters are optional but you must have atleast one.
 
+### Card Configuration
+
+| Name | Type | Default | Supported options | Description |
+|-------------|-------------|--------------|---------------------------------------------------------------------------------------|-----------------------------------------|
+| type | string | **required** | `custom:aarlo-glance` |  |
+| entity | string | **required** | camera entity_id |  |
+| name | string |  | Display Name |  |
+| show | string list | **required** | [motion, sound, snapshot, battery_level, signal_strength, captured_today, image_date] | all items are optional but you must provide at least 1 |
+| top_title | boolean | false |  | Show the title at the top of the card |
+| top_status | boolean | false |  | Show the status at the top of the card |
+| top_date | boolean | false |  | Show the date at the top of the card |
+| image_click | string |  | ['play'] | Action to perform when image is clicked. Remove attribute to play last recorded video when image is clicked. |
+| door | string | entity_id |  | Useful if the camera is pointed at a door. |
+| door_lock | string | entity_id |  |  |
+| door_bell | string | entity_id |  |  |
+| door2 | string | entity_id |  | Useful if the camera is pointed at a door. |
+| door2_lock | string | entity_id |  |  |
+| door2_bell | string | entity_id |  |  |
+
+### Example
 ```yaml
 type: 'custom:aarlo-glance'
 entity: camera.aarlo_front_door_camera
@@ -170,43 +213,13 @@ You don't need to reboot to see the GUI changes, a reload is sufficient. And if 
 
 ![Aarlo Glance](/images/aarlo-glance-02.png)
 
-Reading from left to right you have the camera name, motion detection indicator, captured clip indicator, battery levels, signal level and current state. If you click the image the last captured clip will play, if you click the last captured icon you will be show the video library thumbnails - see below. Click the camera (not shown) will take a snapshot and replace the current thumbnail.
-The states are:
-* `Idle` camera is doing nothing
-* `Turned Off` user has turned the camera off
-* `Recording` camera has detected something and is recording
-* `Streaming` camera is streaming live video other login
-* `Taking Snapshot` camers is updating the thumbnail
-* `Recently Active` camera has seen activity within the last few minutes
-* `Too Cold!` the camera is shutdown until it warms up
-
-The `door` options are useful if the camera is pointed at a door. And `top_title` and `top_status` move the title and status to the top to clear some space at the bottom for small displays.
+Reading from left to right you have the camera name, motion detection indicator, captured clip indicator, battery levels, signal level and current state. If you click the image the last captured clip will play, if you click the last captured icon you will be show the video library thumbnails - see below. Clicking the camera icon (not shown) will take a snapshot and replace the current thumbnail. (See supported features for list of camera statuses)
 
 Clicking on the last captured clip will display thumbnail mode. Clicking on a thumbnail starts the appropiate video.  You can currently only see the last 99 videos. If you move your mouse over a thumbnail it will show you time of capture and, if you have a Smart subscription, a reason for the capture. **>** takes you to the next page, **<** to the previous and **X** closes the window.
 
 ![Aarlo Thumbnails](/images/thumbnails.png)
 
 See the [Lovelace Custom Card](https://developers.home-assistant.io/docs/en/lovelace_custom_card.html) page for further information.
-
-## Streaming
-
-The support for stream is experimental and works but with a couple of caveats.
-* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
-* the stream only stops if you use the aarlo-glance card
-
-Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
-```
-source your-env/bin/activate
-sudo apt install libavformat-dev
-sudo apt install libavdevice-dev
-pip install av==6.1.2
-```
-Set `image_click` to `play` on the aarlo glance card.
-
-For further information on getting streaming working please read these 2 posts:
-   * https://github.com/twrecked/hass-aarlo/issues/55
-   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
-   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
 
 ## Other Lovelace Options
 
@@ -255,6 +268,26 @@ When things happen it will look something like:
 
 ![Recent Activity](/images/activity.png)
 
+## Streaming
+
+The support for stream is experimental and works but with a couple of caveats.
+* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
+* the stream only stops if you use the aarlo-glance card
+
+Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
+```
+source your-env/bin/activate
+sudo apt install libavformat-dev
+sudo apt install libavdevice-dev
+pip install av==6.1.2
+```
+Set `image_click` to `play` on the aarlo glance card.
+
+For further information on getting streaming working please read these 2 posts:
+   * https://github.com/twrecked/hass-aarlo/issues/55
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
+
 ## Automations
 
 The following example automation will update the image 3 seconds after a recording event happens.
@@ -281,76 +314,27 @@ The following example automation will update the image 3 seconds after a recordi
 ```
 
 ## Services
-The component provides the following extra services:
 
-- `camera.aarlo_request_snapshot(entity_id)`
-  * `entity_id`: camera to get snapshot from
+The component provides the following services:
 
-  This requests a snapshot be taken. Camera will move from `taking_snapshot` state when finished.
+| Service | Parameters | Description |
+|---------|------------|-------------|
+| camera.aarlo_request_snapshot | <ul><li>`entity_id` - camera to get snapshot from</li><ul> | This requests a snapshot be taken. Camera will move from  taking_snapshot state when finished. |
+| camera.aarlo_request_snapshot_to_file | <ul><li>`entity_id` - camera to get snapshot from</li><li>`filename` - where to save snapshot</li><ul> | This requests a snapshot be taken and written to the passed file. Camera will move from  taking_snapshot state when finished. |
+| camera.aarlo_stop_activity | <ul><li>`entity_id` -  camera to get snapshot from</li><ul> | This moves the camera into the idle state. Can be used to stop streaming. |
+| alarm_control_panel.aarlo_set_mode | <ul><li>`entity_id` -  camera to get snapshot from</li><li>`mode` - custom mode to change to</li><ul> | Set the alarm to a custom mode. |
 
-- `camera.aarlo_request_snapshot_to_file(entity_id,filename)`
-  * `entity_id`: camera to get snapshot from
-  * `filename`: where to save snapshot
-
-  This requests a snapshot be taken and written to the passed file. Camera will move from `taking_snapshot` state when finished.
-
-- `camera.aarlo_stop_activity(entity_id)`
-  * `entity_id`: camera to get snapshot from
-
-  This moves the camera into the idle state. Can be used to stop streaming.
-
-- `alarm_control_panel.aarlo_set_mode(entity_id)`
-  * `entity_id`: base station
-  * `mode`: custom mode to change to
-
-  Set the alarm to a custom mode.
-
-## Web Socket
+## Web Sockets
 
 The component provides the following extra web sockets:
 
-- `aarlo_video_url(entity_id)`
-  * `entity_id`: camera to get video details from
-
-  Request details of the last recorded video. Returns:
-  * `url`: video url
-  * `url_type`: video type
-  * `thumbnail`: thumbnail image url
-  * `thumbnail_type`: thumbnail image type
-
-- `aarlo_library(at-most)`
-  * `at-most`: return at most this number of entries
-
-  Request up the details of `at-most` recently recorded videos. Returns an array of:
-  * `created_at`: unix time stamp
-  * `created_at_pretty`: pretty version of the create time
-  * `url`: URL of the video
-  * `url_type`: video type
-  * `thumbnail`: URL of the thumbnail
-  * `thumbnail_type`: thumbnail type
-  * `object`: object in the video that triggered the capture
-  * `object_region`: region in the video that triggered the capture
-
-- `aarlo_stream_url(entity_id,filename)`
-  * `entity_id`: camera to get snapshot from
-  * `filename`: where to save snapshot
-
-  Ask the camera to start streaming. Returns:
-  * `url`: URL of the video stream
-
-- `aarlo_snapshot_image(entity_id)`
-  * `entity_id`: camera to get snapshot from
-
-  Request a snapshot. Returns the image.
-  * `content_type`: the image type
-  * `content`: the image
-
-- `aarlo_stop_activity(entity_id)`
-  * `entity_id`: camera to stop activity on
-
-  Stop all the activity in the camera. Returns:
-  * `stopped`: True if stop request went in
-
+| Service | Parameters | Description |
+|---------|------------|-------------|
+| aarlo_video_url | <ul><li>`entity_id` - camera to get details from</li><ul> | Request details of the last recorded video. Returns: <ul><li>`url` - video url</li><li>`url_type` - video type</li><li>`thumbnail` - thumbnail image url</li><li>`thumbnail_type` - thumbnail image type</li></ul> |
+| aarlo_library | <ul><li>`at-most` - return at most this number of entries</li><ul> | Request up the details of `at-most` recently recorded videos. Returns an array of:<ul><li>`created_at`: unix time stamp</li><li>`created_at_pretty`: pretty version of the create time</li><li>`url`: URL of the video</li><li>`url_type`: video type</li><li>`thumbnail`: URL of the thumbnail</li><li>`thumbnail_type`: thumbnail type</li><li>`object`: object in the video that triggered the capture</li><li>`object_region`: region in the video that triggered the capture</li></ul> |
+| aarlo_stream_url | <ul><li>`entity_id` -  camera to get snapshot from</li><li>`filename` - where to save snapshot | Ask the camera to start streaming. Returns:<ul><li>`url` - URL of the video stream</li></ul> |
+| aarlo_snapshot_image | <ul><li>`entity_id` -  camera to get snapshot from</li></ul> | Request a snapshot. Returns image details: <ul><li>`content_type`: the image type</li><li>`content`: the image</li></ul> |
+| aarlo_stop_activity | <ul><li>`entity_id` - camera to stop activity on</li></ul> | Stop all the activity in the camera. Returns: <ul><li>`stopped`: True if stop request went in</li></ul> |
 
 ## To Do
 
@@ -358,5 +342,3 @@ The component provides the following extra web sockets:
 * enhance live streaming
 * use asyncio loop internally
 * setup pypi
-
-
