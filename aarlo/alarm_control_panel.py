@@ -137,6 +137,7 @@ class ArloBaseStation(AlarmControlPanel):
         return self._state
 
     def alarm_disarm(self, code=None):
+        _LOGGER.debug( "{0} disarming".format( base.unique_id ) )
         if self._trigger_till is not None:
             self.alarm_clear()
         self._base.mode = DISARMED
