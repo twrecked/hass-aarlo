@@ -47,12 +47,24 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_TRIGGER_TIME, default=DEFAULT_TRIGGER_TIME): vol.All(cv.time_period, cv.positive_timedelta),
 })
 
-SERVICE_MODE = 'aarlo_set_mode'
-ATTR_MODE    = 'mode'
+SERVICE_MODE  = 'aarlo_set_mode'
+SIREN_ON      = 'aarlo_siren_on'
+SIREN_OFF     = 'aarlo_siren_off'
+ATTR_MODE     = 'mode'
+ATTR_VOLUME   = 'volume'
+ATTR_DURATION = 'duration'
 
 SERVICE_MODE_SCHEMA = vol.Schema({
     vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
     vol.Required(ATTR_MODE): cv.string,
+})
+SIREN_ON_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+    vol.Required(ATTR_DURATION): cv.positive_int,
+    vol.Required(ATTR_VOLUME): cv.positive_int,
+})
+SIREN_OFF_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
 })
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -72,6 +84,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     component.async_register_entity_service(
         SERVICE_MODE,SERVICE_MODE_SCHEMA,
         aarlo_mode_service_handler
+    )
+    component.async_register_entity_service(
+        SIREN_ON,SIREN_ON_SCHEMA,
+        aarlo_siren_on_service_handler
+    )
+    component.async_register_entity_service(
+        SIREN_OFF,SIREN_OFF_SCHEMA,
+        aarlo_siren_off_service_handler
     )
 
 class ArloBaseStation(AlarmControlPanel):
@@ -113,11 +133,12 @@ class ArloBaseStation(AlarmControlPanel):
         if self._trigger_till is not None:
             if self._trigger_till > time.monotonic():
                 return STATE_ALARM_TRIGGERED
-            self._trigger_till = None
-            self._base.siren_off()
+            self.alarm_clear()
         return self._state
 
     def alarm_disarm(self, code=None):
+        if self._trigger_till is not None:
+            self.alarm_clear()
         self._base.mode = DISARMED
 
     def alarm_arm_away(self, code=None):
@@ -137,6 +158,10 @@ class ArloBaseStation(AlarmControlPanel):
                 self._base.siren_on( duration=self._trigger_time.total_seconds(),volume=self._alarm_volume )
             self.async_schedule_update_ha_state()
             track_point_in_time( self.hass,self.async_update_ha_state, dt_util.utcnow() + self._trigger_time )
+
+    def alarm_clear(self):
+        self._trigger_till = None
+        self._base.siren_off()
 
     @property
     def unique_id(self):
@@ -175,4 +200,14 @@ async def aarlo_mode_service_handler( base,service ):
     mode = service.data[ATTR_MODE]
     _LOGGER.debug( "{0} mode to {1}".format( base.unique_id,mode ) )
     base._base.mode = mode
+
+async def aarlo_siren_on_service_handler( base,service ):
+    volume = service.data[ATTR_VOLUME]
+    duration = service.data[ATTR_DURATION]
+    _LOGGER.debug( "{0} siren on {1}/{2}".format( base.unique_id,volume,duration ) )
+    base._base.siren_on( duration=duration,volume=volume )
+
+async def aarlo_siren_off_service_handler( base,service ):
+    _LOGGER.debug( "{0} siren off".format( base.unique_id ) )
+    base._base.siren_off( )
 
