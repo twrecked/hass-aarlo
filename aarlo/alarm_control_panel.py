@@ -137,7 +137,7 @@ class ArloBaseStation(AlarmControlPanel):
         return self._state
 
     def alarm_disarm(self, code=None):
-        _LOGGER.debug( "{0} disarming".format( base.unique_id ) )
+        _LOGGER.debug( "{0} disarming".format( self._name ) )
         if self._trigger_till is not None:
             self.alarm_clear()
         self._base.mode = DISARMED
@@ -200,7 +200,10 @@ class ArloBaseStation(AlarmControlPanel):
 async def aarlo_mode_service_handler( base,service ):
     mode = service.data[ATTR_MODE]
     _LOGGER.debug( "{0} mode to {1}".format( base.unique_id,mode ) )
-    base._base.mode = mode
+    if mode == 'disarmed':
+        base.alarm_disarm()
+    else:
+        base._base.mode = mode
 
 async def aarlo_siren_on_service_handler( base,service ):
     volume = service.data[ATTR_VOLUME]
