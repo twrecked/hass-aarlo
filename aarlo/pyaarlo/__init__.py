@@ -112,7 +112,8 @@ class PyArlo(object):
 
         # queue up initial config retrieval
         self.debug('getting initial settings' )
-        self._bg.run_in( self._refresh_cameras,2,full=True )
+        self._bg.run_in( self._refresh_camera_thumbnails,2 )
+        self._bg.run_in( self._refresh_camera_media,2 )
         self._bg.run_in( self._initial_refresh,5 )
         self._bg.run_in( self._ml.load,10 )
 
@@ -137,11 +138,12 @@ class PyArlo(object):
                     if value is not None:
                         self._st.set( [device_id,key],value )
 
-    def _refresh_cameras( self,full=False ):
+    def _refresh_camera_thumbnails( self,full=False ):
         for camera in self._cameras:
-            if full is True:
-                self.debug('full camera refresh')
-                camera.update_last_image()
+            camera.update_last_image()
+
+    def _refresh_camera_media( self,full=False ):
+        for camera in self._cameras:
             camera.update_media()
 
     def _refresh_ambient_sensors( self ):
@@ -172,7 +174,7 @@ class PyArlo(object):
             self.debug( 'day changed to {}!'.format( str(today) ) )
             self._today = today
             self._bg.run( self._ml.load )
-            self._bg.run( self._refresh_cameras,full=False )
+            self._bg.run( self._refresh_camera_media )
 
     def _slow_refresh( self ):
         self.debug( 'slow refresh' )
