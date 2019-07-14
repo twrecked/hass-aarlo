@@ -36,7 +36,6 @@ CONF_NIGHT_MODE_NAME = 'night_mode_name'
 CONF_ALARM_VOLUME    = 'alarm_volume'
 
 DEFAULT_TRIGGER_TIME = timedelta(seconds=60)
-DISARMED = 'disarmed'
 ALARM_VOLUME = '8'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -121,10 +120,10 @@ class ArloBaseStation(AlarmControlPanel):
         @callback
         def update_state( device,attr,value ):
             _LOGGER.debug( 'callback:' + attr + ':' + str(value))
-            self._state = self._get_state_from_mode( self._base.attribute( 'activeMode' ) )
+            self._state = self._get_state_from_ha( self._base.attribute( 'activeMode' ) )
             self.async_schedule_update_ha_state()
 
-        self._state = self._get_state_from_mode( self._base.attribute( 'activeMode',ARMED ) )
+        self._state = self._get_state_from_ha( self._base.attribute( 'activeMode',ARMED ) )
         self._base.add_attr_callback( 'activeMode',update_state )
 
     @property
@@ -137,19 +136,16 @@ class ArloBaseStation(AlarmControlPanel):
         return self._state
 
     def alarm_disarm(self, code=None):
-        _LOGGER.debug( "{0} disarming".format( self._name ) )
-        if self._trigger_till is not None:
-            self.alarm_clear()
-        self._base.mode = DISARMED
+        self.set_mode_in_ha( DISARMED )
 
     def alarm_arm_away(self, code=None):
-        self._base.mode = self._away_mode_name
+        self.set_mode_in_ha( self._away_mode_name )
 
     def alarm_arm_home(self, code=None):
-        self._base.mode = self._home_mode_name
+        self.set_mode_in_ha( self._home_mode_name )
 
     def alarm_arm_night(self, code=None):
-        self._base.mode = self._night_mode_name
+        self.set_mode_in_ha( self._night_mode_name )
 
     def alarm_trigger(self, code=None):
         if self._trigger_till is None:
@@ -182,7 +178,7 @@ class ArloBaseStation(AlarmControlPanel):
 
         return attrs
 
-    def _get_state_from_mode(self, mode):
+    def _get_state_from_ha(self, mode):
         """Convert Arlo mode to Home Assistant state."""
         lmode = mode.lower()
         if lmode == ARMED:
@@ -197,13 +193,20 @@ class ArloBaseStation(AlarmControlPanel):
             return STATE_ALARM_ARMED_NIGHT
         return mode
 
+    def set_mode_in_ha( self,mode ):
+        """ convert Home Assistant state to Arlo mode."""
+        lmode = mode.lower()
+        if lmode == DISARMED:
+            if self._trigger_till is not None:
+                _LOGGER.debug( "{0} disarming/silencing".format( self._name ) )
+                self.alarm_clear()
+        _LOGGER.debug( "{0} set mode to {1}".format( self._name,lmode ) )
+        self._base.mode = lmode
+
+
 async def aarlo_mode_service_handler( base,service ):
     mode = service.data[ATTR_MODE]
-    _LOGGER.debug( "{0} mode to {1}".format( base.unique_id,mode ) )
-    if mode == 'disarmed':
-        base.alarm_disarm()
-    else:
-        base._base.mode = mode
+    base.set_mode_in_ha( mode )
 
 async def aarlo_siren_on_service_handler( base,service ):
     volume = service.data[ATTR_VOLUME]
