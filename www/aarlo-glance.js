@@ -374,6 +374,7 @@ class AarloGlance extends LitElement {
                     poster="${this._stream_poster}"
                     autoplay playsinline controls
                     onended="${(e) => { this.stopStream(this._cameraId); }}"
+                    on-tap="${(e) => { this.stopStream(this._cameraId); }}"
                     @click="${(e) => { this.stopStream(this._cameraId); }}">
                         Your browser does not support the video tag.
 				</video>
@@ -382,6 +383,7 @@ class AarloGlance extends LitElement {
                     poster="${this._video_poster}"
                     autoplay playsinline controls
                     onended="${(e) => { this.stopVideo(this._cameraId); }}"
+                    on-tap="${(e) => { this.stopStream(this._cameraId); }}"
                     @click="${(e) => { this.stopVideo(this._cameraId); }}">
                         Your browser does not support the video tag.
 				</video>
