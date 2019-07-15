@@ -55,4 +55,6 @@ class ArloDoorBell(ArloChildDevice):
     def has_capability( self,cap ):
         if cap.startswith( 'button' ):
             return True
+        if cap in ( 'battery_level','signal_strength' ):
+            return True
         return super().has_capability( cap )
