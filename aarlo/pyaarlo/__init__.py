@@ -110,7 +110,7 @@ class PyArlo(object):
         # always ping bases first!
         self._ping_bases()
 
-        # Queue up initial config and retrieval.
+        # Queue up initial config and state retrieval.
         self.debug('getting initial settings' )
         self._bg.run_in( self._refresh_camera_thumbnails,2 )
         self._bg.run_in( self._refresh_camera_media,2 )
