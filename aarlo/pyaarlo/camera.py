@@ -324,10 +324,12 @@ class ArloCamera(ArloChildDevice):
         self._min_days_vdo_cache = value
 
     def update_media( self ):
+        """ Get latest list of recordings from the backend server. """
         self._arlo.debug( 'queing media update' )
         self._arlo._bg.run_low( self._update_media )
 
     def update_last_image( self ):
+        """ Get last thumbnail from the backend server. """
         self._arlo.debug( 'queing image update' )
         self._arlo._bg.run_low( self._update_last_image )
 

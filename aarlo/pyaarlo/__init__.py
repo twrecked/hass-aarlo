@@ -110,7 +110,7 @@ class PyArlo(object):
         # always ping bases first!
         self._ping_bases()
 
-        # queue up initial config retrieval
+        # Queue up initial config and retrieval.
         self.debug('getting initial settings' )
         self._bg.run_in( self._refresh_camera_thumbnails,2 )
         self._bg.run_in( self._refresh_camera_media,2 )
@@ -138,11 +138,13 @@ class PyArlo(object):
                     if value is not None:
                         self._st.set( [device_id,key],value )
 
-    def _refresh_camera_thumbnails( self,full=False ):
+    def _refresh_camera_thumbnails( self ):
+        """ Request latest camera thumbnails, called at start up to make. """
         for camera in self._cameras:
             camera.update_last_image()
 
-    def _refresh_camera_media( self,full=False ):
+    def _refresh_camera_media( self ):
+        """ Rebuild cameras media library, called at start up or when day changes. """
         for camera in self._cameras:
             camera.update_media()
 
