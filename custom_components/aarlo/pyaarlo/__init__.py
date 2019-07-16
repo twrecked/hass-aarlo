@@ -41,27 +41,27 @@ class PyArlo(object):
 
         # base config
         self._name = name
-        self._mode_api = mode_api
-        self._user_agent = user_agent
+        self.mode_api = mode_api
+        self.user_agent = user_agent
 
         # refresh device config
         self._refresh_devices_every = refresh_devices_every * 60 * 60
 
         # custom connection pool config
-        self._http_connections = http_connections
-        self._http_max_size = http_max_size
+        self.http_connections = http_connections
+        self.http_max_size = http_max_size
 
         # media config
-        self._recent_time = recent_time
-        self._last_format = last_format
-        self._no_media_upload = no_media_upload
+        self.recent_time = recent_time
+        self.last_format = last_format
+        self.no_media_upload = no_media_upload
 
         # create components
-        self._bg = ArloBackground(self)
-        self._st = ArloStorage(self, name=name, storage_dir=storage_dir)
-        self._be = ArloBackEnd(self, username, password, dump=dump, storage_dir=storage_dir,
-                               request_timeout=request_timeout, stream_timeout=stream_timeout)
-        self._ml = ArloMediaLibrary(self, max_days=max_days)
+        self.bg = ArloBackground(self)
+        self.st = ArloStorage(self, name=name, storage_dir=storage_dir)
+        self.be = ArloBackEnd(self, username, password, dump=dump, storage_dir=storage_dir,
+                              request_timeout=request_timeout, stream_timeout=stream_timeout)
+        self.ml = ArloMediaLibrary(self, _max_days=max_days)
 
         self._lock = threading.Lock()
         self._bases = []
@@ -98,30 +98,30 @@ class PyArlo(object):
                                                     motion_time=db_motion_time, ding_time=db_ding_time))
 
         # save out unchanging stats!
-        self._st.set(['ARLO', TOTAL_CAMERAS_KEY], len(self._cameras))
-        self._st.set(['ARLO', TOTAL_BELLS_KEY], len(self._doorbells))
+        self.st.set(['ARLO', TOTAL_CAMERAS_KEY], len(self._cameras))
+        self.st.set(['ARLO', TOTAL_BELLS_KEY], len(self._doorbells))
 
         # always ping bases first!
         self._ping_bases()
 
         # Queue up initial config and state retrieval.
         self.debug('getting initial settings')
-        self._bg.run_in(self._refresh_camera_thumbnails, 2)
-        self._bg.run_in(self._refresh_camera_media, 2)
-        self._bg.run_in(self._initial_refresh, 5)
-        self._bg.run_in(self._ml.load, 10)
+        self.bg.run_in(self._refresh_camera_thumbnails, 2)
+        self.bg.run_in(self._refresh_camera_media, 2)
+        self.bg.run_in(self._initial_refresh, 5)
+        self.bg.run_in(self.ml.load, 10)
 
         # register house keeping cron jobs
         self.debug('registering cron jobs')
-        self._bg.run_every(self._fast_refresh, FAST_REFRESH_INTERVAL)
-        self._bg.run_every(self._slow_refresh, SLOW_REFRESH_INTERVAL)
+        self.bg.run_every(self._fast_refresh, FAST_REFRESH_INTERVAL)
+        self.bg.run_every(self._slow_refresh, SLOW_REFRESH_INTERVAL)
 
     def __repr__(self):
         # Representation string of object.
         return "<{0}: {1}>".format(self.__class__.__name__, self._name)
 
     def _refresh_devices(self):
-        self._devices = self._be.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
+        self._devices = self.be.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
 
     def _parse_devices(self):
         for device in self._devices:
@@ -130,7 +130,7 @@ class PyArlo(object):
                 for key in DEVICE_KEYS:
                     value = device.get(key, None)
                     if value is not None:
-                        self._st.set([device_id, key], value)
+                        self.st.set([device_id, key], value)
 
     def _refresh_camera_thumbnails(self):
         """ Request latest camera thumbnails, called at start up to make. """
@@ -148,19 +148,19 @@ class PyArlo(object):
 
     def _ping_bases(self):
         for base in self._bases:
-            self._bg.run(self._be.async_ping, base=base)
+            self.bg.run(self.be.async_ping, base=base)
 
     def _refresh_bases(self, initial):
         for base in self._bases:
             base.update_modes()
             if initial:
                 base.update_mode()
-            self._be.notify(base=base, body={"action": "get", "resource": "cameras", "publishResponse": False})
-            self._be.notify(base=base, body={"action": "get", "resource": "doorbells", "publishResponse": False})
+            self.be.notify(base=base, body={"action": "get", "resource": "cameras", "publishResponse": False})
+            self.be.notify(base=base, body={"action": "get", "resource": "doorbells", "publishResponse": False})
 
     def _fast_refresh(self):
         self.debug('fast refresh')
-        self._bg.run(self._st.save)
+        self.bg.run(self.st.save)
         self._ping_bases()
 
         # if day changes then reload recording library and camera counts
@@ -169,13 +169,13 @@ class PyArlo(object):
         if self._today != today:
             self.debug('day changed to {}!'.format(str(today)))
             self._today = today
-            self._bg.run(self._ml.load)
-            self._bg.run(self._refresh_camera_media)
+            self.bg.run(self.ml.load)
+            self.bg.run(self._refresh_camera_media)
 
     def _slow_refresh(self):
         self.debug('slow refresh')
-        self._bg.run(self._refresh_bases, initial=False)
-        self._bg.run(self._refresh_ambient_sensors)
+        self.bg.run(self._refresh_bases, initial=False)
+        self.bg.run(self._refresh_ambient_sensors)
 
         # do we need to reload the devices?
         if self._refresh_devices_every != 0:
@@ -184,18 +184,18 @@ class PyArlo(object):
             if now > self._refresh_devices_at:
                 self.debug('device reload needed')
                 self._refresh_devices_at = now + self._refresh_devices_every
-                self._bg.run(self._refresh_devices)
+                self.bg.run(self._refresh_devices)
         else:
             self.debug('no device reload')
 
     def _initial_refresh(self):
         self.debug('initial refresh')
-        self._bg.run(self._refresh_bases, initial=True)
-        self._bg.run(self._refresh_ambient_sensors)
+        self.bg.run(self._refresh_bases, initial=True)
+        self.bg.run(self._refresh_ambient_sensors)
 
     def stop(self):
-        self._st.save()
-        self._be.logout()
+        self.st.save()
+        self.be.logout()
 
     @property
     def name(self):
@@ -203,7 +203,7 @@ class PyArlo(object):
 
     @property
     def is_connected(self):
-        return self._be.is_connected()
+        return self.be.is_connected()
 
     @property
     def cameras(self):
@@ -220,10 +220,6 @@ class PyArlo(object):
     @property
     def blank_image(self):
         return self._blank_image
-
-    @property
-    def recent_time(self):
-        return self._recent_time
 
     def lookup_camera_by_id(self, device_id):
         camera = list(filter(lambda cam: cam.device_id == device_id, self.cameras))
@@ -250,7 +246,7 @@ class PyArlo(object):
         return None
 
     def attribute(self, attr):
-        return self._st.get(['ARLO', attr], None)
+        return self.st.get(['ARLO', attr], None)
 
     def add_attr_callback(self, attr, cb):
         pass

@@ -90,7 +90,7 @@ class ArloBackEnd(object):
             self._arlo.warning('error in response=' + str(body))
         return None
 
-    def _gen_trans_id(self, trans_type=TRANSID_PREFIX):
+    def gen_trans_id(self, trans_type=TRANSID_PREFIX):
         return trans_type + '!' + str(uuid.uuid4())
 
     def _ev_dispatcher(self, response):
@@ -248,7 +248,7 @@ class ArloBackEnd(object):
     def _notify(self, base, body):
         body['to'] = base.device_id
         body['from'] = self._web_id
-        body['transId'] = self._gen_trans_id()
+        body['transId'] = self.gen_trans_id()
         self.post(NOTIFY_URL + base.device_id, body, headers={"xcloudId": base.xcloud_id})
         return body.get('transId')
 
@@ -292,13 +292,13 @@ class ArloBackEnd(object):
             self._username = username
             self._password = password
             self._session = requests.Session()
-            if self._arlo._http_connections != 0 and self._arlo._http_max_size != 0:
+            if self._arlo.http_connections != 0 and self._arlo.http_max_size != 0:
                 self._arlo.debug(
-                    'custom connections {}:{}'.format(self._arlo._http_connections, self._arlo._http_max_size))
+                    'custom connections {}:{}'.format(self._arlo.http_connections, self._arlo.http_max_size))
                 self._session.mount('https://',
                                     requests.adapters.HTTPAdapter(
-                                        pool_connections=self._arlo._http_connections,
-                                        pool_maxsize=self._arlo._http_max_size))
+                                        pool_connections=self._arlo.http_connections,
+                                        pool_maxsize=self._arlo.http_max_size))
             body = self.post(LOGIN_URL, {'email': self._username, 'password': self._password})
             if body is None:
                 self._arlo.debug('login failed')
@@ -321,7 +321,7 @@ class ArloBackEnd(object):
                 'Referer': 'https://arlo.netgear.com/',
                 'Authorization': self._token
             }
-            if self._arlo._user_agent == 'apple':
+            if self._arlo.user_agent == 'apple':
                 headers['User-Agent'] = ('Mozilla/5.0 (iPhone; CPU iPhone OS 11_1_2 like Mac OS X) '
                                          'AppleWebKit/604.3.5 (KHTML, like Gecko) Mobile/15B202 NETGEAR/v1 '
                                          '(iOS Vuezone)')

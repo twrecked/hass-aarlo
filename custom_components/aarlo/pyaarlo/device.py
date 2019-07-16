@@ -21,7 +21,7 @@ class ArloDevice(object):
         self._unique_id = attrs.get('uniqueId', None)
 
         # add a listener
-        self._arlo._be.add_listener(self, self._event_handler)
+        self._arlo.be.add_listener(self, self._event_handler)
 
     def __repr__(self):
         # Representation string of object.
@@ -41,12 +41,12 @@ class ArloDevice(object):
 
     def _save_and_do_callbacks(self, attr, value):
         key = [self.device_id, attr]
-        # old_value = self._arlo._st.get(key, None)
+        # old_value = self._arlo.st.get(key, None)
         # enable this to only callback on updates
         # if not old_value or old_value != value:
         # output = 'updating ' + attr + ' for ' + self.device_id + ' to ' + str(value)
         # self._arlo.debug( output[:90] )
-        self._arlo._st.set(key, value)
+        self._arlo.st.set(key, value)
         self._do_callbacks(attr, value)
 
     @property
@@ -91,7 +91,7 @@ class ArloDevice(object):
 
     @property
     def xcloud_id(self):
-        return self._arlo._st.get([self._device_id, XCLOUD_ID_KEY], 'UNKNOWN')
+        return self._arlo.st.get([self._device_id, XCLOUD_ID_KEY], 'UNKNOWN')
 
     @property
     def web_id(self):
@@ -102,7 +102,7 @@ class ArloDevice(object):
         return self._unique_id
 
     def attribute(self, attr, default=None):
-        value = self._arlo._st.get([self._device_id, attr], None)
+        value = self._arlo.st.get([self._device_id, attr], None)
         if value is None:
             value = self._attrs.get(attr, None)
         if value is None:
@@ -176,11 +176,11 @@ class ArloChildDevice(ArloDevice):
 
     @property
     def battery_level(self):
-        return self._arlo._st.get([self._device_id, BATTERY_KEY], 100)
+        return self._arlo.st.get([self._device_id, BATTERY_KEY], 100)
 
     @property
     def signal_strength(self):
-        return self._arlo._st.get([self._device_id, SIGNAL_STR_KEY], 3)
+        return self._arlo.st.get([self._device_id, SIGNAL_STR_KEY], 3)
 
     def has_capability(self, cap):
         if cap in 'motionDetected':
@@ -189,17 +189,17 @@ class ArloChildDevice(ArloDevice):
 
     @property
     def too_cold(self):
-        return self._arlo._st.get([self._device_id, CONNECTION_KEY], 'unknown') == 'thermalShutdownCold'
+        return self._arlo.st.get([self._device_id, CONNECTION_KEY], 'unknown') == 'thermalShutdownCold'
 
     @property
     def is_on(self):
-        return not self._arlo._st.get([self._device_id, PRIVACY_KEY], False)
+        return not self._arlo.st.get([self._device_id, PRIVACY_KEY], False)
 
     def turn_on(self):
-        self._arlo._bg.run(self._arlo._be.async_on_off, base=self.base_station, device=self, privacy_on=False)
+        self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=False)
 
     def turn_off(self):
-        self._arlo._bg.run(self._arlo._be.async_on_off, base=self.base_station, device=self, privacy_on=True)
+        self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=True)
 
     @property
     def state(self):

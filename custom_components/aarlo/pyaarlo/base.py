@@ -12,13 +12,13 @@ class ArloBase(ArloDevice):
         self._refresh_rate = 15
 
     def _id_to_name(self, mode_id):
-        return self._arlo._st.get([self.device_id, MODE_ID_TO_NAME_KEY, mode_id], None)
+        return self._arlo.st.get([self.device_id, MODE_ID_TO_NAME_KEY, mode_id], None)
 
     def _id_is_schedule(self, mode_id):
-        return self._arlo._st.get([self.device_id, MODE_IS_SCHEDULE_KEY, mode_id], False)
+        return self._arlo.st.get([self.device_id, MODE_IS_SCHEDULE_KEY, mode_id], False)
 
     def _name_to_id(self, mode_name):
-        return self._arlo._st.get([self.device_id, MODE_NAME_TO_ID_KEY, mode_name.lower()], None)
+        return self._arlo.st.get([self.device_id, MODE_NAME_TO_ID_KEY, mode_name.lower()], None)
 
     def _parse_modes(self, modes):
         for mode in modes:
@@ -30,9 +30,9 @@ class ArloBase(ArloDevice):
                     mode_name = mode_id
             if mode_id and mode_name != '':
                 self._arlo.debug(mode_id + '<=M=>' + mode_name)
-                self._arlo._st.set([self.device_id, MODE_ID_TO_NAME_KEY, mode_id], mode_name)
-                self._arlo._st.set([self.device_id, MODE_NAME_TO_ID_KEY, mode_name.lower()], mode_id)
-                self._arlo._st.set([self.device_id, MODE_IS_SCHEDULE_KEY, mode_name.lower()], False)
+                self._arlo.st.set([self.device_id, MODE_ID_TO_NAME_KEY, mode_id], mode_name)
+                self._arlo.st.set([self.device_id, MODE_NAME_TO_ID_KEY, mode_name.lower()], mode_id)
+                self._arlo.st.set([self.device_id, MODE_IS_SCHEDULE_KEY, mode_name.lower()], False)
 
     def _parse_schedules(self, schedules):
         for schedule in schedules:
@@ -42,9 +42,9 @@ class ArloBase(ArloDevice):
                 schedule_name = schedule_id
             if schedule_id and schedule_name != '':
                 self._arlo.debug(schedule_id + '<=S=>' + schedule_name)
-                self._arlo._st.set([self.device_id, MODE_ID_TO_NAME_KEY, schedule_id], schedule_name)
-                self._arlo._st.set([self.device_id, MODE_NAME_TO_ID_KEY, schedule_name.lower()], schedule_id)
-                self._arlo._st.set([self.device_id, MODE_IS_SCHEDULE_KEY, schedule_name.lower()], True)
+                self._arlo.st.set([self.device_id, MODE_ID_TO_NAME_KEY, schedule_id], schedule_name)
+                self._arlo.st.set([self.device_id, MODE_NAME_TO_ID_KEY, schedule_name.lower()], schedule_id)
+                self._arlo.st.set([self.device_id, MODE_IS_SCHEDULE_KEY, schedule_name.lower()], True)
 
     def _event_handler(self, resource, event):
         self._arlo.debug(self.name + ' BASE got ' + resource)
@@ -84,12 +84,12 @@ class ArloBase(ArloDevice):
 
     @property
     def _v1_modes(self):
-        if self._arlo._mode_api.lower() == 'v1':
+        if self._arlo.mode_api.lower() == 'v1':
             self._arlo.debug('forced v1 api')
-            return True;
-        if self._arlo._mode_api.lower() == 'v2':
+            return True
+        if self._arlo.mode_api.lower() == 'v2':
             self._arlo.debug('forced v2 api')
-            return False;
+            return False
         if self.model_id == 'ABC1000' or self.device_type == 'arloq' or self.device_type == 'arloqs':
             self._arlo.debug('deduced v1 api')
             return True
@@ -104,7 +104,7 @@ class ArloBase(ArloDevice):
     @property
     def available_modes_with_ids(self):
         modes = {}
-        for key, mode_id in self._arlo._st.get_matching([self._device_id, MODE_NAME_TO_ID_KEY, '*']):
+        for key, mode_id in self._arlo.st.get_matching([self._device_id, MODE_NAME_TO_ID_KEY, '*']):
             modes[key.split('/')[-1]] = mode_id
         if not modes:
             modes = DEFAULT_MODES
@@ -112,7 +112,7 @@ class ArloBase(ArloDevice):
 
     @property
     def mode(self):
-        return self._arlo._st.get([self.device_id, MODE_KEY], 'unknown')
+        return self._arlo.st.get([self.device_id, MODE_KEY], 'unknown')
 
     @mode.setter
     def mode(self, mode_name):
@@ -132,23 +132,23 @@ class ArloBase(ArloDevice):
             # Post change.
             self._arlo.debug(self.name + ':new-mode=' + mode_name + ',id=' + mode_id)
             if self._v1_modes:
-                self._arlo._bg.run(self._arlo._be.notify, base=self,
-                                   body={"action": "set",
-                                         "resource": "modes",
-                                         "publishResponse": True,
-                                         "properties": {"active": mode_id}})
+                self._arlo.bg.run(self._arlo.be.notify, base=self,
+                                  body={"action": "set",
+                                        "resource": "modes",
+                                        "publishResponse": True,
+                                        "properties": {"active": mode_id}})
             else:
-                self._arlo._bg.run(self._arlo._be.post, url=AUTOMATION_URL,
-                                   params={'activeAutomations':
-                                               [{'deviceId': self.device_id,
-                                                 'timestamp': time_to_arlotime(),
-                                                 active: [mode_id],
-                                                 inactive: []}]})
+                self._arlo.bg.run(self._arlo.be.post, url=AUTOMATION_URL,
+                                  params={'activeAutomations':
+                                              [{'deviceId': self.device_id,
+                                                'timestamp': time_to_arlotime(),
+                                                active: [mode_id],
+                                                inactive: []}]})
         else:
             self._arlo.warning('{0}: mode {1} is unrecognised'.format(self.name, mode_name))
 
     def update_mode(self):
-        data = self._arlo._be.get(AUTOMATION_URL)
+        data = self._arlo.be.get(AUTOMATION_URL)
         for mode in data:
             if mode.get('uniqueId', '') == self.unique_id:
                 active_modes = mode.get('activeModes', [])
@@ -160,16 +160,16 @@ class ArloBase(ArloDevice):
 
     def update_modes(self):
         if self._v1_modes:
-            self._arlo._be.notify(base=self, body={"action": "get", "resource": "modes", "publishResponse": False})
+            self._arlo.be.notify(base=self, body={"action": "get", "resource": "modes", "publishResponse": False})
         else:
-            modes = self._arlo._be.get(DEFINITIONS_URL + "?uniqueIds={}".format(self.unique_id))
-            self._modes = modes.get(self.unique_id, {})
-            self._parse_modes(self._modes.get('modes', []))
-            self._parse_schedules(self._modes.get('schedules', []))
+            modes = self._arlo.be.get(DEFINITIONS_URL + "?uniqueIds={}".format(self.unique_id))
+            modes = modes.get(self.unique_id, {})
+            self._parse_modes(modes.get('modes', []))
+            self._parse_schedules(modes.get('schedules', []))
 
     @property
     def schedule(self):
-        return self._arlo._st.get([self.device_id, SCHEDULE_KEY], None)
+        return self._arlo.st.get([self.device_id, SCHEDULE_KEY], None)
 
     @property
     def on_schedule(self):
@@ -197,7 +197,7 @@ class ArloBase(ArloDevice):
             'properties': {'sirenState': 'on', 'duration': int(duration), 'volume': int(volume), 'pattern': 'alarm'}
         }
         self._arlo.debug(str(body))
-        self._arlo._bg.run(self._arlo._be.notify, base=self, body=body)
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
     def siren_off(self):
         body = {
@@ -207,4 +207,4 @@ class ArloBase(ArloDevice):
             'properties': {'sirenState': 'off'}
         }
         self._arlo.debug(str(body))
-        self._arlo._bg.run(self._arlo._be.notify, base=self, body=body)
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)

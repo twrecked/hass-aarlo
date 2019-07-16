@@ -26,7 +26,7 @@ class ArloMediaLibrary(object):
 
         # grab today's images
         date_to = datetime.today().strftime('%Y%m%d')
-        data = self._arlo._be.post(LIBRARY_URL, {'dateFrom': date_to, 'dateTo': date_to})
+        data = self._arlo.be.post(LIBRARY_URL, {'dateFrom': date_to, 'dateTo': date_to})
 
         # get current videos
         with self._lock:
@@ -77,7 +77,7 @@ class ArloMediaLibrary(object):
         date_to = now.strftime('%Y%m%d')
 
         # save videos for cameras we know about
-        data = self._arlo._be.post(LIBRARY_URL, {'dateFrom': date_from, 'dateTo': date_to})
+        data = self._arlo.be.post(LIBRARY_URL, {'dateFrom': date_from, 'dateTo': date_to})
         videos = []
         keys = []
         for video in data:
@@ -122,7 +122,7 @@ class ArloMediaLibrary(object):
         with self._lock:
             if not self._load_cbs_:
                 self._arlo.debug('queueing image library update')
-                self._arlo._bg.run_low_in(self.update, 2)
+                self._arlo.bg.run_low_in(self.update, 2)
             self._load_cbs_.append(cb)
 
 
