@@ -103,11 +103,11 @@ class ArloCamera(ArloChildDevice):
 
     def _update_last_image( self ):
         self._arlo.debug('getting image for ' + self.name )
-        img = None
+        img = False
         url = self._arlo._st.get( [self.device_id,LAST_IMAGE_KEY],None )
         if url is not None:
             img = http_get( url )
-        if img is None:
+        if img is False:
             self._arlo.debug('using blank image for ' + self.name )
             img = self._arlo.blank_image
 
@@ -123,7 +123,7 @@ class ArloCamera(ArloChildDevice):
         url = self._arlo._st.get( [self.device_id,SNAPSHOT_KEY],None )
         if url is not None:
             img = http_get( url )
-            if img is not None:
+            if img is not False:
                 # signal up if nedeed
                 self._arlo._st.set( [self.device_id,LAST_IMAGE_SRC_KEY],'snapshot/' + now_strftime(self._arlo._last_format) )
                 self._save_and_do_callbacks( LAST_IMAGE_DATA_KEY,img )
@@ -324,10 +324,12 @@ class ArloCamera(ArloChildDevice):
         self._min_days_vdo_cache = value
 
     def update_media( self ):
+        """ Get latest list of recordings from the backend server. """
         self._arlo.debug( 'queing media update' )
         self._arlo._bg.run_low( self._update_media )
 
     def update_last_image( self ):
+        """ Get last thumbnail from the backend server. """
         self._arlo.debug( 'queing image update' )
         self._arlo._bg.run_low( self._update_last_image )
 
