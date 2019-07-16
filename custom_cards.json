@@ -1,7 +1,7 @@
 {
     "aarlo-glance": {
         "changelog": "https://github.com/twrecked/hass-aarlo/blob/master/changelog",
-        "remote_location": "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/www/aarlo-glance.js",
+        "remote_location": "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/dist/hass-aarlo.js",
         "version": "0.0.3",
         "visit_repo": "https://github.com/twrecked/hass-aarlo"
     }
