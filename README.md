@@ -1,5 +1,13 @@
 # hass-aarlo
 
+### HACS TESTING
+
+**The master might currently break custom_components installation.**
+
+Sorry about that... I had to move some pieces about and I can't test HACS without using `master`. Please use tag v0.5.1 for now... 
+
+**The master might currently break custom_components installation.**
+
 ### Asynchronous Arlo Component for Home Assistant.
 
 The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#/cameras) web site - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system. Currently it only lets you set base station modes.
