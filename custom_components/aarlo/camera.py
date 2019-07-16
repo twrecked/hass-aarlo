@@ -350,7 +350,7 @@ async def websocket_library(hass, connection, msg):
     camera = _get_camera_from_entity_id(hass, msg['entity_id'])
     videos = []
     _LOGGER.debug('library+' + str(msg['at_most']))
-    for v in camera._camera.last_N_videos(msg['at_most']):
+    for v in camera._camera.last_n_videos(msg['at_most']):
         videos.append({
             'created_at': v.created_at,
             'created_at_pretty': v.created_at_pretty(camera._camera.last_capture_date_format),
