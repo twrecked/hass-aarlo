@@ -18,6 +18,13 @@ class AarloGlance extends LitElement {
 		}
 	}
 
+	constructor() {
+		super();
+		this._img = null;
+		this._stream = null;
+		this._video = null;
+	}
+
 	static get outerStyleTemplate() {
 		return html`
 		<style>
@@ -473,24 +480,28 @@ class AarloGlance extends LitElement {
 		`;
 	}
 
-    _didRender(_props, _changedProps, _prevProps) {
-        if ( this._stream ) {
-            var video = this.shadowRoot.getElementById( 'stream-' + this._cameraId )
-            if ( Hls.isSupported() ) {
-                this._hls = new Hls();
-                this._hls.loadSource( this._stream )
-                this._hls.attachMedia(video);
-                this._hls.on(Hls.Events.MANIFEST_PARSED,function() {
-                    video.play();
-                });
-            }
-            else if ( video.canPlayType('application/vnd.apple.mpegurl') ) {
-                video.src = this._stream
-                video.addEventListener('loadedmetadata',function() {
-                    video.play();
-                });
-            }
-        }
+    updated(changedProperties) {
+		changedProperties.forEach( (oldValue, propName) => {
+			if ( propName == '_stream' && oldValue == null ) {
+				if ( this._stream ) {
+					var video = this.shadowRoot.getElementById( 'stream-' + this._cameraId )
+					if ( Hls.isSupported() ) {
+						this._hls = new Hls();
+						this._hls.loadSource( this._stream )
+						this._hls.attachMedia(video);
+						this._hls.on(Hls.Events.MANIFEST_PARSED,function() {
+							video.play();
+						});
+					}
+					else if ( video.canPlayType('application/vnd.apple.mpegurl') ) {
+						video.src = this._stream
+						video.addEventListener('loadedmetadata',function() {
+							video.play();
+						});
+					}
+				}
+			}
+        });
     }
 
     set hass( hass ) {
