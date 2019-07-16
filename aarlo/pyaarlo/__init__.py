@@ -21,7 +21,7 @@ from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger('pyaarlo')
 
-__version__ = '0.0.17'
+__version__ = '0.0.18'
 
 class PyArlo(object):
 
@@ -105,9 +105,10 @@ class PyArlo(object):
         # always ping bases first!
         self._ping_bases()
 
-        # queue up initial config retrieval
+        # Queue up initial config and state retrieval.
         self.debug('getting initial settings' )
-        self._bg.run_in( self._refresh_cameras,2 )
+        self._bg.run_in( self._refresh_camera_thumbnails,2 )
+        self._bg.run_in( self._refresh_camera_media,2 )
         self._bg.run_in( self._initial_refresh,5 )
         self._bg.run_in( self._ml.load,10 )
 
@@ -132,9 +133,14 @@ class PyArlo(object):
                     if value is not None:
                         self._st.set( [device_id,key],value )
 
-    def _refresh_cameras( self ):
+    def _refresh_camera_thumbnails( self ):
+        """ Request latest camera thumbnails, called at start up to make. """
         for camera in self._cameras:
             camera.update_last_image()
+
+    def _refresh_camera_media( self ):
+        """ Rebuild cameras media library, called at start up or when day changes. """
+        for camera in self._cameras:
             camera.update_media()
 
     def _refresh_ambient_sensors( self ):
@@ -165,7 +171,7 @@ class PyArlo(object):
             self.debug( 'day changed to {}!'.format( str(today) ) )
             self._today = today
             self._bg.run( self._ml.load )
-            self._bg.run( self._refresh_cameras )
+            self._bg.run( self._refresh_camera_media )
 
     def _slow_refresh( self ):
         self.debug( 'slow refresh' )
