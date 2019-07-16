@@ -30,8 +30,8 @@ class ArloBackEnd(object):
         self._requests = {}
         self._callbacks = {}
 
-        self.username = None
-        self.password = None
+        self._username = None
+        self._password = None
 
         self._token = None
         self._user_id = None
@@ -70,7 +70,7 @@ class ArloBackEnd(object):
                     r = self._session.put(url, json=params, headers=headers, timeout=timeout)
                 elif method == 'POST':
                     r = self._session.post(url, json=params, headers=headers, timeout=timeout)
-        except:
+        except Exception:
             if self._ev_stream is not None:
                 # self._ev_stream.close()
                 self._ev_stream.resp.close()
@@ -203,7 +203,7 @@ class ArloBackEnd(object):
                 with self._lock:
                     self._lock.wait(5)
                 self._arlo.debug('re-logging in')
-                self._connected = self.login(self.username, self.password)
+                self._connected = self.login(self._username, self._password)
 
             # get stream, restart after requested seconds of inactivity or forced close
             try:
@@ -289,8 +289,8 @@ class ArloBackEnd(object):
         with self._lock:
 
             # attempt login
-            self.username = username
-            self.password = password
+            self._username = username
+            self._password = password
             self._session = requests.Session()
             if self._arlo._http_connections != 0 and self._arlo._http_max_size != 0:
                 self._arlo.debug(
@@ -299,7 +299,7 @@ class ArloBackEnd(object):
                                     requests.adapters.HTTPAdapter(
                                         pool_connections=self._arlo._http_connections,
                                         pool_maxsize=self._arlo._http_max_size))
-            body = self.post(LOGIN_URL, {'email': self.username, 'password': self.password})
+            body = self.post(LOGIN_URL, {'email': self._username, 'password': self._password})
             if body is None:
                 self._arlo.debug('login failed')
                 return False
