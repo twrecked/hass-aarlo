@@ -34,5 +34,5 @@ ${ECHO} mkdir -p "${DEST}/www"
 ${ECHO} cp -afv www/aarlo*.js "${DEST}/www"
 
 ${ECHO} mkdir -p "${DEST}/custom_components"
-${ECHO} cp -afv aarlo "${DEST}/custom_components"
+${ECHO} cp -afv custom_components/aarlo "${DEST}/custom_components"
 
