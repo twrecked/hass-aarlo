@@ -245,42 +245,48 @@ class ArloBackEnd(object):
             return False
         return True
 
-    def _notify(self, base, body):
+    def _notify(self, base, body, trans_id=None):
+        if trans_id is None:
+            trans_id = self.gen_trans_id()
         body['to'] = base.device_id
         body['from'] = self._web_id
-        body['transId'] = self.gen_trans_id()
+        body['transId'] = trans_id
         self.post(NOTIFY_URL + base.device_id, body, headers={"xcloudId": base.xcloud_id})
-        return body.get('transId')
+        return trans_id
 
     def _notify_and_get_response(self, base, body, timeout=None):
+
         if timeout is None:
             timeout = self._request_timeout
-        tid = self._notify(base, body)
-        self._requests[tid] = None
+
+        with self._lock:
+            tid = self.gen_trans_id()
+            self._requests[tid] = None
+
+        self._notify(base, body,trans_id=tid)
         mnow = time.monotonic()
         mend = mnow + timeout
-        while not self._requests[tid]:
-            self._lock.wait(mend - mnow)
-            if self._requests[tid]:
-                return self._requests.pop(tid)
-            mnow = time.monotonic()
-            if mnow >= mend:
-                return self._requests.pop(tid)
+
+        with self._lock:
+            while not self._requests[tid]:
+                self._lock.wait(mend - mnow)
+                if self._requests[tid]:
+                    return self._requests.pop(tid)
+                mnow = time.monotonic()
+                if mnow >= mend:
+                    return self._requests.pop(tid)
 
     def ping(self, base):
-        with self._lock:
-            return self._notify_and_get_response(base, {"action": "set", "resource": self._sub_id,
+        return self._notify_and_get_response(base, {"action": "set", "resource": self._sub_id,
                                                         "publishResponse": False,
                                                         "properties": {"devices": [base.device_id]}})
 
     def async_ping(self, base):
-        with self._lock:
-            return self._notify(base, {"action": "set", "resource": self._sub_id,
+        return self._notify(base, {"action": "set", "resource": self._sub_id,
                                        "publishResponse": False, "properties": {"devices": [base.device_id]}})
 
     def async_on_off(self, base, device, privacy_on):
-        with self._lock:
-            return self._notify(base, {"action": "set", "resource": device.resource_id,
+        return self._notify(base, {"action": "set", "resource": device.resource_id,
                                        "publishResponse": True,
                                        "properties": {"privacyActive": privacy_on}})
 
@@ -333,8 +339,7 @@ class ArloBackEnd(object):
             return True
 
     def is_connected(self):
-        with self._lock:
-            return self._connected
+        return self._connected
 
     def logout(self):
         with self._lock:
@@ -351,12 +356,10 @@ class ArloBackEnd(object):
         return self._request(url, 'POST', params, headers, False, raw, timeout)
 
     def notify(self, base, body):
-        with self._lock:
-            return self._notify(base, body)
+        return self._notify(base, body)
 
     def notify_and_get_response(self, base, body, timeout=None):
-        with self._lock:
-            return self._notify_and_get_response(base, body, timeout)
+        return self._notify_and_get_response(base, body, timeout)
 
     def add_listener(self, device, callback):
         with self._lock:
