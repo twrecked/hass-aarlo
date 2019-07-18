@@ -139,11 +139,12 @@ class ArloBase(ArloDevice):
                                         "properties": {"active": mode_id}})
             else:
                 self._arlo.bg.run(self._arlo.be.post, url=AUTOMATION_URL,
-                                  params={'activeAutomations':
-                                              [{'deviceId': self.device_id,
-                                                'timestamp': time_to_arlotime(),
-                                                active: [mode_id],
-                                                inactive: []}]})
+                                  params={'activeAutomations': [
+                                      {'deviceId': self.device_id,
+                                       'timestamp': time_to_arlotime(),
+                                       active: [mode_id],
+                                       inactive: []}
+                                  ]})
         else:
             self._arlo.warning('{0}: mode {1} is unrecognised'.format(self.name, mode_name))
 
