@@ -302,7 +302,7 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def wired(self):
-        return self.charger_type.lower() == 'QuickCharger'
+        return self.charger_type.lower() == 'quickcharger'
 
     @property
     def wired_only(self):
