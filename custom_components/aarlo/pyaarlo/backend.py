@@ -248,6 +248,7 @@ class ArloBackEnd(object):
     def _notify(self, base, body, trans_id=None):
         if trans_id is None:
             trans_id = self.gen_trans_id()
+
         body['to'] = base.device_id
         body['from'] = self._web_id
         body['transId'] = trans_id
@@ -255,7 +256,6 @@ class ArloBackEnd(object):
         return trans_id
 
     def _notify_and_get_response(self, base, body, timeout=None):
-
         if timeout is None:
             timeout = self._request_timeout
 
