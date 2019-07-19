@@ -193,6 +193,7 @@ class ArloCam(Camera):
         self._camera.add_attr_callback('presignedLastImageData', update_state)
         self._camera.add_attr_callback('mediaUploadNotification', update_state)
         self._camera.add_attr_callback('chargingState', update_state)
+        self._camera.add_attr_callback('chargingTech', update_state)
 
     async def handle_async_mjpeg_stream(self, request):
         """Generate an HTTP MJPEG stream from the camera."""
