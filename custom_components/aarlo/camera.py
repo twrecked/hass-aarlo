@@ -32,6 +32,7 @@ _LOGGER = logging.getLogger(__name__)
 ARLO_MODE_ARMED = 'armed'
 ARLO_MODE_DISARMED = 'disarmed'
 
+ATTR_BATTERY_TECH = 'battery_tech'
 ATTR_BRIGHTNESS = 'brightness'
 ATTR_FLIPPED = 'flipped'
 ATTR_MIRRORED = 'mirrored'
@@ -44,6 +45,7 @@ ATTR_IMAGE_SRC = 'image_source'
 ATTR_CHARGING = 'charging'
 ATTR_CHARGER_TYPE = 'charger_type'
 ATTR_WIRED = 'wired'
+ATTR_WIRED_ONLY = 'wired_only'
 
 CONF_FFMPEG_ARGUMENTS = 'ffmpeg_arguments'
 
@@ -248,6 +250,7 @@ class ArloCam(Camera):
         attrs = {
             name: value for name, value in (
                 (ATTR_BATTERY_LEVEL, self._camera.battery_level),
+                (ATTR_BATTERY_TECH, self._camera.battery_tech),
                 (ATTR_BRIGHTNESS, self._camera.brightness),
                 (ATTR_FLIPPED, self._camera.flip_state),
                 (ATTR_MIRRORED, self._camera.mirror_state),
@@ -259,7 +262,8 @@ class ArloCam(Camera):
                 (ATTR_IMAGE_SRC, self._camera.last_image_source),
                 (ATTR_CHARGING, self._camera.charging),
                 (ATTR_CHARGER_TYPE, self._camera.charger_type),
-                (ATTR_WIRED, self._camera.wired_only),
+                (ATTR_WIRED, self._camera.wired),
+                (ATTR_WIRED_ONLY, self._camera.wired_only),
             ) if value is not None
         }
 
