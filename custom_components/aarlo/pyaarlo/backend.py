@@ -42,7 +42,7 @@ class ArloBackEnd(object):
 
         # login
         self._session = None
-        self._connected = self.login(username, password)
+        self._connected = self._login(username, password)
         if not self._connected:
             self._arlo.warning('failed to log in')
             return
@@ -171,8 +171,9 @@ class ArloBackEnd(object):
             if response.get('action') == 'logout':
                 with self._lock:
                     self._ev_connected_ = False
+                    self._requests = {}
                     self._lock.notify_all()
-                    self._arlo.warning('logged out? did you log in from elsewhere?')
+                self._arlo.warning('logged out? did you log in from elsewhere?')
                 break
 
             # connected - yay!
@@ -203,7 +204,7 @@ class ArloBackEnd(object):
                 with self._lock:
                     self._lock.wait(5)
                 self._arlo.debug('re-logging in')
-                self._connected = self.login(self._username, self._password)
+                self._connected = self._login(self._username, self._password)
 
             # get stream, restart after requested seconds of inactivity or forced close
             try:
@@ -263,7 +264,7 @@ class ArloBackEnd(object):
             tid = self.gen_trans_id()
             self._requests[tid] = None
 
-        self._notify(base, body,trans_id=tid)
+        self._notify(base, body, trans_id=tid)
         mnow = time.monotonic()
         mend = mnow + timeout
 
@@ -278,73 +279,70 @@ class ArloBackEnd(object):
 
     def ping(self, base):
         return self._notify_and_get_response(base, {"action": "set", "resource": self._sub_id,
-                                                        "publishResponse": False,
-                                                        "properties": {"devices": [base.device_id]}})
+                                                    "publishResponse": False,
+                                                    "properties": {"devices": [base.device_id]}})
 
     def async_ping(self, base):
         return self._notify(base, {"action": "set", "resource": self._sub_id,
-                                       "publishResponse": False, "properties": {"devices": [base.device_id]}})
+                                   "publishResponse": False, "properties": {"devices": [base.device_id]}})
 
     def async_on_off(self, base, device, privacy_on):
         return self._notify(base, {"action": "set", "resource": device.resource_id,
-                                       "publishResponse": True,
-                                       "properties": {"privacyActive": privacy_on}})
+                                   "publishResponse": True,
+                                   "properties": {"privacyActive": privacy_on}})
 
     # login and set up session
-    def login(self, username, password):
-        with self._lock:
+    def _login(self, username, password):
 
-            # attempt login
-            self._username = username
-            self._password = password
-            self._session = requests.Session()
-            if self._arlo.http_connections != 0 and self._arlo.http_max_size != 0:
-                self._arlo.debug(
-                    'custom connections {}:{}'.format(self._arlo.http_connections, self._arlo.http_max_size))
-                self._session.mount('https://',
-                                    requests.adapters.HTTPAdapter(
-                                        pool_connections=self._arlo.http_connections,
-                                        pool_maxsize=self._arlo.http_max_size))
-            body = self.post(LOGIN_URL, {'email': self._username, 'password': self._password})
-            if body is None:
-                self._arlo.debug('login failed')
-                return False
+        # attempt login
+        self._username = username
+        self._password = password
+        self._session = requests.Session()
+        if self._arlo.http_connections != 0 and self._arlo.http_max_size != 0:
+            self._arlo.debug(
+                'custom connections {}:{}'.format(self._arlo.http_connections, self._arlo.http_max_size))
+            self._session.mount('https://',
+                                requests.adapters.HTTPAdapter(
+                                    pool_connections=self._arlo.http_connections,
+                                    pool_maxsize=self._arlo.http_max_size))
+        body = self.post(LOGIN_URL, {'email': self._username, 'password': self._password})
+        if body is None:
+            self._arlo.debug('login failed')
+            return False
 
-            # save new login information
-            self._token = body['token']
-            self._user_id = body['userId']
-            self._web_id = self._user_id + '_web'
-            self._sub_id = 'subscriptions/' + self._web_id
+        # save new login information
+        self._token = body['token']
+        self._user_id = body['userId']
+        self._web_id = self._user_id + '_web'
+        self._sub_id = 'subscriptions/' + self._web_id
 
-            # update sessions headers
-            # XXX allow different user agent
-            headers = {
-                # 'DNT': '1',
-                'Accept': 'application/json, text/plain, */*',
-                'schemaVersion': '1',
-                'Host': 'arlo.netgear.com',
-                'Content-Type': 'application/json; charset=utf-8;',
-                'Referer': 'https://arlo.netgear.com/',
-                'Authorization': self._token
-            }
-            if self._arlo.user_agent == 'apple':
-                headers['User-Agent'] = ('Mozilla/5.0 (iPhone; CPU iPhone OS 11_1_2 like Mac OS X) '
-                                         'AppleWebKit/604.3.5 (KHTML, like Gecko) Mobile/15B202 NETGEAR/v1 '
-                                         '(iOS Vuezone)')
-            else:
-                headers['User-Agent'] = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                                         'Chrome/72.0.3626.81 Safari/537.36')
+        # update sessions headers
+        # XXX allow different user agent
+        headers = {
+            # 'DNT': '1',
+            'Accept': 'application/json, text/plain, */*',
+            'schemaVersion': '1',
+            'Host': 'arlo.netgear.com',
+            'Content-Type': 'application/json; charset=utf-8;',
+            'Referer': 'https://arlo.netgear.com/',
+            'Authorization': self._token
+        }
+        if self._arlo.user_agent == 'apple':
+            headers['User-Agent'] = ('Mozilla/5.0 (iPhone; CPU iPhone OS 11_1_2 like Mac OS X) '
+                                     'AppleWebKit/604.3.5 (KHTML, like Gecko) Mobile/15B202 NETGEAR/v1 '
+                                     '(iOS Vuezone)')
+        else:
+            headers['User-Agent'] = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                                     'Chrome/72.0.3626.81 Safari/537.36')
 
-            self._session.headers.update(headers)
-            return True
+        self._session.headers.update(headers)
+        return True
 
     def is_connected(self):
         return self._connected
 
     def logout(self):
-        with self._lock:
-            self._requests = {}
-            self.put(LOGOUT_URL)
+        self.put(LOGOUT_URL)
 
     def get(self, url, params=None, headers=None, stream=False, raw=False, timeout=None):
         return self._request(url, 'GET', params, headers, stream, raw, timeout)
