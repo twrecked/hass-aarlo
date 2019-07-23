@@ -42,8 +42,8 @@ class ArloBackEnd(object):
 
         # login
         self._session = None
-        self._connected = self._login(username, password)
-        if not self._connected:
+        self._logged_in = self._login(username, password)
+        if not self._logged_in:
             self._arlo.warning('failed to log in')
             return
 
@@ -200,11 +200,11 @@ class ArloBackEnd(object):
         while True:
 
             # login again if not first iteration, this will also create a new session
-            while not self._connected:
+            while not self._logged_in:
                 with self._lock:
                     self._lock.wait(5)
                 self._arlo.debug('re-logging in')
-                self._connected = self._login(self._username, self._password)
+                self._logged_in = self._login(self._username, self._password)
 
             # get stream, restart after requested seconds of inactivity or forced close
             try:
@@ -228,25 +228,25 @@ class ArloBackEnd(object):
 
             # restart login...
             self._ev_stream = None
-            self._connected = False
+            self._logged_in = False
 
     def _ev_start(self):
         self._ev_stream = None
         self._ev_connected_ = False
-        self._evt = threading.Thread(name="EventStream", target=self._ev_thread, args=())
-        self._evt.setDaemon(True)
-        self._evt.start()
+        self._ev_thread = threading.Thread(name="EventStream", target=self._ev_thread, args=())
+        self._ev_thread.setDaemon(True)
+        self._ev_thread.start()
 
         # give time to start
         with self._lock:
             self._lock.wait(30)
         if not self._ev_connected_:
             self._arlo.warning('event loop failed to start')
-            self._evt = None
+            self._ev_thread = None
             return False
         return True
 
-    def _notify(self, base, body, trans_id=None):
+    def notify(self, base, body, trans_id=None):
         if trans_id is None:
             trans_id = self.gen_trans_id()
 
@@ -256,7 +256,7 @@ class ArloBackEnd(object):
         self.post(NOTIFY_URL + base.device_id, body, headers={"xcloudId": base.xcloud_id})
         return trans_id
 
-    def _notify_and_get_response(self, base, body, timeout=None):
+    def notify_and_get_response(self, base, body, timeout=None):
         if timeout is None:
             timeout = self._request_timeout
 
@@ -264,7 +264,7 @@ class ArloBackEnd(object):
             tid = self.gen_trans_id()
             self._requests[tid] = None
 
-        self._notify(base, body, trans_id=tid)
+        self.notify(base, body, trans_id=tid)
         mnow = time.monotonic()
         mend = mnow + timeout
 
@@ -278,18 +278,18 @@ class ArloBackEnd(object):
                     return self._requests.pop(tid)
 
     def ping(self, base):
-        return self._notify_and_get_response(base, {"action": "set", "resource": self._sub_id,
-                                                    "publishResponse": False,
-                                                    "properties": {"devices": [base.device_id]}})
+        return self.notify_and_get_response(base, {"action": "set", "resource": self._sub_id,
+                                                   "publishResponse": False,
+                                                   "properties": {"devices": [base.device_id]}})
 
     def async_ping(self, base):
-        return self._notify(base, {"action": "set", "resource": self._sub_id,
-                                   "publishResponse": False, "properties": {"devices": [base.device_id]}})
+        return self.notify(base, {"action": "set", "resource": self._sub_id,
+                                  "publishResponse": False, "properties": {"devices": [base.device_id]}})
 
     def async_on_off(self, base, device, privacy_on):
-        return self._notify(base, {"action": "set", "resource": device.resource_id,
-                                   "publishResponse": True,
-                                   "properties": {"privacyActive": privacy_on}})
+        return self.notify(base, {"action": "set", "resource": device.resource_id,
+                                  "publishResponse": True,
+                                  "properties": {"privacyActive": privacy_on}})
 
     # login and set up session
     def _login(self, username, password):
@@ -339,7 +339,7 @@ class ArloBackEnd(object):
         return True
 
     def is_connected(self):
-        return self._connected
+        return self._logged_in
 
     def logout(self):
         self.put(LOGOUT_URL)
@@ -352,12 +352,6 @@ class ArloBackEnd(object):
 
     def post(self, url, params=None, headers=None, raw=False, timeout=None):
         return self._request(url, 'POST', params, headers, False, raw, timeout)
-
-    def notify(self, base, body):
-        return self._notify(base, body)
-
-    def notify_and_get_response(self, base, body, timeout=None):
-        return self._notify_and_get_response(base, body, timeout)
 
     def add_listener(self, device, callback):
         with self._lock:
