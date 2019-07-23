@@ -288,6 +288,17 @@ class ArloCam(Camera):
         """Return the camera motion detection status."""
         return self._motion_status
 
+    @property
+    def last_video(self):
+        return self._camera.last_video
+
+    def last_n_videos(self, count):
+        return self._camera.last_n_videos(count)
+
+    @property
+    def last_capture_date_format(self):
+        return self._camera.last_capture_date_format
+
     def set_base_station_mode(self, mode):
         """Set the mode in the base station."""
         self._camera.base_station.mode = mode
@@ -336,7 +347,7 @@ def _get_camera_from_entity_id(hass, entity_id):
 @websocket_api.async_response
 async def websocket_video_url(hass, connection, msg):
     camera = _get_camera_from_entity_id(hass, msg['entity_id'])
-    video = camera._camera.last_video
+    video = camera.last_video
     url = video.video_url if video is not None else None
     url_type = video.content_type if video is not None else None
     thumbnail = video.thumbnail_url if video is not None else None
@@ -355,10 +366,10 @@ async def websocket_library(hass, connection, msg):
     camera = _get_camera_from_entity_id(hass, msg['entity_id'])
     videos = []
     _LOGGER.debug('library+' + str(msg['at_most']))
-    for v in camera._camera.last_n_videos(msg['at_most']):
+    for v in camera.last_n_videos(msg['at_most']):
         videos.append({
             'created_at': v.created_at,
-            'created_at_pretty': v.created_at_pretty(camera._camera.last_capture_date_format),
+            'created_at_pretty': v.created_at_pretty(camera.last_capture_date_format),
             'url': v.video_url,
             'url_type': v.content_type,
             'thumbnail': v.thumbnail_url,
