@@ -164,6 +164,9 @@ class ArloBaseStation(AlarmControlPanel):
         self._trigger_till = None
         self._base.siren_off()
 
+    def alarm_arm_custom_bypass(self, code=None):
+        pass
+
     @property
     def unique_id(self):
         """Return a unique ID."""
@@ -207,6 +210,14 @@ class ArloBaseStation(AlarmControlPanel):
         _LOGGER.debug("{0} set mode to {1}".format(self._name, lmode))
         self._base.mode = lmode
 
+    def siren_on(self, duration=30, volume=10):
+        _LOGGER.debug("{0} siren on {1}/{2}".format(self.unique_id, volume, duration))
+        self._base.siren_on(duration=duration, volume=volume)
+
+    def siren_off(self):
+        _LOGGER.debug("{0} siren off".format(self.unique_id))
+        self._base.siren_off()
+
 
 async def aarlo_mode_service_handler(base, service):
     mode = service.data[ATTR_MODE]
@@ -216,10 +227,8 @@ async def aarlo_mode_service_handler(base, service):
 async def aarlo_siren_on_service_handler(base, service):
     volume = service.data[ATTR_VOLUME]
     duration = service.data[ATTR_DURATION]
-    _LOGGER.debug("{0} siren on {1}/{2}".format(base.unique_id, volume, duration))
-    base._base.siren_on(duration=duration, volume=volume)
+    base.siren_on(duration=duration, volume=volume)
 
 
 async def aarlo_siren_off_service_handler(base, _service):
-    _LOGGER.debug("{0} siren off".format(base.unique_id))
-    base._base.siren_off()
+    base.siren_off()
