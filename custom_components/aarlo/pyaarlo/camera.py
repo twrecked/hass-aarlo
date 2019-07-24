@@ -51,7 +51,7 @@ class ArloCamera(ArloChildDevice):
         count, videos = self._arlo.ml.videos_for(self)
         if videos:
             captured_today = len([video for video in videos if video.created_today])
-            last_captured = videos[0].created_at_pretty(self._arlo.last_format)
+            last_captured = videos[0].created_at_pretty(self._arlo.cfg.last_format)
         else:
             captured_today = 0
             last_captured = None
@@ -100,7 +100,7 @@ class ArloCamera(ArloChildDevice):
             img = self._arlo.blank_image
 
         # signal up if nedeed
-        self._arlo.st.set([self.device_id, LAST_IMAGE_SRC_KEY], 'capture/' + now_strftime(self._arlo.last_format))
+        self._arlo.st.set([self.device_id, LAST_IMAGE_SRC_KEY], 'capture/' + now_strftime(self._arlo.cfg.last_format))
         self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
         # handle snapshot not being handled...
@@ -114,7 +114,7 @@ class ArloCamera(ArloChildDevice):
             if img is not False:
                 # signal up if nedeed
                 self._arlo.st.set([self.device_id, LAST_IMAGE_SRC_KEY],
-                                  'snapshot/' + now_strftime(self._arlo.last_format))
+                                  'snapshot/' + now_strftime(self._arlo.cfg.last_format))
                 self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
         # handle snapshot finished
@@ -189,12 +189,12 @@ class ArloCamera(ArloChildDevice):
                 self._arlo.bg.run_low(self._update_last_image_from_snapshot)
 
             # something just happened!
-            self._set_recent(self._arlo.recent_time)
+            self._set_recent(self._arlo.cfg.recent_time)
 
             return
 
         # no media uploads and stream stopped?
-        if self._arlo.no_media_upload:
+        if self._arlo.cfg.no_media_upload:
             if event.get('properties', {}).get('activityState', 'unknown') == 'idle' and self.is_recording:
                 self._arlo.debug('got a stream stop')
                 self._arlo.bg.run_in(self._arlo.ml.queue_update, 5, cb=self._update_media_and_thumbnail)
@@ -254,7 +254,7 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def last_capture_date_format(self):
-        return self._arlo.last_format
+        return self._arlo.cfg.last_format
 
     @property
     def brightness(self):

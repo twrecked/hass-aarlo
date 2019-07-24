@@ -158,7 +158,7 @@ class ArloBackEnd(object):
 
             response = json.loads(event.data)
             if self._arlo.cfg.dump:
-                with open(self._arlo.cfg.dump_file, 'a') as dump:
+                with open(self._dump_file, 'a') as dump:
                     dump.write(pprint.pformat(response, indent=2) + '\n')
 
             # logged out? signal exited
@@ -216,10 +216,10 @@ class ArloBackEnd(object):
                 self._ev_loop(self._ev_stream)
             except requests.exceptions.ConnectionError:
                 self._arlo.warning('event loop timeout')
-            except AttributeError:
-                self._arlo.warning('forced close')
-            except Exception:
-                self._arlo.warning('general exception')
+            except AttributeError as e:
+                self._arlo.warning('forced close ' + str(e))
+            except Exception as e:
+                self._arlo.warning('general exception ' + str(e))
 
             # restart login...
             self._ev_stream = None

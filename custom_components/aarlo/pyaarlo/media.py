@@ -18,7 +18,7 @@ class ArloMediaLibrary(object):
         self._video_keys = []
 
     def __repr__(self):
-        return "<{0}:{1}>".format(self.__class__.__name__, self._arlo.name)
+        return "<{0}:{1}>".format(self.__class__.__name__, self._arlo.cfg.name)
 
     # grab recordings from last day, add to existing library if not there
     def update(self):
