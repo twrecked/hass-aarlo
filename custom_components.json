@@ -22,6 +22,7 @@
         "changelog": "https://github.com/twrecked/hass-aarlo/blob/master/changelog",
         "resources": [
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/backend.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/cfg.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/storage.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/media.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/util.py",

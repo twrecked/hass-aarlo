@@ -49,6 +49,7 @@ class SSEClient(object):
 
         # TODO: Ensure we're handling redirects.  Might also stick the 'origin'
         # attribute on Events like the Javascript spec requires.
+        log.debug( 'here2' )
         self.resp.raise_for_status()
 
     def _event_complete(self):
@@ -58,6 +59,7 @@ class SSEClient(object):
         return self
 
     def __next__(self):
+        log.debug( 'here3' )
         decoder = codecs.getincrementaldecoder(
             self.resp.encoding)(errors='replace')
         while not self._event_complete():

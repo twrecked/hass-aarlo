@@ -9,7 +9,7 @@ from .util import (arlotime_strftime, arlotime_to_datetime, http_get,
 class ArloMediaLibrary(object):
     """Arlo Library Media module implementation."""
 
-    def __init__(self, arlo, _max_days):
+    def __init__(self, arlo):
         self._arlo = arlo
         self._lock = threading.Lock()
         self._load_cbs_ = []

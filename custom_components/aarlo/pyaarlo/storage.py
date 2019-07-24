@@ -6,9 +6,9 @@ import threading
 
 class ArloStorage(object):
 
-    def __init__(self, arlo, name, storage_dir):
+    def __init__(self, arlo):
         self._arlo = arlo
-        self.file = storage_dir + '/' + name + '.pickle'
+        self.file = self._arlo.cfg.storage_dir + '/' + self._arlo.cfg.name + '.pickle'
         self.db = {}
         self.lock = threading.Lock()
         self.load()
