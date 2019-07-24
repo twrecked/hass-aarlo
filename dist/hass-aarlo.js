@@ -222,7 +222,7 @@ class AarloGlance extends LitElement {
         var door2BellHidden = this._door2BellId == undefined ? 'hidden':''
 
         if( batteryHidden == '' ) {
-            if ( camera.attributes.wired ) {
+            if ( camera.attributes.wired_only ) {
                 var batteryText  = 'Plugged In';
                 var batteryIcon  = 'power-plug';
                 var batteryState = 'state-update';
