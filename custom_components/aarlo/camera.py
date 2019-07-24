@@ -181,6 +181,8 @@ class ArloCam(Camera):
                     self._state = STATE_STREAMING
                 elif value == 'alertStreamActive':
                     self._state = STATE_RECORDING
+                elif value == 'unavailable':
+                    self._state = 'Unavailable'
                 else:
                     self._state = STATE_IDLE
             if attr == 'recentActivity':
