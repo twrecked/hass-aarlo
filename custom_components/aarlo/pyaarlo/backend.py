@@ -14,24 +14,16 @@ from .sseclient import SSEClient
 # include token and session details
 class ArloBackEnd(object):
 
-    def __init__(self, arlo, username, password, dump, storage_dir,
-                 request_timeout, stream_timeout):
+    def __init__(self, arlo):
 
         self._arlo = arlo
         self._lock = threading.Condition()
         self._req_lock = threading.Lock()
 
-        self._dump = dump
-        self._dump_file = storage_dir + '/' + 'packets.dump'
-
-        self._request_timeout = request_timeout
-        self._stream_timeout = stream_timeout
+        self._dump_file = self._arlo.cfg.storage_dir + '/' + 'packets.dump'
 
         self._requests = {}
         self._callbacks = {}
-
-        self._username = None
-        self._password = None
 
         self._token = None
         self._user_id = None
@@ -42,7 +34,7 @@ class ArloBackEnd(object):
 
         # login
         self._session = None
-        self._logged_in = self._login(username, password)
+        self._logged_in = self._login()
         if not self._logged_in:
             self._arlo.warning('failed to log in')
             return
@@ -56,7 +48,7 @@ class ArloBackEnd(object):
         if headers is None:
             headers = {}
         if timeout is None:
-            timeout = self._request_timeout
+            timeout = self._arlo.cfg.request_timeout
         try:
             with self._req_lock:
                 self._arlo.debug('starting request=' + str(url))
@@ -81,6 +73,8 @@ class ArloBackEnd(object):
             return None
 
         body = r.json()
+        #self._arlo.debug(pprint.pformat(body, indent=2))
+
         if raw:
             return body
         if body['success']:
@@ -163,7 +157,7 @@ class ArloBackEnd(object):
                 break
 
             response = json.loads(event.data)
-            if self._dump:
+            if self._arlo.cfg.dump:
                 with open(self._dump_file, 'a') as dump:
                     dump.write(pprint.pformat(response, indent=2) + '\n')
 
@@ -204,27 +198,28 @@ class ArloBackEnd(object):
                 with self._lock:
                     self._lock.wait(5)
                 self._arlo.debug('re-logging in')
-                self._logged_in = self._login(self._username, self._password)
+                self._logged_in = self._login()
 
             # get stream, restart after requested seconds of inactivity or forced close
             try:
-                if self._stream_timeout == 0:
+                if self._arlo.cfg.stream_timeout == 0:
                     self._arlo.debug('starting stream with no timeout')
                     # self._ev_stream = SSEClient( self.get( SUBSCRIBE_URL + self._token,stream=True,raw=True ) )
                     self._ev_stream = SSEClient(self._arlo, SUBSCRIBE_URL + self._token, session=self._session)
                 else:
-                    self._arlo.debug('starting stream with {} timeout'.format(self._stream_timeout))
+                    self._arlo.debug('starting stream with {} timeout'.format(self._arlo.cfg.stream_timeout))
                     # self._ev_stream = SSEClient(
-                    #     self.get(SUBSCRIBE_URL + self._token, stream=True, raw=True, timeout=self._stream_timeout))
+                    #     self.get(SUBSCRIBE_URL + self._token, stream=True, raw=True,
+                    #              timeout=self._arlo.cfg.stream_timeout))
                     self._ev_stream = SSEClient(self._arlo, SUBSCRIBE_URL + self._token, session=self._session,
-                                                timeout=self._stream_timeout)
+                                                timeout=self._arlo.cfg.stream_timeout)
                 self._ev_loop(self._ev_stream)
             except requests.exceptions.ConnectionError:
                 self._arlo.warning('event loop timeout')
-            except AttributeError:
-                self._arlo.warning('forced close')
-            except Exception:
-                self._arlo.warning('general exception')
+            except AttributeError as e:
+                self._arlo.warning('forced close ' + str(e))
+            except Exception as e:
+                self._arlo.warning('general exception ' + str(e))
 
             # restart login...
             self._ev_stream = None
@@ -258,7 +253,7 @@ class ArloBackEnd(object):
 
     def notify_and_get_response(self, base, body, timeout=None):
         if timeout is None:
-            timeout = self._request_timeout
+            timeout = self._arlo.cfg.request_timeout
 
         with self._lock:
             tid = self.gen_trans_id()
@@ -292,20 +287,18 @@ class ArloBackEnd(object):
                                   "properties": {"privacyActive": privacy_on}})
 
     # login and set up session
-    def _login(self, username, password):
+    def _login(self):
 
         # attempt login
-        self._username = username
-        self._password = password
         self._session = requests.Session()
-        if self._arlo.http_connections != 0 and self._arlo.http_max_size != 0:
+        if self._arlo.cfg.http_connections != 0 and self._arlo.cfg.http_max_size != 0:
             self._arlo.debug(
-                'custom connections {}:{}'.format(self._arlo.http_connections, self._arlo.http_max_size))
+                'custom connections {}:{}'.format(self._arlo.cfg.http_connections, self._arlo.cfg.http_max_size))
             self._session.mount('https://',
                                 requests.adapters.HTTPAdapter(
-                                    pool_connections=self._arlo.http_connections,
-                                    pool_maxsize=self._arlo.http_max_size))
-        body = self.post(LOGIN_URL, {'email': self._username, 'password': self._password})
+                                    pool_connections=self._arlo.cfg.http_connections,
+                                    pool_maxsize=self._arlo.cfg.http_max_size))
+        body = self.post(LOGIN_URL, {'email': self._arlo.cfg.username, 'password': self._arlo.cfg.password})
         if body is None:
             self._arlo.debug('login failed')
             return False
@@ -327,7 +320,7 @@ class ArloBackEnd(object):
             'Referer': 'https://arlo.netgear.com/',
             'Authorization': self._token
         }
-        if self._arlo.user_agent == 'apple':
+        if self._arlo.cfg.user_agent == 'apple':
             headers['User-Agent'] = ('Mozilla/5.0 (iPhone; CPU iPhone OS 11_1_2 like Mac OS X) '
                                      'AppleWebKit/604.3.5 (KHTML, like Gecko) Mobile/15B202 NETGEAR/v1 '
                                      '(iOS Vuezone)')
@@ -335,6 +328,7 @@ class ArloBackEnd(object):
             headers['User-Agent'] = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
                                      'Chrome/72.0.3626.81 Safari/537.36')
 
+        self._arlo.debug( 'headers={}'.format(headers['User-Agent']))
         self._session.headers.update(headers)
         return True
 

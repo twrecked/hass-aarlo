@@ -188,6 +188,10 @@ class ArloChildDevice(ArloDevice):
         return False
 
     @property
+    def is_unavailable(self):
+        return self._arlo.st.get([self._device_id, CONNECTION_KEY], 'unknown') == 'unavailable'
+
+    @property
     def too_cold(self):
         return self._arlo.st.get([self._device_id, CONNECTION_KEY], 'unknown') == 'thermalShutdownCold'
 
@@ -203,6 +207,8 @@ class ArloChildDevice(ArloDevice):
 
     @property
     def state(self):
+        if self.is_unavailable:
+            return 'unavailable'
         if not self.is_on:
             return 'turned off'
         if self.too_cold:

@@ -9,6 +9,7 @@ from .backend import ArloBackEnd
 from .background import ArloBackground
 from .base import ArloBase
 from .camera import ArloCamera
+from .cfg import ArloCfg
 from .constant import (BLANK_IMAGE, DEVICE_KEYS, DEVICES_URL,
                        FAST_REFRESH_INTERVAL, SLOW_REFRESH_INTERVAL,
                        TOTAL_BELLS_KEY, TOTAL_CAMERAS_KEY)
@@ -24,61 +25,39 @@ __version__ = '0.5.3'
 
 class PyArlo(object):
 
-    def __init__(self, username, password, name='aarlo',
-                 storage_dir='/config/.aarlo', dump=False, max_days=365,
-                 db_motion_time=30, db_ding_time=10,
-                 request_timeout=60, stream_timeout=0,
-                 recent_time=600, last_format='%m-%d %H:%M',
-                 no_media_upload=False,
-                 user_agent='apple', mode_api='auto',
-                 refresh_devices_every=0,
-                 http_connections=5, http_max_size=10):
+    def __init__(self, **kwargs):
 
+        # Set up the config first.
+        self._cfg = ArloCfg(self, **kwargs)
+
+        # Create storage/scratch directory.
         try:
-            os.mkdir(storage_dir)
+            os.mkdir(self._cfg.storage_dir)
         except Exception:
             pass
 
-        # base config
-        self._name = name
-        self._mode_api = mode_api
-        self._user_agent = user_agent
-
-        # refresh device config
-        self._refresh_devices_every = refresh_devices_every * 60 * 60
-
-        # custom connection pool config
-        self._http_connections = http_connections
-        self._http_max_size = http_max_size
-
-        # media config
-        self._recent_time = recent_time
-        self._last_format = last_format
-        self._no_media_upload = no_media_upload
-
-        # create components
+        # Create remaining components.
         self._bg = ArloBackground(self)
-        self._st = ArloStorage(self, name=name, storage_dir=storage_dir)
-        self._be = ArloBackEnd(self, username, password, dump=dump, storage_dir=storage_dir,
-                               request_timeout=request_timeout, stream_timeout=stream_timeout)
-        self._ml = ArloMediaLibrary(self, _max_days=max_days)
+        self._st = ArloStorage(self)
+        self._be = ArloBackEnd(self)
+        self._ml = ArloMediaLibrary(self)
 
         self._lock = threading.Lock()
         self._bases = []
         self._cameras = []
         self._doorbells = []
 
-        # on day flip we do extra work
+        # On day flip we do extra work, record today.
         self._today = datetime.date.today()
 
-        # every few hours we refresh the device list
-        self._refresh_devices_at = time.monotonic() + self._refresh_devices_every
+        # Every few hours we can refresh the device list.
+        self._refresh_devices_at = time.monotonic() + self._cfg.refresh_devices_every
 
-        # default blank image whe waiting for camera image to appear
+        # default blank image when waiting for camera image to appear
         self._blank_image = base64.standard_b64decode(BLANK_IMAGE)
 
-        # slow piece.
-        # get devices and fill local db, and create device instance
+        # Slow piece.
+        # Get devices, fill local db, and create device instance.
         self.info('pyaarlo starting')
         self._refresh_devices()
         self._parse_devices()
@@ -94,14 +73,13 @@ class PyArlo(object):
             if dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
                 self._cameras.append(ArloCamera(dname, self, device))
             if dtype == 'doorbell':
-                self._doorbells.append(ArloDoorBell(dname, self, device,
-                                                    motion_time=db_motion_time, ding_time=db_ding_time))
+                self._doorbells.append(ArloDoorBell(dname, self, device))
 
-        # save out unchanging stats!
+        # Save out unchanging stats!
         self._st.set(['ARLO', TOTAL_CAMERAS_KEY], len(self._cameras))
         self._st.set(['ARLO', TOTAL_BELLS_KEY], len(self._doorbells))
 
-        # always ping bases first!
+        # Always ping bases first!
         self._ping_bases()
 
         # Queue up initial config and state retrieval.
@@ -111,14 +89,14 @@ class PyArlo(object):
         self._bg.run_in(self._initial_refresh, 5)
         self._bg.run_in(self._ml.load, 10)
 
-        # register house keeping cron jobs
+        # Register house keeping cron jobs.
         self.debug('registering cron jobs')
         self._bg.run_every(self._fast_refresh, FAST_REFRESH_INTERVAL)
         self._bg.run_every(self._slow_refresh, SLOW_REFRESH_INTERVAL)
 
     def __repr__(self):
         # Representation string of object.
-        return "<{0}: {1}>".format(self.__class__.__name__, self._name)
+        return "<{0}: {1}>".format(self.__class__.__name__, self._cfg.name)
 
     def _refresh_devices(self):
         self._devices = self._be.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
@@ -133,7 +111,7 @@ class PyArlo(object):
                         self._st.set([device_id, key], value)
 
     def _refresh_camera_thumbnails(self):
-        """ Request latest camera thumbnails, called at start up to make. """
+        """ Request latest camera thumbnails, called at start up. """
         for camera in self._cameras:
             camera.update_last_image()
 
@@ -178,12 +156,12 @@ class PyArlo(object):
         self._bg.run(self._refresh_ambient_sensors)
 
         # do we need to reload the devices?
-        if self._refresh_devices_every != 0:
+        if self._cfg.refresh_devices_every != 0:
             now = time.monotonic()
             self.debug('device reload check {} {}'.format(str(now), str(self._refresh_devices_at)))
             if now > self._refresh_devices_at:
                 self.debug('device reload needed')
-                self._refresh_devices_at = now + self._refresh_devices_every
+                self._refresh_devices_at = now + self._cfg.refresh_devices_every
                 self._bg.run(self._refresh_devices)
         else:
             self.debug('no device reload')
@@ -198,36 +176,8 @@ class PyArlo(object):
         self._be.logout()
 
     @property
-    def name(self):
-        return self._name
-
-    @property
-    def mode_api(self):
-        return self._mode_api
-
-    @property
-    def user_agent(self):
-        return self._user_agent
-
-    @property
-    def http_connections(self):
-        return self._http_connections
-
-    @property
-    def http_max_size(self):
-        return self._http_max_size
-
-    @property
-    def recent_time(self):
-        return self._recent_time
-
-    @property
-    def last_format(self):
-        return self._last_format
-
-    @property
-    def no_media_upload(self):
-        return self._no_media_upload
+    def cfg(self):
+        return self._cfg
 
     @property
     def bg(self):
@@ -295,7 +245,7 @@ class PyArlo(object):
     def add_attr_callback(self, attr, cb):
         pass
 
-    # needs thinking about... track new cameras for example..
+    # TODO needs thinking about... track new cameras for example.
     def update(self, update_cameras=False, update_base_station=False):
         pass
 

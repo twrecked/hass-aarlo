@@ -113,7 +113,7 @@ def setup(hass, config):
     try:
         from .pyaarlo import PyArlo
 
-        arlo = PyArlo(username, password,
+        arlo = PyArlo(username=username, password=password,
                       storage_dir=conf_dir, dump=packet_dump,
                       db_motion_time=motion_time, db_ding_time=ding_time,
                       request_timeout=req_timeout, stream_timeout=str_timeout,

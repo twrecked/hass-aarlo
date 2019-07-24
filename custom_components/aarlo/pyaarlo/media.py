@@ -9,7 +9,7 @@ from .util import (arlotime_strftime, arlotime_to_datetime, http_get,
 class ArloMediaLibrary(object):
     """Arlo Library Media module implementation."""
 
-    def __init__(self, arlo, _max_days):
+    def __init__(self, arlo):
         self._arlo = arlo
         self._lock = threading.Lock()
         self._load_cbs_ = []
@@ -18,7 +18,7 @@ class ArloMediaLibrary(object):
         self._video_keys = []
 
     def __repr__(self):
-        return "<{0}:{1}>".format(self.__class__.__name__, self._arlo.name)
+        return "<{0}:{1}>".format(self.__class__.__name__, self._arlo.cfg.name)
 
     # grab recordings from last day, add to existing library if not there
     def update(self):
