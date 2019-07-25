@@ -18,6 +18,10 @@ def arlotime_to_datetime(timestamp):
     return datetime.fromtimestamp(int(timestamp / 1000))
 
 
+def http_to_datetime(http_timestamp):
+    return datetime.strptime(http_timestamp, '%a, %d %b %Y %H:%M:%S GMT')
+
+
 def now_strftime(date_format='%Y-%m-%dT%H:%M:%S'):
     return datetime.now().strftime(date_format)
 
@@ -45,6 +49,29 @@ def http_get(url, filename=None):
     with open(filename, 'wb') as data:
         data.write(ret.content)
     return True
+
+
+def http_get_img(url):
+    """Download HTTP data."""
+    if url is None:
+        return None, None
+
+    try:
+        ret = requests.get(url)
+    except requests.exceptions.SSLError:
+        return None, None
+    except Exception:
+        return None, None
+
+    if ret.status_code != 200:
+        return None, None
+
+    date = ret.headers.get('Last-Modified', None)
+    if date is not None:
+        date = http_to_datetime(date)
+    else:
+        date = datetime.now()
+    return ret.content, date
 
 
 def http_stream(url, chunk=4096):

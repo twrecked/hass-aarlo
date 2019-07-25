@@ -39,14 +39,13 @@ class ArloDevice(object):
         for cb in cbs:
             cb(self, attr, value)
 
-    def _save_and_do_callbacks(self, attr, value):
+    def _save(self, attr, value):
+        # TODO only care if it changes?
         key = [self.device_id, attr]
-        # old_value = self._arlo.st.get(key, None)
-        # enable this to only callback on updates
-        # if not old_value or old_value != value:
-        # output = 'updating ' + attr + ' for ' + self.device_id + ' to ' + str(value)
-        # self._arlo.debug( output[:90] )
         self._arlo.st.set(key, value)
+
+    def _save_and_do_callbacks(self, attr, value):
+        self._save(attr, value)
         self._do_callbacks(attr, value)
 
     @property
