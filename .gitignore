@@ -103,8 +103,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# backups
+# Me!
 *~
 .*.sw?
 *.rej
 *.orig
+*.diff
