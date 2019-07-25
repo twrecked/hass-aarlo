@@ -13,7 +13,7 @@ from .constant import (ACTIVITY_STATE_KEY, BATTERY_TECH_KEY, BRIGHTNESS_KEY,
                        SNAPSHOT_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_URL, STREAM_START_URL)
 from .device import ArloChildDevice
-from .util import http_get, now_strftime
+from .util import http_get_img
 
 
 class ArloCamera(ArloChildDevice):
@@ -63,7 +63,8 @@ class ArloCamera(ArloChildDevice):
 
         # signal video up!
         self._save_and_do_callbacks(CAPTURED_TODAY_KEY, captured_today)
-        self._save_and_do_callbacks(LAST_CAPTURE_KEY, last_captured)
+        if last_captured is not None:
+            self._save_and_do_callbacks(LAST_CAPTURE_KEY, last_captured)
         self._do_callbacks('mediaUploadNotification', True)
 
     def _clear_snapshot(self):
@@ -86,21 +87,22 @@ class ArloCamera(ArloChildDevice):
             if self._cached_videos:
                 url = self._cached_videos[0].thumbnail_url
         if url is not None:
-            self._arlo.st.set([self.device_id, LAST_IMAGE_KEY], url)
+            self._save(LAST_IMAGE_KEY, url)
             self._update_last_image()
 
     def _update_last_image(self):
         self._arlo.debug('getting image for ' + self.name)
-        img = False
-        url = self._arlo.st.get([self.device_id, LAST_IMAGE_KEY], None)
-        if url is not None:
-            img = http_get(url)
-        if img is False:
+
+        # Get image and date, if fails set to blank.
+        img, date = http_get_img(self._arlo.st.get([self.device_id, LAST_IMAGE_KEY], None))
+        if img is None:
             self._arlo.debug('using blank image for ' + self.name)
             img = self._arlo.blank_image
 
-        # signal up if nedeed
-        self._arlo.st.set([self.device_id, LAST_IMAGE_SRC_KEY], 'capture/' + now_strftime(self._arlo.cfg.last_format))
+        # signal up if needed
+        date = date.strftime(self._arlo.cfg.last_format)
+        self._save(LAST_IMAGE_SRC_KEY, 'capture/' + date)
+        self._save_and_do_callbacks(LAST_CAPTURE_KEY, date)
         self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
         # handle snapshot not being handled...
@@ -108,14 +110,13 @@ class ArloCamera(ArloChildDevice):
 
     def _update_last_image_from_snapshot(self):
         self._arlo.debug('getting image for ' + self.name)
-        url = self._arlo.st.get([self.device_id, SNAPSHOT_KEY], None)
-        if url is not None:
-            img = http_get(url)
-            if img is not False:
-                # signal up if nedeed
-                self._arlo.st.set([self.device_id, LAST_IMAGE_SRC_KEY],
-                                  'snapshot/' + now_strftime(self._arlo.cfg.last_format))
-                self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
+
+        # Get image and date, if fails ignore.
+        img, date = http_get_img(self._arlo.st.get([self.device_id, SNAPSHOT_KEY], None))
+        if img is not None:
+            date = date.strftime(self._arlo.cfg.last_format)
+            self._save(LAST_IMAGE_SRC_KEY, 'snapshot/' + date)
+            self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
         # handle snapshot finished
         self._clear_snapshot()
@@ -185,7 +186,7 @@ class ArloCamera(ArloChildDevice):
             value = event.get(STREAM_SNAPSHOT_KEY, '')
             if '/snapshots/' in value:
                 self._arlo.debug('our snapshot finished, downloading it')
-                self._arlo.st.set([self.device_id, SNAPSHOT_KEY], value)
+                self._save(SNAPSHOT_KEY, value)
                 self._arlo.bg.run_low(self._update_last_image_from_snapshot)
 
             # something just happened!
@@ -204,7 +205,7 @@ class ArloCamera(ArloChildDevice):
             value = event.get('properties', {}).get('presignedFullFrameSnapshotUrl', None)
             if value is not None:
                 self._arlo.debug('queing snapshot update')
-                self._arlo.st.set([self.device_id, SNAPSHOT_KEY], value)
+                self._save(SNAPSHOT_KEY, value)
                 self._arlo.bg.run_low(self._update_last_image_from_snapshot)
 
         # ambient sensors update
