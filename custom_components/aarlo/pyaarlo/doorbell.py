@@ -30,12 +30,12 @@ class ArloDoorBell(ArloChildDevice):
                 self._save_and_do_callbacks('motionDetected', True)
                 with self._lock:
                     self._arlo.bg.cancel(self._motion_time_job)
-                    self._motion_time_job = self._arlo.bg.run_in(self._motion_stopped, self._arlo.cfg.motion_time)
+                    self._motion_time_job = self._arlo.bg.run_in(self._motion_stopped, self._arlo.cfg.db_motion_time)
             if butp:
                 self._save_and_do_callbacks('buttonPressed', True)
                 with self._lock:
                     self._arlo.bg.cancel(self._ding_time_job)
-                    self._ding_time_job = self._arlo.bg.run_in(self._button_unpressed, self._arlo.cfg.ding_time)
+                    self._ding_time_job = self._arlo.bg.run_in(self._button_unpressed, self._arlo.cfg.db_ding_time)
             #  if acts and acts == 'idle':
             #  self._save_and_do_callbacks( 'motionDetected',False )
             #  self._save_and_do_callbacks( 'buttonPressed',False )
