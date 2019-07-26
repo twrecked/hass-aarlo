@@ -79,7 +79,7 @@ class ArloBackEnd(object):
             return None
 
         body = r.json()
-        self._arlo.debug(pprint.pformat(body, indent=2))
+        # self._arlo.debug(pprint.pformat(body, indent=2))
 
         if raw:
             return body
