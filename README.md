@@ -1,12 +1,14 @@
 # hass-aarlo
 
-### HACS TESTING
+### LOVELACE CARD
 
-**The master might currently break custom_components installation.**
+**The Custom Arlo card has moved.**
 
-Sorry about that... I had to move some pieces about and I can't test HACS without using `master`. Please use tag v0.5.1 for now... 
+Because Aarlo is now included in the default HACS store the custom Lovelace card is now in its own repository. It will be removed from this repository in the coming weeks. Checkout the card from [here](https://github.com/twrecked/lovelace-hass-aarlo).
 
-**The master might currently break custom_components installation.**
+If you aren't intersted in test builds HACS is the recomended way to install the software.
+
+**The Custom Arlo card has moved.**
 
 ### Asynchronous Arlo Component for Home Assistant.
 
@@ -15,6 +17,7 @@ The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#
 ## Table of Contents
 1. [Supported Features](#Supported-Features)
 1. [Notes](#Notes)
+1. [Thanks](#Thanks)
 1. [Installation](#Installation)
    1. [Migrating from Old Layout](#Migrating-from-Old-Layout)
    1. [Manually](#Manually)
@@ -62,17 +65,18 @@ It provides a custom lovelace resource that is a specialised version of a pictur
 ## Notes
 Wherever you see `/config` in this README it refers to your home-assistant configuration directory. For me, for example, it's `/home/steve/ha` that is mapped to `/config` inside my docker container.
 
+## Thanks
 Many thanks to:
 * [Pyarlo](https://github.com/tchellomello/python-arlo) and [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard work figuring the API out and the free Python lesson!
 * [sseclient](https://github.com/btubbs/sseclient) for reading from the event stream
 * [Button Card](https://github.com/kuuji/button-card/blob/master/button-card.js) for a working lovelace card I could understand
+* [![JetBrains](/images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo) for the excellent **PyCharm IDE** and providing me with an open source license to speed up the project development.
 
 ## Installation
 
-### Migrating from Old Layout
-**This only needs to be done once and only if you installed an older version of `hass-aarlo`.** 
-
-Home Assitant moved to a new layout for custom components, running the `remove_old` script will show a list of commands needed to remove the old installation. You will need to enter these commands manually. After running the command and, if they are empty, it's safe to remove the `alarm_control_panel`, `binary_sensor`, `sensor` and `camera` directories from your `/config/custom_components` directory
+### HACS
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+Aarlo is part of the default HACS store. If you're not interested in development branches this is the easiest way to install.
 
 ### Manually
 Copy the `aarlo`directory into your `/config/custom_components` directory.
@@ -87,6 +91,11 @@ install /config
 # check output looks good
 install go /config
 ```
+
+### Migrating from Old Layout
+**This only needs to be done once and only if you installed an older version of `hass-aarlo`.** 
+
+Home Assitant moved to a new layout for custom components, running the `remove_old` script will show a list of commands needed to remove the old installation. You will need to enter these commands manually. After running the command and, if they are empty, it's safe to remove the `alarm_control_panel`, `binary_sensor`, `sensor` and `camera` directories from your `/config/custom_components` directory
 
 ## Component Configuration
 For the simplest use replace all instances of the `arlo` with `aarlo` in your home-assistant configuration files. To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list.
