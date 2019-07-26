@@ -1,5 +1,4 @@
 import time
-import logging
 from datetime import datetime, timezone
 
 import requests
@@ -32,8 +31,8 @@ def httptime_to_datetime(http_timestamp):
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
 
-def httptime_strftime(http_timestamp,date_format='%Y-%m-%dT%H:%M:%S'):
-    return httptime_to_datetime.strftime(date_format)
+def httptime_strftime(http_timestamp, date_format='%Y-%m-%dT%H:%M:%S'):
+    return httptime_to_datetime(http_timestamp).strftime(date_format)
 
 
 def _http_get(url):
@@ -44,17 +43,17 @@ def _http_get(url):
 
     try:
         ret = requests.get(url)
-    except requests.exceptions.SSLError as e:
+    except requests.exceptions.SSLError:
         return None
-    except Exception as e:
+    except Exception:
         return None
 
     if ret.status_code != 200:
         return None
     return ret
 
-def http_get(url, filename=None):
 
+def http_get(url, filename=None):
     # make request
     ret = _http_get(url)
     if ret is None:
@@ -69,7 +68,6 @@ def http_get(url, filename=None):
 
 
 def http_get_img(url):
-
     # make request
     ret = _http_get(url)
     if ret is None:

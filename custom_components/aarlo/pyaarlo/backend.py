@@ -51,9 +51,9 @@ class ArloBackEnd(object):
             timeout = self._arlo.cfg.request_timeout
         try:
             with self._req_lock:
-                self._arlo.debug('starting request=' + str(url))
-                self._arlo.debug('starting request=' + str(params))
-                self._arlo.debug('starting request=' + str(headers))
+                # self._arlo.debug('starting request=' + str(url))
+                # self._arlo.debug('starting request=' + str(params))
+                # self._arlo.debug('starting request=' + str(headers))
                 if method == 'GET':
                     r = self._session.get(url, params=params, headers=headers, stream=stream, timeout=timeout)
                     if stream is True:
@@ -328,7 +328,6 @@ class ArloBackEnd(object):
             headers['User-Agent'] = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
                                      'Chrome/72.0.3626.81 Safari/537.36')
 
-        self._arlo.debug( 'headers={}'.format(headers['User-Agent']))
         self._session.headers.update(headers)
         return True
 
