@@ -28,7 +28,7 @@ class ArloCamera(ArloChildDevice):
         self._lock = threading.Condition()
         self._snapshot_state = 'idle'
         self._clear_snapshot_cb = None
-        self._arlo.bg.run_in(self._update_media, 10)
+        self._arlo.bg.run_in(self._update_media, 20)
 
     def _set_recent(self, timeo):
         with self._lock:
