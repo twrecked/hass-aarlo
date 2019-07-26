@@ -89,3 +89,7 @@ class ArloCfg(object):
     @property
     def http_max_size(self, default=10):
         return self._kw.get('http_maz_size', default)
+
+    @property
+    def reconnect_every(self, default=0):
+        return self._kw.get('reconnect_every', default) * 60

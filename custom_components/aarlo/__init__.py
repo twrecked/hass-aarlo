@@ -41,6 +41,7 @@ CONF_MODE_API = 'mode_api'
 CONF_DEVICE_REFRESH = 'refresh_devices_every'
 CONF_HTTP_CONNECTIONS = 'http_connections'
 CONF_HTTP_MAX_SIZE = 'http_max_size'
+CONF_RECONNECT_EVERY = 'reconnect_every'
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -58,6 +59,7 @@ MODE_API = 'auto'
 DEVICE_REFRESH = 0
 HTTP_CONNECTIONS = 5
 HTTP_MAX_SIZE = 10
+RECONNECT_EVERY = 0
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
@@ -79,6 +81,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_DEVICE_REFRESH, default=DEVICE_REFRESH): cv.positive_int,
         vol.Optional(CONF_HTTP_CONNECTIONS, default=HTTP_CONNECTIONS): cv.positive_int,
         vol.Optional(CONF_HTTP_MAX_SIZE, default=HTTP_MAX_SIZE): cv.positive_int,
+        vol.Optional(CONF_RECONNECT_EVERY, default=RECONNECT_EVERY): cv.positive_int,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -105,6 +108,7 @@ def setup(hass, config):
     device_refresh = conf.get(CONF_DEVICE_REFRESH)
     http_connections = conf.get(CONF_HTTP_CONNECTIONS)
     http_max_size = conf.get(CONF_HTTP_MAX_SIZE)
+    reconnect_every = conf.get(CONF_RECONNECT_EVERY)
 
     # Fix up config
     if conf_dir == '':
@@ -113,14 +117,14 @@ def setup(hass, config):
     try:
         from .pyaarlo import PyArlo
 
-        arlo = PyArlo(username=username, password=password,
+        arlo = PyArlo(username=username, password=password, cache_videos=cache_videos,
                       storage_dir=conf_dir, dump=packet_dump,
                       db_motion_time=motion_time, db_ding_time=ding_time,
                       request_timeout=req_timeout, stream_timeout=str_timeout,
                       recent_time=recent_time, last_format=last_format,
                       no_media_upload=no_media_up,
                       user_agent=user_agent, mode_api=mode_api,
-                      refresh_devices_every=device_refresh,
+                      refresh_devices_every=device_refresh, reconnect_every=reconnect_every,
                       http_connections=http_connections, http_max_size=http_max_size)
         if not arlo.is_connected:
             return False
@@ -130,9 +134,7 @@ def setup(hass, config):
     except (ConnectTimeout, HTTPError) as ex:
         _LOGGER.error("Unable to connect to Netgear Arlo: %s", str(ex))
         hass.components.persistent_notification.create(
-            'Error: {}<br />'
-            'You will need to restart hass after fixing.'
-            ''.format(ex),
+            'Error: {}<br />You will need to restart hass after fixing.'.format(ex),
             title=NOTIFICATION_TITLE,
             notification_id=NOTIFICATION_ID)
         return False
