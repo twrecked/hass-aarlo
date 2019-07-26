@@ -45,6 +45,7 @@ class ArloBackEnd(object):
 
         # start logout daemon
         if self._arlo.cfg.reconnect_every != 0:
+            self._arlo.debug('automatically reconneting')
             self._arlo.bg.run_every(self.logout, self._arlo.cfg.reconnect_every)
 
     def _request(self, url, method='GET', params=None, headers=None, stream=False, raw=False, timeout=None):
@@ -56,9 +57,9 @@ class ArloBackEnd(object):
             timeout = self._arlo.cfg.request_timeout
         try:
             with self._req_lock:
-                self._arlo.debug('starting request=' + str(url))
-                self._arlo.debug('starting request=' + str(params))
-                self._arlo.debug('starting request=' + str(headers))
+                # self._arlo.debug('starting request=' + str(url))
+                # self._arlo.debug('starting request=' + str(params))
+                # self._arlo.debug('starting request=' + str(headers))
                 if method == 'GET':
                     r = self._session.get(url, params=params, headers=headers, stream=stream, timeout=timeout)
                     if stream is True:
