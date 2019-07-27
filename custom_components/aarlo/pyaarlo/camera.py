@@ -11,7 +11,7 @@ from .constant import (ACTIVITY_STATE_KEY, BATTERY_TECH_KEY, BRIGHTNESS_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
                        POWER_SAVE_KEY, PRELOAD_DAYS,
                        SNAPSHOT_KEY, STREAM_SNAPSHOT_KEY,
-                       STREAM_SNAPSHOT_URL, STREAM_START_URL)
+                       STREAM_SNAPSHOT_URL, STREAM_START_URL, CAMERA_MEDIA_DELAY)
 from .device import ArloChildDevice
 from .util import http_get_img
 
@@ -28,7 +28,7 @@ class ArloCamera(ArloChildDevice):
         self._lock = threading.Condition()
         self._snapshot_state = 'idle'
         self._clear_snapshot_cb = None
-        self._arlo.bg.run_in(self._update_media, 20)
+        self._arlo.bg.run_in(self._update_media, CAMERA_MEDIA_DELAY)
 
     def _set_recent(self, timeo):
         with self._lock:
