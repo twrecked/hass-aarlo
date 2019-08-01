@@ -13,8 +13,8 @@ import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 import homeassistant.util.dt as dt_util
 from homeassistant.components.alarm_control_panel import (
-    ATTR_ENTITY_ID, DOMAIN, PLATFORM_SCHEMA, AlarmControlPanel)
-from homeassistant.const import (ATTR_ATTRIBUTION, CONF_TRIGGER_TIME,
+    DOMAIN, PLATFORM_SCHEMA, AlarmControlPanel)
+from homeassistant.const import (ATTR_ATTRIBUTION, ATTR_ENTITY_ID, CONF_TRIGGER_TIME,
                                  STATE_ALARM_ARMED_AWAY,
                                  STATE_ALARM_ARMED_HOME,
                                  STATE_ALARM_ARMED_NIGHT,
