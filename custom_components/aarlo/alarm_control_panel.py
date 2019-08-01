@@ -14,9 +14,9 @@ import homeassistant.util.dt as dt_util
 from homeassistant.helpers.event import track_point_in_time
 from homeassistant.core import callback
 from homeassistant.components.alarm_control_panel import (
-        AlarmControlPanel, DOMAIN, PLATFORM_SCHEMA,
-        ATTR_ENTITY_ID )
+        AlarmControlPanel, DOMAIN, PLATFORM_SCHEMA )
 from homeassistant.const import (
+        ATTR_ENTITY_ID,
         ATTR_ATTRIBUTION,
         CONF_TRIGGER_TIME,
         STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME, STATE_ALARM_DISARMED, STATE_ALARM_ARMED_NIGHT, STATE_ALARM_TRIGGERED )
