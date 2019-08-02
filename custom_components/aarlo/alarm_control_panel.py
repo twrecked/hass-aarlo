@@ -12,15 +12,18 @@ import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
 import homeassistant.util.dt as dt_util
-from homeassistant.components.alarm_control_panel import (
-    DOMAIN, PLATFORM_SCHEMA, AlarmControlPanel)
-from homeassistant.const import (ATTR_ATTRIBUTION, ATTR_ENTITY_ID, CONF_TRIGGER_TIME,
+from homeassistant.components.alarm_control_panel import (DOMAIN,
+                                                          AlarmControlPanel)
+from homeassistant.const import (ATTR_ATTRIBUTION,
+                                 ATTR_ENTITY_ID,
+                                 CONF_TRIGGER_TIME,
                                  STATE_ALARM_ARMED_AWAY,
                                  STATE_ALARM_ARMED_HOME,
                                  STATE_ALARM_ARMED_NIGHT,
                                  STATE_ALARM_DISARMED,
                                  STATE_ALARM_TRIGGERED)
 from homeassistant.core import callback
+from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import track_point_in_time
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 

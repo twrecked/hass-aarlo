@@ -12,11 +12,13 @@ from .camera import ArloCamera
 from .cfg import ArloCfg
 from .constant import (BLANK_IMAGE, DEVICE_KEYS, DEVICES_URL,
                        FAST_REFRESH_INTERVAL, SLOW_REFRESH_INTERVAL,
-                       TOTAL_BELLS_KEY, TOTAL_CAMERAS_KEY)
+                       TOTAL_BELLS_KEY, TOTAL_CAMERAS_KEY, MEDIA_LIBRARY_DELAY, REFRESH_CAMERA_DELAY,
+                       INITIAL_REFRESH_DELAY)
 from .doorbell import ArloDoorBell
 from .media import ArloMediaLibrary
 from .storage import ArloStorage
 from .util import time_to_arlotime
+
 
 _LOGGER = logging.getLogger('pyaarlo')
 
@@ -84,10 +86,10 @@ class PyArlo(object):
 
         # Queue up initial config and state retrieval.
         self.debug('getting initial settings')
-        self._bg.run_in(self._refresh_camera_thumbnails, 2)
-        self._bg.run_in(self._refresh_camera_media, 2)
-        self._bg.run_in(self._initial_refresh, 5)
-        self._bg.run_in(self._ml.load, 10)
+        self._bg.run_in(self._refresh_camera_thumbnails, REFRESH_CAMERA_DELAY)
+        self._bg.run_in(self._refresh_camera_media, REFRESH_CAMERA_DELAY)
+        self._bg.run_in(self._initial_refresh, INITIAL_REFRESH_DELAY)
+        self._bg.run_in(self._ml.load, MEDIA_LIBRARY_DELAY)
 
         # Register house keeping cron jobs.
         self.debug('registering cron jobs')

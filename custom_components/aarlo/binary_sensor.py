@@ -9,11 +9,11 @@ import logging
 import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-from homeassistant.components.binary_sensor import (
-    PLATFORM_SCHEMA, BinarySensorDevice)
+from homeassistant.components.binary_sensor import (BinarySensorDevice)
 from homeassistant.const import (ATTR_ATTRIBUTION,
                                  CONF_MONITORED_CONDITIONS)
 from homeassistant.core import callback
+from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 
 _LOGGER = logging.getLogger(__name__)

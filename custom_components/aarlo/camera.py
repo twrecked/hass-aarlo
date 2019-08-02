@@ -11,20 +11,22 @@ import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components import websocket_api
-from homeassistant.components.camera import (ATTR_ENTITY_ID,
-                                             ATTR_FILENAME,
+from homeassistant.components.camera import (ATTR_FILENAME,
                                              CAMERA_SERVICE_SCHEMA,
                                              CAMERA_SERVICE_SNAPSHOT,
-                                             DOMAIN, PLATFORM_SCHEMA,
+                                             DOMAIN,
                                              STATE_IDLE,
                                              STATE_RECORDING,
-                                             STATE_STREAMING, Camera)
+                                             STATE_STREAMING,
+                                             Camera)
 from homeassistant.components.ffmpeg import DATA_FFMPEG
-from homeassistant.const import ATTR_ATTRIBUTION, ATTR_BATTERY_LEVEL
+from homeassistant.const import (ATTR_ATTRIBUTION,
+                                 ATTR_BATTERY_LEVEL,
+                                 ATTR_ENTITY_ID)
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.aiohttp_client import \
-    async_aiohttp_proxy_stream
+from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
+from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 
 _LOGGER = logging.getLogger(__name__)

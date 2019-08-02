@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$/../3rdparty/hls.js" />
     <content url="file://$MODULE_DIR$" />
     <content url="file://$MODULE_DIR$/../home-assistant" />
+    <content url="file://$MODULE_DIR$/../home-assistant-polymer" />
     <content url="file://$MODULE_DIR$/../lovelace-hass-aarlo" />
     <orderEntry type="jdk" jdkName="Python 3.7 (env)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

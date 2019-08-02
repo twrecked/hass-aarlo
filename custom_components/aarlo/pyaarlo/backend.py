@@ -7,8 +7,9 @@ import uuid
 import requests
 
 from .constant import (LOGIN_URL, LOGOUT_URL,
-                       NOTIFY_URL, SUBSCRIBE_URL, TRANSID_PREFIX)
+                       NOTIFY_URL, SUBSCRIBE_URL, TRANSID_PREFIX, DEVICES_URL)
 from .sseclient import SSEClient
+from .util import time_to_arlotime
 
 
 # include token and session details
@@ -41,6 +42,11 @@ class ArloBackEnd(object):
 
         # event loop thread - started as needed
         self._ev_start()
+
+        # start logout daemon
+        if self._arlo.cfg.reconnect_every != 0:
+            self._arlo.debug('automatically reconneting')
+            self._arlo.bg.run_every(self.logout, self._arlo.cfg.reconnect_every)
 
     def _request(self, url, method='GET', params=None, headers=None, stream=False, raw=False, timeout=None):
         if params is None:
@@ -129,6 +135,7 @@ class ArloBackEnd(object):
             self._arlo.debug('async ping response ' + resource)
             return
 
+        # Just note this, we might not really care about this message.
         else:
             self._arlo.debug('unhandled response ' + resource)
             return
@@ -199,6 +206,8 @@ class ArloBackEnd(object):
                     self._lock.wait(5)
                 self._arlo.debug('re-logging in')
                 self._logged_in = self._login()
+                if self._logged_in:
+                    self.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
 
             # get stream, restart after requested seconds of inactivity or forced close
             try:
@@ -335,6 +344,9 @@ class ArloBackEnd(object):
         return self._logged_in
 
     def logout(self):
+        self._arlo.debug('trying to logout')
+        if self._ev_stream is not None:
+            self._ev_stream.stop()
         self.put(LOGOUT_URL)
 
     def get(self, url, params=None, headers=None, stream=False, raw=False, timeout=None):
