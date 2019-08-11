@@ -30,7 +30,10 @@ class ArloBackgroundWorker(threading.Thread):
 
                     # run it
                     # print( 'run:' + str(int(time.monotonic())) + ' run_at=' + str(run_at) )
-                    job['callback'](**job['args'])
+                    try:
+                        job['callback'](**job['args'])
+                    except Exception as e:
+                        self.log.debug( 'job-error='.format(type(e).__name__) )
 
                     # reschedule?
                     self._lock.acquire()

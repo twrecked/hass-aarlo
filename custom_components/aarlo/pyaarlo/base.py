@@ -161,7 +161,8 @@ class ArloBase(ArloDevice):
 
     def update_modes(self):
         if self._v1_modes:
-            self._arlo.be.notify(base=self, body={"action": "get", "resource": "modes", "publishResponse": False})
+            resp = self._arlo.be.notify_and_get_response(base=self, body={"action": "get", "resource": "modes", "publishResponse": False})
+            self._event_handler( 'modes',resp )
         else:
             modes = self._arlo.be.get(DEFINITIONS_URL + "?uniqueIds={}".format(self.unique_id))
             modes = modes.get(self.unique_id, {})

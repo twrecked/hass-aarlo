@@ -191,7 +191,7 @@ class ArloBackEnd(object):
                 if tid and tid in self._requests:
                     self._requests[tid] = response
                     self._lock.notify_all()
-                    # continue
+                    continue
 
             self._ev_dispatcher(response)
 
