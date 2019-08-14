@@ -81,8 +81,6 @@ Aarlo is part of the default HACS store. If you're not interested in development
 ### Manually
 Copy the `aarlo`directory into your `/config/custom_components` directory.
 
-Copy the `www` directory into you `/config` directory.
-
 ### From Script
 Run the install script. Run it once to make sure the operations look sane and run it a second time with the `go` paramater to do the actual work. If you update just rerun the script, it will overwrite all installed files.
 
