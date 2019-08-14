@@ -23,7 +23,7 @@ class ArloCfg(object):
         return self._kw.get('storage_dir', default)
 
     @property
-    def name(self, default='arlo'):
+    def name(self, default='aarlo'):
         return self._kw.get('name', default)
 
     @property
