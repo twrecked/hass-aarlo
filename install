@@ -30,8 +30,8 @@ if [[ -f "${DEST}/custom_components/sensor/aarlo.py" ]]; then
 	echo "****"
 fi
 
-${ECHO} mkdir -p "${DEST}/www"
-${ECHO} cp -afv dist/hass-aarlo.js "${DEST}/www/aarlo-glance.js"
+#${ECHO} mkdir -p "${DEST}/www"
+#${ECHO} cp -afv dist/hass-aarlo.js "${DEST}/www/aarlo-glance.js"
 
 ${ECHO} mkdir -p "${DEST}/custom_components"
 ${ECHO} cp -afv custom_components/aarlo "${DEST}/custom_components"
