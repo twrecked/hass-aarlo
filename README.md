@@ -10,6 +10,12 @@ If you aren't intersted in test builds HACS is the recomended way to install the
 
 **The Custom Arlo card has moved.**
 
+**Streaming**
+
+As of Arlo 0.97 streaming works straight out of the box
+
+**Streaming**
+
 ### Asynchronous Arlo Component for Home Assistant.
 
 The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#/cameras) web site - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system. Currently it only lets you set base station modes.
