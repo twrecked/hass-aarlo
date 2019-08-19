@@ -2,6 +2,7 @@
 0.0.2: Added manifest to aarlo
 
 aarlo:
+0.5.6: mirror pyaarlo version
 0.5.5: Rename 'object' variable in library
 0.5.4: Fix missing ATTR_ENTITY_ID
 0.5.3: Tidied up battery and wired status
@@ -23,6 +24,7 @@ aarlo:
 0.0.4: mirror pyaarlo version
 
 pyaarlo:
+0.5.6: initial Ultra support
 0.5.5: mirror aarlo version
 0.5.4: mirror aarlo version
 0.5.3: Tidied up battery and wired status
