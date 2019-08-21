@@ -225,7 +225,7 @@ class ArloBackEnd(object):
     def _ev_start( self ):
         self._ev_stream     = None
         self._ev_connected_ = False
-        self._evt           = threading.Thread( name="EventStream",target=self._ev_thread,args=() )
+        self._evt           = threading.Thread( name="ArloEventStream",target=self._ev_thread,args=() )
         self._evt.setDaemon(True)
         self._evt.start()
 
