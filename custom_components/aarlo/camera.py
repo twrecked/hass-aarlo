@@ -97,7 +97,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     cameras = []
     for camera in arlo.cameras:
-        cameras.append( ArloCam(hass, camera, config) )
+        cameras.append( ArloCam(camera, config) )
 
     async_add_entities(cameras)
 
@@ -137,7 +137,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
-    def __init__( self,hass,camera,config ):
+    def __init__( self,camera,config ):
         """Initialize an Arlo camera."""
         super().__init__()
         self._name          = camera.name
