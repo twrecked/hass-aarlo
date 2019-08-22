@@ -161,7 +161,8 @@ class ArloBase(ArloDevice):
 
     def update_modes(self):
         if self._v1_modes:
-            resp = self._arlo.be.notify_and_get_response(base=self, body={"action": "get", "resource": "modes", "publishResponse": False})
+            resp = self._arlo.be.notify_and_get_response(base=self, body={"action": "get", "resource": "modes",
+                                                                          "publishResponse": False})
             props = resp.get('properties', {})
             self._parse_modes(props.get('modes', []))
         else:
