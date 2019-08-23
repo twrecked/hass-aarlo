@@ -3,7 +3,6 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
     <content url="file://$MODULE_DIR$/../imports" />
-    <content url="file://$MODULE_DIR$/../lovelace-hass-aarlo" />
     <orderEntry type="jdk" jdkName="Python 3.7 (env)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
