@@ -11,7 +11,7 @@ import voluptuous as vol
 from requests.exceptions import HTTPError, ConnectTimeout
 
 from homeassistant.const import (
-    CONF_USERNAME, CONF_PASSWORD, CONF_SCAN_INTERVAL)
+    CONF_USERNAME, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_HOST)
 from homeassistant.helpers import config_validation as cv
 
 __version__ = '0.5.11'
@@ -65,6 +65,7 @@ CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_HOST): cv.url,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
         vol.Optional(CONF_PACKET_DUMP, default=PACKET_DUMP): cv.boolean,
         vol.Optional(CONF_CACHE_VIDEOS, default=CACHE_VIDEOS): cv.boolean,
@@ -93,6 +94,7 @@ def setup(hass, config):
     conf = config[DOMAIN]
     username = conf.get(CONF_USERNAME)
     password = conf.get(CONF_PASSWORD)
+    host = conf.get(CONF_HOST)
     packet_dump = conf.get(CONF_PACKET_DUMP)
     cache_videos = conf.get(CONF_CACHE_VIDEOS)
     motion_time = conf.get(CONF_DB_MOTION_TIME).total_seconds()
@@ -118,7 +120,7 @@ def setup(hass, config):
         from .pyaarlo import PyArlo
 
         arlo = PyArlo(username=username, password=password, cache_videos=cache_videos,
-                      storage_dir=conf_dir, dump=packet_dump,
+                      storage_dir=conf_dir, dump=packet_dump, host=host,
                       db_motion_time=motion_time, db_ding_time=ding_time,
                       request_timeout=req_timeout, stream_timeout=str_timeout,
                       recent_time=recent_time, last_format=last_format,
