@@ -10,7 +10,7 @@ from .background import ArloBackground
 from .base import ArloBase
 from .camera import ArloCamera
 from .cfg import ArloCfg
-from .constant import (BLANK_IMAGE, DEVICE_KEYS, DEVICES_URL,
+from .constant import (BLANK_IMAGE, DEVICE_KEYS, DEVICES_PATH,
                        FAST_REFRESH_INTERVAL, SLOW_REFRESH_INTERVAL,
                        TOTAL_BELLS_KEY, TOTAL_CAMERAS_KEY, MEDIA_LIBRARY_DELAY, REFRESH_CAMERA_DELAY,
                        INITIAL_REFRESH_DELAY)
@@ -101,7 +101,7 @@ class PyArlo(object):
         return "<{0}: {1}>".format(self.__class__.__name__, self._cfg.name)
 
     def _refresh_devices(self):
-        self._devices = self._be.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
+        self._devices = self._be.get(DEVICES_PATH + "?t={}".format(time_to_arlotime()))
 
     def _parse_devices(self):
         for device in self._devices:
