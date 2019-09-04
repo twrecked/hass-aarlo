@@ -21,16 +21,16 @@ _LOGGER = logging.getLogger(__name__)
 DEPENDENCIES = ['aarlo']
 
 SIRENS_DEFAULT = False
-SIREN_ON_FOR_DEFAULT = timedelta(seconds=30)
-SIREN_VOLUME_DEFAULT = 5
+SIREN_DURATION_DEFAULT = timedelta(seconds=30)
+SIREN_VOLUME_DEFAULT = "5"
 SIREN_ALLOW_OFF_DEFAULT = True
-SINGLE_SIREN_DEFAULT = False
+ALL_SIRENS_DEFAULT = False
 SNAPSHOTS_DEFAULT = False
 SNAPSHOT_TIMEOUT_DEFAULT = timedelta(seconds=30)
 
 CONF_SIRENS = "siren"
-CONF_SINGLE_SIREN = "single_siren"
-CONF_SIREN_ON_FOR = "siren_on_for"
+CONF_ALL_SIRENS = "all_sirens"
+CONF_SIREN_DURATION = "siren_duration"
 CONF_SIREN_VOLUME = "siren_volume"
 CONF_SIREN_ALLOW_OFF = "siren_allow_off"
 CONF_SNAPSHOT = "snapshot"
@@ -38,9 +38,9 @@ CONF_SNAPSHOT_TIMEOUT = "snapshot_timeout"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_SIRENS, default=SIRENS_DEFAULT): cv.boolean,
-    vol.Optional(CONF_SINGLE_SIREN, default=SINGLE_SIREN_DEFAULT): cv.boolean,
-    vol.Optional(CONF_SIREN_ON_FOR, default=SIREN_ON_FOR_DEFAULT): vol.All(cv.time_period, cv.positive_timedelta),
-    vol.Optional(CONF_SIREN_VOLUME, default=SIREN_VOLUME_DEFAULT): vol.All(cv.time_period, cv.positive_timedelta),
+    vol.Optional(CONF_ALL_SIRENS, default=ALL_SIRENS_DEFAULT): cv.boolean,
+    vol.Optional(CONF_SIREN_DURATION, default=SIREN_DURATION_DEFAULT): vol.All(cv.time_period, cv.positive_timedelta),
+    vol.Optional(CONF_SIREN_VOLUME, default=SIREN_VOLUME_DEFAULT): cv.string,
     vol.Optional(CONF_SIREN_ALLOW_OFF, default=SIREN_ALLOW_OFF_DEFAULT): cv.boolean,
     vol.Optional(CONF_SNAPSHOT, default=SNAPSHOTS_DEFAULT): cv.boolean,
     vol.Optional(CONF_SNAPSHOT_TIMEOUT, default=SNAPSHOT_TIMEOUT_DEFAULT): vol.All(cv.time_period,
@@ -64,7 +64,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         for camera in arlo.cameras:
             switches.append(AarloSnapshotSwitch(config, camera))
 
-    if config.get(CONF_SINGLE_SIREN) is True:
+    if config.get(CONF_ALL_SIRENS) is True:
         switches.append(AarloSingleSirenSwitch(config))
 
     async_add_entities(switches, True)
@@ -159,16 +159,19 @@ class AarloSirenSwitch(AarloMomentarySwitch):
 
     def __init__(self, config, base):
         """Initialize the Aarlo siren switch device."""
-        super().__init__("{0} Siren".format(base.name), "alarm-bell", config.get(CONF_SIREN_ON_FOR),
+        super().__init__("{0} Siren".format(base.name), "alarm-bell", config.get(CONF_SIREN_DURATION),
                          config.get(CONF_SIREN_ALLOW_OFF))
+        self._base = base
         self._volume = config.get(CONF_SIREN_VOLUME)
         _LOGGER.debug("{0}".format(str(config)))
 
     def do_on(self):
         _LOGGER.debug("turned siren {} on".format(self._name))
+        self._base.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
 
     def do_off(self):
         _LOGGER.debug("turned siren {} off".format(self._name))
+        self._base.siren_off()
 
 
 class AarloSingleSirenSwitch(AarloMomentarySwitch):
@@ -176,22 +179,24 @@ class AarloSingleSirenSwitch(AarloMomentarySwitch):
 
     def __init__(self, config):
         """Initialize the Aarlo siren switch device."""
-        super().__init__("All Sirens", "alarm-light", config.get(CONF_SIREN_ON_FOR), config.get(CONF_SIREN_ALLOW_OFF))
+        super().__init__("All Sirens", "alarm-light", config.get(CONF_SIREN_DURATION), config.get(CONF_SIREN_ALLOW_OFF))
         self._volume = config.get(CONF_SIREN_VOLUME)
 
     def do_on(self):
         arlo = self.hass.data.get(DATA_ARLO)
         if arlo:
-            _LOGGER.debug("turned sirens on")
+            _LOGGER.debug("turned all sirens on")
             for base in arlo.base_stations:
                 _LOGGER.debug("turned sirens on {}".format(base.name))
+                base.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
 
     def do_off(self):
         arlo = self.hass.data.get(DATA_ARLO)
         if arlo:
-            _LOGGER.debug("turned sirens off")
+            _LOGGER.debug("turned all sirens off")
             for base in arlo.base_stations:
                 _LOGGER.debug("turned sirens off {}".format(base.name))
+                base.siren_off()
 
 
 class AarloSnapshotSwitch(AarloSwitch):
