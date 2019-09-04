@@ -59,6 +59,9 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         for base in arlo.base_stations:
             if base.has_capability('siren'):
                 switches.append(AarloSirenSwitch(config, base))
+        for camera in arlo.cameras:
+            if camera.has_capability('siren'):
+                switches.append(AarloSirenSwitch(config, camera))
 
     if config.get(CONF_SNAPSHOT) is True:
         for camera in arlo.cameras:
@@ -187,16 +190,24 @@ class AarloSingleSirenSwitch(AarloMomentarySwitch):
         if arlo:
             _LOGGER.debug("turned all sirens on")
             for base in arlo.base_stations:
-                _LOGGER.debug("turned sirens on {}".format(base.name))
-                base.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
+                if base.has_capability('siren'):
+                    _LOGGER.debug("turned sirens on {}".format(base.name))
+                    base.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
+            for camera in arlo.cameras:
+                if camera.has_capability('siren'):
+                    camera.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
 
     def do_off(self):
         arlo = self.hass.data.get(DATA_ARLO)
         if arlo:
             _LOGGER.debug("turned all sirens off")
             for base in arlo.base_stations:
-                _LOGGER.debug("turned sirens off {}".format(base.name))
-                base.siren_off()
+                if base.has_capability('siren'):
+                    _LOGGER.debug("turned sirens off {}".format(base.name))
+                    base.siren_off()
+            for camera in arlo.cameras:
+                if camera.has_capability('siren'):
+                    camera.siren_off()
 
 
 class AarloSnapshotSwitch(AarloSwitch):
