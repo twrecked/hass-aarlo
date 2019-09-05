@@ -24,6 +24,7 @@ from homeassistant.const import (ATTR_ATTRIBUTION,
                                  STATE_ALARM_DISARMED,
                                  STATE_ALARM_TRIGGERED)
 from homeassistant.core import callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import track_point_in_time
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
@@ -83,6 +84,7 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
     vol.Required('type'): WS_TYPE_SIREN_OFF,
     vol.Required('entity_id'): cv.entity_id
 })
+
 
 async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up the Arlo Alarm Control Panels."""
@@ -235,21 +237,21 @@ class ArloBaseStation(AlarmControlPanel):
         self._base.mode = lmode
 
     def siren_on(self, duration=30, volume=10):
-        if self._base.has_capability( 'siren' ):
+        if self._base.has_capability('siren'):
             _LOGGER.debug("{0} siren on {1}/{2}".format(self.unique_id, volume, duration))
             self._base.siren_on(duration=duration, volume=volume)
             return True
         return False
 
     def siren_off(self):
-        if self._base.has_capability( 'siren' ):
+        if self._base.has_capability('siren'):
             _LOGGER.debug("{0} siren off".format(self.unique_id))
             self._base.siren_off()
             return True
         return False
 
-    def async_siren_on(self,duration,volume):
-        return self.hass.async_add_job(self.siren_on,duration=duration,volume=volume)
+    def async_siren_on(self, duration, volume):
+        return self.hass.async_add_job(self.siren_on, duration=duration, volume=volume)
 
     def async_siren_off(self):
         return self.hass.async_add_job(self.siren_off)
@@ -272,7 +274,7 @@ async def websocket_siren_on(hass, connection, msg):
     base = _get_base_from_entity_id(hass, msg['entity_id'])
     _LOGGER.debug('stop_activity for ' + str(base.unique_id))
 
-    siren = await base.async_siren_on(duration=msg['duration'],volume=msg['volume'])
+    await base.async_siren_on(duration=msg['duration'], volume=msg['volume'])
     connection.send_message(websocket_api.result_message(
         msg['id'], {
             'siren': 'on'
@@ -285,7 +287,7 @@ async def websocket_siren_off(hass, connection, msg):
     base = _get_base_from_entity_id(hass, msg['entity_id'])
     _LOGGER.debug('stop_activity for ' + str(base.unique_id))
 
-    siren = await base.async_siren_off()
+    await base.async_siren_off()
     connection.send_message(websocket_api.result_message(
         msg['id'], {
             'siren': 'off'
@@ -306,4 +308,3 @@ async def aarlo_siren_on_service_handler(base, service):
 
 async def aarlo_siren_off_service_handler(base, _service):
     base.siren_off()
-

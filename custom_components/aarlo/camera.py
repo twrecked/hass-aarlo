@@ -378,21 +378,21 @@ class ArloCam(Camera):
         return self.hass.async_add_job(self.stop_activity)
 
     def siren_on(self, duration=30, volume=10):
-        if self._camera.has_capability( 'siren' ):
+        if self._camera.has_capability('siren'):
             _LOGGER.debug("{0} siren on {1}/{2}".format(self.unique_id, volume, duration))
             self._camera.siren_on(duration=duration, volume=volume)
             return True
         return False
 
     def siren_off(self):
-        if self._camera.has_capability( 'siren' ):
+        if self._camera.has_capability('siren'):
             _LOGGER.debug("{0} siren off".format(self.unique_id))
             self._camera.siren_off()
             return True
         return False
 
-    def async_siren_on(self,duration,volume):
-        return self.hass.async_add_job(self.siren_on,duration=duration,volume=volume)
+    def async_siren_on(self, duration, volume):
+        return self.hass.async_add_job(self.siren_on, duration=duration, volume=volume)
 
     def async_siren_off(self):
         return self.hass.async_add_job(self.siren_off)
@@ -500,29 +500,32 @@ async def websocket_stop_activity(hass, connection, msg):
         }
     ))
 
+
 @websocket_api.async_response
 async def websocket_siren_on(hass, connection, msg):
     camera = _get_camera_from_entity_id(hass, msg['entity_id'])
     _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
 
-    stopped = await camera.async_siren_on(duration=msg['duration'],volume=msg['volume'])
+    await camera.async_siren_on(duration=msg['duration'], volume=msg['volume'])
     connection.send_message(websocket_api.result_message(
         msg['id'], {
             'siren': 'on'
         }
     ))
 
+
 @websocket_api.async_response
 async def websocket_siren_off(hass, connection, msg):
     camera = _get_camera_from_entity_id(hass, msg['entity_id'])
     _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
 
-    stopped = await camera.async_siren_off()
+    await camera.async_siren_off()
     connection.send_message(websocket_api.result_message(
         msg['id'], {
             'siren': 'off'
         }
     ))
+
 
 async def aarlo_snapshot_service_handler(camera, _service):
     _LOGGER.debug("{0} snapshot".format(camera.unique_id))
@@ -577,4 +580,3 @@ async def aarlo_siren_on_service_handler(camera, service):
 
 async def aarlo_siren_off_service_handler(camera, _service):
     camera.siren_off()
-

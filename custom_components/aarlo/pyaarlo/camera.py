@@ -345,7 +345,7 @@ class ArloCamera(ArloChildDevice):
                 return True
             if self.device_type.startswith('arloq'):
                 return True
-        if cap in ('siren'):
+        if cap in 'siren':
             if self.model_id.startswith('VMC5040'):
                 return True
         return super().has_capability(cap)
@@ -479,4 +479,3 @@ class ArloCamera(ArloChildDevice):
         }
         self._arlo.debug(str(body))
         self._arlo.bg.run(self._arlo.be.notify, base=self.base_station, body=body)
-

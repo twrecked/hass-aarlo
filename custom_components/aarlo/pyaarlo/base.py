@@ -191,7 +191,7 @@ class ArloBase(ArloDevice):
     def has_capability(self, cap):
         if cap in ('temperature', 'humidity', 'air_quality') and self.model_id == 'ABC1000':
             return True
-        if cap in ('siren'):
+        if cap in 'siren':
             return True
         return super().has_capability(cap)
 
