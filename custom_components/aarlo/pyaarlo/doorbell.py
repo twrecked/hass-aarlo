@@ -48,8 +48,10 @@ class ArloDoorBell(ArloChildDevice):
         return 'doorbells/' + self._device_id
 
     def has_capability(self, cap):
-        if cap.startswith('button'):
+        if cap in 'motionDetected':
             return True
         if cap in ('battery_level', 'signal_strength'):
+            return True
+        if cap.startswith('button'):
             return True
         return super().has_capability(cap)

@@ -181,11 +181,6 @@ class ArloChildDevice(ArloDevice):
     def signal_strength(self):
         return self._arlo.st.get([self._device_id, SIGNAL_STR_KEY], 3)
 
-    def has_capability(self, cap):
-        if cap in 'motionDetected':
-            return True
-        return False
-
     @property
     def is_unavailable(self):
         return self._arlo.st.get([self._device_id, CONNECTION_KEY], 'unknown') == 'unavailable'

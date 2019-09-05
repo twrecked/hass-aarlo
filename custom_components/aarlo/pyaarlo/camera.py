@@ -336,6 +336,8 @@ class ArloCamera(ArloChildDevice):
                                     "publishResponse": False})
 
     def has_capability(self, cap):
+        if cap in 'motionDetected':
+            return True
         if cap in ('last_capture', 'captured_today', 'recent_activity', 'battery_level', 'signal_strength'):
             return True
         if cap in ('temperature', 'humidity', 'air_quality', 'airQuality') and self.model_id == 'ABC1000':
@@ -479,3 +481,4 @@ class ArloCamera(ArloChildDevice):
         }
         self._arlo.debug(str(body))
         self._arlo.bg.run(self._arlo.be.notify, base=self.base_station, body=body)
+
