@@ -206,8 +206,10 @@ class ArloBaseStation(AlarmControlPanel):
         attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
         attrs['brand'] = DEFAULT_BRAND
         attrs['device_id'] = self._base.device_id
+        attrs['model_id'] = self._base.model_id
         attrs['friendly_name'] = self._name
         attrs['on_schedule'] = self._base.on_schedule
+        attrs['siren'] = self._base.has_capability('siren')
 
         return attrs
 

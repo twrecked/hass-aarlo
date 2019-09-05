@@ -315,7 +315,11 @@ class ArloCam(Camera):
 
         attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
         attrs['brand'] = DEFAULT_BRAND
+        attrs['device_id'] = self._camera.device_id
+        attrs['model_id'] = self._camera.model_id
+        attrs['parent_id'] = self._camera.parent_id
         attrs['friendly_name'] = self._name
+        attrs['siren'] = self._camera.has_capability('siren')
 
         return attrs
 
