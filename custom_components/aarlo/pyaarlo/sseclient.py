@@ -70,7 +70,7 @@ class SSEClient(object):
                 self.buf += decoder.decode(next_chunk)
 
             except (StopIteration, requests.RequestException, EOFError, six.moves.http_client.IncompleteRead) as e:
-                self.log.debug(e)
+                self.log.debug('sseclient-error={}'.format(type(e).__name__))
                 time.sleep(self.retry / 1000.0)
                 self._connect()
 
