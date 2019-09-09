@@ -344,6 +344,7 @@ class ArloCam(Camera):
     def last_video(self):
         return self._camera.last_video
 
+    @property
     def last_video_url(self):
         video = self._camera.last_video
         return video.video_url if video is not None else None
