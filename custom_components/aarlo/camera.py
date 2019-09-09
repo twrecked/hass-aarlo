@@ -48,6 +48,7 @@ ATTR_CHARGING = 'charging'
 ATTR_CHARGER_TYPE = 'charger_type'
 ATTR_WIRED = 'wired'
 ATTR_WIRED_ONLY = 'wired_only'
+ATTR_LAST_VIDEO = 'last_video'
 
 CONF_FFMPEG_ARGUMENTS = 'ffmpeg_arguments'
 
@@ -270,6 +271,7 @@ class ArloCam(Camera):
                 (ATTR_CHARGER_TYPE, self._camera.charger_type),
                 (ATTR_WIRED, self._camera.wired),
                 (ATTR_WIRED_ONLY, self._camera.wired_only),
+                (ATTR_LAST_VIDEO, self.last_video_url),
             ) if value is not None
         }
 
@@ -297,6 +299,10 @@ class ArloCam(Camera):
     @property
     def last_video(self):
         return self._camera.last_video
+
+    def last_video_url(self):
+        video = self._camera.last_video
+        return video.video_url if video is not None else None
 
     def last_n_videos(self, count):
         return self._camera.last_n_videos(count)
