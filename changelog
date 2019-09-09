@@ -2,6 +2,7 @@
 0.0.2: Added manifest to aarlo
 
 aarlo:
+0.5.9: mirror pyaarlo version
 0.5.8: mirror pyaarlo version
 0.5.7: fixed crash in handle_async_mjpeg_stream
 0.5.6: mirror pyaarlo version
@@ -26,6 +27,7 @@ aarlo:
 0.0.4: mirror pyaarlo version
 
 pyaarlo:
+0.5.9: get devices after login
 0.5.8: improved exception reporting
 0.5.7: mirror aarlo version
 0.5.6: initial Ultra support
