@@ -206,8 +206,6 @@ class ArloBackEnd(object):
                     self._lock.wait(5)
                 self._arlo.debug('re-logging in')
                 self._logged_in = self._login()
-                if self._logged_in:
-                    self.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
 
             # get stream, restart after requested seconds of inactivity or forced close
             try:
@@ -338,6 +336,8 @@ class ArloBackEnd(object):
                                      'Chrome/72.0.3626.81 Safari/537.36')
 
         self._session.headers.update(headers)
+        self._arlo.debug('Fetching device list after login (seems to make arming/disarming more stable)')
+        self.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
         return True
 
     def is_connected(self):
