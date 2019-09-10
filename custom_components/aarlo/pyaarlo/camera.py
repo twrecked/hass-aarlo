@@ -13,7 +13,7 @@ from .constant import (ACTIVITY_STATE_KEY, BATTERY_TECH_KEY, BRIGHTNESS_KEY,
                        SNAPSHOT_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_URL, STREAM_START_URL, CAMERA_MEDIA_DELAY)
 from .device import ArloChildDevice
-from .util import http_get_img
+from .util import http_get, http_get_img
 
 
 class ArloCamera(ArloChildDevice):

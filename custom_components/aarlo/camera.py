@@ -526,6 +526,7 @@ async def aarlo_snapshot_to_file_service_handler(camera, service):
     except OSError as err:
         _LOGGER.error("Can't write image to file: %s", err)
 
+
 async def aarlo_video_to_file_service_handler(camera, service):
     _LOGGER.info("{0} video to file".format(camera.unique_id))
 
@@ -557,7 +558,7 @@ async def aarlo_video_to_file_service_handler(camera, service):
 
     _LOGGER.debug("{0} video to file finished".format(camera.unique_id))
 
+
 async def aarlo_stop_activity_handler(camera, _service):
     _LOGGER.info("{0} stop activity".format(camera.unique_id))
     camera.stop_activity()
-
