@@ -13,7 +13,7 @@ from .constant import (ACTIVITY_STATE_KEY, BATTERY_TECH_KEY, BRIGHTNESS_KEY,
                        SNAPSHOT_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_URL, STREAM_START_URL, CAMERA_MEDIA_DELAY)
 from .device import ArloChildDevice
-from .util import http_get_img
+from .util import http_get, http_get_img
 
 
 class ArloCamera(ArloChildDevice):
@@ -450,6 +450,12 @@ class ArloCamera(ArloChildDevice):
         url = reply['url'].replace("rtsp://", "rtsps://")
         self._arlo.debug('url={}'.format(url))
         return url
+
+    def get_video(self):
+        video = self.last_video
+        if video is not None:
+            return http_get(video.video_url)
+        return None
 
     def stop_activity(self):
         self._arlo.bg.run(self._arlo.be.notify,

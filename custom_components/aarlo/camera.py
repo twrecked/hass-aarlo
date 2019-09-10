@@ -68,6 +68,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 SERVICE_REQUEST_SNAPSHOT = 'aarlo_request_snapshot'
 SERVICE_REQUEST_SNAPSHOT_TO_FILE = 'aarlo_request_snapshot_to_file'
+SERVICE_REQUEST_VIDEO_TO_FILE = 'aarlo_request_video_to_file'
 SERVICE_STOP_ACTIVITY = 'aarlo_stop_activity'
 SERVICE_SIREN_ON = 'aarlo_siren_on'
 SERVICE_SIREN_OFF = 'aarlo_siren_off'
@@ -84,6 +85,7 @@ WS_TYPE_VIDEO_URL = 'aarlo_video_url'
 WS_TYPE_LIBRARY = 'aarlo_library'
 WS_TYPE_STREAM_URL = 'aarlo_stream_url'
 WS_TYPE_SNAPSHOT_IMAGE = 'aarlo_snapshot_image'
+WS_TYPE_VIDEO_DATA = 'aarlo_video_data'
 WS_TYPE_STOP_ACTIVITY = 'aarlo_stop_activity'
 WS_TYPE_SIREN_ON = 'aarlo_camera_siren_on'
 WS_TYPE_SIREN_OFF = 'aarlo_camera_siren_off'
@@ -103,6 +105,10 @@ SCHEMA_WS_STREAM_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
 })
 SCHEMA_WS_SNAPSHOT_IMAGE = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
     vol.Required('type'): WS_TYPE_SNAPSHOT_IMAGE,
+    vol.Required('entity_id'): cv.entity_id
+})
+SCHEMA_WS_VIDEO_DATA = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required('type'): WS_TYPE_VIDEO_DATA,
     vol.Required('entity_id'): cv.entity_id
 })
 SCHEMA_WS_STOP_ACTIVITY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
@@ -141,6 +147,10 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         aarlo_snapshot_to_file_service_handler
     )
     component.async_register_entity_service(
+        SERVICE_REQUEST_VIDEO_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
+        aarlo_video_to_file_service_handler
+    )
+    component.async_register_entity_service(
         SERVICE_STOP_ACTIVITY, CAMERA_SERVICE_SCHEMA,
         aarlo_stop_activity_handler
     )
@@ -167,6 +177,10 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     hass.components.websocket_api.async_register_command(
         WS_TYPE_SNAPSHOT_IMAGE, websocket_snapshot_image,
         SCHEMA_WS_SNAPSHOT_IMAGE
+    )
+    hass.components.websocket_api.async_register_command(
+        WS_TYPE_VIDEO_DATA, websocket_video_data,
+        SCHEMA_WS_VIDEO_DATA
     )
     hass.components.websocket_api.async_register_command(
         WS_TYPE_STOP_ACTIVITY, websocket_stop_activity,
@@ -382,6 +396,12 @@ class ArloCam(Camera):
     def async_get_snapshot(self):
         return self.hass.async_add_job(self.get_snapshot)
 
+    def get_video(self):
+        return self._camera.get_video()
+
+    def async_get_video(self):
+        return self.hass.async_add_job(self.get_video)
+
     def stop_activity(self):
         return self._camera.stop_activity()
 
@@ -500,6 +520,25 @@ async def websocket_snapshot_image(hass, connection, msg):
 
 
 @websocket_api.async_response
+async def websocket_video_data(hass, connection, msg):
+    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
+    _LOGGER.debug('video_data for ' + str(camera.unique_id))
+
+    try:
+        video = await camera.async_get_video()
+        connection.send_message(websocket_api.result_message(
+            msg['id'], {
+                'content_type': 'video/mp4',
+                'content': base64.b64encode(video).decode('utf-8')
+            }
+        ))
+
+    except HomeAssistantError:
+        connection.send_message(websocket_api.error_message(
+            msg['id'], 'video_fetch_failed', 'Unable to fetch video'))
+
+
+@websocket_api.async_response
 async def websocket_stop_activity(hass, connection, msg):
     camera = _get_camera_from_entity_id(hass, msg['entity_id'])
     _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
@@ -576,6 +615,38 @@ async def aarlo_snapshot_to_file_service_handler(camera, service):
         })
     except OSError as err:
         _LOGGER.error("Can't write image to file: %s", err)
+
+
+async def aarlo_video_to_file_service_handler(camera, service):
+    _LOGGER.info("{0} video to file".format(camera.unique_id))
+
+    hass = camera.hass
+    filename = service.data[ATTR_FILENAME]
+    filename.hass = hass
+
+    video_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
+
+    # check if we allow to access to that file
+    if not hass.config.is_allowed_path(video_file):
+        _LOGGER.error("Can't write %s, no access to path!", video_file)
+        return
+
+    image = await camera.async_get_video()
+
+    def _write_image(to_file, image_data):
+        with open(to_file, 'wb') as img_file:
+            img_file.write(image_data)
+
+    try:
+        await hass.async_add_executor_job(_write_image, video_file, image)
+        hass.bus.fire('aarlo_video_ready', {
+            'entity_id': 'aarlo.' + camera.unique_id,
+            'file': video_file
+        })
+    except OSError as err:
+        _LOGGER.error("Can't write image to file: %s", err)
+
+    _LOGGER.debug("{0} video to file finished".format(camera.unique_id))
 
 
 async def aarlo_stop_activity_handler(camera, _service):
