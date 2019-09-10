@@ -1,7 +1,8 @@
-0.0.1: Initial version
+m ch	0.0.1: Initial version
 0.0.2: Added manifest to aarlo
 
 aarlo:
+0.5.11: add save video request
 0.5.10: add video_url to status
 0.5.9: mirror pyaarlo version
 0.5.8: mirror pyaarlo version
@@ -28,6 +29,7 @@ aarlo:
 0.0.4: mirror pyaarlo version
 
 pyaarlo:
+0.5.11: add save video request
 0.5.10: mirror aarlo version
 0.5.9: get devices after login
 0.5.8: improved exception reporting
