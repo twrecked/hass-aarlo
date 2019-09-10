@@ -446,6 +446,12 @@ class ArloCamera(ArloChildDevice):
         self._arlo.debug('url={}'.format(url))
         return url
 
+    def get_video(self):
+        video = self.last_video
+        if video is not None:
+            return http_get(video.video_url)
+        return None
+
     def stop_activity(self):
         self._arlo.bg.run(self._arlo.be.notify,
                           base=self.base_station,
