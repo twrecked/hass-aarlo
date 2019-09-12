@@ -220,8 +220,8 @@ class ArloCamera(ArloChildDevice):
         super()._event_handler(resource, event)
 
     @property
-    def resource_id(self):
-        return 'cameras/' + self._device_id
+    def resource_type(self):
+        return "cameras"
 
     @property
     def last_image(self):
@@ -292,26 +292,6 @@ class ArloCamera(ArloChildDevice):
     @property
     def recent(self):
         return self._recent
-
-    @property
-    def battery_tech(self):
-        return self._arlo.st.get([self._device_id, BATTERY_TECH_KEY], 'None')
-
-    @property
-    def charging(self):
-        return self._arlo.st.get([self._device_id, CHARGING_KEY], 'off').lower() == 'on'
-
-    @property
-    def charger_type(self):
-        return self._arlo.st.get([self._device_id, CHARGER_KEY], 'None')
-
-    @property
-    def wired(self):
-        return self.charger_type.lower() != 'none'
-
-    @property
-    def wired_only(self):
-        return self.battery_tech.lower() == 'none' and self.wired
 
     @min_days_vdo_cache.setter
     def min_days_vdo_cache(self, value):

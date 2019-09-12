@@ -15,11 +15,13 @@ from .constant import (BLANK_IMAGE, DEVICE_KEYS, DEVICES_URL,
                        TOTAL_BELLS_KEY, TOTAL_CAMERAS_KEY, MEDIA_LIBRARY_DELAY, REFRESH_CAMERA_DELAY,
                        INITIAL_REFRESH_DELAY)
 from .doorbell import ArloDoorBell
+from .light import ArloLight
 from .media import ArloMediaLibrary
 from .storage import ArloStorage
 from .util import time_to_arlotime
 
 
+#logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger('pyaarlo')
 
 __version__ = '0.5.11'
@@ -47,6 +49,7 @@ class PyArlo(object):
         self._lock = threading.Lock()
         self._bases = []
         self._cameras = []
+        self._lights = []
         self._doorbells = []
 
         # On day flip we do extra work, record today.
@@ -72,10 +75,14 @@ class PyArlo(object):
 
             if dtype == 'basestation' or device.get('modelId') == 'ABC1000' or dtype == 'arloq' or dtype == 'arloqs':
                 self._bases.append(ArloBase(dname, self, device))
+            if dtype == 'arlobridge':
+                self._bases.append(ArloBase(dname, self, device))
             if dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs':
                 self._cameras.append(ArloCamera(dname, self, device))
             if dtype == 'doorbell':
                 self._doorbells.append(ArloDoorBell(dname, self, device))
+            if dtype == 'lights':
+                self._lights.append(ArloLight(dname, self, device))
 
         # Save out unchanging stats!
         self._st.set(['ARLO', TOTAL_CAMERAS_KEY], len(self._cameras))
@@ -137,6 +144,7 @@ class PyArlo(object):
                 base.update_mode()
             self._be.notify(base=base, body={"action": "get", "resource": "cameras", "publishResponse": False})
             self._be.notify(base=base, body={"action": "get", "resource": "doorbells", "publishResponse": False})
+            self._be.notify(base=base, body={"action": "get", "resource": "lights", "publishResponse": False})
 
     def _fast_refresh(self):
         self.debug('fast refresh')

@@ -26,6 +26,7 @@ class ArloBackEnd(object):
 
         self._requests = {}
         self._callbacks = {}
+        self._resource_types = set()
 
         self._token = None
         self._user_id = None
@@ -96,7 +97,7 @@ class ArloBackEnd(object):
 
     def _ev_reconnected(self):
         self._arlo.debug('Fetching device list after ev-reconnect')
-        self.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
+        self.devices()
 
     def _ev_dispatcher(self, response):
 
@@ -108,42 +109,40 @@ class ArloBackEnd(object):
         if err is not None:
             self._arlo.info('error: code=' + str(err.get('code', 'xxx')) + ',message=' + str(err.get('message', 'XXX')))
 
-        # these are camera or doorbell status updates
-        if resource.startswith('cameras/') or resource.startswith('doorbells/'):
-            device_id = resource.split('/')[1]
-            responses.append((device_id, resource, response))
+        # Answer for async ping.
+        if resource.startswith('subscriptions/'):
+            self._arlo.debug('async ping response ' + resource)
+            return
 
-        # this is thumbnail or media library updates
-        elif resource == 'mediaUploadNotification':
-            device_id = response.get('deviceId')
-            responses.append((device_id, resource, response))
-
-        # these we split up and pass properties to the individual component
-        elif resource == 'cameras' or resource == 'doorbells':
-            for props in response.get('properties', []):
-                device_id = props.get('serialNumber')
-                responses.append((device_id, resource, props))
-
-        # these are base station specific
-        elif resource == 'modes':
+        # These are base station responses
+        if resource == 'modes':
             device_id = response.get('from', None)
             responses.append((device_id, resource, response))
-
-        # these are base station specific
         elif resource == 'activeAutomations':
             for device_id in response:
                 if device_id != 'resource':
                     responses.append((device_id, resource, response[device_id]))
 
-        # answer for async ping
-        elif resource.startswith('subscriptions/'):
-            self._arlo.debug('async ping response ' + resource)
-            return
+        # These are individual device responses.
+        #if resource.startswith('cameras/') or resource.startswith('doorbells/'):
+        elif [x for x in self._resource_types if resource.startswith(x +'/')]:
+            device_id = resource.split('/')[1]
+            responses.append((device_id, resource, response))
 
-        # Just note this, we might not really care about this message.
+        # These are group responses we split up into individual components.
+        # elif resource == 'cameras' or resource == 'doorbells':
+        elif resource in self._resource_types:
+            for props in response.get('properties', []):
+                device_id = props.get('serialNumber')
+                responses.append((device_id, resource, props))
+
+        # These are generic responses, we look for device IDs.
         else:
-            self._arlo.debug('unhandled response ' + resource)
-            return
+            device_id = response.get('deviceId',None)
+            if device_id is not None:
+                responses.append((device_id, resource, response))
+            else:
+                self._arlo.debug('unhandled response ' + resource)
 
         # now find something waiting for this/these
         for device_id, resource, response in responses:
@@ -344,7 +343,7 @@ class ArloBackEnd(object):
 
         self._session.headers.update(headers)
         self._arlo.debug('Fetching device list after login (seems to make arming/disarming more stable)')
-        self.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
+        self.devices()
         return True
 
     def is_connected(self):
@@ -365,11 +364,14 @@ class ArloBackEnd(object):
     def post(self, url, params=None, headers=None, raw=False, timeout=None):
         return self._request(url, 'POST', params, headers, False, raw, timeout)
 
-    def add_listener(self, device, callback):
+    def add_listener(self, device, callback, resource_type=None):
         with self._lock:
             if device.device_id not in self._callbacks:
                 self._callbacks[device.device_id] = []
             self._callbacks[device.device_id].append(callback)
+            if resource_type is not None:
+                self._arlo.debug( "res={}".format(resource_type) )
+                self._resource_types.add( resource_type )
 
     def add_any_listener(self, callback):
         with self._lock:
@@ -379,3 +381,7 @@ class ArloBackEnd(object):
 
     def del_listener(self, device, callback):
         pass
+
+    def devices(self):
+        return self.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
+
