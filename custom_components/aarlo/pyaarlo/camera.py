@@ -442,3 +442,14 @@ class ArloCamera(ArloChildDevice):
                               'resource': self.resource_id,
                           })
         return True
+
+    @property
+    def is_on(self):
+        return not self._arlo.st.get([self._device_id, PRIVACY_KEY], False)
+
+    def turn_on(self):
+        self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=False)
+
+    def turn_off(self):
+        self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=True)
+

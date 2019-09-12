@@ -109,12 +109,18 @@ class ArloBackEnd(object):
         if err is not None:
             self._arlo.info('error: code=' + str(err.get('code', 'xxx')) + ',message=' + str(err.get('message', 'XXX')))
 
-        # Answer for async ping.
+        ##
+        ## I'm trying to keep this as generic as possible... but it needs some
+        ## smarts to figure out where to send responses.
+        ## 
+
+        # Answer for async ping. Note and finish.
         if resource.startswith('subscriptions/'):
             self._arlo.debug('async ping response ' + resource)
             return
 
-        # These are base station responses
+        # These are base station responses. Find base station ID and forward
+        # response.
         if resource == 'modes':
             device_id = response.get('from', None)
             responses.append((device_id, resource, response))
@@ -123,20 +129,21 @@ class ArloBackEnd(object):
                 if device_id != 'resource':
                     responses.append((device_id, resource, response[device_id]))
 
-        # These are individual device responses.
-        #if resource.startswith('cameras/') or resource.startswith('doorbells/'):
+        # These are individual device responses. Find device ID and forward
+        # response.
         elif [x for x in self._resource_types if resource.startswith(x +'/')]:
             device_id = resource.split('/')[1]
             responses.append((device_id, resource, response))
 
         # These are group responses we split up into individual components.
-        # elif resource == 'cameras' or resource == 'doorbells':
+        # Find device ID in each component and forward response.
         elif resource in self._resource_types:
             for props in response.get('properties', []):
                 device_id = props.get('serialNumber')
                 responses.append((device_id, resource, props))
 
-        # These are generic responses, we look for device IDs.
+        # These are generic responses, we look for device IDs and forward
+        # hoping the device can handle it.
         else:
             device_id = response.get('deviceId',None)
             if device_id is not None:
@@ -144,7 +151,7 @@ class ArloBackEnd(object):
             else:
                 self._arlo.debug('unhandled response ' + resource)
 
-        # now find something waiting for this/these
+        # Now find something waiting for this/these.
         for device_id, resource, response in responses:
             cbs = []
             self._arlo.debug('sending ' + resource + ' to ' + device_id)

@@ -12,8 +12,8 @@ from .camera import ArloCamera
 from .cfg import ArloCfg
 from .constant import (BLANK_IMAGE, DEVICE_KEYS, DEVICES_URL,
                        FAST_REFRESH_INTERVAL, SLOW_REFRESH_INTERVAL,
-                       TOTAL_BELLS_KEY, TOTAL_CAMERAS_KEY, MEDIA_LIBRARY_DELAY, REFRESH_CAMERA_DELAY,
-                       INITIAL_REFRESH_DELAY)
+                       TOTAL_BELLS_KEY, TOTAL_CAMERAS_KEY, TOTAL_LIGHTS_KEY, MEDIA_LIBRARY_DELAY,
+                       REFRESH_CAMERA_DELAY, INITIAL_REFRESH_DELAY)
 from .doorbell import ArloDoorBell
 from .light import ArloLight
 from .media import ArloMediaLibrary
@@ -21,7 +21,7 @@ from .storage import ArloStorage
 from .util import time_to_arlotime
 
 
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger('pyaarlo')
 
 __version__ = '0.5.11'
@@ -87,6 +87,7 @@ class PyArlo(object):
         # Save out unchanging stats!
         self._st.set(['ARLO', TOTAL_CAMERAS_KEY], len(self._cameras))
         self._st.set(['ARLO', TOTAL_BELLS_KEY], len(self._doorbells))
+        self._st.set(['ARLO', TOTAL_LIGHTS_KEY], len(self._lights))
 
         # Always ping bases first!
         self._ping_bases()
@@ -216,6 +217,10 @@ class PyArlo(object):
     @property
     def doorbells(self):
         return self._doorbells
+
+    @property
+    def lights(self):
+        return self._lights
 
     @property
     def base_stations(self):
