@@ -1,6 +1,7 @@
 import threading
 
-from .constant import (BATTERY_KEY, CONNECTION_KEY, PRIVACY_KEY, RESOURCE_KEYS,
+from .constant import (BATTERY_KEY, BATTERY_TECH_KEY, CHARGING_KEY, CHARGER_KEY,
+                       CONNECTION_KEY, PRIVACY_KEY, RESOURCE_KEYS,
                        RESOURCE_UPDATE_KEYS, SIGNAL_STR_KEY,
                        XCLOUD_ID_KEY)
 

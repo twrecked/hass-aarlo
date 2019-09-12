@@ -9,7 +9,7 @@ from .constant import (ACTIVITY_STATE_KEY, BATTERY_TECH_KEY, BRIGHTNESS_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
-                       POWER_SAVE_KEY, PRELOAD_DAYS,
+                       POWER_SAVE_KEY, PRELOAD_DAYS, PRIVACY_KEY,
                        SNAPSHOT_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_URL, STREAM_START_URL, CAMERA_MEDIA_DELAY)
 from .device import ArloChildDevice
