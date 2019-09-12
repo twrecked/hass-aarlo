@@ -43,3 +43,8 @@ class ArloLight(ArloChildDevice):
                               'resource': self.resource_id,
                           })
         return True
+
+    def has_capability(self, cap):
+        if cap in ('battery_level'):
+            return True
+        return super().has_capability(cap)
