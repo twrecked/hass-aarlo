@@ -18,7 +18,7 @@ __version__ = '0.5.11'
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_ATTRIBUTION = "Data provided by arlo.netgear.com"
+CONF_ATTRIBUTION = "Data provided by my.arlo.com"
 DATA_ARLO = 'data_aarlo'
 DEFAULT_BRAND = 'Netgear Arlo'
 DOMAIN = 'aarlo'

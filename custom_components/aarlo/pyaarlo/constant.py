@@ -1,4 +1,4 @@
-DEFAULT_HOST         = 'https://arlo.netgear.com'
+DEFAULT_HOST         = 'https://my.arlo.com'
 
 DEVICES_PATH         = '/hmsweb/users/devices'
 DEFINITIONS_PATH     = '/hmsweb/users/automation/definitions'

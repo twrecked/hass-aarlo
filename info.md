@@ -1,7 +1,7 @@
 
 # Asynchronous Arlo Component for Home Assistant.
 
-An (almost) drop in replacement for the standard [Arlo](https://arlo.netgear.com/#/cameras) package.
+An (almost) drop in replacement for the standard [Arlo](https://my.arlo.com/#/cameras) package.
 
 ## Notes
 Versions starting 0.0.7 are test builds!
