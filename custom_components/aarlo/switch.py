@@ -183,10 +183,10 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
 
         @callback
         def update_state(_device, attr, value):
-            _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value)[:80])
+            _LOGGER.debug('siren-callback:' + self._name + ':' + attr + ':' + str(value)[:80])
             self.async_schedule_update_ha_state()
 
-        _LOGGER.debug("register callbacks for {}".format(self._device.name))
+        _LOGGER.debug("register siren callbacks for {}".format(self._device.name))
         self._device.add_attr_callback('sirenState', update_state)
 
 
@@ -217,15 +217,15 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
 
         @callback
         def update_state(_device, attr, value):
-            _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value)[:80])
+            _LOGGER.debug('all-siren-callback:' + self._name + ':' + attr + ':' + str(value)[:80])
             self.async_schedule_update_ha_state()
 
         for device in self._devices:
-            _LOGGER.debug("register callbacks for {}".format(device.name))
+            _LOGGER.debug("register all siren callbacks for {}".format(device.name))
             device.add_attr_callback('sirenState', update_state)
 
     def get_state(self):
-        _LOGGER.debug("get state {} form".format(self._name))
+        _LOGGER.debug("get state for {}".format(self._name))
         for device in self._devices:
             if device.siren_state == "on":
                 return "on"

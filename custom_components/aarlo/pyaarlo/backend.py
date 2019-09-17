@@ -7,7 +7,7 @@ import uuid
 import requests
 import requests.adapters
 
-from .constant import (LOGIN_URL, LOGOUT_URL,
+from .constant import (DEFAULT_RESOURCES, LOGIN_URL, LOGOUT_URL,
                        NOTIFY_URL, SUBSCRIBE_URL, TRANSID_PREFIX, DEVICES_URL)
 from .sseclient import SSEClient
 from .util import time_to_arlotime
@@ -26,7 +26,7 @@ class ArloBackEnd(object):
 
         self._requests = {}
         self._callbacks = {}
-        self._resource_types = set()
+        self._resource_types = DEFAULT_RESOURCES
 
         self._token = None
         self._user_id = None
