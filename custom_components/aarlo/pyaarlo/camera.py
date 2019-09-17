@@ -9,7 +9,7 @@ from .constant import (ACTIVITY_STATE_KEY, BATTERY_TECH_KEY, BRIGHTNESS_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
-                       POWER_SAVE_KEY, PRELOAD_DAYS,
+                       POWER_SAVE_KEY, PRELOAD_DAYS, PRIVACY_KEY,
                        SNAPSHOT_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_URL, STREAM_START_URL, CAMERA_MEDIA_DELAY)
 from .device import ArloChildDevice
@@ -220,8 +220,8 @@ class ArloCamera(ArloChildDevice):
         super()._event_handler(resource, event)
 
     @property
-    def resource_id(self):
-        return 'cameras/' + self._device_id
+    def resource_type(self):
+        return "cameras"
 
     @property
     def last_image(self):
@@ -292,26 +292,6 @@ class ArloCamera(ArloChildDevice):
     @property
     def recent(self):
         return self._recent
-
-    @property
-    def battery_tech(self):
-        return self._arlo.st.get([self._device_id, BATTERY_TECH_KEY], 'None')
-
-    @property
-    def charging(self):
-        return self._arlo.st.get([self._device_id, CHARGING_KEY], 'off').lower() == 'on'
-
-    @property
-    def charger_type(self):
-        return self._arlo.st.get([self._device_id, CHARGER_KEY], 'None')
-
-    @property
-    def wired(self):
-        return self.charger_type.lower() != 'none'
-
-    @property
-    def wired_only(self):
-        return self.battery_tech.lower() == 'none' and self.wired
 
     @min_days_vdo_cache.setter
     def min_days_vdo_cache(self, value):
@@ -462,3 +442,14 @@ class ArloCamera(ArloChildDevice):
                               'resource': self.resource_id,
                           })
         return True
+
+    @property
+    def is_on(self):
+        return not self._arlo.st.get([self._device_id, PRIVACY_KEY], False)
+
+    def turn_on(self):
+        self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=False)
+
+    def turn_off(self):
+        self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=True)
+
