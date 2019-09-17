@@ -197,6 +197,10 @@ class ArloBase(ArloDevice):
                 return True
         return super().has_capability(cap)
 
+    @property
+    def siren_state(self):
+        return self._arlo.st.get([self._device_id, SIREN_STATE_KEY], "off")
+
     def siren_on(self, duration=300, volume=8):
         body = {
             'action': 'set',
