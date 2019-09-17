@@ -12,6 +12,7 @@ import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 import homeassistant.util.dt as dt_util
 from homeassistant.components.switch import SwitchDevice
+from homeassistant.core import callback
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import track_point_in_time
 from . import DATA_ARLO
@@ -26,7 +27,7 @@ SIREN_VOLUME_DEFAULT = "8"
 SIREN_ALLOW_OFF_DEFAULT = True
 ALL_SIRENS_DEFAULT = False
 SNAPSHOTS_DEFAULT = False
-SNAPSHOT_TIMEOUT_DEFAULT = timedelta(seconds=30)
+SNAPSHOT_TIMEOUT_DEFAULT = timedelta(seconds=60)
 
 CONF_SIRENS = "siren"
 CONF_ALL_SIRENS = "all_sirens"
@@ -55,6 +56,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     switches = []
 
+    # See what cameras and bases have sirens.
     if config.get(CONF_SIRENS) is True:
         for base in arlo.base_stations:
             if base.has_capability('siren'):
@@ -63,10 +65,13 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             if camera.has_capability('siren'):
                 switches.append(AarloSirenSwitch(config, camera))
 
-    if config.get(CONF_SNAPSHOT) is True:
-        for camera in arlo.cameras:
-            switches.append(AarloSnapshotSwitch(config, camera))
+    # Have more than one siren? Then create all_siren if asked for.
+    if len(switches) != 0:
+        if config.get(CONF_SNAPSHOT) is True:
+            for camera in arlo.cameras:
+                switches.append(AarloSnapshotSwitch(config, camera))
 
+    # Add snapshot for each camera
     if config.get(CONF_ALL_SIRENS) is True:
         switches.append(AarloSingleSirenSwitch(config))
 
@@ -216,4 +221,34 @@ class AarloSnapshotSwitch(AarloSwitch):
     def __init__(self, config, camera):
         """Initialize the Aarlo snapshot switch device."""
         super().__init__("{0} Snapshot".format(camera.name), "camera")
+        self._camera = camera
         self._timeout = config.get(CONF_SNAPSHOT_TIMEOUT)
+
+    async def async_added_to_hass(self):
+        """Register callbacks."""
+
+        @callback
+        def update_state(_device, attr, value):
+            _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value)[:80])
+
+            self.async_schedule_update_ha_state()
+
+        self._camera.add_attr_callback('activityState', update_state)
+
+    @property
+    def state(self):
+        """Return the state of the switch."""
+        if self._camera.is_taking_snapshot:
+            return "on"
+        return "off"
+
+    def turn_on(self, **kwargs):
+        _LOGGER.debug("starting snapshot for {}".format(self._name))
+        if not self._camera.is_taking_snapshot:
+            self._camera.request_snapshot()
+
+    def turn_off(self, **kwargs):
+        _LOGGER.debug("cancelling snapshot for {}".format(self._name))
+        if self._camera.is_taking_snapshot:
+            self._camera.stop_activity()
+
