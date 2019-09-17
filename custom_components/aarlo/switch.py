@@ -55,20 +55,23 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         return
 
     devices = []
+    adevices = []
 
     # See what cameras and bases have sirens.
     if config.get(CONF_SIRENS) is True:
         for base in arlo.base_stations:
             if base.has_capability('siren'):
+                adevices.append(base)
                 devices.append(AarloSirenSwitch(config, base))
         for camera in arlo.cameras:
             if camera.has_capability('siren'):
+                adevices.append(camera)
                 devices.append(AarloSirenSwitch(config, camera))
 
     # Have more than one siren? Then create all_siren if asked for.
-    if len(devices) != 0:
+    if len(adevices) != 0:
         if config.get(CONF_ALL_SIRENS) is True:
-            devices.append(AarloAllSirensSwitch(config,devices))
+            devices.append(AarloAllSirensSwitch(config,adevices))
 
     # Add snapshot for each camera
     if config.get(CONF_SNAPSHOT) is True:
@@ -183,7 +186,7 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
             _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value)[:80])
             self.async_schedule_update_ha_state()
 
-        _LOGGER.debug("register callbacks for {}".format(device.name))
+        _LOGGER.debug("register callbacks for {}".format(self._device.name))
         self._device.add_attr_callback('sirenState', update_state)
 
 
@@ -219,7 +222,7 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
 
         for device in self._devices:
             _LOGGER.debug("register callbacks for {}".format(device.name))
-            self._device.add_attr_callback('sirenState', update_state)
+            device.add_attr_callback('sirenState', update_state)
 
     def get_state(self):
         _LOGGER.debug("get state {} form".format(self._name))

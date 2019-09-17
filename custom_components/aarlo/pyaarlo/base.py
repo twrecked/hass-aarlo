@@ -1,6 +1,7 @@
 from .constant import (AUTOMATION_URL, DEFAULT_MODES, DEFINITIONS_URL,
                        MODE_ID_TO_NAME_KEY, MODE_KEY,
-                       MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY, SCHEDULE_KEY)
+                       MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY,
+                       SCHEDULE_KEY, SIREN_STATE_KEY)
 from .device import ArloDevice
 from .util import time_to_arlotime
 
