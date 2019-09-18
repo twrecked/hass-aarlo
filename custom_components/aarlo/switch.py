@@ -193,7 +193,6 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
 
     def get_state(self):
         _LOGGER.debug("get state {} form".format(self._name))
-        #return self._device.siren_state
         return self._state
 
     def do_on(self):
@@ -215,6 +214,7 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
         super().__init__("All Sirens", "alarm-light", config.get(CONF_SIREN_DURATION), config.get(CONF_SIREN_ALLOW_OFF))
         self._volume = config.get(CONF_SIREN_VOLUME)
         self._devices = devices
+        self._state = "off"
 
     async def async_added_to_hass(self):
         """Register callbacks."""
@@ -222,6 +222,13 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
         @callback
         def update_state(_device, attr, value):
             _LOGGER.debug('all-siren-callback:' + self._name + ':' + attr + ':' + str(value)[:80])
+
+            state = "off"
+            for device in self._devices:
+                if device.siren_state == "on":
+                    state = "on"
+            self._state = state
+
             self.async_schedule_update_ha_state()
 
         for device in self._devices:
@@ -230,20 +237,19 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
 
     def get_state(self):
         _LOGGER.debug("get state for {}".format(self._name))
-        for device in self._devices:
-            if device.siren_state == "on":
-                return "on"
-        return "off"
+        return self._state
 
     def do_on(self):
         for device in self._devices:
             _LOGGER.debug("turned sirens on {}".format(device.name))
             device.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
+        self._state = "on"
 
     def do_off(self):
         for device in self._devices:
             _LOGGER.debug("turned sirens off {}".format(device.name))
             device.siren_off()
+        self._state = "on"
 
 
 class AarloSnapshotSwitch(AarloSwitch):
