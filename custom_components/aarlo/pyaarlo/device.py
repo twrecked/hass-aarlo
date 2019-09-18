@@ -31,8 +31,8 @@ class ArloDevice(object):
     def _event_handler(self, resource, event):
         self._arlo.debug("{}: got {} event".format(self.name, resource))
 
-        # Find properties field. It either contains a item properites or it is
-        # the whole thing.
+        # Find properties. Event either contains a item called properites or it
+        # is the whole thing.
         props = event.get("properties",event)
 
         # Save out new values.
