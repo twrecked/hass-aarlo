@@ -119,12 +119,9 @@ class ArloBackEnd(object):
             self._arlo.debug('async ping response ' + resource)
             return
 
-        # These are base station responses. Find base station ID and forward
-        # response.
-        if resource == 'modes':
-            device_id = response.get('from', None)
-            responses.append((device_id, resource, response))
-        elif resource == 'activeAutomations':
+        # These is a base station mode response. Find base station ID and
+        # forward response.
+        if resource == 'activeAutomations':
             for device_id in response:
                 if device_id != 'resource':
                     responses.append((device_id, resource, response[device_id]))

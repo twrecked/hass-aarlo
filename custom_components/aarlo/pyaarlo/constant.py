@@ -102,5 +102,5 @@ BLANK_IMAGE = "iVBORw0KGgoAAAANSUhEUgAAAKAAAABaCAQAAACVz5XZAAAAh0lEQVR42u3QMQ0AA
 
 # DEFAULT_MODES = [ { u'id':u'mode0',u'type':u'disarmed' }, { u'id':u'mode1',u'type':u'armed' } ]
 DEFAULT_MODES = {'disarmed': 'mode0', 'armed': 'mode1'}
-DEFAULT_RESOURCES = { 'siren','doorbells','lights','cameras' }
+DEFAULT_RESOURCES = { 'modes','siren','doorbells','lights','cameras' }
 
