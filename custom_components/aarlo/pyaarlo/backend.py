@@ -8,7 +8,7 @@ import uuid
 import requests
 import requests.adapters
 
-from .constant import (LOGIN_PATH, LOGOUT_PATH,
+from .constant import (DEFAULT_RESOURCES, LOGIN_PATH, LOGOUT_PATH,
                        NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH)
 from .sseclient import SSEClient
 from .util import time_to_arlotime
@@ -27,7 +27,7 @@ class ArloBackEnd(object):
 
         self._requests = {}
         self._callbacks = {}
-        self._resource_types = set()
+        self._resource_types = DEFAULT_RESOURCES
 
         self._token = None
         self._user_id = None
@@ -115,38 +115,46 @@ class ArloBackEnd(object):
         ##
         ## I'm trying to keep this as generic as possible... but it needs some
         ## smarts to figure out where to send responses.
-        ##
+        ## See docs/packets for and idea of what we're parsing.
+        ## 
 
         # Answer for async ping. Note and finish.
+        # Packet number #1.
         if resource.startswith('subscriptions/'):
             self._arlo.debug('async ping response ' + resource)
             return
 
-        # These are base station responses. Find base station ID and forward
-        # response.
-        if resource == 'modes':
-            device_id = response.get('from', None)
-            responses.append((device_id, resource, response))
-        elif resource == 'activeAutomations':
+        # These is a base station mode response. Find base station ID and
+        # forward response.
+        # Packet number #4.
+        if resource == 'activeAutomations':
             for device_id in response:
                 if device_id != 'resource':
                     responses.append((device_id, resource, response[device_id]))
 
         # These are individual device responses. Find device ID and forward
         # response.
+        # Packet number #2.
         elif [x for x in self._resource_types if resource.startswith(x +'/')]:
             device_id = resource.split('/')[1]
             responses.append((device_id, resource, response))
 
-        # These are group responses we split up into individual components.
-        # Find device ID in each component and forward response.
+        # These are base station responses. Which can be about the base station
+        # or devices on it... Check if property is list.
+        # Packet number #3.
         elif resource in self._resource_types:
-            for props in response.get('properties', []):
-                device_id = props.get('serialNumber')
-                responses.append((device_id, resource, props))
+            prop_or_props = response.get('properties', [])
+            if isinstance(prop_or_props,list):
+                for prop in prop_or_props:
+                    device_id = prop.get('serialNumber')
+                    responses.append((device_id, resource, prop))
+            else:
+                device_id = response.get('from',None)
+                responses.append((device_id, resource, prop_or_props))
 
         # These are generic responses, we look for device IDs and forward
         # hoping the device can handle it.
+        # Packet number #?.
         else:
             device_id = response.get('deviceId',None)
             if device_id is not None:
@@ -374,14 +382,11 @@ class ArloBackEnd(object):
     def post(self, path, params=None, headers=None, raw=False, timeout=None):
         return self._request(path, 'POST', params, headers, False, raw, timeout)
 
-    def add_listener(self, device, callback, resource_type=None):
+    def add_listener(self, device, callback):
         with self._lock:
             if device.device_id not in self._callbacks:
                 self._callbacks[device.device_id] = []
             self._callbacks[device.device_id].append(callback)
-            if resource_type is not None:
-                self._arlo.debug( "res={}".format(resource_type) )
-                self._resource_types.add( resource_type )
 
     def add_any_listener(self, callback):
         with self._lock:

@@ -10,7 +10,7 @@ from .constant import (ACTIVITY_STATE_KEY, BATTERY_TECH_KEY, BRIGHTNESS_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
                        POWER_SAVE_KEY, PRELOAD_DAYS, PRIVACY_KEY,
-                       SNAPSHOT_KEY, STREAM_SNAPSHOT_KEY,
+                       SNAPSHOT_KEY, SIREN_STATE_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_PATH, STREAM_START_PATH, CAMERA_MEDIA_DELAY)
 from .device import ArloChildDevice
 from .util import http_get, http_get_img
@@ -316,6 +316,8 @@ class ArloCamera(ArloChildDevice):
                                     "publishResponse": False})
 
     def has_capability(self, cap):
+        if cap in 'motionDetected':
+            return True
         if cap in ('last_capture', 'captured_today', 'recent_activity', 'battery_level', 'signal_strength'):
             return True
         if cap in ('temperature', 'humidity', 'air_quality', 'airQuality') and self.model_id == 'ABC1000':
@@ -324,6 +326,9 @@ class ArloCamera(ArloChildDevice):
             if self.model_id.startswith('VMC4030') or self.model_id.startswith('VMC5040') or self.model_id == 'ABC1000':
                 return True
             if self.device_type.startswith('arloq'):
+                return True
+        if cap in 'siren':
+            if self.model_id.startswith('VMC5040'):
                 return True
         return super().has_capability(cap)
 
@@ -444,6 +449,32 @@ class ArloCamera(ArloChildDevice):
         return True
 
     @property
+    def siren_resource_id(self):
+        return "siren/{}".format(self.device_id)
+
+    @property
+    def siren_state(self):
+        return self._arlo.st.get([self._device_id, SIREN_STATE_KEY], "off")
+
+    def siren_on(self, duration=300, volume=8):
+        body = {
+            'action': 'set',
+            'resource': self.siren_resource_id,
+            'publishResponse': True,
+            'properties': {'sirenState': 'on', 'duration': int(duration), 'volume': int(volume), 'pattern': 'alarm'}
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+
+    def siren_off(self):
+        body = {
+            'action': 'set',
+            'resource': self.siren_resource_id,
+            'publishResponse': True,
+            'properties': {'sirenState': 'off'}
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+
+    @property
     def is_on(self):
         return not self._arlo.st.get([self._device_id, PRIVACY_KEY], False)
 
@@ -452,4 +483,3 @@ class ArloCamera(ArloChildDevice):
 
     def turn_off(self):
         self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=True)
-

@@ -1,0 +1,94 @@
+
+## Packet type #1
+# Subscription reply packet.
+#
+{ 'action': 'is',
+  'from': '4R068B7XA0588',
+  'properties': { 'devices': ['4R068B7XA0588'],
+                  'url': 'https://vzweb15-prod.vz.netgear.com/hmsweb/publish/4R068B7XA0588/TSF8AMY-140-8509222/720bfb37-1ee5-47ed-8e1b-e5e70c01b2ee'},
+  'resource': 'subscriptions/3952NM-336-7759821_web',
+  'to': '3952NM-336-7759821_web',
+  'transId': 'web!3fdacd98-2142-4b3b-ad2c-dbb9c6b8a775'}
+
+
+## Packet type #2
+# Device information provided by base.
+# 'resources' is the type of device and 'properties' is a list of devices
+# known by the base station. Same style packet it used for lights, doorbells
+# and cameras. 'serialNumber' is used for the device id.
+#
+{ 'action': 'is',
+  'from': '4894687YAD477',
+  'properties': [ { 'activityState': 'idle',
+                    'batteryLevel': 38,
+                    'blockNotifications': { 'block': False,
+                                            'duration': 0,
+                                            'endTime': 0},
+                    'capabilities': [ 'SignalStrength',
+                                      'Privacy',
+                                      { 'Actions': [ 'sendEmailAlert',
+                                                     'pushNotification']},
+                                      'PirMotion',
+                                      'BatteryLevel',
+                                      'Microphone',
+                                      'Speaker',
+                                      { 'Triggers': [ { 'sensitivity': { 'default': 30,
+                                                                         'max': 100,
+                                                                         'min': 1,
+                                                                         'step': 1,
+                                                                         'type': 'integer'},
+                                                        'type': 'pirMotionActive'}]}],
+                    'chimes': { '5MK28BW601254': { 'trackId': '11a7bcbe-a078-41d3-ad81-c65840a0571c',
+                                                   'volume': 90}},
+                    'connectionState': 'available',
+                    'hwVersion': '1.2',
+                    'idleLedEnable': True,
+                    'interfaceVersion': 1,
+                    'liveFeed': True,
+                    'mic': {'mute': False, 'volume': 0},
+                    'modelId': 'AAD1001',
+                    'motion': {'sensitivity': 5},
+                    'motionSetupModeEnabled': False,
+                    'motionSetupModeSensitivity': 80,
+                    'name': '',
+                    'olsonTimeZone': 'America/New_York',
+                    'privacyActive': False,
+                    'serialNumber': '5MJ48BW879DBE',
+                    'signalStrength': 4,
+                    'silentMode': {},
+                    'speaker': {'mute': False, 'volume': 100},
+                    'states': { 'motionStart': { 'enabled': False,
+                                                 'pushNotification': { 'enabled': True}}},
+                    'swVersion': '1.2.0.0_309_283',
+                    'traditionalChime': False,
+                    'updateAvailable': None,
+                    'voiceMailEnabled': True}],
+  'resource': 'doorbells',
+  'to': '3952NM-336-7759821_web',
+  'transId': 'web!a0585de6-5247-4af2-9391-2a9859e025e6'}
+
+
+## Packet type #3
+# Device information provided by the device.
+# These are sent as devices respond to requests for information or external
+# stimulus. The 'properies' are examined and changes are pushed to the
+# appropriate home assistant components. 'from' is mapped to 'device_id'
+#
+{ 'action': 'is',
+  'from': '4R068B7XA0588',
+  'properties': { 'duration': 10,
+                  'pattern': 'alarm',
+                  'sirenState': 'on',
+                  'volume': 1},
+  'resource': 'siren',
+  'to': '3952NM-336-7759821_web',
+  'transId': 'web!e4cb5e63-339c-45dd-8888-bab5a3c9e161'}
+
+
+## Packet type #4
+# Base has changed mode.
+#
+{ '4R068B7XA0588': { 'activeModes': ['mode1'],
+                     'activeSchedules': [],
+                     'timestamp': 1568142116238},
+  'resource': 'activeAutomations'}

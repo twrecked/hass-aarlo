@@ -1,6 +1,7 @@
 from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH,
                        MODE_ID_TO_NAME_KEY, MODE_KEY,
-                       MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY, SCHEDULE_KEY)
+                       MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY,
+                       SCHEDULE_KEY, SIREN_STATE_KEY)
 from .device import ArloDevice
 from .util import time_to_arlotime
 
@@ -63,7 +64,7 @@ class ArloBase(ArloDevice):
                 self._save_and_do_callbacks(MODE_KEY, self._id_to_name(props['active']))
 
         # mode change?
-        if resource == 'activeAutomations':
+        elif resource == 'activeAutomations':
 
             # mode present? we just set to new ones...
             mode_ids = event.get('activeModes', [])
@@ -81,6 +82,10 @@ class ArloBase(ArloDevice):
             else:
                 self._arlo.debug(self.name + ' schedule cleared ')
                 self._save_and_do_callbacks(SCHEDULE_KEY, None)
+
+        # pass on to lower layer
+        else:
+            super()._event_handler(resource, event)
 
     @property
     def _v1_modes(self):
@@ -189,9 +194,17 @@ class ArloBase(ArloDevice):
             self._refresh_rate = value
 
     def has_capability(self, cap):
-        if cap in ('temperature', 'humidity', 'air_quality') and self.model_id == 'ABC1000':
-            return True
+        if cap in ('temperature', 'humidity', 'air_quality'):
+            if self.model_id == 'ABC1000':
+                return True
+        if cap in 'siren':
+            if self.model_id.startswith('VMB400'):
+                return True
         return super().has_capability(cap)
+
+    @property
+    def siren_state(self):
+        return self._arlo.st.get([self._device_id, SIREN_STATE_KEY], "off")
 
     def siren_on(self, duration=300, volume=8):
         body = {
@@ -212,3 +225,4 @@ class ArloBase(ArloDevice):
         }
         self._arlo.debug(str(body))
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+
