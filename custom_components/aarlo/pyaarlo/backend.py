@@ -73,6 +73,7 @@ class ArloBackEnd(object):
                 elif method == 'POST':
                     r = self._session.post(url, json=params, headers=headers, timeout=timeout)
         except Exception:
+            self.log.debug('request-error={}'.format(type(e).__name__))
             if self._ev_stream is not None:
                 # self._ev_stream.close()
                 self._ev_stream.resp.close()
