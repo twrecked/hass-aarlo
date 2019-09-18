@@ -112,15 +112,18 @@ class ArloBackEnd(object):
         ##
         ## I'm trying to keep this as generic as possible... but it needs some
         ## smarts to figure out where to send responses.
+        ## See docs/packets for and idea of what we're parsing.
         ## 
 
         # Answer for async ping. Note and finish.
+        # Packet number #1.
         if resource.startswith('subscriptions/'):
             self._arlo.debug('async ping response ' + resource)
             return
 
         # These is a base station mode response. Find base station ID and
         # forward response.
+        # Packet number #4.
         if resource == 'activeAutomations':
             for device_id in response:
                 if device_id != 'resource':
@@ -128,12 +131,14 @@ class ArloBackEnd(object):
 
         # These are individual device responses. Find device ID and forward
         # response.
+        # Packet number #2.
         elif [x for x in self._resource_types if resource.startswith(x +'/')]:
             device_id = resource.split('/')[1]
             responses.append((device_id, resource, response))
 
         # These are base station responses. Which can be about the base station
         # or devices on it... Check if property is list.
+        # Packet number #3.
         elif resource in self._resource_types:
             prop_or_props = response.get('properties', [])
             if isinstance(prop_or_props,list):
@@ -146,6 +151,7 @@ class ArloBackEnd(object):
 
         # These are generic responses, we look for device IDs and forward
         # hoping the device can handle it.
+        # Packet number #?.
         else:
             device_id = response.get('deviceId',None)
             if device_id is not None:
