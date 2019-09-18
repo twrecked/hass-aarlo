@@ -176,6 +176,7 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
                          config.get(CONF_SIREN_ALLOW_OFF))
         self._device = device
         self._volume = config.get(CONF_SIREN_VOLUME)
+        self._state = "off"
         _LOGGER.debug("{0}".format(str(config)))
 
     async def async_added_to_hass(self):
@@ -184,23 +185,26 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
         @callback
         def update_state(_device, attr, value):
             _LOGGER.debug('siren-callback:' + self._name + ':' + attr + ':' + str(value)[:80])
+            self._state = value
             self.async_schedule_update_ha_state()
 
         _LOGGER.debug("register siren callbacks for {}".format(self._device.name))
         self._device.add_attr_callback('sirenState', update_state)
 
-
     def get_state(self):
         _LOGGER.debug("get state {} form".format(self._name))
-        return self._device.siren_state
+        #return self._device.siren_state
+        return self._state
 
     def do_on(self):
         _LOGGER.debug("turned siren {} on".format(self._name))
         self._device.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
+        self._state = "on"
 
     def do_off(self):
         _LOGGER.debug("turned siren {} off".format(self._name))
         self._device.siren_off()
+        self._state = "off"
 
 
 class AarloAllSirensSwitch(AarloSirenBaseSwitch):
