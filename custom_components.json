@@ -10,6 +10,8 @@
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/sensor.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/alarm_control_panel.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/camera.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/switch.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/light.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/manifest.json",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/services.yaml"
         ]
@@ -32,7 +34,8 @@
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/doorbell.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/base.py",
              "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/constant.py",
-             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/device.py"
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/device.py",
+             "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/light.py"
         ]
     }
 }
