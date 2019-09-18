@@ -60,12 +60,13 @@ DEVICE_REFRESH = 0
 HTTP_CONNECTIONS = 5
 HTTP_MAX_SIZE = 10
 RECONNECT_EVERY = 0
+DEFAULT_HOST = 'https://my.arlo.com'
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional(CONF_HOST): cv.url,
+        vol.Optional(CONF_HOST,default=DEFAULT_HOST): cv.url,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
         vol.Optional(CONF_PACKET_DUMP, default=PACKET_DUMP): cv.boolean,
         vol.Optional(CONF_CACHE_VIDEOS, default=CACHE_VIDEOS): cv.boolean,
