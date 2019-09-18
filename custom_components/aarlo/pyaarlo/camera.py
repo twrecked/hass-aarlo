@@ -449,27 +449,29 @@ class ArloCamera(ArloChildDevice):
         return True
 
     @property
+    def siren_resource_id(self):
+        return "siren/{}".format(self.device_id)
+
+    @property
     def siren_state(self):
         return self._arlo.st.get([self._device_id, SIREN_STATE_KEY], "off")
 
     def siren_on(self, duration=300, volume=8):
         body = {
             'action': 'set',
-            'resource': "siren/{}".format(self.device_id),
+            'resource': self.siren_resource_id,
             'publishResponse': True,
             'properties': {'sirenState': 'on', 'duration': int(duration), 'volume': int(volume), 'pattern': 'alarm'}
         }
-        self._arlo.debug(str(body))
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
     def siren_off(self):
         body = {
             'action': 'set',
-            'resource': "siren/{}".format(self.device_id),
+            'resource': self.siren_resource_id,
             'publishResponse': True,
             'properties': {'sirenState': 'off'}
         }
-        self._arlo.debug(str(body))
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
     @property

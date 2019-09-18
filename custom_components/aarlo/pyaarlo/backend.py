@@ -135,12 +135,17 @@ class ArloBackEnd(object):
             device_id = resource.split('/')[1]
             responses.append((device_id, resource, response))
 
-        # These are group responses we split up into individual components.
-        # Find device ID in each component and forward response.
+        # These are base station responses. Which can be about the base station
+        # or devices on it... Check if property is list.
         elif resource in self._resource_types:
-            for props in response.get('properties', []):
-                device_id = props.get('serialNumber')
-                responses.append((device_id, resource, props))
+            prop_or_props = response.get('properties', [])
+            if isinstance(prop_or_props,list):
+                for prop in prop_or_props:
+                    device_id = prop.get('serialNumber')
+                    responses.append((device_id, resource, prop))
+            else:
+                device_id = response.get('from',None)
+                responses.append((device_id, resource, prop_or_props))
 
         # These are generic responses, we look for device IDs and forward
         # hoping the device can handle it.
@@ -371,14 +376,11 @@ class ArloBackEnd(object):
     def post(self, url, params=None, headers=None, raw=False, timeout=None):
         return self._request(url, 'POST', params, headers, False, raw, timeout)
 
-    def add_listener(self, device, callback, resource_type=None):
+    def add_listener(self, device, callback):
         with self._lock:
             if device.device_id not in self._callbacks:
                 self._callbacks[device.device_id] = []
             self._callbacks[device.device_id].append(callback)
-            if resource_type is not None:
-                self._arlo.debug( "res={}".format(resource_type) )
-                self._resource_types.add( resource_type )
 
     def add_any_listener(self, callback):
         with self._lock:

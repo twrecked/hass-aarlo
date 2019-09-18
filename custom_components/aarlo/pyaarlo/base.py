@@ -64,7 +64,7 @@ class ArloBase(ArloDevice):
                 self._save_and_do_callbacks(MODE_KEY, self._id_to_name(props['active']))
 
         # mode change?
-        if resource == 'activeAutomations':
+        elif resource == 'activeAutomations':
 
             # mode present? we just set to new ones...
             mode_ids = event.get('activeModes', [])
@@ -82,6 +82,10 @@ class ArloBase(ArloDevice):
             else:
                 self._arlo.debug(self.name + ' schedule cleared ')
                 self._save_and_do_callbacks(SCHEDULE_KEY, None)
+
+        # pass on to lower layer
+        else:
+            super()._event_handler(resource, event)
 
     @property
     def _v1_modes(self):
