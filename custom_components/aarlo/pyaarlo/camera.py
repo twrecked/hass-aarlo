@@ -5,13 +5,13 @@ import zlib
 
 from .constant import (ACTIVITY_STATE_KEY, BATTERY_TECH_KEY, BRIGHTNESS_KEY,
                        CAPTURED_TODAY_KEY, CHARGER_KEY, CHARGING_KEY,
-                       FLIP_KEY, IDLE_SNAPSHOT_URL, LAST_CAPTURE_KEY,
+                       FLIP_KEY, IDLE_SNAPSHOT_PATH, LAST_CAPTURE_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
                        POWER_SAVE_KEY, PRELOAD_DAYS, PRIVACY_KEY,
                        SNAPSHOT_KEY, SIREN_STATE_KEY, STREAM_SNAPSHOT_KEY,
-                       STREAM_SNAPSHOT_URL, STREAM_START_URL, CAMERA_MEDIA_DELAY)
+                       STREAM_SNAPSHOT_PATH, STREAM_START_PATH, CAMERA_MEDIA_DELAY)
 from .device import ArloChildDevice
 from .util import http_get, http_get_img
 
@@ -340,7 +340,7 @@ class ArloCamera(ArloChildDevice):
             'olsonTimeZone': self.timezone,
         }
         self._save_and_do_callbacks(ACTIVITY_STATE_KEY, 'fullFrameSnapshot')
-        self._arlo.bg.run(self._arlo.be.post, url=STREAM_SNAPSHOT_URL, params=body,
+        self._arlo.bg.run(self._arlo.be.post, path=STREAM_SNAPSHOT_PATH, params=body,
                           headers={"xcloudId": self.xcloud_id})
 
     def take_idle_snapshot(self):
@@ -353,7 +353,7 @@ class ArloCamera(ArloChildDevice):
             'to': self.parent_id,
             'transId': self._arlo.be.gen_trans_id()
         }
-        self._arlo.bg.run(self._arlo.be.post, url=IDLE_SNAPSHOT_URL, params=body,
+        self._arlo.bg.run(self._arlo.be.post, path=IDLE_SNAPSHOT_PATH, params=body,
                           headers={"xcloudId": self.xcloud_id})
 
     def _request_snapshot(self):
@@ -424,7 +424,7 @@ class ArloCamera(ArloChildDevice):
             'to': self.parent_id,
             'transId': self._arlo.be.gen_trans_id()
         }
-        reply = self._arlo.be.post(STREAM_START_URL, body, headers={"xcloudId": self.xcloud_id})
+        reply = self._arlo.be.post(STREAM_START_PATH, body, headers={"xcloudId": self.xcloud_id})
         if reply is None:
             return None
         url = reply['url'].replace("rtsp://", "rtsps://")
