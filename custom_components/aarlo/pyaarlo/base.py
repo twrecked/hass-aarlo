@@ -1,4 +1,4 @@
-from .constant import (AUTOMATION_URL, DEFAULT_MODES, DEFINITIONS_URL,
+from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH,
                        MODE_ID_TO_NAME_KEY, MODE_KEY,
                        MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY, SCHEDULE_KEY)
 from .device import ArloDevice
@@ -138,7 +138,7 @@ class ArloBase(ArloDevice):
                                         "publishResponse": True,
                                         "properties": {"active": mode_id}})
             else:
-                self._arlo.bg.run(self._arlo.be.post, url=AUTOMATION_URL,
+                self._arlo.bg.run(self._arlo.be.post, path=AUTOMATION_PATH,
                                   params={'activeAutomations': [
                                       {'deviceId': self.device_id,
                                        'timestamp': time_to_arlotime(),
@@ -149,7 +149,7 @@ class ArloBase(ArloDevice):
             self._arlo.warning('{0}: mode {1} is unrecognised'.format(self.name, mode_name))
 
     def update_mode(self):
-        data = self._arlo.be.get(AUTOMATION_URL)
+        data = self._arlo.be.get(AUTOMATION_PATH)
         for mode in data:
             if mode.get('uniqueId', '') == self.unique_id:
                 active_modes = mode.get('activeModes', [])
@@ -166,7 +166,7 @@ class ArloBase(ArloDevice):
             props = resp.get('properties', {})
             self._parse_modes(props.get('modes', []))
         else:
-            modes = self._arlo.be.get(DEFINITIONS_URL + "?uniqueIds={}".format(self.unique_id))
+            modes = self._arlo.be.get(DEFINITIONS_PATH + "?uniqueIds={}".format(self.unique_id))
             modes = modes.get(self.unique_id, {})
             self._parse_modes(modes.get('modes', []))
             self._parse_schedules(modes.get('schedules', []))

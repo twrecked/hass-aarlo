@@ -1,4 +1,5 @@
 import json
+import re
 import pprint
 import threading
 import time
@@ -7,8 +8,8 @@ import uuid
 import requests
 import requests.adapters
 
-from .constant import (LOGIN_URL, LOGOUT_URL,
-                       NOTIFY_URL, SUBSCRIBE_URL, TRANSID_PREFIX, DEVICES_URL)
+from .constant import (LOGIN_PATH, LOGOUT_PATH,
+                       NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH)
 from .sseclient import SSEClient
 from .util import time_to_arlotime
 
@@ -47,10 +48,10 @@ class ArloBackEnd(object):
 
         # start logout daemon
         if self._arlo.cfg.reconnect_every != 0:
-            self._arlo.debug('automatically reconneting')
+            self._arlo.debug('automatically reconnecting')
             self._arlo.bg.run_every(self.logout, self._arlo.cfg.reconnect_every)
 
-    def _request(self, url, method='GET', params=None, headers=None, stream=False, raw=False, timeout=None):
+    def _request(self, path, method='GET', params=None, headers=None, stream=False, raw=False, timeout=None):
         if params is None:
             params = {}
         if headers is None:
@@ -59,6 +60,7 @@ class ArloBackEnd(object):
             timeout = self._arlo.cfg.request_timeout
         try:
             with self._req_lock:
+                url = self._arlo.cfg.host + path
                 # self._arlo.debug('starting request=' + str(url))
                 # self._arlo.debug('starting request=' + str(params))
                 # self._arlo.debug('starting request=' + str(headers))
@@ -112,7 +114,7 @@ class ArloBackEnd(object):
         ##
         ## I'm trying to keep this as generic as possible... but it needs some
         ## smarts to figure out where to send responses.
-        ## 
+        ##
 
         # Answer for async ping. Note and finish.
         if resource.startswith('subscriptions/'):
@@ -222,15 +224,15 @@ class ArloBackEnd(object):
             try:
                 if self._arlo.cfg.stream_timeout == 0:
                     self._arlo.debug('starting stream with no timeout')
-                    # self._ev_stream = SSEClient( self.get( SUBSCRIBE_URL + self._token,stream=True,raw=True ) )
-                    self._ev_stream = SSEClient(self._arlo, SUBSCRIBE_URL + self._token, session=self._session,
+                    # self._ev_stream = SSEClient( self.get( SUBSCRIBE_PATH + self._token,stream=True,raw=True ) )
+                    self._ev_stream = SSEClient(self._arlo, self._arlo.cfg.host + SUBSCRIBE_PATH + self._token, session=self._session,
                                                 reconnect_cb=self._ev_reconnected)
                 else:
                     self._arlo.debug('starting stream with {} timeout'.format(self._arlo.cfg.stream_timeout))
                     # self._ev_stream = SSEClient(
-                    #     self.get(SUBSCRIBE_URL + self._token, stream=True, raw=True,
+                    #     self.get(SUBSCRIBE_PATH + self._token, stream=True, raw=True,
                     #              timeout=self._arlo.cfg.stream_timeout))
-                    self._ev_stream = SSEClient(self._arlo, SUBSCRIBE_URL + self._token, session=self._session,
+                    self._ev_stream = SSEClient(self._arlo, self._arlo.cfg.host + SUBSCRIBE_PATH + self._token, session=self._session,
                                                 reconnect_cb=self._ev_reconnected,
                                                 timeout=self._arlo.cfg.stream_timeout)
                 self._ev_loop(self._ev_stream)
@@ -268,7 +270,7 @@ class ArloBackEnd(object):
         body['to'] = base.device_id
         body['from'] = self._web_id
         body['transId'] = trans_id
-        self.post(NOTIFY_URL + base.device_id, body, headers={"xcloudId": base.xcloud_id})
+        self.post(NOTIFY_PATH + base.device_id, body, headers={"xcloudId": base.xcloud_id})
         return trans_id
 
     def notify_and_get_response(self, base, body, timeout=None):
@@ -318,7 +320,7 @@ class ArloBackEnd(object):
                                 requests.adapters.HTTPAdapter(
                                     pool_connections=self._arlo.cfg.http_connections,
                                     pool_maxsize=self._arlo.cfg.http_max_size))
-        body = self.post(LOGIN_URL, {'email': self._arlo.cfg.username, 'password': self._arlo.cfg.password})
+        body = self.post(LOGIN_PATH, {'email': self._arlo.cfg.username, 'password': self._arlo.cfg.password})
         if body is None:
             self._arlo.debug('login failed')
             return False
@@ -335,9 +337,9 @@ class ArloBackEnd(object):
             # 'DNT': '1',
             'Accept': 'application/json, text/plain, */*',
             'schemaVersion': '1',
-            'Host': 'arlo.netgear.com',
+            'Host': re.sub('https?://', '', self._arlo.cfg.host),
             'Content-Type': 'application/json; charset=utf-8;',
-            'Referer': 'https://arlo.netgear.com/',
+            'Referer': self._arlo.cfg.host,
             'Authorization': self._token
         }
         if self._arlo.cfg.user_agent == 'apple':
@@ -360,16 +362,16 @@ class ArloBackEnd(object):
         self._arlo.debug('trying to logout')
         if self._ev_stream is not None:
             self._ev_stream.stop()
-        self.put(LOGOUT_URL)
+        self.put(LOGOUT_PATH)
 
-    def get(self, url, params=None, headers=None, stream=False, raw=False, timeout=None):
-        return self._request(url, 'GET', params, headers, stream, raw, timeout)
+    def get(self, path, params=None, headers=None, stream=False, raw=False, timeout=None):
+        return self._request(path, 'GET', params, headers, stream, raw, timeout)
 
-    def put(self, url, params=None, headers=None, raw=False, timeout=None):
-        return self._request(url, 'PUT', params, headers, False, raw, timeout)
+    def put(self, path, params=None, headers=None, raw=False, timeout=None):
+        return self._request(path, 'PUT', params, headers, False, raw, timeout)
 
-    def post(self, url, params=None, headers=None, raw=False, timeout=None):
-        return self._request(url, 'POST', params, headers, False, raw, timeout)
+    def post(self, path, params=None, headers=None, raw=False, timeout=None):
+        return self._request(path, 'POST', params, headers, False, raw, timeout)
 
     def add_listener(self, device, callback, resource_type=None):
         with self._lock:
@@ -390,5 +392,4 @@ class ArloBackEnd(object):
         pass
 
     def devices(self):
-        return self.get(DEVICES_URL + "?t={}".format(time_to_arlotime()))
-
+        return self.get(DEVICES_PATH + "?t={}".format(time_to_arlotime()))
