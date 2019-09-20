@@ -1,6 +1,6 @@
 import json
-import re
 import pprint
+import re
 import threading
 import time
 import uuid
@@ -72,8 +72,8 @@ class ArloBackEnd(object):
                     r = self._session.put(url, json=params, headers=headers, timeout=timeout)
                 elif method == 'POST':
                     r = self._session.post(url, json=params, headers=headers, timeout=timeout)
-        except Exception:
-            self.log.debug('request-error={}'.format(type(e).__name__))
+        except Exception as e:
+            self._arlo.debug('request-error={}'.format(type(e).__name__))
             if self._ev_stream is not None:
                 # self._ev_stream.close()
                 self._ev_stream.resp.close()
@@ -112,11 +112,11 @@ class ArloBackEnd(object):
         if err is not None:
             self._arlo.info('error: code=' + str(err.get('code', 'xxx')) + ',message=' + str(err.get('message', 'XXX')))
 
-        ##
-        ## I'm trying to keep this as generic as possible... but it needs some
-        ## smarts to figure out where to send responses.
-        ## See docs/packets for and idea of what we're parsing.
-        ## 
+        #
+        # I'm trying to keep this as generic as possible... but it needs some
+        # smarts to figure out where to send responses.
+        # See docs/packets for and idea of what we're parsing.
+        #
 
         # Answer for async ping. Note and finish.
         # Packet number #1.
@@ -135,7 +135,7 @@ class ArloBackEnd(object):
         # These are individual device responses. Find device ID and forward
         # response.
         # Packet number #2.
-        elif [x for x in self._resource_types if resource.startswith(x +'/')]:
+        elif [x for x in self._resource_types if resource.startswith(x + '/')]:
             device_id = resource.split('/')[1]
             responses.append((device_id, resource, response))
 
@@ -144,19 +144,19 @@ class ArloBackEnd(object):
         # Packet number #3.
         elif resource in self._resource_types:
             prop_or_props = response.get('properties', [])
-            if isinstance(prop_or_props,list):
+            if isinstance(prop_or_props, list):
                 for prop in prop_or_props:
                     device_id = prop.get('serialNumber')
                     responses.append((device_id, resource, prop))
             else:
-                device_id = response.get('from',None)
+                device_id = response.get('from', None)
                 responses.append((device_id, resource, prop_or_props))
 
         # These are generic responses, we look for device IDs and forward
         # hoping the device can handle it.
         # Packet number #?.
         else:
-            device_id = response.get('deviceId',None)
+            device_id = response.get('deviceId', None)
             if device_id is not None:
                 responses.append((device_id, resource, response))
             else:
@@ -234,14 +234,16 @@ class ArloBackEnd(object):
                 if self._arlo.cfg.stream_timeout == 0:
                     self._arlo.debug('starting stream with no timeout')
                     # self._ev_stream = SSEClient( self.get( SUBSCRIBE_PATH + self._token,stream=True,raw=True ) )
-                    self._ev_stream = SSEClient(self._arlo, self._arlo.cfg.host + SUBSCRIBE_PATH + self._token, session=self._session,
+                    self._ev_stream = SSEClient(self._arlo, self._arlo.cfg.host + SUBSCRIBE_PATH + self._token,
+                                                session=self._session,
                                                 reconnect_cb=self._ev_reconnected)
                 else:
                     self._arlo.debug('starting stream with {} timeout'.format(self._arlo.cfg.stream_timeout))
                     # self._ev_stream = SSEClient(
                     #     self.get(SUBSCRIBE_PATH + self._token, stream=True, raw=True,
                     #              timeout=self._arlo.cfg.stream_timeout))
-                    self._ev_stream = SSEClient(self._arlo, self._arlo.cfg.host + SUBSCRIBE_PATH + self._token, session=self._session,
+                    self._ev_stream = SSEClient(self._arlo, self._arlo.cfg.host + SUBSCRIBE_PATH + self._token,
+                                                session=self._session,
                                                 reconnect_cb=self._ev_reconnected,
                                                 timeout=self._arlo.cfg.stream_timeout)
                 self._ev_loop(self._ev_stream)

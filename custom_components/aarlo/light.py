@@ -7,13 +7,9 @@ https://home-assistant.io/components/sensor.arlo/
 
 import logging
 
-import voluptuous as vol
-
-import homeassistant.helpers.config_validation as cv
 from homeassistant.components.light import (Light)
 from homeassistant.const import (ATTR_ATTRIBUTION)
 from homeassistant.core import callback
-
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 DEPENDENCIES = ['aarlo']
 
 
-async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
+async def async_setup_platform(hass, _config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP light."""
     arlo = hass.data.get(DATA_ARLO)
     if not arlo:
@@ -53,7 +49,7 @@ class ArloLight(Light):
             self._state = value
             self.async_schedule_update_ha_state()
 
-        self._state = self._light.attribute("lampState",default="off")
+        self._state = self._light.attribute("lampState", default="off")
         self._light.add_attr_callback("lampState", update_state)
 
     @property

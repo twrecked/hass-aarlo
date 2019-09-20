@@ -1,14 +1,14 @@
 import threading
 
 from .constant import (BATTERY_KEY, BATTERY_TECH_KEY, CHARGING_KEY, CHARGER_KEY,
-                       CONNECTION_KEY, PRIVACY_KEY, RESOURCE_KEYS,
+                       CONNECTION_KEY, RESOURCE_KEYS,
                        RESOURCE_UPDATE_KEYS, SIGNAL_STR_KEY,
                        XCLOUD_ID_KEY)
 
 
 class ArloDevice(object):
 
-    def __init__(self, name, arlo, attrs ):
+    def __init__(self, name, arlo, attrs):
         self._name = name
         self._arlo = arlo
         self._attrs = attrs
@@ -33,7 +33,7 @@ class ArloDevice(object):
 
         # Find properties. Event either contains a item called properites or it
         # is the whole thing.
-        props = event.get("properties",event)
+        props = event.get("properties", event)
 
         # Save out new values.
         for key in props:
@@ -146,6 +146,16 @@ class ArloDevice(object):
     def state(self):
         return 'idle'
 
+    @property
+    def is_on(self):
+        return True
+
+    def turn_on(self):
+        pass
+
+    def turn_off(self):
+        pass
+
 
 class ArloChildDevice(ArloDevice):
 
@@ -171,9 +181,9 @@ class ArloChildDevice(ArloDevice):
     @property
     def parent_id(self):
         if self._parent_id is not None:
-            #self._arlo.debug('real parent is {}'.format(self._parent_id))
+            # self._arlo.debug('real parent is {}'.format(self._parent_id))
             return self._parent_id
-        #self._arlo.debug('fake parent is {}'.format(self.device_id))
+        # self._arlo.debug('fake parent is {}'.format(self.device_id))
         return self.device_id
 
     @property

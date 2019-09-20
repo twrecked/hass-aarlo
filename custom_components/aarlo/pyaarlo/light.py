@@ -1,4 +1,3 @@
-
 from .constant import LAMP_STATE_KEY
 from .device import ArloChildDevice
 
@@ -45,6 +44,6 @@ class ArloLight(ArloChildDevice):
         return True
 
     def has_capability(self, cap):
-        if cap in ('battery_level'):
+        if cap in 'battery_level':
             return True
         return super().has_capability(cap)

@@ -1,19 +1,19 @@
-DEFAULT_HOST         = 'https://my.arlo.com'
+DEFAULT_HOST = 'https://my.arlo.com'
 
-DEVICES_PATH         = '/hmsweb/users/devices'
-DEFINITIONS_PATH     = '/hmsweb/users/automation/definitions'
-AUTOMATION_PATH      = '/hmsweb/users/devices/automation/active'
-LIBRARY_PATH         = '/hmsweb/users/library'
-LOGIN_PATH           = '/hmsweb/login/v2'
-LOGOUT_PATH          = '/hmsweb/logout'
-NOTIFY_PATH          = '/hmsweb/users/devices/notify/'
-SUBSCRIBE_PATH       = '/hmsweb/client/subscribe?token='
-UNSUBSCRIBE_PATH     = '/hmsweb/client/unsubscribe'
-MODES_PATH           = '/hmsweb/users/devices/automation/active'
+DEVICES_PATH = '/hmsweb/users/devices'
+DEFINITIONS_PATH = '/hmsweb/users/automation/definitions'
+AUTOMATION_PATH = '/hmsweb/users/devices/automation/active'
+LIBRARY_PATH = '/hmsweb/users/library'
+LOGIN_PATH = '/hmsweb/login/v2'
+LOGOUT_PATH = '/hmsweb/logout'
+NOTIFY_PATH = '/hmsweb/users/devices/notify/'
+SUBSCRIBE_PATH = '/hmsweb/client/subscribe?token='
+UNSUBSCRIBE_PATH = '/hmsweb/client/unsubscribe'
+MODES_PATH = '/hmsweb/users/devices/automation/active'
 STREAM_SNAPSHOT_PATH = '/hmsweb/users/devices/takeSnapshot'
-STREAM_START_PATH    = '/hmsweb/users/devices/startStream'
-IDLE_SNAPSHOT_PATH   = '/hmsweb/users/devices/fullFrameSnapshot'
-TRANSID_PREFIX  = 'web'
+STREAM_START_PATH = '/hmsweb/users/devices/startStream'
+IDLE_SNAPSHOT_PATH = '/hmsweb/users/devices/fullFrameSnapshot'
+TRANSID_PREFIX = 'web'
 
 PRELOAD_DAYS = 30
 
@@ -104,5 +104,4 @@ BLANK_IMAGE = "iVBORw0KGgoAAAANSUhEUgAAAKAAAABaCAQAAACVz5XZAAAAh0lEQVR42u3QMQ0AA
 
 # DEFAULT_MODES = [ { u'id':u'mode0',u'type':u'disarmed' }, { u'id':u'mode1',u'type':u'armed' } ]
 DEFAULT_MODES = {'disarmed': 'mode0', 'armed': 'mode1'}
-DEFAULT_RESOURCES = { 'modes','siren','doorbells','lights','cameras' }
-
+DEFAULT_RESOURCES = {'modes', 'siren', 'doorbells', 'lights', 'cameras'}

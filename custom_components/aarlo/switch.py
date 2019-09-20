@@ -73,7 +73,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     # Then create all_sirens if asked for.
     if config.get(CONF_ALL_SIRENS) is True:
         if len(adevices) != 0:
-            devices.append(AarloAllSirensSwitch(config,adevices))
+            devices.append(AarloAllSirensSwitch(config, adevices))
 
     # Add snapshot for each camera
     if config.get(CONF_SNAPSHOT) is True:
@@ -289,4 +289,3 @@ class AarloSnapshotSwitch(AarloSwitch):
         _LOGGER.debug("cancelling snapshot for {}".format(self._name))
         if self._camera.is_taking_snapshot:
             self._camera.stop_activity()
-

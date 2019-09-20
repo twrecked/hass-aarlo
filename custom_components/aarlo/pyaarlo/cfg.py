@@ -1,5 +1,6 @@
 from .constant import DEFAULT_HOST
 
+
 class ArloCfg(object):
     """ Helper class to get at Arlo configuration options.
 

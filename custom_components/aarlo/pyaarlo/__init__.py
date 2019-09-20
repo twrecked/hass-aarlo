@@ -20,7 +20,6 @@ from .media import ArloMediaLibrary
 from .storage import ArloStorage
 from .util import time_to_arlotime
 
-
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger('pyaarlo')
 

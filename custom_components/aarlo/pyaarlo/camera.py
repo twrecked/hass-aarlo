@@ -3,9 +3,8 @@ import threading
 import time
 import zlib
 
-from .constant import (ACTIVITY_STATE_KEY, BATTERY_TECH_KEY, BRIGHTNESS_KEY,
-                       CAPTURED_TODAY_KEY, CHARGER_KEY, CHARGING_KEY,
-                       FLIP_KEY, IDLE_SNAPSHOT_PATH, LAST_CAPTURE_KEY,
+from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
+                       CAPTURED_TODAY_KEY, FLIP_KEY, IDLE_SNAPSHOT_PATH, LAST_CAPTURE_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
