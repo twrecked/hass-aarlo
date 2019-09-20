@@ -62,6 +62,8 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 * Direct video streaming from arlo where possible
 * Siren when triggering an alarm
 * Streaming (**Note**: in virtualenv installation only)
+* Switches for activing sirens and taking snapshots
+* Lights
 
 It provides a custom lovelace resource that is a specialised version of a picture-glance that allows you to see the last snapshot taken and give quick access to clip counts, the last recorded video and signal and battery levels.
 
@@ -149,6 +151,17 @@ sensor:
     - battery_level
     - captured_today
     - signal_strength
+
+light:
+  - platform: aarlo
+
+switch:
+  - platform: aarlo
+    siren: True
+    all_sirens: True
+    snapshot: True
+    siren_volume: 1
+    siren_duration: 10
 ```
 The `alarm_control_panel` can be triggered and a siren, if present, will sound.
 
