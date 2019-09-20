@@ -58,19 +58,21 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     adevices = []
 
     # See what cameras and bases have sirens.
-    if config.get(CONF_SIRENS) is True:
-        for base in arlo.base_stations:
-            if base.has_capability('siren'):
-                adevices.append(base)
-                devices.append(AarloSirenSwitch(config, base))
-        for camera in arlo.cameras:
-            if camera.has_capability('siren'):
-                adevices.append(camera)
-                devices.append(AarloSirenSwitch(config, camera))
+    for base in arlo.base_stations:
+        if base.has_capability('siren'):
+            adevices.append(base)
+    for camera in arlo.cameras:
+        if camera.has_capability('siren'):
+            adevices.append(camera)
 
-    # Have more than one siren? Then create all_siren if asked for.
-    if len(adevices) != 0:
-        if config.get(CONF_ALL_SIRENS) is True:
+    # Create individual switches if asked for
+    if config.get(CONF_SIRENS) is True:
+        for adevice in adevices:
+            devices.append(AarloSirenSwitch(config, adevice))
+
+    # Then create all_sirens if asked for.
+    if config.get(CONF_ALL_SIRENS) is True:
+        if len(adevices) != 0:
             devices.append(AarloAllSirensSwitch(config,adevices))
 
     # Add snapshot for each camera
