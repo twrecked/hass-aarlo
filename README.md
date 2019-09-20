@@ -186,6 +186,17 @@ The following additional parameters can be specified against the aarlo platform 
 
 For `alarm_control_panel` you only need to specify the modes if you have custom mode names, see [here](https://www.home-assistant.io/components/arlo/#alarm) for more information. Names are case insensitive.
 
+### Switches
+The switch component doesn't directly map to a single Arlo components but provides you with shortcuts to perform certain actions.
+
+| Name | Type | Default | Description |
+|-------------|-------------|--------------|-------------------------------------------------------|
+| siren | boolean | False | If True provides a switch per base/camera with siren support |
+| all_sirens | boolean | False | If True provides a switch to operate all sirens simultaneously |
+| snapshot | False | True | If True provide a switch per camera to request a snapshot |
+| siren_volume | int | 8 | Set siren volume |
+| siren_duration | int | 300 | Siren duration in seconds |
+
 ## Custom Lovelace Card Configuration
 
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
