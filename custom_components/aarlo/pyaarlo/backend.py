@@ -362,8 +362,6 @@ class ArloBackEnd(object):
                                      'Chrome/72.0.3626.81 Safari/537.36')
 
         self._session.headers.update(headers)
-        self._arlo.debug('Fetching device list after login (seems to make arming/disarming more stable)')
-        self.devices()
         return True
 
     def is_connected(self):

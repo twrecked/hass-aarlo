@@ -143,13 +143,24 @@ class ArloBase(ArloDevice):
                                         "publishResponse": True,
                                         "properties": {"active": mode_id}})
             else:
-                self._arlo.bg.run(self._arlo.be.post, path=AUTOMATION_PATH,
-                                  params={'activeAutomations': [
-                                      {'deviceId': self.device_id,
-                                       'timestamp': time_to_arlotime(),
-                                       active: [mode_id],
-                                       inactive: []}
-                                  ]})
+                def _set_mode_v2_cb():
+                    params = {'activeAutomations':
+                        [ {'deviceId':self.device_id,
+                            'timestamp':time_to_arlotime(),
+                            active:[mode_id],
+                            inactive:[] } ] }
+                    for i in range(1,3):
+                        body = self._arlo._be.post(url=AUTOMATION_URL, params=params, raw=True)
+                        if body['success']:
+                            return
+                        self._arlo.warning('attempt {0}: error in response when setting mode={1}'.format(i, str(body)))
+                        self._arlo.debug('Fetching device list (hoping this will fix arming/disarming)')
+                        self._arlo._be.devices()
+                    self._arlo.error('Failed to set mode.')
+                    self._arlo.debug('Giving up on setting mode! Session headers=' + self._arlo._be._session.headers)
+                    self._arlo.debug('Giving up on setting mode! Session cookies=' + self._arlo._be._session.cookies)
+
+                self._arlo._bg.run(_set_mode_v2_cb)
         else:
             self._arlo.warning('{0}: mode {1} is unrecognised'.format(self.name, mode_name))
 
