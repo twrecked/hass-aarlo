@@ -150,7 +150,7 @@ class ArloBackEnd(object):
                     responses.append((device_id, resource, prop))
             else:
                 device_id = response.get('from', None)
-                responses.append((device_id, resource, prop_or_props))
+                responses.append((device_id, resource, response))
 
         # These are generic responses, we look for device IDs and forward
         # hoping the device can handle it.
@@ -381,6 +381,10 @@ class ArloBackEnd(object):
 
     def post(self, path, params=None, headers=None, raw=False, timeout=None):
         return self._request(path, 'POST', params, headers, False, raw, timeout)
+
+    @property
+    def session(self):
+        return self._session
 
     def add_listener(self, device, callback):
         with self._lock:
