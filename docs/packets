@@ -3,9 +3,9 @@
 # Subscription reply packet.
 #
 { 'action': 'is',
-  'from': '4R068B7XA0588',
-  'properties': { 'devices': ['4R068B7XA0588'],
-                  'url': 'https://vzweb15-prod.vz.netgear.com/hmsweb/publish/4R068B7XA0588/TSF8AMY-140-8509222/720bfb37-1ee5-47ed-8e1b-e5e70c01b2ee'},
+  'from': '4R068BXXXXXXX',
+  'properties': { 'devices': ['4R068BXXXXXXX'],
+                  'url': 'https://vzweb15-prod.vz.netgear.com/hmsweb/publish/4R068BXXXXXXX/TSF8AMY-140-8509222/720bfb37-1ee5-47ed-8e1b-e5e70c01b2ee'},
   'resource': 'subscriptions/3952NM-336-7759821_web',
   'to': '3952NM-336-7759821_web',
   'transId': 'web!3fdacd98-2142-4b3b-ad2c-dbb9c6b8a775'}
@@ -18,7 +18,7 @@
 # and cameras. 'serialNumber' is used for the device id.
 #
 { 'action': 'is',
-  'from': '4894687YAD477',
+  'from': '489468XXXXXXX',
   'properties': [ { 'activityState': 'idle',
                     'batteryLevel': 38,
                     'blockNotifications': { 'block': False,
@@ -75,7 +75,7 @@
 # appropriate home assistant components. 'from' is mapped to 'device_id'
 #
 { 'action': 'is',
-  'from': '4R068B7XA0588',
+  'from': '4R068BXXXXXXX',
   'properties': { 'duration': 10,
                   'pattern': 'alarm',
                   'sirenState': 'on',
@@ -88,7 +88,7 @@
 ## Packet type #4
 # Base has changed mode.
 #
-{ '4R068B7XA0588': { 'activeModes': ['mode1'],
+{ '4R068BXXXXXXX': { 'activeModes': ['mode1'],
                      'activeSchedules': [],
                      'timestamp': 1568142116238},
   'resource': 'activeAutomations'}

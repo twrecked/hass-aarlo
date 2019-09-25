@@ -134,14 +134,14 @@ class ArloBackEnd(object):
 
         # These are individual device responses. Find device ID and forward
         # response.
-        # Packet number #2.
+        # Packet number #?.
         elif [x for x in self._resource_types if resource.startswith(x + '/')]:
             device_id = resource.split('/')[1]
             responses.append((device_id, resource, response))
 
         # These are base station responses. Which can be about the base station
         # or devices on it... Check if property is list.
-        # Packet number #3.
+        # Packet number #3/#2
         elif resource in self._resource_types:
             prop_or_props = response.get('properties', [])
             if isinstance(prop_or_props, list):
