@@ -1,5 +1,5 @@
-m ch	0.0.1: Initial version
-0.0.2: Added manifest to aarlo
+aarlo/pyaarlo
+0.6.0: New revision
 
 aarlo:
 0.5.11: add save video request
@@ -54,3 +54,8 @@ pyaarlo:
 0.0.6: Handle general exceptions when using requests.
 0.0.5: Add ping to startup sequence. 
 0.0.4: Fix mode lookup in base code
+
+old-version:
+0.0.2: Added manifest to aarlo
+0.0.1: Initial version
+
