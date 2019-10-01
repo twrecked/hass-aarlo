@@ -1,18 +1,21 @@
 # hass-aarlo
 
-### LOVELACE CARD
+### Version 0.6
 
-**The Custom Arlo card has moved.**
+Welcome to a new version!
 
-Because Aarlo is now included in the default HACS store the custom Lovelace card is now in its own repository. It will be removed from this repository in the coming weeks. Checkout the card from [here](https://github.com/twrecked/lovelace-hass-aarlo).
+I've decided to merge the `develop` branch into `master` and to move from version `0.5.x` to `0.6.x`. Improvements include, but aren't limited to:
+1. Light support. Brightness and colour will be added soon.
+1. Switches for controlling Alarms and Camera snapshots.
+1. Better code formatting - the plan is still to make this a standard component so it better follows Python and Home Assistant standards.
+1. Better backend code - the locking is better, more messages are supported, use new `my.arlo.com` website.
+1. Plenty of few bugs squashed - found by people using the component and PyCharm.
 
-If you aren't intersted in test builds HACS is the recomended way to install the software.
-
-**The Custom Arlo card has moved.**
+**DON'T PANIC!** - I'll be keeping the `0.5` stream will be around for a little longer so if all else fails, log a bug report and revert to that version.
 
 ### Asynchronous Arlo Component for Home Assistant.
 
-The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#/cameras) web site - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system. Currently it only lets you set base station modes.
+The component operates in a similar way to the [Arlo](https://my.arlo.com/#/cameras) web site - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system. Currently it only lets you set base station modes.
 
 ## Table of Contents
 1. [Supported Features](#Supported-Features)
@@ -56,6 +59,8 @@ The component operates in a similar way to the [Arlo](https://arlo.netgear.com/#
 * Direct video streaming from arlo where possible
 * Siren when triggering an alarm
 * Streaming (**Note**: in virtualenv installation only)
+* Switches for activing sirens and taking snapshots
+* Lights
 
 It provides a custom lovelace resource that is a specialised version of a picture-glance that allows you to see the last snapshot taken and give quick access to clip counts, the last recorded video and signal and battery levels.
 
@@ -80,8 +85,6 @@ Aarlo is part of the default HACS store. If you're not interested in development
 
 ### Manually
 Copy the `aarlo`directory into your `/config/custom_components` directory.
-
-Copy the `www` directory into you `/config` directory.
 
 ### From Script
 Run the install script. Run it once to make sure the operations look sane and run it a second time with the `go` paramater to do the actual work. If you update just rerun the script, it will overwrite all installed files.
@@ -117,6 +120,7 @@ aarlo:
   refresh_devices_every: 0
   http_connections: 5
   http_max_size: 10
+  host: https://my.arlo.com
 
 camera:
   - platform: aarlo
@@ -144,28 +148,51 @@ sensor:
     - battery_level
     - captured_today
     - signal_strength
+
+light:
+  - platform: aarlo
+
+switch:
+  - platform: aarlo
+    siren: True
+    all_sirens: True
+    snapshot: True
+    siren_volume: 1
+    siren_duration: 10
 ```
 The `alarm_control_panel` can be triggered and a siren, if present, will sound.
 
 ### Advanced Platform Parameters
 The following additional parameters can be specified against the aarlo platform for more granular control:
 
-| Field                 | Type     | Default          | Description                                                                                                                                                                                                                               |
-|-----------------------|----------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| packet_dump           | boolean  | `False`          | Causes aarlo to store all the packets it sees in `/config/.aarlo/packets.dump` file.                                                                                                                                                      |
-| db_motion_time        | integer  | 30 (s)           | Duration of doorbell motion. (Arlo doorbell only indicates motion is present not that it stops.)                                                                                                                                          |
-| db_ding_time          | integer  | 60 (s)           | Duration of doorbell press. (Arlo doorbell only indicates doorbell was pressed, not that it was released.)                                                                                                                                |
-| recent_time           | integer  | 600 (s)          | Used to hold the cameras in a  recent activity state after a recording or streaming event. (Streaming & recording can be over in a few seconds, without this the camera will revert to idle, possibly looking like nothing has happened.) |
-| last_format           | strftime | '%m-%d %H:%M'    | Display format of last captured time                                                                                                                                                                                                      |
-| conf_dir              | string   | '/config/.aarlo' | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems. You shouldn't have to change this.)                                                                                                  |
-| no_media_upload       | boolean  | False            | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.)                                                                                                                 |
-| mode_api              | string   | 'auto'           | available options: ['v1', 'v2'] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device.                                                        |
-| refresh_devices_every | integer  | 0 (hours)        | Used to force a refresh every x hours. 0 = no refreshing. Used to resolve issue with mode changes failing after several days of use.                                                                                                      |
-| http_connections      | integer  | 5                | Adjust the number http connections pools to cache.                                                                                                                                                                                        |
-| http_max_size         | integer  | 10               | Adjust the maximum number connects to save in the pool.                                                                                                                                                                                   |
+| Field                 | Type     | Default               | Description                                                                                                                                                                                                                               |
+|-----------------------|----------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| packet_dump           | boolean  | `False`               | Causes aarlo to store all the packets it sees in `/config/.aarlo/packets.dump` file.                                                                                                                                                      |
+| db_motion_time        | integer  | 30 (s)                | Duration of doorbell motion. (Arlo doorbell only indicates motion is present not that it stops.)                                                                                                                                          |
+| db_ding_time          | integer  | 60 (s)                | Duration of doorbell press. (Arlo doorbell only indicates doorbell was pressed, not that it was released.)                                                                                                                                |
+| recent_time           | integer  | 600 (s)               | Used to hold the cameras in a  recent activity state after a recording or streaming event. (Streaming & recording can be over in a few seconds, without this the camera will revert to idle, possibly looking like nothing has happened.) |
+| last_format           | strftime | '%m-%d %H:%M'         | Display format of last captured time                                                                                                                                                                                                      |
+| conf_dir              | string   | '/config/.aarlo'      | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems. You shouldn't have to change this.)                                                                                                  |
+| no_media_upload       | boolean  | False                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.)                                                                                                                 |
+| mode_api              | string   | 'auto'                | available options: ['v1', 'v2'] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device.                                                        |
+| refresh_devices_every | integer  | 0 (hours)             | Used to force a refresh every x hours. 0 = no refreshing. Used to resolve issue with mode changes failing after several days of use.                                                                                                      |
+| http_connections      | integer  | 5                     | Adjust the number http connections pools to cache.                                                                                                                                                                                        |
+| http_max_size         | integer  | 10                    | Adjust the maximum number connects to save in the pool.                                                                                                                                                                                   |
+| host                  | string   | 'https://my.arlo.com' | Sets the host aarlo will connect to.                                                                                                                                                                                                      |
 
 
 For `alarm_control_panel` you only need to specify the modes if you have custom mode names, see [here](https://www.home-assistant.io/components/arlo/#alarm) for more information. Names are case insensitive.
+
+### Switches
+The switch component doesn't directly map to a single Arlo components but provides you with shortcuts to perform certain actions.
+
+| Name | Type | Default | Description |
+|-------------|-------------|--------------|-------------------------------------------------------|
+| siren | boolean | False | If True provides a switch per base/camera with siren support |
+| all_sirens | boolean | False | If True provides a switch to operate all sirens simultaneously |
+| snapshot | False | True | If True provide a switch per camera to request a snapshot |
+| siren_volume | int | 8 | Set siren volume |
+| siren_duration | int | 300 | Siren duration in seconds |
 
 ## Custom Lovelace Card Configuration
 
