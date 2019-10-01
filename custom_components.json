@@ -1,6 +1,6 @@
 {
     "aarlo": {
-        "version": "0.5.11",
+        "version": "0.6.0",
         "local_location": "/custom_components/aarlo/__init__.py",
         "remote_location": "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/__init__.py",
         "visit_repo": "https://github.com/twrecked/hass-aarlo",
@@ -17,7 +17,7 @@
         ]
     },
     "pyaarlo": {
-        "version": "0.5.11",
+        "version": "0.6.0",
         "local_location": "/custom_components/aarlo/pyaarlo/__init__.py",
         "remote_location": "https://raw.githubusercontent.com/twrecked/hass-aarlo/master/custom_components/aarlo/pyaarlo/__init__.py",
         "visit_repo": "https://github.com/twrecked/hass-aarlo",
