@@ -1,20 +1,17 @@
 # hass-aarlo
 
-### LOVELACE CARD
+### Version 0.6
 
-**The Custom Arlo card has moved.**
+Welcome to a new version!
 
-Because Aarlo is now included in the default HACS store the custom Lovelace card is now in its own repository. It will be removed from this repository in the coming weeks. Checkout the card from [here](https://github.com/twrecked/lovelace-hass-aarlo).
+I've decided to merge the `develop` branch into `master` and to move from version `0.5.x` to `0.6.x`. Improvements include, but aren't limited to:
+1. Light support. Brightness and colour will be added soon.
+1. Switches for controlling Alarms and Camera snapshots.
+1. Better code formatting - the plan is still to make this a standard component so it better follows Python and Home Assistant standards.
+1. Better backend code - the locking is better, more messages are supported, use new `my.arlo.com` website.
+1. Plenty of few bugs squashed - found by people using the component and PyCharm.
 
-If you aren't intersted in test builds HACS is the recomended way to install the software.
-
-**The Custom Arlo card has moved.**
-
-**Streaming**
-
-As of Arlo 0.97 streaming works straight out of the box
-
-**Streaming**
+**DON'T PANIC!** - I'll be keeping the `0.5` stream will be around for a little longer so if all else fails, log a bug report and revert to that version.
 
 ### Asynchronous Arlo Component for Home Assistant.
 
