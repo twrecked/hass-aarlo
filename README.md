@@ -195,6 +195,8 @@ The switch component doesn't directly map to a single Arlo components but provid
 | siren_duration | int | 300 | Siren duration in seconds |
 
 ## Custom Lovelace Card Configuration
+#### Lovelace card can be found here:
+https://github.com/twrecked/lovelace-hass-aarlo
 
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
 
