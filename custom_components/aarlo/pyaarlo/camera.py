@@ -455,6 +455,7 @@ class ArloCamera(ArloChildDevice):
             'olsonTimeZone': self.timezone,
         }
         self._arlo.debug('starting recording')
+        self._save_and_do_callbacks(ACTIVITY_STATE_KEY, 'alertStreamActive')
         self._arlo.bg.run(self._arlo.be.post, path=RECORD_START_PATH, params=body,
                           headers={"xcloudId": self.xcloud_id})
         if duration is not None:
