@@ -55,6 +55,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 ATTR_MODE = 'mode'
 ATTR_VOLUME = 'volume'
 ATTR_DURATION = 'duration'
+ATTR_TIME_ZONE = 'time_zone'
 
 SERVICE_MODE = 'aarlo_set_mode'
 SERVICE_SIREN_ON = 'aarlo_siren_on'
@@ -212,6 +213,7 @@ class ArloBaseStation(AlarmControlPanel):
         attrs = {}
 
         attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
+        attrs[ATTR_TIME_ZONE] = self._base.timezone
         attrs['brand'] = DEFAULT_BRAND
         attrs['device_id'] = self._base.device_id
         attrs['model_id'] = self._base.model_id
