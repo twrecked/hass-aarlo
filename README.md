@@ -4,6 +4,30 @@ Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/)
 
 The component operates in a similar way to the [Arlo](https://my.arlo.com/#/cameras) website - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system.
 
+## Table of Contents
+- [Changelog](#changelog)
+ - [0.6.0](#060)
+- [Supported Features](#supported-features)
+- [Notes](#notes)
+- [Thanks](#thanks)
+- [Installation](#installation)
+ - [HACS](#hacs)
+ - [Manually](#manually)
+ - [From Script](#from-script)
+ - [Migrating from Old Layout](#migrating-from-old-layout)
+- [Component Configuration](#component-configuration)
+ - [Sample Configuration](#sample-configuration)
+ - [Advanced Platform Parameters](#advanced-platform-parameters)
+ - [Switches](#switches)
+- [Custom Lovelace Card Configuration](#custom-lovelace-card-configuration)
+- [Services](#services)
+- [Automations](#automations)
+   - [Update camera snapshot 3 seconds after a recording event happens](#update-camera-snapshot-3-seconds-after-a-recording-event-happens)
+   - [Begin recording when an entity changes state](#begin-recording-when-an-entity-changes-state)
+- [Web Sockets](#web-sockets)
+- [Streaming](#streaming)
+- [To Do](#to-do)
+
 ## Changelog
 
 ### 0.6.0
@@ -13,33 +37,6 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 3. Better code formatting - the plan is still to make this a standard component so it better follows Python and Home Assistant standards.
 4. Better backend code - the locking is better, more messages are supported, use new `my.arlo.com` website.
 5. Plenty of few bugs squashed - found by people using the component and PyCharm.
-
-
-## Table of Contents
-- [hass-aarlo](#hass-aarlo)
-  - [Changelog](#changelog)
-    - [0.6.0](#060)
-  - [Table of Contents](#table-of-contents)
-  - [Supported Features](#supported-features)
-  - [Notes](#notes)
-  - [Thanks](#thanks)
-  - [Installation](#installation)
-    - [HACS](#hacs)
-    - [Manually](#manually)
-    - [From Script](#from-script)
-    - [Migrating from Old Layout](#migrating-from-old-layout)
-  - [Component Configuration](#component-configuration)
-    - [Sample Configuration](#sample-configuration)
-    - [Advanced Platform Parameters](#advanced-platform-parameters)
-    - [Switches](#switches)
-  - [Custom Lovelace Card Configuration](#custom-lovelace-card-configuration)
-  - [Services](#services)
-  - [Automations](#automations)
-      - [Update camera snapshot 3 seconds after a recording event happens](#update-camera-snapshot-3-seconds-after-a-recording-event-happens)
-      - [Begin recording when an entity changes state](#begin-recording-when-an-entity-changes-state)
-  - [Web Sockets](#web-sockets)
-  - [Streaming](#streaming)
-  - [To Do](#to-do)
 
 ## Supported Features
 * Base station mode changes
