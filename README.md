@@ -1,43 +1,45 @@
 # hass-aarlo
 
-### Version 0.6
+Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/).
 
-Welcome to a new version!
+The component operates in a similar way to the [Arlo](https://my.arlo.com/#/cameras) website - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system.
 
-I've decided to merge the `develop` branch into `master` and to move from version `0.5.x` to `0.6.x`. Improvements include, but aren't limited to:
-1. Light support. Brightness and colour will be added soon.
-1. Switches for controlling Alarms and Camera snapshots.
-1. Better code formatting - the plan is still to make this a standard component so it better follows Python and Home Assistant standards.
-1. Better backend code - the locking is better, more messages are supported, use new `my.arlo.com` website.
-1. Plenty of few bugs squashed - found by people using the component and PyCharm.
+## Changelog
 
-**DON'T PANIC!** - I'll be keeping the `0.5` stream will be around for a little longer so if all else fails, log a bug report and revert to that version.
+### 0.6.0
 
-### Asynchronous Arlo Component for Home Assistant
+1. Arlo Light support. Brightness and colour will be added soon.
+2. Switches for controlling Alarms and Camera snapshots.
+3. Better code formatting - the plan is still to make this a standard component so it better follows Python and Home Assistant standards.
+4. Better backend code - the locking is better, more messages are supported, use new `my.arlo.com` website.
+5. Plenty of few bugs squashed - found by people using the component and PyCharm.
 
-The component operates in a similar way to the [Arlo](https://my.arlo.com/#/cameras) web site - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system. Currently it only lets you set base station modes.
 
 ## Table of Contents
-1. [Supported Features](#Supported-Features)
-1. [Notes](#Notes)
-1. [Thanks](#Thanks)
-1. [Installation](#Installation)
-   1. [Migrating from Old Layout](#Migrating-from-Old-Layout)
-   1. [Manually](#Manually)
-   1. [From Script](#From-Script)
-1. [Component Configuration](#Component-Configuration)
-   1. [Sample Configuration](#Sample-Configuration)
-   1. [Advanced Platform Parameters](#Advanced-Platform-Parameters)
-1. [Custom Lovelace Card Configuration](#Custom-Lovelace-Card-Configuration)
-   1. [Resource Configuration](#Resource-Configuration)
-   1. [Card Configuration](#Card-Configuration)
-   1. [Example](#Example)
-1. [Other Lovelace Options](#Other-Lovelace-Options)
-1. [Streaming](#Streaming)
-1. [Automations](#Automations)
-1. [Services](#Services)
-1. [Web Sockets](#Web-Sockets)
-1. [To Do](#To-Do)
+- [hass-aarlo](#hass-aarlo)
+  - [Changelog](#changelog)
+    - [0.6.0](#060)
+  - [Table of Contents](#table-of-contents)
+  - [Supported Features](#supported-features)
+  - [Notes](#notes)
+  - [Thanks](#thanks)
+  - [Installation](#installation)
+    - [HACS](#hacs)
+    - [Manually](#manually)
+    - [From Script](#from-script)
+    - [Migrating from Old Layout](#migrating-from-old-layout)
+  - [Component Configuration](#component-configuration)
+    - [Sample Configuration](#sample-configuration)
+    - [Advanced Platform Parameters](#advanced-platform-parameters)
+    - [Switches](#switches)
+  - [Custom Lovelace Card Configuration](#custom-lovelace-card-configuration)
+  - [Services](#services)
+  - [Automations](#automations)
+      - [Update camera snapshot 3 seconds after a recording event happens](#update-camera-snapshot-3-seconds-after-a-recording-event-happens)
+      - [Begin recording when an entity changes state](#begin-recording-when-an-entity-changes-state)
+  - [Web Sockets](#web-sockets)
+  - [Streaming](#streaming)
+  - [To Do](#to-do)
 
 ## Supported Features
 * Base station mode changes
@@ -92,7 +94,7 @@ install go /config
 ```
 
 ### Migrating from Old Layout
-**This only needs to be done once and only if you installed an older version of `hass-aarlo`.** 
+This only needs to be done once and only if you installed an older version of `hass-aarlo`.
 
 Home Assitant moved to a new layout for custom components, running the `remove_old` script will show a list of commands needed to remove the old installation. You will need to enter these commands manually. After running the command and, if they are empty, it's safe to remove the `alarm_control_panel`, `binary_sensor`, `sensor` and `camera` directories from your `/config/custom_components` directory
 
@@ -185,33 +187,10 @@ The switch component doesn't directly map to a single Arlo components but provid
 | siren_duration | integer | `300` | Siren duration in seconds |
 
 ## Custom Lovelace Card Configuration
-#### Lovelace card can be found here:
-https://github.com/twrecked/lovelace-hass-aarlo
+
+A custom Lovelace card which is based on the `picture-glance` can be found here: https://github.com/twrecked/lovelace-hass-aarlo
 
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
-
-The new resource `aarlo-glance` is based on `picture-glance` but tailored for the Arlo component to simplify the configuration. 
-
-## Streaming
-
-The support for stream is experimental and works but with a couple of caveats.
-* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
-* the stream only stops if you use the aarlo-glance card
-
-Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
-```
-source your-env/bin/activate
-sudo apt install libavformat-dev
-sudo apt install libavdevice-dev
-pip install av==6.1.2
-```
-Set `image_click` to `play` on the aarlo glance card.
-
-For further information on getting streaming working please read these 2 posts:
-   * https://github.com/twrecked/hass-aarlo/issues/55
-   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
-   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
-
 
 ## Services
 
@@ -280,6 +259,27 @@ The component provides the following extra web sockets:
 | aarlo_stream_url | <ul><li>`entity_id` -  camera to get snapshot from</li><li>`filename` - where to save snapshot | Ask the camera to start streaming. Returns:<ul><li>`url` - URL of the video stream</li></ul> |
 | aarlo_snapshot_image | <ul><li>`entity_id` -  camera to get snapshot from</li></ul> | Request a snapshot. Returns image details: <ul><li>`content_type`: the image type</li><li>`content`: the image</li></ul> |
 | aarlo_stop_activity | <ul><li>`entity_id` - camera to stop activity on</li></ul> | Stop all the activity in the camera. Returns: <ul><li>`stopped`: True if stop request went in</li></ul> |
+
+## Streaming
+
+The support for stream is experimental and works but with a couple of caveats.
+* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
+* the stream only stops if you use the aarlo-glance card
+
+Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
+```
+source your-env/bin/activate
+sudo apt install libavformat-dev
+sudo apt install libavdevice-dev
+pip install av==6.1.2
+```
+
+Set `image_click` to `play` on the aarlo glance card.
+
+For further information on getting streaming working please read these 2 posts:
+   * https://github.com/twrecked/hass-aarlo/issues/55
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
 
 ## To Do
 
