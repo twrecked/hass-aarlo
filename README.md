@@ -161,7 +161,7 @@ The following additional parameters can be specified against the aarlo platform 
 | `db_ding_time`          | integer  | `60` (s)                | Duration of doorbell press. (Arlo doorbell only indicates doorbell was pressed, not that it was released) |
 | `recent_time`           | integer  | `600` (s)               | Used to hold the cameras in a  recent activity state after a recording or streaming event. (Streaming & recording can be over in a few seconds, without this the camera will revert to idle, possibly looking like nothing has happened.) |
 | `last_format`           | strftime | `'%m-%d %H:%M'`         | Display format of last captured time  |
-| `conf_dir`              | string   | `'/config/.aarlo'`      | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems. You shouldn't have to change this.) |
+| `conf_dir`              | string   | `'/config/.aarlo'`      | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems - don't set this value unless asked to.) |
 | `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
 | `mode_api`              | string   | `auto`                | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
 | `refresh_devices_every` | integer  | `0` (hours)             | Used to force a refresh every x hours. 0 = no refreshing. Used to resolve issue with mode changes failing after several days of use |
