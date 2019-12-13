@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.6.6: fixed close, added code for alarms
 0.6.5: initial video doorbell support
 0.6.4: fixed versioning
 0.6.3: added support for HA 103
