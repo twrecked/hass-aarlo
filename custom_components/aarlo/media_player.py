@@ -83,26 +83,6 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
         self._position = 0
         _LOGGER.info('ArloMediaPlayerDevice: %s created', self._name)
 
-    # def update(self):
-    #     """Get the latest details from the device."""
-    #     status = self._vlc.get_state()
-    #     if status == vlc.State.Playing:
-    #         self._state = STATE_PLAYING
-    #     elif status == vlc.State.Paused:
-    #         self._state = STATE_PAUSED
-    #     else:
-    #         self._state = STATE_IDLE
-    #     self._media_duration = self._vlc.get_length() / 1000
-    #     position = self._vlc.get_position() * self._media_duration
-    #     if position != self._media_position:
-    #         self._media_position_updated_at = dt_util.utcnow()
-    #         self._media_position = position
-
-    #     self._volume = self._vlc.audio_get_volume() / 100
-    #     self._muted = self._vlc.audio_get_mute() == 1
-
-    #     return True
-
     async def async_added_to_hass(self):
         """Register callbacks."""
 
