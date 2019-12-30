@@ -76,7 +76,7 @@ class ArloBackEnd(object):
             self._arlo.warning('request-error={}'.format(type(e).__name__))
             return None
 
-        self._arlo.debug('finish request=' + str(r.status_code))
+        # self._arlo.debug('finish request=' + str(r.status_code))
         if r.status_code != 200:
             return None
 
@@ -149,10 +149,11 @@ class ArloBackEnd(object):
                 device_id = response.get('from', None)
                 responses.append((device_id, resource, response))
 
-        elif resource == 'audioPlayback/status':
+        elif resource.startswith('audioPlayback'):
             device_id = response.get('from')
-            if device_id is not None:
-                responses.append((device_id, resource, response.get('properties', [])))
+            properties = response.get('properties')
+            if device_id is not None and properties is not None:
+                responses.append((device_id, resource, properties))
 
         # These are generic responses, we look for device IDs and forward
         # hoping the device can handle it.

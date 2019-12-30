@@ -6,6 +6,7 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 
 ## Table of Contents
 - [Changelog](#changelog)
+ - [0.7.0](#070)
  - [0.6.0](#060)
 - [Supported Features](#supported-features)
 - [Notes](#notes)
@@ -29,6 +30,10 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 - [To Do](#to-do)
 
 ## Changelog
+
+### 0.7.0
+
+1. Arlo Baby media player support.
 
 ### 0.6.0
 
@@ -61,6 +66,7 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 * Streaming (**Note**: in virtualenv installation only)
 * Switches for activing sirens and taking snapshots
 * Lights
+* Arlo Baby media player
 
 ## Notes
 Wherever you see `/config` in this README it refers to your home-assistant configuration directory. For me, for example, it's `/home/steve/ha` that is mapped to `/config` inside my docker container.
@@ -138,6 +144,9 @@ sensor:
     - signal_strength
 
 light:
+  - platform: aarlo
+
+media_player:
   - platform: aarlo
 
 switch:

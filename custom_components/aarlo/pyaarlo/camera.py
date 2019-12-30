@@ -539,7 +539,16 @@ class ArloCamera(ArloChildDevice):
         }
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-    def skip_track(self):
+    def previous_track(self):
+        """Skips to the previous track in the playlist."""
+        body = {
+            'action': 'prevTrack',
+            'publishResponse': True,
+            'resource': self.media_player_resource_id,
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+
+    def next_track(self):
         """Skips to the next track in the playlist."""
         body = {
             'action': 'nextTrack',
@@ -576,7 +585,7 @@ class ArloCamera(ArloChildDevice):
         }
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-    def set_shuffle_on(self):
+    def set_shuffle(self, shuffle=True):
         """Sets playback to shuffle."""
         body = {
             'action': 'set',
@@ -584,21 +593,7 @@ class ArloCamera(ArloChildDevice):
             'resource': 'audioPlayback/config',
             'properties': {
                 'config': {
-                    'shuffleActive': True
-                }
-            }
-        }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
-
-    def set_shuffle_off(self):
-        """Sets playback to sequential."""
-        body = {
-            'action': 'set',
-            'publishResponse': True,
-            'resource': 'audioPlayback/config',
-            'properties': {
-                'config': {
-                    'shuffleActive': False
+                    'shuffleActive': shuffle
                 }
             }
         }

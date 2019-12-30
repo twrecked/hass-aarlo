@@ -3,7 +3,7 @@ import logging
 
 import voluptuous as vol
 
-from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerDevice
+from homeassistant.components.media_player import DEVICE_CLASS_SPEAKER, PLATFORM_SCHEMA, MediaPlayerDevice
 from homeassistant.components.media_player.const import (
     MEDIA_TYPE_MUSIC,
     SUPPORT_PAUSE,
@@ -16,7 +16,12 @@ from homeassistant.components.media_player.const import (
     SUPPORT_VOLUME_SET,
 )
 from homeassistant.core import callback
-from homeassistant.const import CONF_NAME, STATE_IDLE, STATE_PAUSED, STATE_PLAYING
+from homeassistant.const import (
+    ATTR_ATTRIBUTION,
+    STATE_IDLE,
+    STATE_PAUSED,
+    STATE_PLAYING
+)
 import homeassistant.helpers.config_validation as cv
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 
@@ -47,12 +52,6 @@ SUPPORT_ARLO = (
 """
 
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Optional(CONF_NAME): cv.string,
-    }
-)
-
 async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo media player."""
     arlo = hass.data.get(DATA_ARLO)
@@ -62,7 +61,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     players = []
     for camera in arlo.cameras:
         if camera.has_capability('mediaPlayer'):
-            name = 'Media Player {0}'.format(camera.name)
+            name = '{0}'.format(camera.name)
             players.append(ArloMediaPlayerDevice(name, camera))
 
     async_add_entities(players, True)
@@ -79,7 +78,8 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
         self._name = name
         self._volume = None
         self._muted = None
-        self._state = None
+        self._state = STATE_IDLE # Arlo only sends an event on change
+        self._shuffle = None
         self._position = 0
         _LOGGER.info('ArloMediaPlayerDevice: %s created', self._name)
 
@@ -119,13 +119,23 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
                     _LOGGER.debug('Unknown status:' + status)
                     self._state = STATE_IDLE
                 self._position = props.get('position', 0)
+            elif attr == "speaker":
+                vol = props.get('volume')
+                if vol is not None:
+                    self._volume = vol / 100
+                self._muted = props.get('mute', self._muted)
+            elif attr == "config":
+                _LOGGER.info("Audio Config: {}".format(props))
+                config = props.get('config', {})
+                # {'config': {'loopbackMode': 'singleTrack', 'shuffleActive': True, 'playing': False, 'sleepTime': 0, 'sleepTimeRel': 0, 'storageLimit': 20971520}}
+                self._shuffle = config.get('shuffleActive', self._shuffle)
+                
 
             self.async_schedule_update_ha_state()
 
-        self._device.add_attr_callback('audioState', update_state)
-        self._device.add_attr_callback("status", update_state)
-        self._device.add_attr_callback("position", update_state)
-        self._device.add_attr_callback("trackId", update_state)
+        self._device.add_attr_callback("audioState", update_state)
+        self._device.add_attr_callback("config", update_state)
+        self._device.add_attr_callback("speaker", update_state)
 
     @property
     def name(self):
@@ -157,9 +167,48 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
         """Content type of current playing media."""
         return MEDIA_TYPE_MUSIC
 
+    @property
+    def device_class(self):
+        """Return the device class of the media player."""
+        return DEVICE_CLASS_SPEAKER
+
+    @property
+    def icon(self):
+        """Icon to use in the frontend, if any."""
+        return "mdi:speaker"
+
+    @property
+    def device_state_attributes(self):
+        """Return the device state attributes."""
+        attrs = {}
+
+        attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
+        attrs['brand'] = DEFAULT_BRAND
+        attrs['friendly_name'] = self._name
+
+        return attrs
+
+    @property
+    def shuffle(self):
+        """Boolean if shuffle is enabled."""
+        return self._shuffle
+
+    def set_shuffle(self, shuffle):
+        """Enable/disable shuffle mode."""
+        self._device.set_shuffle(shuffle=shuffle)
+        self._shuffle = shuffle
+
+    def media_previous_track(self):
+        """Send next track command."""
+        self._device.previous_track()
+
+    def media_next_track(self):
+        """Send next track command."""
+        self._device.next_track()
+
     def mute_volume(self, mute):
         """Mute the volume."""
-        self._device.set_volume(mute=mute, volume=self._volume)
+        self._device.set_volume(mute=mute, volume=int(self._volume * 100))
         self._muted = mute
 
     def set_volume_level(self, volume):
