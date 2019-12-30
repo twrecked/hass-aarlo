@@ -149,6 +149,11 @@ class ArloBackEnd(object):
                 device_id = response.get('from', None)
                 responses.append((device_id, resource, response))
 
+        elif resource == 'audioPlayback/status':
+            device_id = response.get('from')
+            if device_id is not None:
+                responses.append((device_id, resource, response.get('properties', [])))
+
         # These are generic responses, we look for device IDs and forward
         # hoping the device can handle it.
         # Packet number #?.
@@ -157,7 +162,7 @@ class ArloBackEnd(object):
             if device_id is not None:
                 responses.append((device_id, resource, response))
             else:
-                self._arlo.debug('unhandled response ' + resource)
+                self._arlo.debug('unhandled response {} - {}'.format(resource, response))
 
         # Now find something waiting for this/these.
         for device_id, resource, response in responses:
