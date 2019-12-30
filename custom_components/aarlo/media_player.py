@@ -78,9 +78,12 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
         self._name = name
         self._volume = None
         self._muted = None
-        self._state = STATE_IDLE # Arlo only sends an event on change
+        self._state = None
         self._shuffle = None
         self._position = 0
+        self._track_id = None
+        self._playlist = []
+
         _LOGGER.info('ArloMediaPlayerDevice: %s created', self._name)
 
     async def async_added_to_hass(self):
@@ -88,8 +91,8 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
 
         @callback
         def update_state(_device, attr, props):
-            _LOGGER.debug('media_player callback:' + attr + ':' + str(props)[:80])
-            if attr == "audioState":
+            _LOGGER.info('media_player callback:' + attr + ':' + str(props)[:80])
+            if attr == "status":
                 status = props.get('status')
                 if status == 'playing':
                     self._state = STATE_PLAYING
@@ -99,23 +102,25 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
                     _LOGGER.debug('Unknown status:' + status)
                     self._state = STATE_IDLE
                 self._position = props.get('position', 0)
+                self._track_id = props.get('trackId', None)
             elif attr == "speaker":
                 vol = props.get('volume')
                 if vol is not None:
                     self._volume = vol / 100
                 self._muted = props.get('mute', self._muted)
             elif attr == "config":
-                _LOGGER.info("Audio Config: {}".format(props))
                 config = props.get('config', {})
-                # {'config': {'loopbackMode': 'singleTrack', 'shuffleActive': True, 'playing': False, 'sleepTime': 0, 'sleepTimeRel': 0, 'storageLimit': 20971520}}
                 self._shuffle = config.get('shuffleActive', self._shuffle)
-                
+            elif attr == "playlist":
+                self._playlist = props
 
             self.async_schedule_update_ha_state()
 
-        self._device.add_attr_callback("audioState", update_state)
         self._device.add_attr_callback("config", update_state)
         self._device.add_attr_callback("speaker", update_state)
+        self._device.add_attr_callback("status", update_state)
+        self._device.add_attr_callback("playlist", update_state)
+        self._device.get_audio_playback_status()
 
     @property
     def name(self):
@@ -136,6 +141,15 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
     def is_volume_muted(self):
         """Boolean if volume is currently muted."""
         return self._muted
+
+    @property
+    def media_title(self):
+        """Title of current playing media."""
+        if self._track_id is not None and self._playlist:
+            for track in self._playlist:
+                if track.get("id") == self._track_id:
+                    return track.get("title")
+        return None
 
     @property
     def supported_features(self):

@@ -152,6 +152,11 @@ class ArloBackEnd(object):
         elif resource.startswith('audioPlayback'):
             device_id = response.get('from')
             properties = response.get('properties')
+            if resource == 'audioPlayback/status':
+                # Wrap the status event to match the 'audioPlayback' event
+                properties = {'status': response.get('properties')}
+
+            self._arlo.info('audio playback response {} - {}'.format(resource, response))
             if device_id is not None and properties is not None:
                 responses.append((device_id, resource, properties))
 

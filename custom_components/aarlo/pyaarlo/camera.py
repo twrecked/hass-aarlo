@@ -12,7 +12,7 @@ from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        RECORD_START_PATH, RECORD_STOP_PATH,
                        SNAPSHOT_KEY, SIREN_STATE_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_PATH, STREAM_START_PATH, CAMERA_MEDIA_DELAY,
-                       AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, DEFAULT_TRACK_ID)
+                       AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, DEFAULT_TRACK_ID, MEDIA_PLAYER_RESOURCE_ID)
 from .device import ArloChildDevice
 from .util import http_get, http_get_img
 
@@ -216,10 +216,6 @@ class ArloCamera(ArloChildDevice):
                 self._save_and_do_callbacks('temperature', data.get('temperature'))
                 self._save_and_do_callbacks('humidity', data.get('humidity'))
                 self._save_and_do_callbacks('airQuality', data.get('airQuality'))
-
-        if resource == 'audioPlayback/status':
-            if event is not None:
-                self._save_and_do_callbacks('audioState', event)
 
         # pass on to lower layer
         super()._event_handler(resource, event)
@@ -515,15 +511,20 @@ class ArloCamera(ArloChildDevice):
     def turn_off(self):
         self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=True)
 
-    @property
-    def media_player_resource_id(self):
-        return "audioPlayback/player" #.format(self.device_id)
+    def get_audio_playback_status(self):
+        """Gets the current playback status and available track list"""
+        body = {
+            'action': 'get',
+            'publishResponse': True,
+            'resource': 'audioPlayback'
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
     def play_track(self, track_id=DEFAULT_TRACK_ID, position=0):
         body = {
             'action': 'playTrack',
             'publishResponse': True,
-            'resource': self.media_player_resource_id,
+            'resource': MEDIA_PLAYER_RESOURCE_ID,
             'properties': {
                 AUDIO_TRACK_KEY: track_id,
                 AUDIO_POSITION_KEY: position
@@ -535,7 +536,7 @@ class ArloCamera(ArloChildDevice):
         body = {
             'action': 'pause',
             'publishResponse': True,
-            'resource': self.media_player_resource_id,
+            'resource': MEDIA_PLAYER_RESOURCE_ID,
         }
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
@@ -544,7 +545,7 @@ class ArloCamera(ArloChildDevice):
         body = {
             'action': 'prevTrack',
             'publishResponse': True,
-            'resource': self.media_player_resource_id,
+            'resource': MEDIA_PLAYER_RESOURCE_ID,
         }
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
@@ -553,7 +554,7 @@ class ArloCamera(ArloChildDevice):
         body = {
             'action': 'nextTrack',
             'publishResponse': True,
-            'resource': self.media_player_resource_id,
+            'resource': MEDIA_PLAYER_RESOURCE_ID,
         }
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
