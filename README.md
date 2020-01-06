@@ -6,7 +6,6 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 
 ## Table of Contents
 - [Changelog](#changelog)
- - [0.7.0](#070)
  - [0.6.0](#060)
 - [Supported Features](#supported-features)
 - [Notes](#notes)
@@ -31,10 +30,6 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 
 ## Changelog
 
-### 0.7.0
-
-1. Arlo Baby media player support.
-
 ### 0.6.0
 
 1. Arlo Light support. Brightness and colour will be added soon.
@@ -42,6 +37,7 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 3. Better code formatting - the plan is still to make this a standard component so it better follows Python and Home Assistant standards.
 4. Better backend code - the locking is better, more messages are supported, use new `my.arlo.com` website.
 5. Plenty of few bugs squashed - found by people using the component and PyCharm.
+7. Arlo Baby media player support.
 
 ## Supported Features
 * Base station mode changes
