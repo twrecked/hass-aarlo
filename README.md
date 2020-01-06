@@ -37,6 +37,7 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 3. Better code formatting - the plan is still to make this a standard component so it better follows Python and Home Assistant standards.
 4. Better backend code - the locking is better, more messages are supported, use new `my.arlo.com` website.
 5. Plenty of few bugs squashed - found by people using the component and PyCharm.
+7. Arlo Baby media player support.
 
 ## Supported Features
 * Base station mode changes
@@ -61,6 +62,7 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 * Streaming (**Note**: in virtualenv installation only)
 * Switches for activing sirens and taking snapshots
 * Lights
+* Arlo Baby media player
 
 ## Notes
 Wherever you see `/config` in this README it refers to your home-assistant configuration directory. For me, for example, it's `/home/steve/ha` that is mapped to `/config` inside my docker container.
@@ -138,6 +140,9 @@ sensor:
     - signal_strength
 
 light:
+  - platform: aarlo
+
+media_player:
   - platform: aarlo
 
 switch:
@@ -259,11 +264,7 @@ The component provides the following extra web sockets:
 
 ## Streaming
 
-The support for stream is experimental and works but with a couple of caveats.
-* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
-* the stream only stops if you use the aarlo-glance card
-
-Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
+Streaming now works "out of the box" for HassOS and Docker installs. To get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
 ```
 source your-env/bin/activate
 sudo apt install libavformat-dev
@@ -273,7 +274,7 @@ pip install av==6.1.2
 
 Set `image_click` to `play` on the aarlo glance card.
 
-For further information on getting streaming working please read these 2 posts:
+If you are still having issues please read these 3 posts:
    * https://github.com/twrecked/hass-aarlo/issues/55
    * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
    * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
