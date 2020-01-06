@@ -268,11 +268,7 @@ The component provides the following extra web sockets:
 
 ## Streaming
 
-The support for stream is experimental and works but with a couple of caveats.
-* virtualenv only - this is because `ffmpeg` doesn't support rtsps streams in docker or hassio.
-* the stream only stops if you use the aarlo-glance card
-
-Do get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
+Streaming now works "out of the box" for HassOS and Docker installs. To get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
 ```
 source your-env/bin/activate
 sudo apt install libavformat-dev
@@ -282,7 +278,7 @@ pip install av==6.1.2
 
 Set `image_click` to `play` on the aarlo glance card.
 
-For further information on getting streaming working please read these 2 posts:
+If you are still having issues please read these 3 posts:
    * https://github.com/twrecked/hass-aarlo/issues/55
    * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
    * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
