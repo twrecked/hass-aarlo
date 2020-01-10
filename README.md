@@ -281,7 +281,7 @@ If you are still having issues please read these 3 posts:
 
 ## To Do
 
+* coloured lights
 * custom mode - like SmartThings to better control motion detection
-* enhance live streaming
 * use asyncio loop internally
 * setup pypi
