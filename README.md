@@ -1,45 +1,44 @@
 # hass-aarlo
 
-Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/).
-
-The component operates in a similar way to the [Arlo](https://my.arlo.com/#/cameras) website - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras and doorbells in a system.
-
 ## Table of Contents
-- [Changelog](#changelog)
- - [0.6.0](#060)
-- [Supported Features](#supported-features)
-- [Notes](#notes)
-- [Thanks](#thanks)
+- [Introduction](#introduction)
+   - [Supported Features](#supported-features)
+   - [Notes](#notes)
+   - [Thanks](#thanks)
 - [Installation](#installation)
- - [HACS](#hacs)
- - [Manually](#manually)
- - [From Script](#from-script)
- - [Migrating from Old Layout](#migrating-from-old-layout)
-- [Component Configuration](#component-configuration)
- - [Sample Configuration](#sample-configuration)
- - [Advanced Platform Parameters](#advanced-platform-parameters)
- - [Switches](#switches)
-- [Custom Lovelace Card Configuration](#custom-lovelace-card-configuration)
-- [Services](#services)
-- [Automations](#automations)
-   - [Update camera snapshot 3 seconds after a recording event happens](#update-camera-snapshot-3-seconds-after-a-recording-event-happens)
-   - [Begin recording when an entity changes state](#begin-recording-when-an-entity-changes-state)
-- [Web Sockets](#web-sockets)
-- [Streaming](#streaming)
+   - [HACS](#hacs)
+   - [Manually](#manually)
+   - [From Script](#from-script)
+- [Configuration](#configuration)
+   - [Moving from Arlo](#moving-from-arlo)
+   - [Main Configuration](#main-configuration)
+   - [Alarm Configuration](#alarm-configuration)
+   - [Camera Configuration](#camera-configuration)
+   - [Binary Sensor Configuration](#binary-sensor-configuration)
+   - [Sensor Configuration](#sensor-configuration)
+   - [Light Configuration](#light-configuration)
+   - [Switch Configuration](#switch-configuration)
+   - [Media Player Configuration](#media-player-configuration)
+   - [Custom Lovelace Card Configuration](#custom-lovelace-card-configuration)
+- [Other](#other)
+   - [Best Practises and Known Limitations](#best-practices-and-known-limitations)
+   - [Debugging](#debugging)
+- [Advanced Use](#advanced)
+   - [All Parameters](#all-parameters)
+   - [Services](#services)
+   - [Automations](#automations)
+      - [Update camera snapshot 3 seconds after a recording event happens](#update-camera-snapshot-3-seconds-after-a-recording-event-happens)
+      - [Begin recording when an entity changes state](#begin-recording-when-an-entity-changes-state)
+   - [Web Sockets](#web-sockets)
+   - [Streaming](#streaming)
 - [To Do](#to-do)
 
-## Changelog
+## Introduction
+Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/).
 
-### 0.6.0
+The component operates in a similar way to the [Arlo](https://my.arlo.com/#/cameras) website - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras, lights and doorbells in a system.
 
-1. Arlo Light support. Brightness and colour will be added soon.
-2. Switches for controlling Alarms and Camera snapshots.
-3. Better code formatting - the plan is still to make this a standard component so it better follows Python and Home Assistant standards.
-4. Better backend code - the locking is better, more messages are supported, use new `my.arlo.com` website.
-5. Plenty of few bugs squashed - found by people using the component and PyCharm.
-7. Arlo Baby media player support.
-
-## Supported Features
+### Supported Features
 * Base station mode changes
 * Camera motion detection
 * Camera audio detection
@@ -64,15 +63,16 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 * Lights
 * Arlo Baby media player
 
-## Notes
+### Notes
 Wherever you see `/config` in this README it refers to your home-assistant configuration directory. For me, for example, it's `/home/steve/ha` that is mapped to `/config` inside my docker container.
 
-## Thanks
+### Thanks
 Many thanks to:
 * [Pyarlo](https://github.com/tchellomello/python-arlo) and [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard work figuring the API out and the free Python lesson!
 * [sseclient](https://github.com/btubbs/sseclient) for reading from the event stream
 * [Button Card](https://github.com/kuuji/button-card/blob/master/button-card.js) for a working lovelace card I could understand
 * [![JetBrains](/images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo) for the excellent **PyCharm IDE** and providing me with an open source license to speed up the project development.
+
 
 ## Installation
 
@@ -92,59 +92,133 @@ install /config
 install go /config
 ```
 
-### Migrating from Old Layout
-This only needs to be done once and only if you installed an older version of `hass-aarlo`.
+## Configuration
 
-Home Assitant moved to a new layout for custom components, running the `remove_old` script will show a list of commands needed to remove the old installation. You will need to enter these commands manually. After running the command and, if they are empty, it's safe to remove the `alarm_control_panel`, `binary_sensor`, `sensor` and `camera` directories from your `/config/custom_components` directory
-
-## Component Configuration
+### Moving From Arlo
 For the simplest use replace all instances of the `arlo` with `aarlo` in your home-assistant configuration files. To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list.
 
-### Sample Configuration
+### Main Configuration
+The following configuration is the minimim needed.
 
 ```yaml
 aarlo:
   username: !secret arlo_username
   password: !secret arlo_password
-  db_motion_time: 30
-  db_ding_time: 10
-  recent_time: 10
-  last_format: '%m-%d %H:%M'
+```
+
+The following configuration adds some connection keep alive mechanisms to try to work around limitations in using the Arlo web interface.
+
+```yaml
+aarlo:
+  username: !secret arlo_username
+  password: !secret arlo_password
   refresh_devices_every: 2
+  stream_timeout: 120
+```
 
-camera:
-  - platform: aarlo
-    ffmpeg_arguments: '-pred 1 -q:v 2'
+The `refresh_devices_every` above tells the code to reload the device list every 2 hours and the `stream_timeout` tells the event stream to restart after 2 minutes of inactivity. If you still struggle with connectivity you can add the following to force a logout and log back in, in this case every 90 minutes.
 
+```yaml
+  reconnect_every: 90
+```
+
+### Alarm Configuration
+
+The following enables and configures the base stations.
+
+```yaml
 alarm_control_panel:
   - platform: aarlo
     home_mode_name: home
     away_mode_name: armed
+    night_mode_name: night
     trigger_time: 30
     alarm_volume: 8
+```
 
+* Arlo does not have a built in `away`, `home` or `night` mode. Use `away_mode_name`, `home_mode_name` and `night_mode_name` to map them to one of your custom Arlo modes. By default `away_mode_name` maps to `Armed`. If you don't map all your modes in there is a possibility the alarm panel will appear blank. Names are case insensitive.
+* `trigger_time` and `alarm_volume` determine how long, in seconds, and loud, from 1 to 30, the siren will be when you trigger the alarm.
+
+See [here](https://www.home-assistant.io/components/arlo/#alarm) for more information on mode names. 
+
+### Camera Configuration
+
+The following enables any cameras.
+
+```yaml
+camera:
+  - platform: aarlo
+```
+
+### Binary Sensor Configuration
+
+The following enables and configures the binary sensors.
+
+```yaml
 binary_sensor:
   - platform: aarlo
     monitored_conditions:
     - motion
     - sound
     - ding
+```
 
+Items on the `monitored_conditions` list are optional.
+
+* `motion` fires when a camera, doorbell or light detects motion.
+* `sound` fires when a camera detects a sound.
+* `ding` fires when a doorbell is pressed.
+
+The Arlo backend sends the notifications on the event stream so they are (almost) real time.
+
+### Sensor Configuration
+
+The following enables and configures the sensors.
+
+```yaml
 sensor:
   - platform: aarlo
     monitored_conditions:
-    - last_capture
     - total_cameras
-    - battery_level
+    - last_capture
+    - recent_activity
     - captured_today
+    - battery_level
     - signal_strength
+    - temperature
+    - humidity
+    - air_quality
+```
 
+Items on the `monitored_conditions` list are optional.
+
+* `total_cameras` is a global sensor showing the number of cameras detected.
+
+The rest of the sensors appear per camera.
+
+* `last_capture` the last time an event was captured by this camera.
+* `recent_activity` is `on` if activity was recently seen on the camera.
+* `captured_today` the number of events captured by the camera today.
+* `battery_level` the percentage of battery remaining.
+* `signal_strength` the WiFi signal strength of the camera.
+* `temperature` the temperature in the room where the camera is, if supported.
+* `humidity` the humidity in the room where the camera is, if supported.
+* `air_quality` the air quality in the room where the camera is, if supported.
+
+### Light Configuration
+
+The following enables any lights:
+
+```yaml
 light:
   - platform: aarlo
+```
 
-media_player:
-  - platform: aarlo
+### Switch Configuration
 
+The following enables and configures some pseudo switches:
+
+```yaml
 switch:
   - platform: aarlo
     siren: True
@@ -154,47 +228,80 @@ switch:
     siren_duration: 10
 ```
 
-The `alarm_control_panel` can be triggered and a siren, if present, will sound.
+* `siren` If `True`, will create a switch for each siren device that allows your to turn it on or off.
+* `all_sirens` If `True`, will create a switch for all the siren devices that allows you to turn them all on and off.
+* `snapshot` If `True`, will create a switch for each camera to allow you to take a snapshot.
 
-### Advanced Platform Parameters
-The following additional parameters can be specified against the aarlo platform for more granular control:
+`siren_volume` and `siren_duration` controls how loud, from 1 to 10, the siren is and how long, in seconds, it sounds.
 
-| Field  | Type | Default | Description |
-| ------ | ---- | ------- | ----------- |
-| `packet_dump`           | boolean  | `False`                 | Causes aarlo to store all the packets it sees in `/config/.aarlo/packets.dump` file |
-| `db_motion_time`        | integer  | `30` (s)                | Duration of doorbell motion. (Arlo doorbell only indicates motion is present not that it stops) |
-| `db_ding_time`          | integer  | `60` (s)                | Duration of doorbell press. (Arlo doorbell only indicates doorbell was pressed, not that it was released) |
-| `recent_time`           | integer  | `600` (s)               | Used to hold the cameras in a  recent activity state after a recording or streaming event. (Streaming & recording can be over in a few seconds, without this the camera will revert to idle, possibly looking like nothing has happened.) |
-| `last_format`           | strftime | `'%m-%d %H:%M'`         | Display format of last captured time  |
-| `conf_dir`              | string   | `'/config/.aarlo'`      | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems - don't set this value unless asked to.) |
-| `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
-| `mode_api`              | string   | `auto`                | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
-| `refresh_devices_every` | integer  | `0` (hours)             | Used to force a refresh every x hours. 0 = no refreshing. Used to resolve issue with mode changes failing after several days of use |
-| `http_connections`      | integer  | `5`                     | Adjust the number http connections pools to cache |
-| `http_max_size`         | integer  | `10`                    | Adjust the maximum number connects to save in the pool |
-| `host`                  | string   | `https://my.arlo.com` | Sets the host aarlo will connect to |
+### Media Player Configuration
 
+The following enables media player for supported devices:
 
-For `alarm_control_panel` you only need to specify the modes if you have custom mode names, see [here](https://www.home-assistant.io/components/arlo/#alarm) for more information. Names are case insensitive.
+```yaml
+media_player:
+  - platform: aarlo
+```
 
-### Switches
-The switch component doesn't directly map to a single Arlo components but provides you with shortcuts to perform certain actions.
-
-| Name | Type | Default | Description |
-|-------------|-------------|--------------|-------------------------------------------------------|
-| siren | boolean | `False` | If True provides a switch per base/camera with siren support |
-| all_sirens | boolean | `False` | If True provides a switch to operate all sirens simultaneously |
-| snapshot | False | `True` | If True provide a switch per camera to request a snapshot |
-| siren_volume | integer | `8` | Set siren volume |
-| siren_duration | integer | `300` | Siren duration in seconds |
-
-## Custom Lovelace Card Configuration
+### Custom Lovelace Card Configuration
 
 A custom Lovelace card which is based on the `picture-glance` can be found here: https://github.com/twrecked/lovelace-hass-aarlo
 
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
 
-## Services
+
+## Other
+
+### Naming
+Naming follow this pattern `component.aarlo_lower_case_name_with_underscores`.
+
+Cameras appear as `camera.aarlo_front_door`.
+
+### Best Practises and Known Limitations
+Create a dedicated Arlo account for your Home Assistant installation. Share devices from your mail Arlo account with this new account and also give it admin access. If you try to share account between Home Assistant and, say, the Arlo app on your phone they will fight with each other.
+
+The component uses the Arlo webapi.
+* There is no documentation so the API has been reverse engineered using browser debug tools.
+* There is no support for smart features, you only get motion detection notifications, not what caused the notification. (Although, you can pipe a snapshot into deepstack...)
+* Streaming times out after 30 minutes.
+* The webapi doesn't seem like it was really designed for permanent connections so the system will sometimes appear to lock up. Various work arounds are in the code and can be configured at the `arlo` component level. See next paragraph.
+
+If you do find the component locks up after a while (I've seen reports of hours, days or weeks), you can add the following to the main configuration. Start from the top and work down:
+* `refresh_devices_every`, tell Aarlo to request the device list every so often. This will sometimes prevent the back end from aging you out. The value is in hours and a good starting point is 3.
+* `stream_timeout`, tell Aarlo to close and reopen the event stream after a certain period of inactivity. Aarlo will send keep alive every minute so a good starting point is 180 seconds.
+* `reconnect_every`, tell Aarlo to logout and back in every so often. This establishes a new session at the risk of losing an event notification. The value is minutes and a good starting point is 90.
+* `request_timout`, the amount of time to allow for a http request to work. A good starting point is 120 seconds.
+
+Unify your alarm mode names across all your base stations. There is no way to specify different mode names for each device.
+
+Alro will allow shared accounts to give cameras their own name. If you find cameras appearing with unexpected names (or not appearing at all), log into the Arlo web interface with your Home Assistant account and make sure the camera names are correct.
+
+### Debugging
+
+## Advanced Use
+
+### All Parameters
+The following additional parameters can be specified against the aarlo platform for more granular control:
+
+| Field  | Type | Default | Description |
+| ------ | ---- | ------- | ----------- |
+| `db_motion_time`        | integer  | `30` (s)                | Duration of doorbell motion. (Arlo doorbell only indicates motion is present not that it stops) |
+| `db_ding_time`          | integer  | `60` (s)                | Duration of doorbell press. (Arlo doorbell only indicates doorbell was pressed, not that it was released) |
+| `recent_time`           | integer  | `600` (s)               | Used to hold the cameras in a recent activity state after a recording or streaming event. (Streaming & recording can be over in a few seconds, without this the camera will revert to idle, possibly looking like nothing has happened.) |
+| `last_format`           | strftime | `'%m-%d %H:%M'`         | Display format of last captured time  |
+| `http_connections`      | integer  | `5`                     | Adjust the number http connections pools to cache |
+| `http_max_size`         | integer  | `10`                    | Adjust the maximum number connects to save in the pool |
+| `request_timeout`       | time period  | `60`                | Timeout for requests sent to Arlo server. 0 means no timeout. |
+| `stream_timeout`        | time period  | `0`                 | Timeout for inactivity on the Arlo event stream. 0 means no timeout. Used to help with Arlo components becoming unresponsive. |
+| `reconnect_every`       | integer  | `0` (minutes)           | If not 0 then force a logout every `reconect_entry` time period. Used to help with Arlo components becoming unresponsive.|
+| `refresh_devices_every` | integer  | `0` (hours)             | Used to force a refresh every x hours. 0 = no refreshing. Used to resolve issue with mode changes failing after several days of use |
+| `packet_dump`           | boolean  | `False`                 | Causes aarlo to store all the packets it sees in `/config/.aarlo/packets.dump` file. Only really needed for debugging and reverse engineering the API. |
+| `conf_dir`              | string   | `'/config/.aarlo'`      | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems - don't set this value unless asked to.) |
+| `host`                  | string   | `https://my.arlo.com`   | Sets the host aarlo will connect to |
+| `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
+| `mode_api`              | string   | `auto`                  | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
+
+### Services
 
 The component provides the following services:
 
@@ -207,7 +314,7 @@ The component provides the following services:
 | `camera.stop_recording` | `entity_id` - camera to stop recording | Ends video capture from the specified camera |
 | `alarm_control_panel.aarlo_set_mode` | `entity_id` - camera to get snapshot from<br/>`mode` - custom mode to change to | Set the alarm to a custom mode |
 
-## Automations
+### Automations
 
 #### Update camera snapshot 3 seconds after a recording event happens
 
@@ -250,7 +357,7 @@ The component provides the following services:
     service: camera.aarlo_start_recording
 ```
 
-## Web Sockets
+### Web Sockets
 
 The component provides the following extra web sockets:
 
@@ -262,7 +369,7 @@ The component provides the following extra web sockets:
 | aarlo_snapshot_image | <ul><li>`entity_id` -  camera to get snapshot from</li></ul> | Request a snapshot. Returns image details: <ul><li>`content_type`: the image type</li><li>`content`: the image</li></ul> |
 | aarlo_stop_activity | <ul><li>`entity_id` - camera to stop activity on</li></ul> | Stop all the activity in the camera. Returns: <ul><li>`stopped`: True if stop request went in</li></ul> |
 
-## Streaming
+### Streaming
 
 Streaming now works "out of the box" for HassOS and Docker installs. To get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
 ```
