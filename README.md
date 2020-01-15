@@ -391,4 +391,4 @@ If you are still having issues please read these 3 posts:
 * coloured lights
 * custom mode - like SmartThings to better control motion detection
 * use asyncio loop internally
-* setup pypi
+
