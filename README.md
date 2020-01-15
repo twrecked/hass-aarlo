@@ -253,9 +253,9 @@ A custom Lovelace card which is based on the `picture-glance` can be found here:
 ## Other
 
 ### Naming
-Naming follow this pattern `component.aarlo_lower_case_name_with_underscores`.
+Entity ID naming follows this pattern `component-type.aarlo_lower_case_name_with_underscores`.
 
-Cameras appear as `camera.aarlo_front_door`.
+For example, cameras appear as `camera.aarlo_front_door`.
 
 ### Best Practises and Known Limitations
 Create a dedicated Arlo account for your Home Assistant installation. Share devices from your mail Arlo account with this new account and also give it admin access. If you try to share account between Home Assistant and, say, the Arlo app on your phone they will fight with each other.
