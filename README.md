@@ -34,9 +34,13 @@
 - [To Do](#to-do)
 
 ## Introduction
-Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/).
+This is the Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/).
 
-The component operates in a similar way to the [Arlo](https://my.arlo.com/#/cameras) website - it opens a single event stream to the Arlo backend and monitors events and state changes for all base stations, cameras, lights and doorbells in a system.
+The component is based on the original [Arlo component](https://www.home-assistant.io/integrations/arlo/) and it can operate as replacement with minimal configuration changes.
+
+The component uses the same API as the [Arlo Website](https://my.arlo.com/#/cameras). The component will login to the backend, open an evenstream and provide realtime information on the state of your Arlo devices.
+
+The component support base stations, cameras, lights and doorbells.
 
 ### Supported Features
 * Base station mode changes
@@ -44,27 +48,22 @@ The component operates in a similar way to the [Arlo](https://my.arlo.com/#/came
 * Camera audio detection
 * Door bell motion detection
 * Door bell button press
-* Camera status
-  * `Idle` camera is doing nothing
-  * `Turned Off` user has turned the camera off
-  * `Recording` camera has detected something and is recording
-  * `Streaming` camera is streaming live video to another other login
-  * `Taking Snapshot` camers is updating the thumbnail
-  * `Recently Active` camera has seen activity within the last few minutes
-  * `Too Cold!` the camera is shutdown until it warms up
+* Current Camera status
 * Saving of state across restarts
 * Camera on/off
 * Request camera thumbnail updates
 * Start / stop camera recording
 * Direct video streaming from Arlo where possible
 * Siren when triggering an alarm
-* Streaming (**Note**: in virtualenv installation only)
-* Switches for activing sirens and taking snapshots
+* Live Streaming
+* Pseudo Switches for activing sirens and taking snapshots
 * Lights
 * Arlo Baby media player
 
 ### Notes
-Wherever you see `/config` in this README it refers to your home-assistant configuration directory. For me, for example, it's `/home/steve/ha` that is mapped to `/config` inside my docker container.
+This document assumes you are familiar with Home Assistant setup and configuration.
+
+Wherever you see `/config` in this README it refers to your Home Assistant configuration directory. For example, for my installation it's `/home/steve/ha` which is mapped to `/config` in my docker container.
 
 ### Thanks
 Many thanks to:
@@ -95,7 +94,14 @@ install go /config
 ## Configuration
 
 ### Moving From Arlo
-For the simplest use replace all instances of the `arlo` with `aarlo` in your home-assistant configuration files. To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list.
+Start by replacing all instances of `arlo` with `aarlo` in your Home Assistant configuration files.
+
+To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list. To support viewing library recordings look at [Aarlo Lovelace Card](https://github.com/twrecked/lovelace-hass-aarlo).
+
+### Creating a Login
+Aarlo needs a dedicated Aarlo login. If you try to reuse an existing login - for example, the login from the Arlo app on your phone - the app and this component will constantly fight to login.
+
+When you have created the Aarlo login, share the devices you want to share and give the Aarlo user admin access.
 
 ### Main Configuration
 The following configuration is the minimim needed.
@@ -106,7 +112,7 @@ aarlo:
   password: !secret arlo_password
 ```
 
-The following configuration adds some connection keep alive mechanisms to try to work around limitations in using the Arlo web interface.
+The following configuration adds some connection keep alive mechanisms to try to work around limitations in using the Arlo web API.
 
 ```yaml
 aarlo:
@@ -116,11 +122,16 @@ aarlo:
   stream_timeout: 120
 ```
 
-The `refresh_devices_every` above tells the code to reload the device list every 2 hours and the `stream_timeout` tells the event stream to restart after 2 minutes of inactivity. If you still struggle with connectivity you can add the following to force a logout and log back in, in this case every 90 minutes.
+* `refresh_devices_every` tells the code to reload the device list every 2 hours.
+* `stream_timeout` tells the event stream to restart after 2 minutes of inactivity.
+
+If you still struggle with connectivity you can add the following:
 
 ```yaml
   reconnect_every: 90
 ```
+
+* `reconnect_every` force the system to logout and log back in, in this case every 90 minutes.
 
 ### Alarm Configuration
 
@@ -137,7 +148,8 @@ alarm_control_panel:
 ```
 
 * Arlo does not have a built in `away`, `home` or `night` mode. Use `away_mode_name`, `home_mode_name` and `night_mode_name` to map them to one of your custom Arlo modes. By default `away_mode_name` maps to `Armed`. If you don't map all your modes in there is a possibility the alarm panel will appear blank. Names are case insensitive.
-* `trigger_time` and `alarm_volume` determine how long, in seconds, and loud, from 1 to 30, the siren will be when you trigger the alarm.
+* `trigger_time` determines how long, in seconds, the triggered alarm will sound
+* `alarm_volume` determine how loud, from 1 to 8, the triggered alarm will sound
 
 See [here](https://www.home-assistant.io/components/arlo/#alarm) for more information on mode names. 
 
@@ -163,7 +175,7 @@ binary_sensor:
     - ding
 ```
 
-Items on the `monitored_conditions` list are optional.
+Items on the `monitored_conditions` can be one or more of the following:
 
 * `motion` fires when a camera, doorbell or light detects motion.
 * `sound` fires when a camera detects a sound.
@@ -190,20 +202,20 @@ sensor:
     - air_quality
 ```
 
-Items on the `monitored_conditions` list are optional.
+Items on the `monitored_conditions` can be one or more of the following:
 
 * `total_cameras` is a global sensor showing the number of cameras detected.
 
 The rest of the sensors appear per camera.
 
-* `last_capture` the last time an event was captured by this camera.
-* `recent_activity` is `on` if activity was recently seen on the camera.
-* `captured_today` the number of events captured by the camera today.
-* `battery_level` the percentage of battery remaining.
-* `signal_strength` the WiFi signal strength of the camera.
-* `temperature` the temperature in the room where the camera is, if supported.
-* `humidity` the humidity in the room where the camera is, if supported.
-* `air_quality` the air quality in the room where the camera is, if supported.
+* `last_capture` The last time an event was captured by this camera.
+* `recent_activity` Is `on` if activity was recently seen on the camera.
+* `captured_today` The number of events captured by the camera today.
+* `battery_level` The percentage of battery remaining.
+* `signal_strength` The WiFi signal strength of the camera.
+* `temperature` The temperature in the room where the camera is, if supported.
+* `humidity` The humidity in the room where the camera is, if supported.
+* `air_quality` The air quality in the room where the camera is, if supported.
 
 ### Light Configuration
 
@@ -247,19 +259,38 @@ media_player:
 
 A custom Lovelace card which is based on the `picture-glance` can be found here: https://github.com/twrecked/lovelace-hass-aarlo
 
+The custom Lovelace card allows access to the video recordings library and presents customizable camera information on the camera feed. It was influenced by the Arlo web interface camera view.
+
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
 
 
 ## Other
 
+### Supported Features
+* Base station mode changes
+* Camera motion detection
+* Camera audio detection
+* Camera on/off
+* Current Camera status
+* Request camera thumbnail updates
+* Start / stop camera recording
+* Door bell motion detection
+* Door bell button press
+* Direct video streaming from Arlo where possible
+* Siren when triggering an alarm
+* Live Streaming
+* Pseudo Switches for activing sirens and taking snapshots
+* Lights on/off
+* Light motion detection
+* Arlo Baby media player
+* Saving of state across restarts
+
 ### Naming
 Entity ID naming follows this pattern `component-type.aarlo_lower_case_name_with_underscores`.
 
-For example, cameras appear as `camera.aarlo_front_door`.
+For example, a camera called "Front Door" will have an entity id of `camera.aarlo_front_door`.
 
 ### Best Practises and Known Limitations
-Create a dedicated Arlo account for your Home Assistant installation. Share devices from your mail Arlo account with this new account and also give it admin access. If you try to share account between Home Assistant and, say, the Arlo app on your phone they will fight with each other.
-
 The component uses the Arlo webapi.
 * There is no documentation so the API has been reverse engineered using browser debug tools.
 * There is no support for smart features, you only get motion detection notifications, not what caused the notification. (Although, you can pipe a snapshot into deepstack...)
@@ -300,6 +331,17 @@ The following additional parameters can be specified against the aarlo platform 
 | `host`                  | string   | `https://my.arlo.com`   | Sets the host aarlo will connect to |
 | `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
 | `mode_api`              | string   | `auto`                  | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
+
+### Camera Statuses
+
+The following camera statuses are reported:
+  * `Idle` camera is doing nothing
+  * `Turned Off` user has turned the camera off
+  * `Recording` camera has detected something and is recording
+  * `Streaming` camera is streaming live video to another other login
+  * `Taking Snapshot` camers is updating the thumbnail
+  * `Recently Active` camera has seen activity within the last few minutes
+  * `Too Cold!` the camera is shutdown until it warms up
 
 ### Services
 
