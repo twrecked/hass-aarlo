@@ -2,51 +2,62 @@
 
 ## Table of Contents
 - [Introduction](#introduction)
-   - [Notes](#notes)
-   - [Thanks](#thanks)
 - [Installation](#installation)
-   - [HACS](#hacs)
-   - [Manually](#manually)
-   - [From Script](#from-script)
 - [Configuration](#configuration)
-   - [Moving from Arlo](#moving-from-arlo)
-   - [Main Configuration](#main-configuration)
-   - [Alarm Configuration](#alarm-configuration)
-   - [Camera Configuration](#camera-configuration)
-   - [Binary Sensor Configuration](#binary-sensor-configuration)
-   - [Sensor Configuration](#sensor-configuration)
-   - [Light Configuration](#light-configuration)
-   - [Switch Configuration](#switch-configuration)
-   - [Media Player Configuration](#media-player-configuration)
-   - [Custom Lovelace Card Configuration](#configurationcustom)
+   - [Moving from Arlo](#configuration-moving)
+   - [Creating a Login](#configuration-login)
+   - [Main Configuration](#configuration-main)
+   - [Alarm Configuration](#configuration-alarm)
+   - [Camera Configuration](#configuration-camera)
+   - [Binary Sensor Configuration](#configuration-binary)
+   - [Sensor Configuration](#configuration-sensor)
+   - [Light Configuration](#configuration-light)
+   - [Switch Configuration](#configuration-switch)
+   - [Media Player Configuration](#configuration-media)
+   - [Custom Lovelace Card Configuration](#configuration-lovelace)
 - [Other](#other)
    - [Supported Features](#other-supported)
-   - [Best Practises and Known Limitations](#best-practices-and-known-limitations)
-   - [Debugging](#debugging)
+   - [Naming](#other-naming)
+   - [Best Practises and Known Limitations](#other-best)
+   - [Debugging](#other-debugging)
+   - [Adding Devices](#other-adding)
 - [Advanced Use](#advanced)
-   - [All Parameters](#all-parameters)
-   - [Services](#services)
-   - [Automations](#automations)
-      - [Update camera snapshot 3 seconds after a recording event happens](#update-camera-snapshot-3-seconds-after-a-recording-event-happens)
-      - [Begin recording when an entity changes state](#begin-recording-when-an-entity-changes-state)
-   - [Web Sockets](#web-sockets)
-   - [Streaming](#streaming)
+   - [All Parameters](#advanced-parameters)
+   - [Camera Statuses](#advanced-statuses)
+   - [Services](#advanced-services)
+   - [Web Sockets](#advanced-websockets)
+   - [Automation Examples](#advanced-automations)
+   - [Streaming](#advanced-streaming)
 - [To Do](#to-do)
 
 
+<a name="introduction"></a>
 ## Introduction
-Aarlo is an Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/), it supports base stations, cameras, lights and doorbells.
+Aarlo is an Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/), it uses the [Arlo Website](https://my.arlo.com/#/cameras) APIs and supports base stations, cameras, lights and doorbells.
 
 Aarlo is based on the original [Arlo component](https://www.home-assistant.io/integrations/arlo/) and it can operate as replacement with minimal configuration changes.
 
-Aarlo uses the [Arlo Website](https://my.arlo.com/#/cameras) APIs. The component will login to the backend, open an evenstream and provide realtime information on the state of your Arlo devices.
+Aarlo also provides a custom [Lovelace Card](https://github.com/twrecked/lovelace-hass-aarlo), which overlays a camera's last snapshot with its current status and allows access to the cameras recording library and live streaming.
 
-### Notes
+<a name="introduction-features"></a>
+#### Features
+
+Aarlo provides:
+- Access to cameras, base stations, sirens, doorbells and lights.
+- Asynchronous, almost immediate, notification of motion, sound and button press events.
+- Ability to view library recordings, take snapshots and direct stream from cameras.
+- Tracking of environmental stats from certain base station types.
+- Special switches to trip alarms and take snapshots from cameras.
+- Enhanced state notifications.
+
+<a name="introduction-notes"></a>
+#### Notes
 This document assumes you are familiar with Home Assistant setup and configuration.
 
-Wherever you see `/config` in this README it refers to your Home Assistant configuration directory. For example, for my installation it's `/home/steve/ha` which is mapped to `/config` in my docker container.
+Wherever you see `/config` in this documenent it refers to your Home Assistant configuration directory. For example, for my installation it's `/home/steve/ha` which is mapped to `/config` by my docker container.
 
-### Thanks
+<a name="introduction-thanks"></a>
+#### Thanks
 Many thanks to:
 * [Pyarlo](https://github.com/tchellomello/python-arlo) and [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard work figuring the API out and the free Python lesson!
 * [sseclient](https://github.com/btubbs/sseclient) for reading from the event stream
@@ -54,16 +65,20 @@ Many thanks to:
 * [![JetBrains](/images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo) for the excellent **PyCharm IDE** and providing me with an open source license to speed up the project development.
 
 
+<a name="installation"></a>
 ## Installation
 
-### HACS
+<a name="installation-hacs"></a>
+#### HACS
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 Aarlo is part of the default HACS store. If you're not interested in development branches this is the easiest way to install.
 
-### Manually
+<a name="installation-manually"></a>
+#### Manually
 Copy the `aarlo` directory into your `/config/custom_components` directory.
 
-### From Script
+<a name="installation-from-script"></a>
+#### From Script
 Run the install script. Run it once to make sure the operations look sane and run it a second time with the `go` paramater to do the actual work. If you update just rerun the script, it will overwrite all installed files.
 
 ```sh
@@ -72,13 +87,16 @@ install /config
 install go /config
 ```
 
+<a name="configuration"></a>
 ## Configuration
 
+<a name="configuration-moving"></a>
 ### Moving From Arlo
 You can replace all instances of `arlo` with `aarlo` in your Home Assistant configuration files to start using Aarlo. The following sections detail new configuration items you can use to add extra functionality to your new Aarlo component.
 
-You can run Arlo and Aarlo side by side but you will need to create an Aarlo specific login.
+You can also run Arlo and Aarlo side by side but you will need to create an Aarlo specific login.
 
+<a name="configuration-login"></a>
 ### Creating a Login
 _If you are replacing the original Arlo component you don't need to do this step._
 
@@ -86,6 +104,7 @@ Aarlo needs a dedicated Aarlo login. If you try to reuse an existing login - for
 
 When you have created the Aarlo login, from your original Arlo account grant access to any devices you want to share and give the Aarlo user admin access.
 
+<a name="configuration-main"></a>
 ### Main Configuration
 The following configuration is the minimim needed.
 
@@ -116,6 +135,7 @@ If you still struggle with connectivity you can add the following:
 
 * `reconnect_every` force the system to logout and log back in, in this case every 90 minutes.
 
+<a name="configuration-alarm"></a>
 ### Alarm Configuration
 
 The following enables and configures the base stations.
@@ -136,6 +156,7 @@ alarm_control_panel:
 
 See [here](https://www.home-assistant.io/components/arlo/#alarm) for more information on mode names. 
 
+<a name="configuration-camera"></a>
 ### Camera Configuration
 
 The following enables any cameras.
@@ -145,6 +166,7 @@ camera:
   - platform: aarlo
 ```
 
+<a name="configuration-binary"></a>
 ### Binary Sensor Configuration
 
 The following enables and configures the binary sensors.
@@ -166,6 +188,7 @@ Items on the `monitored_conditions` can be one or more of the following:
 
 The Arlo backend sends the notifications on the event stream so they are (almost) real time.
 
+<a name="configuration-sensor"></a>
 ### Sensor Configuration
 
 The following enables and configures the sensors.
@@ -200,6 +223,7 @@ The rest of the sensors appear per camera.
 * `humidity` The humidity in the room where the camera is, if supported.
 * `air_quality` The air quality in the room where the camera is, if supported.
 
+<a name="configuration-light"></a>
 ### Light Configuration
 
 The following enables any lights:
@@ -209,6 +233,7 @@ light:
   - platform: aarlo
 ```
 
+<a name="configuration-switch"></a>
 ### Switch Configuration
 
 The following enables and configures some pseudo switches:
@@ -229,6 +254,7 @@ switch:
 
 `siren_volume` and `siren_duration` controls how loud, from 1 to 10, the siren is and how long, in seconds, it sounds.
 
+<a name="configuration-media"></a>
 ### Media Player Configuration
 
 The following enables media player for supported devices:
@@ -238,7 +264,7 @@ media_player:
   - platform: aarlo
 ```
 
-<a name="configurationcustom"></a>
+<a name="configuration-lovelace"></a>
 ### Custom Lovelace Card Configuration
 
 A custom Lovelace card which is based on the `picture-glance` can be found here: https://github.com/twrecked/lovelace-hass-aarlo
@@ -248,6 +274,7 @@ The custom Lovelace card allows access to the video recordings library and prese
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
 
 
+<a name="other"></a>
 ## Other
 
 <a name="other-supported"></a>
@@ -272,11 +299,13 @@ The custom Lovelace card allows access to the video recordings library and prese
   * environmental conditions
   * media player
 
+<a name="other-naming"></a>
 ### Naming
 Entity ID naming follows this pattern `component-type.aarlo_lower_case_name_with_underscores`.
 
 For example, a camera called "Front Door" will have an entity id of `camera.aarlo_front_door`.
 
+<a name="other-best"></a>
 ### Best Practises and Known Limitations
 The component uses the Arlo webapi.
 * There is no documentation so the API has been reverse engineered using browser debug tools.
@@ -294,10 +323,16 @@ Unify your alarm mode names across all your base stations. There is no way to sp
 
 Alro will allow shared accounts to give cameras their own name. If you find cameras appearing with unexpected names (or not appearing at all), log into the Arlo web interface with your Home Assistant account and make sure the camera names are correct.
 
+<a name="other-debugging"></a>
 ### Debugging
 
+<a name="other-adding"></a>
+### Adding Devices
+
+<a name="advanced"></a>
 ## Advanced Use
 
+<a name="advanced-parameters"></a>
 ### All Parameters
 The following additional parameters can be specified against the aarlo platform for more granular control:
 
@@ -319,6 +354,7 @@ The following additional parameters can be specified against the aarlo platform 
 | `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
 | `mode_api`              | string   | `auto`                  | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
 
+<a name="advanced-statuses"></a>
 ### Camera Statuses
 
 The following camera statuses are reported:
@@ -330,6 +366,7 @@ The following camera statuses are reported:
   * `Recently Active` camera has seen activity within the last few minutes
   * `Too Cold!` the camera is shutdown until it warms up
 
+<a name="advanced-services"></a>
 ### Services
 
 The component provides the following services:
@@ -343,7 +380,21 @@ The component provides the following services:
 | `camera.stop_recording` | `entity_id` - camera to stop recording | Ends video capture from the specified camera |
 | `alarm_control_panel.aarlo_set_mode` | `entity_id` - camera to get snapshot from<br/>`mode` - custom mode to change to | Set the alarm to a custom mode |
 
-### Automations
+<a name="advanced-websockets"></a>
+### Web Sockets
+
+The component provides the following extra web sockets:
+
+| Service | Parameters | Description |
+|---------|------------|-------------|
+| aarlo_video_url | <ul><li>`entity_id` - camera to get details from</li><ul> | Request details of the last recorded video. Returns: <ul><li>`url` - video url</li><li>`url_type` - video type</li><li>`thumbnail` - thumbnail image url</li><li>`thumbnail_type` - thumbnail image type</li></ul> |
+| aarlo_library | <ul><li>`at-most` - return at most this number of entries</li><ul> | Request up the details of `at-most` recently recorded videos. Returns an array of:<ul><li>`created_at`: unix time stamp</li><li>`created_at_pretty`: pretty version of the create time</li><li>`url`: URL of the video</li><li>`url_type`: video type</li><li>`thumbnail`: URL of the thumbnail</li><li>`thumbnail_type`: thumbnail type</li><li>`object`: object in the video that triggered the capture</li><li>`object_region`: region in the video that triggered the capture</li></ul> |
+| aarlo_stream_url | <ul><li>`entity_id` -  camera to get snapshot from</li><li>`filename` - where to save snapshot | Ask the camera to start streaming. Returns:<ul><li>`url` - URL of the video stream</li></ul> |
+| aarlo_snapshot_image | <ul><li>`entity_id` -  camera to get snapshot from</li></ul> | Request a snapshot. Returns image details: <ul><li>`content_type`: the image type</li><li>`content`: the image</li></ul> |
+| aarlo_stop_activity | <ul><li>`entity_id` - camera to stop activity on</li></ul> | Stop all the activity in the camera. Returns: <ul><li>`stopped`: True if stop request went in</li></ul> |
+
+<a name="advanced-automations"></a>
+### Automation Examples
 
 #### Update camera snapshot 3 seconds after a recording event happens
 
@@ -386,18 +437,7 @@ The component provides the following services:
     service: camera.aarlo_start_recording
 ```
 
-### Web Sockets
-
-The component provides the following extra web sockets:
-
-| Service | Parameters | Description |
-|---------|------------|-------------|
-| aarlo_video_url | <ul><li>`entity_id` - camera to get details from</li><ul> | Request details of the last recorded video. Returns: <ul><li>`url` - video url</li><li>`url_type` - video type</li><li>`thumbnail` - thumbnail image url</li><li>`thumbnail_type` - thumbnail image type</li></ul> |
-| aarlo_library | <ul><li>`at-most` - return at most this number of entries</li><ul> | Request up the details of `at-most` recently recorded videos. Returns an array of:<ul><li>`created_at`: unix time stamp</li><li>`created_at_pretty`: pretty version of the create time</li><li>`url`: URL of the video</li><li>`url_type`: video type</li><li>`thumbnail`: URL of the thumbnail</li><li>`thumbnail_type`: thumbnail type</li><li>`object`: object in the video that triggered the capture</li><li>`object_region`: region in the video that triggered the capture</li></ul> |
-| aarlo_stream_url | <ul><li>`entity_id` -  camera to get snapshot from</li><li>`filename` - where to save snapshot | Ask the camera to start streaming. Returns:<ul><li>`url` - URL of the video stream</li></ul> |
-| aarlo_snapshot_image | <ul><li>`entity_id` -  camera to get snapshot from</li></ul> | Request a snapshot. Returns image details: <ul><li>`content_type`: the image type</li><li>`content`: the image</li></ul> |
-| aarlo_stop_activity | <ul><li>`entity_id` - camera to stop activity on</li></ul> | Stop all the activity in the camera. Returns: <ul><li>`stopped`: True if stop request went in</li></ul> |
-
+<a name="advanced-streaming"></a>
 ### Streaming
 
 Streaming now works "out of the box" for HassOS and Docker installs. To get streaming working in `virtualenv` you still need to make sure a couple of libraries are installed. For `ubuntu` the following works:
@@ -415,6 +455,7 @@ If you are still having issues please read these 3 posts:
    * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
    * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
 
+<a name="to-do"></a>
 ## To Do
 
 * coloured lights
