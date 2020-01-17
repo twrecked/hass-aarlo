@@ -14,6 +14,7 @@ Aarlo provides:
 - Tracking of environmental stats from certain base station types.
 - Special switches to trip alarms and take snapshots from cameras.
 - Enhanced state notifications.
+- Media player support for select devices.
 
 There is also a resource [`aarlo-glance`](https://github.com/twrecked/lovelace-hass-aarlo) which is based on `picture-glance` but tailored for the Arlo component.
 

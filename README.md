@@ -16,7 +16,6 @@
    - [Media Player Configuration](#configuration-media)
    - [Custom Lovelace Card Configuration](#configuration-lovelace)
 - [Other](#other)
-   - [Supported Features](#other-supported)
    - [Naming](#other-naming)
    - [Best Practises and Known Limitations](#other-best)
    - [Debugging](#other-debugging)
@@ -49,6 +48,7 @@ Aarlo provides:
 - Tracking of environmental stats from certain base station types.
 - Special switches to trip alarms and take snapshots from cameras.
 - Enhanced state notifications.
+- Media player support for select devices.
 
 <a name="introduction-notes"></a>
 #### Notes
@@ -276,28 +276,6 @@ The custom Lovelace card allows access to the video recordings library and prese
 
 <a name="other"></a>
 ## Other
-
-<a name="other-supported"></a>
-### Supported Features
-* Base station
-  * mode changes
-  * pseudo switch for turning on/off sirens
-* Camera
-  * motion and audio detection
-  * turning on/off
-  * current status
-  * starting/stopping recording
-  * live streaming
-  * pseudo switch for taking snapshots
-* Door Bells
-  * motion detection
-  * button press
-* Lights
-  * motion detection
-  * turning on/off
-* Arlo Baby
-  * environmental conditions
-  * media player
 
 <a name="other-naming"></a>
 ### Naming
