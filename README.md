@@ -2,7 +2,6 @@
 
 ## Table of Contents
 - [Introduction](#introduction)
-   - [Supported Features](#supported-features)
    - [Notes](#notes)
    - [Thanks](#thanks)
 - [Installation](#installation)
@@ -19,8 +18,9 @@
    - [Light Configuration](#light-configuration)
    - [Switch Configuration](#switch-configuration)
    - [Media Player Configuration](#media-player-configuration)
-   - [Custom Lovelace Card Configuration](#custom-lovelace-card-configuration)
+   - [Custom Lovelace Card Configuration](#configurationcustom)
 - [Other](#other)
+   - [Supported Features](#other-supported)
    - [Best Practises and Known Limitations](#best-practices-and-known-limitations)
    - [Debugging](#debugging)
 - [Advanced Use](#advanced)
@@ -33,32 +33,13 @@
    - [Streaming](#streaming)
 - [To Do](#to-do)
 
+
 ## Introduction
-This is the Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/).
+Aarlo is an Asynchronous Arlo component for [Home Assistant](https://www.home-assistant.io/), it supports base stations, cameras, lights and doorbells.
 
-The component is based on the original [Arlo component](https://www.home-assistant.io/integrations/arlo/) and it can operate as replacement with minimal configuration changes.
+Aarlo is based on the original [Arlo component](https://www.home-assistant.io/integrations/arlo/) and it can operate as replacement with minimal configuration changes.
 
-The component uses the same API as the [Arlo Website](https://my.arlo.com/#/cameras). The component will login to the backend, open an evenstream and provide realtime information on the state of your Arlo devices.
-
-The component support base stations, cameras, lights and doorbells.
-
-### Supported Features
-* Base station mode changes
-* Camera motion detection
-* Camera audio detection
-* Door bell motion detection
-* Door bell button press
-* Current Camera status
-* Saving of state across restarts
-* Camera on/off
-* Request camera thumbnail updates
-* Start / stop camera recording
-* Direct video streaming from Arlo where possible
-* Siren when triggering an alarm
-* Live Streaming
-* Pseudo Switches for activing sirens and taking snapshots
-* Lights
-* Arlo Baby media player
+Aarlo uses the [Arlo Website](https://my.arlo.com/#/cameras) APIs. The component will login to the backend, open an evenstream and provide realtime information on the state of your Arlo devices.
 
 ### Notes
 This document assumes you are familiar with Home Assistant setup and configuration.
@@ -94,14 +75,16 @@ install go /config
 ## Configuration
 
 ### Moving From Arlo
-Start by replacing all instances of `arlo` with `aarlo` in your Home Assistant configuration files.
+You can replace all instances of `arlo` with `aarlo` in your Home Assistant configuration files to start using Aarlo. The following sections detail new configuration items you can use to add extra functionality to your new Aarlo component.
 
-To support motion and audio capture add `aarlo` as a platform to the `binary_sensor` list. To support viewing library recordings look at [Aarlo Lovelace Card](https://github.com/twrecked/lovelace-hass-aarlo).
+You can run Arlo and Aarlo side by side but you will need to create an Aarlo specific login.
 
 ### Creating a Login
+_If you are replacing the original Arlo component you don't need to do this step._
+
 Aarlo needs a dedicated Aarlo login. If you try to reuse an existing login - for example, the login from the Arlo app on your phone - the app and this component will constantly fight to login.
 
-When you have created the Aarlo login, share the devices you want to share and give the Aarlo user admin access.
+When you have created the Aarlo login, from your original Arlo account grant access to any devices you want to share and give the Aarlo user admin access.
 
 ### Main Configuration
 The following configuration is the minimim needed.
@@ -255,6 +238,7 @@ media_player:
   - platform: aarlo
 ```
 
+<a name="configurationcustom"></a>
 ### Custom Lovelace Card Configuration
 
 A custom Lovelace card which is based on the `picture-glance` can be found here: https://github.com/twrecked/lovelace-hass-aarlo
@@ -266,24 +250,27 @@ The custom Lovelace card allows access to the video recordings library and prese
 
 ## Other
 
+<a name="other-supported"></a>
 ### Supported Features
-* Base station mode changes
-* Camera motion detection
-* Camera audio detection
-* Camera on/off
-* Current Camera status
-* Request camera thumbnail updates
-* Start / stop camera recording
-* Door bell motion detection
-* Door bell button press
-* Direct video streaming from Arlo where possible
-* Siren when triggering an alarm
-* Live Streaming
-* Pseudo Switches for activing sirens and taking snapshots
-* Lights on/off
-* Light motion detection
-* Arlo Baby media player
-* Saving of state across restarts
+* Base station
+  * mode changes
+  * pseudo switch for turning on/off sirens
+* Camera
+  * motion and audio detection
+  * turning on/off
+  * current status
+  * starting/stopping recording
+  * live streaming
+  * pseudo switch for taking snapshots
+* Door Bells
+  * motion detection
+  * button press
+* Lights
+  * motion detection
+  * turning on/off
+* Arlo Baby
+  * environmental conditions
+  * media player
 
 ### Naming
 Entity ID naming follows this pattern `component-type.aarlo_lower_case_name_with_underscores`.
