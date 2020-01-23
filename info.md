@@ -6,14 +6,15 @@ Please visit the [Readme](https://github.com/twrecked/hass-aarlo/blob/master/REA
 
 ## Features
 
-It provides:
+Aarlo provides:
 
-- Acces to cameras, base stations, sirens, doorbells and lights.
+- Access to cameras, base stations, sirens, doorbells and lights.
 - Asynchronous, almost immediate, notification of motion and sound events.
 - Ability to view library recordings, take snapshots and direct stream from cameras.
 - Tracking of environmental stats from certain base station types.
 - Special switches to trip alarms and take snapshots from cameras.
 - Enhanced state notifications.
+- Media player support for select devices.
 
 There is also a resource [`aarlo-glance`](https://github.com/twrecked/lovelace-hass-aarlo) which is based on `picture-glance` but tailored for the Arlo component.
 
