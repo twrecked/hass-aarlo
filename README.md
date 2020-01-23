@@ -314,14 +314,14 @@ I might also ask you to turn on component logging and event logging. The follow 
 logger:
   default: info
   logs:
-	custom_components.aarlo: debug
-	custom_components.aarlo.alarm_control_panel: debug
-	custom_components.aarlo.binary_sensor: debug
-	custom_components.aarlo.camera: debug
-	custom_components.aarlo.light: debug
-	custom_components.aarlo.media_player: debug
-	custom_components.aarlo.sensor: debug
-	custom_components.aarlo.switch: debug
+    custom_components.aarlo: debug
+    custom_components.aarlo.alarm_control_panel: debug
+    custom_components.aarlo.binary_sensor: debug
+    custom_components.aarlo.camera: debug
+    custom_components.aarlo.light: debug
+    custom_components.aarlo.media_player: debug
+    custom_components.aarlo.sensor: debug
+    custom_components.aarlo.switch: debug
     pyaarlo: debug
 ```
 
@@ -330,8 +330,8 @@ logger:
 logger:
   default: info
   logs:
-	custom_components.aarlo: debug
-	custom_components.aarlo.light: debug
+    custom_components.aarlo: debug
+    custom_components.aarlo.light: debug
     pyaarlo: debug
 ```
 
