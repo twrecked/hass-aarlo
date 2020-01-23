@@ -303,9 +303,72 @@ Alro will allow shared accounts to give cameras their own name. If you find came
 
 <a name="other-debugging"></a>
 ### Debugging
+If you run into problems there please provide the following in the bug report to help debugging.
+* Version of software running.
+* Make of cameras and base stations you have.
+
+I might also ask you to turn on component logging and event logging. The follow paragraphs show you how, it's safe to leave these running if you fancy pokeing around and trying to find out what it going wrong.
+
+* Component logging. You can turn this on by adding the following to your `configuration.yaml` file.
+```yaml
+logger:
+  default: info
+  logs:
+	custom_components.aarlo: debug
+	custom_components.aarlo.alarm_control_panel: debug
+	custom_components.aarlo.binary_sensor: debug
+	custom_components.aarlo.camera: debug
+	custom_components.aarlo.light: debug
+	custom_components.aarlo.media_player: debug
+	custom_components.aarlo.sensor: debug
+	custom_components.aarlo.switch: debug
+    pyaarlo: debug
+```
+
+    If, for example, you suspect the problem is just with your lights you can remove unneeded debug:
+```yaml
+logger:
+  default: info
+  logs:
+	custom_components.aarlo: debug
+	custom_components.aarlo.light: debug
+    pyaarlo: debug
+```
+
+    Home assistant logs everything to `/config/home-assistant.log`, a typical piece of debug from Aarlo looks like this.
+```
+2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] fast refresh
+2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] day testing with 2020-01-21!
+2020-01-21 11:44:50 DEBUG (ArloEventStream) [pyaarlo] async ping response subscriptions/XXXXXX-XXX-XXXXXXX_web
+```
+    If you fancy diving in, and please do, searching for exceptions and `traceback`s is a good place to start.
+
+
+* Event logging. You can look at what events Arlo is sending you by turning on event stream dumping. Add the following to your `configuration.yaml` file and Aarlo will dump events into `/config/.aarlo/packets.dump`:
+```yaml
+aarlo:
+    # current config here
+    packet_dump: True
+```
+
+   This file will built up from a constant trickle of packets from Arlo. The following exerpt shows a login confirmation and a subscription check response.
+```
+{'status': 'connected'}
+{ 'action': 'is',
+    'from': 'XXXXXXXXXXXXX',
+    'resource': 'subscriptions/XXXXXX-XXX-XXXXXXX_web',
+    'to': 'XXXXXX-XXX-XXXXXXX_web',
+    'transId': 'web!38a29262-1ce0-4c4d-8f75-fafec2c34332'}
+```
+    Another example, if Arlo detects motion you will see a packet with the following field in it:
+```
+'properties': {'motionDetected': True},
+```
 
 <a name="other-adding"></a>
 ### Adding Devices
+
+*Coming soon...*
 
 <a name="advanced"></a>
 ## Advanced Use
