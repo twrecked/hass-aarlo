@@ -1,4 +1,6 @@
 aarlo/pyaarlo
+0.6.9: Add object detected to last_captured sensor
+0.6.8: Siren support for VMB4500r2
 0.6.7: Arlo Baby media player support.
 0.6.6: fixed close, added code for alarms
 0.6.5: initial video doorbell support
