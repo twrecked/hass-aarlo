@@ -5,6 +5,7 @@ import zlib
 
 from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        CAPTURED_TODAY_KEY, FLIP_KEY, IDLE_SNAPSHOT_PATH, LAST_CAPTURE_KEY,
+                       CRY_DETECTION_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY, LAMP_STATE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
@@ -227,6 +228,16 @@ class ArloCamera(ArloChildDevice):
             else:
                 self._arlo.debug('got a night light off')
                 self._save_and_do_callbacks(LAMP_STATE_KEY, "off")
+
+        # audio analytics
+        audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
+        if audioanalytics is not None:
+            if audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered") is True:
+                self._arlo.debug('got a cry on')
+                self._save_and_do_callbacks(CRY_DETECTION_KEY, "on")
+            else:
+                self._arlo.debug('got a cry off')
+                self._save_and_do_callbacks(CRY_DETECTION_KEY, "off")
 
         # pass on to lower layer
         super()._event_handler(resource, event)
