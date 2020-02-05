@@ -4,6 +4,7 @@ import logging
 import os
 import threading
 import time
+import pprint
 
 from .backend import ArloBackEnd
 from .background import ArloBackground
@@ -254,6 +255,10 @@ class PyArlo(object):
         if doorbell:
             return doorbell[0]
         return None
+
+    def inject_response(self, response):
+        self.debug("injecting\n{}".format(pprint.pformat(response)))
+        self._be._ev_dispatcher(response)
 
     def attribute(self, attr):
         return self._st.get(['ARLO', attr], None)
