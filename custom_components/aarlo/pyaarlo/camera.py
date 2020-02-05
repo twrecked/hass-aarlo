@@ -217,6 +217,14 @@ class ArloCamera(ArloChildDevice):
                 self._save_and_do_callbacks('humidity', data.get('humidity'))
                 self._save_and_do_callbacks('airQuality', data.get('airQuality'))
 
+        # night light
+        nightlight = event.get("properties", {}).get("nightLight", None)
+        if nightlight is not None:
+            if nightlight.get("enabled", False):
+                self._save_and_do_callbacks(LAMP_STATE_KEY, "on")
+            else:
+                self._save_and_do_callbacks(LAMP_STATE_KEY, "off")
+
         # pass on to lower layer
         super()._event_handler(resource, event)
 
@@ -333,6 +341,8 @@ class ArloCamera(ArloChildDevice):
             if self.model_id.startswith('VMC5040') or self.model_id.startswith('VMC4040'):
                 return True
         if cap in 'mediaPlayer' and self.model_id == 'ABC1000':
+            return True
+        if cap in 'nightLight' and self.model_id.startswith("ABC1000"):
             return True
         return super().has_capability(cap)
 
@@ -614,3 +624,31 @@ class ArloCamera(ArloChildDevice):
             }
         }
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+
+    def nightlight_on(self):
+        self._arlo.bg.run(self._arlo.be.notify,
+                          base=self.base_station,
+                          body={
+                              'action': 'set',
+                              'properties': {
+                                  'nightLight': { 'enabled': True },
+                                  },
+                              'publishResponse': True,
+                              'resource': self.resource_id,
+                          })
+        return True
+
+    def nightlight_off(self):
+        self._arlo.bg.run(self._arlo.be.notify,
+                          base=self.base_station,
+                          body={
+                              'action': 'set',
+                              'properties': {
+                                  'nightLight': { 'enabled': False },
+                                  },
+                              'publishResponse': True,
+                              'resource': self.resource_id,
+                          })
+        return True
+
+

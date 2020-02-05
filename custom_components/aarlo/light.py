@@ -26,6 +26,9 @@ async def async_setup_platform(hass, _config, async_add_entities, _discovery_inf
     lights = []
     for light in arlo.lights:
         lights.append(ArloLight(light))
+    for camera in arlo.cameras:
+        if camera.has_capability('nightLight'):
+            lights.append(ArloNightLight(camera))
 
     async_add_entities(lights, True)
 
@@ -83,3 +86,21 @@ class ArloLight(Light):
         attrs['friendly_name'] = self._name
 
         return attrs
+
+
+class ArloNightLight(ArloLight):
+
+    def __init__(self, camera):
+        super().__init__(camera)
+        _LOGGER.info('ArloNightLight: %s created', self._name)
+
+    def turn_on(self, **kwargs):
+        """Turn the entity on."""
+        _LOGGER.debug("turn_on:{}".format(self._state))
+        self._light.nightlight_on()
+
+    def turn_off(self, **kwargs):
+        """Turn the entity off."""
+        _LOGGER.debug("turn_off:{}".format(self._state))
+        self._light.nightlight_off()
+
