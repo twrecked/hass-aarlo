@@ -220,9 +220,12 @@ class ArloCamera(ArloChildDevice):
         # night light
         nightlight = event.get("properties", {}).get("nightLight", None)
         if nightlight is not None:
-            if nightlight.get("enabled", False):
+            self._arlo.debug("got a night light {}".format( nightlight.get("enabled", False) ))
+            if nightlight.get("enabled", False) is True:
+                self._arlo.debug('got a night light on')
                 self._save_and_do_callbacks(LAMP_STATE_KEY, "on")
             else:
+                self._arlo.debug('got a night light off')
                 self._save_and_do_callbacks(LAMP_STATE_KEY, "off")
 
         # pass on to lower layer

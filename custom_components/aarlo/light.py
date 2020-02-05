@@ -52,6 +52,7 @@ class ArloLight(Light):
             self._state = value
             self.async_schedule_update_ha_state()
 
+        _LOGGER.info('ArloLight: %s registering callbacks', self._name)
         self._state = self._light.attribute("lampState", default="off")
         self._light.add_attr_callback("lampState", update_state)
 
