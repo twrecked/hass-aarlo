@@ -280,3 +280,8 @@ class PyArlo(object):
 
     def debug(self, msg):
         _LOGGER.debug(msg)
+
+    def vdebug(self, msg):
+        if self._cfg.verbose:
+            _LOGGER.debug(msg)
+

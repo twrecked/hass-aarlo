@@ -46,7 +46,7 @@ class ArloMediaLibrary(object):
 
             key = '{0}:{1}'.format(video.get('deviceId'), arlotime_strftime(video.get('localCreatedDate')))
             if key in keys:
-                self._arlo.debug( 'skipping {0}, already present'.format( key ) )
+                self._arlo.vdebug( 'skipping {0}, already present'.format( key ) )
                 continue
 
             self._arlo.debug('adding {0}'.format(key))
@@ -89,12 +89,12 @@ class ArloMediaLibrary(object):
             camera = self._arlo.lookup_camera_by_id(video.get('deviceId'))
             if camera is not None:
                 key = '{0}:{1}'.format(video.get('deviceId'), arlotime_strftime(video.get('localCreatedDate')))
-                self._arlo.debug('adding {0}'.format(key))
+                self._arlo.vdebug('adding {0}'.format(key))
                 videos.append(ArloVideo(video, camera, self._arlo))
                 keys.append(key)
             else:
                 key = '{0}:{1}'.format(video.get('deviceId'), arlotime_strftime(video.get('localCreatedDate')))
-                self._arlo.debug('skipping {0}'.format(key))
+                self._arlo.vdebug('skipping {0}'.format(key))
 
         # set update count, load() never runs callbacks
         with self._lock:
