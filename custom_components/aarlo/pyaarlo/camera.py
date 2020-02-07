@@ -5,7 +5,7 @@ import zlib
 
 from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        CAPTURED_TODAY_KEY, FLIP_KEY, IDLE_SNAPSHOT_PATH, LAST_CAPTURE_KEY,
-                       CRY_DETECTION_KEY,
+                       CRY_DETECTION_KEY, LIGHT_MODE_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY, LAMP_STATE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
@@ -228,6 +228,26 @@ class ArloCamera(ArloChildDevice):
             else:
                 self._arlo.debug('got a night light off')
                 self._save_and_do_callbacks(LAMP_STATE_KEY, "off")
+
+            brightness = nightlight.get("brightness")
+            if brightness is not None:
+                self._save_and_do_callbacks(BRIGHTNESS_KEY, brightness)
+
+            mode = nightlight.get("mode")
+            if mode is not None:
+                rgb = nightlight.get("rgb")
+                temperature = nightlight.get("temperature")
+
+                light_mode = {
+                    'mode': mode
+                }
+
+                if rgb is not None:
+                    light_mode['rgb'] = rgb
+                if temperature is not None:
+                    light_mode['temperature'] = temperature
+
+                self._save_and_do_callbacks(LIGHT_MODE_KEY, light_mode)
 
         # audio analytics
         audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
@@ -641,30 +661,54 @@ class ArloCamera(ArloChildDevice):
         }
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-    def nightlight_on(self):
+    def _set_nightlight_properties(self, properties):
+        self._arlo.debug('{}: setting nightlight properties: {}'.format(self._name, properties))
         self._arlo.bg.run(self._arlo.be.notify,
                           base=self.base_station,
                           body={
                               'action': 'set',
                               'properties': {
-                                  'nightLight': { 'enabled': True },
-                                  },
+                                  'nightLight': properties
+                              },
                               'publishResponse': True,
                               'resource': self.resource_id,
                           })
         return True
+
+    def nightlight_on(self):
+        """Turns the nightlight on."""
+        return self._set_nightlight_properties({
+            'enabled': True
+        })
 
     def nightlight_off(self):
-        self._arlo.bg.run(self._arlo.be.notify,
-                          base=self.base_station,
-                          body={
-                              'action': 'set',
-                              'properties': {
-                                  'nightLight': { 'enabled': False },
-                                  },
-                              'publishResponse': True,
-                              'resource': self.resource_id,
-                          })
-        return True
+        """Turns the nightlight off."""
+        return self._set_nightlight_properties({
+            'enabled': False
+        })
 
+    def set_nightlight_brightness(self, brightness):
+        """Turns the nightlight brightness value (0-255)."""
+        return self._set_nightlight_properties({
+            'brightness': brightness
+        })
 
+    def set_nightlight_rgb(self, red=255, green=255, blue=255):
+        """Turns the nightlight color to the specified RGB value."""
+        return self._set_nightlight_properties({
+            'mode': 'rgb',
+            'rgb': { 'red': red, 'green': green, 'blue': blue }
+        })
+
+    def set_nightlight_color_temperature(self, temperature):
+        """Turns the nightlight to the specified Kelvin color temperature."""
+        return self._set_nightlight_properties({
+            'mode': 'temperature',
+            'temperature': str(temperature)
+        })
+
+    def set_nightlight_mode(self, mode):
+        """Turns the nightlight to a particular mode (rgb, temperature, rainbow)."""
+        return self._set_nightlight_properties({
+            'mode': mode
+        })

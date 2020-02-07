@@ -118,7 +118,7 @@ class ArloBackEnd(object):
         # Answer for async ping. Note and finish.
         # Packet number #1.
         if resource.startswith('subscriptions/'):
-            self._arlo.debug('async ping response ' + resource)
+            self._arlo.vdebug('async ping response ' + resource)
             return
 
         # These is a base station mode response. Find base station ID and
