@@ -5,7 +5,7 @@ import zlib
 
 from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        CAPTURED_TODAY_KEY, FLIP_KEY, IDLE_SNAPSHOT_PATH, LAST_CAPTURE_KEY,
-                       CRY_DETECTION_KEY, LIGHT_MODE_KEY,
+                       CRY_DETECTION_KEY, LIGHT_BRIGHTNESS_KEY, LIGHT_MODE_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY, LAMP_STATE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
@@ -231,7 +231,7 @@ class ArloCamera(ArloChildDevice):
 
             brightness = nightlight.get("brightness")
             if brightness is not None:
-                self._save_and_do_callbacks(BRIGHTNESS_KEY, brightness)
+                self._save_and_do_callbacks(LIGHT_BRIGHTNESS_KEY, brightness)
 
             mode = nightlight.get("mode")
             if mode is not None:

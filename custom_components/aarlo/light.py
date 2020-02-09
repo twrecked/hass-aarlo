@@ -22,6 +22,10 @@ from homeassistant.const import (ATTR_ATTRIBUTION)
 from homeassistant.core import callback
 import homeassistant.util.color as color_util
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
+from .pyaarlo.constant import (
+    LIGHT_BRIGHTNESS_KEY,
+    LIGHT_MODE_KEY
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -142,19 +146,19 @@ class ArloNightLight(ArloLight):
         @callback
         def update_attr(_light, attr, value):
             _LOGGER.debug('callback:' + attr + ':' + str(value)[:80])
-            if attr == "brightness":
+            if attr == LIGHT_BRIGHTNESS_KEY:
                 self._brightness = value
-            if attr == "lightMode":
+            if attr == LIGHT_MODE_KEY:
                 self._set_light_mode(value)
             self.async_schedule_update_ha_state()
 
         _LOGGER.info('ArloNightLight: %s registering callbacks', self._name)
         
-        self._brightness = self._light.attribute("brightness", default=255)
-        self._set_light_mode(self._light.attribute("lightMode"))
+        self._brightness = self._light.attribute(LIGHT_BRIGHTNESS_KEY, default=255)
+        self._set_light_mode(self._light.attribute(LIGHT_MODE_KEY))
 
-        self._light.add_attr_callback("brightness", update_attr)
-        self._light.add_attr_callback("lightMode", update_attr)
+        self._light.add_attr_callback(LIGHT_BRIGHTNESS_KEY, update_attr)
+        self._light.add_attr_callback(LIGHT_MODE_KEY, update_attr)
         await super().async_added_to_hass()
 
     def turn_on(self, **kwargs):
