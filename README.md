@@ -394,6 +394,7 @@ The following additional parameters can be specified against the aarlo platform 
 | `host`                  | string   | `https://my.arlo.com`   | Sets the host aarlo will connect to |
 | `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
 | `mode_api`              | string   | `auto`                  | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
+| `verbose_debug`         | boolean  | `False`                 | Turn on extra debug. This extra information is usually not needed! |
 
 <a name="advanced-statuses"></a>
 ### Camera Statuses
