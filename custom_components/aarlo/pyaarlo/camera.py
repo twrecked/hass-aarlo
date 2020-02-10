@@ -223,10 +223,8 @@ class ArloCamera(ArloChildDevice):
         if nightlight is not None:
             self._arlo.debug("got a night light {}".format( nightlight.get("enabled", False) ))
             if nightlight.get("enabled", False) is True:
-                self._arlo.debug('got a night light on')
                 self._save_and_do_callbacks(LAMP_STATE_KEY, "on")
             else:
-                self._arlo.debug('got a night light off')
                 self._save_and_do_callbacks(LAMP_STATE_KEY, "off")
 
             brightness = nightlight.get("brightness")
@@ -253,10 +251,8 @@ class ArloCamera(ArloChildDevice):
         audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
         if audioanalytics is not None:
             if audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered") is True:
-                self._arlo.debug('got a cry on')
                 self._save_and_do_callbacks(CRY_DETECTION_KEY, "on")
             else:
-                self._arlo.debug('got a cry off')
                 self._save_and_do_callbacks(CRY_DETECTION_KEY, "off")
 
         # pass on to lower layer
