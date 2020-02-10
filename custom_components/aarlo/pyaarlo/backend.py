@@ -1,12 +1,11 @@
 import json
 import pprint
 import re
+import requests
+import requests.adapters
 import threading
 import time
 import uuid
-
-import requests
-import requests.adapters
 
 from .constant import (DEFAULT_RESOURCES, LOGIN_PATH, LOGOUT_PATH,
                        NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH)

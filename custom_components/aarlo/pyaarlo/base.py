@@ -145,10 +145,10 @@ class ArloBase(ArloDevice):
             else:
                 def _set_mode_v2_cb():
                     params = {'activeAutomations':
-                              [{'deviceId': self.device_id,
-                                'timestamp': time_to_arlotime(),
-                                active: [mode_id],
-                                inactive: []}]}
+                                  [{'deviceId': self.device_id,
+                                    'timestamp': time_to_arlotime(),
+                                    active: [mode_id],
+                                    inactive: []}]}
                     for i in range(1, 3):
                         body = self._arlo.be.post(AUTOMATION_PATH, params=params, raw=True)
                         if body['success']:

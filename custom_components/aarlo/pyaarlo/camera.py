@@ -221,7 +221,7 @@ class ArloCamera(ArloChildDevice):
         # night light
         nightlight = event.get("properties", {}).get("nightLight", None)
         if nightlight is not None:
-            self._arlo.debug("got a night light {}".format( nightlight.get("enabled", False) ))
+            self._arlo.debug("got a night light {}".format(nightlight.get("enabled", False)))
             if nightlight.get("enabled", False) is True:
                 self._save_and_do_callbacks(LAMP_STATE_KEY, "on")
             else:
@@ -693,7 +693,7 @@ class ArloCamera(ArloChildDevice):
         """Turns the nightlight color to the specified RGB value."""
         return self._set_nightlight_properties({
             'mode': 'rgb',
-            'rgb': { 'red': red, 'green': green, 'blue': blue }
+            'rgb': {'red': red, 'green': green, 'blue': blue}
         })
 
     def set_nightlight_color_temperature(self, temperature):

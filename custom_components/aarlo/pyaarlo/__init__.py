@@ -2,9 +2,9 @@ import base64
 import datetime
 import logging
 import os
+import pprint
 import threading
 import time
-import pprint
 
 from .backend import ArloBackEnd
 from .background import ArloBackground
@@ -284,4 +284,3 @@ class PyArlo(object):
     def vdebug(self, msg):
         if self._cfg.verbose:
             _LOGGER.debug(msg)
-

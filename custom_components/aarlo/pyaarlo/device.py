@@ -1,5 +1,5 @@
-import threading
 import pprint
+import threading
 
 from .constant import (BATTERY_KEY, BATTERY_TECH_KEY, CHARGING_KEY, CHARGER_KEY,
                        CONNECTION_KEY, RESOURCE_KEYS,
