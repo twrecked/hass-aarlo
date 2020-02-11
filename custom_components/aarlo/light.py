@@ -6,6 +6,7 @@ https://home-assistant.io/components/sensor.arlo/
 """
 
 import logging
+import pprint
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -58,6 +59,7 @@ class ArloLight(Light):
         self._name = light.name
         self._unique_id = self._name.lower().replace(' ', '_')
         self._state = "off"
+        self._brightness = None
         self._light = light
         _LOGGER.info('ArloLight: %s created', self._name)
 
@@ -67,12 +69,18 @@ class ArloLight(Light):
         @callback
         def update_state(_light, attr, value):
             _LOGGER.debug('callback:' + attr + ':' + str(value)[:80])
-            self._state = value
+            if attr == "lampState":
+                self._state = value
+            if attr == "brightness":
+                self._brightness = value
             self.async_schedule_update_ha_state()
 
         _LOGGER.info('ArloLight: %s registering callbacks', self._name)
         self._state = self._light.attribute("lampState", default="off")
+        self._brightness = self._light.attribute("brightness", default=255)
+
         self._light.add_attr_callback("lampState", update_state)
+        self._light.add_attr_callback("brightness", update_state)
 
     @property
     def unique_id(self):
@@ -84,13 +92,33 @@ class ArloLight(Light):
         """Return True if light is on."""
         return self._state.lower() == "on"
 
+    @property
+    def supported_features(self):
+        """Flag features that are supported."""
+        return SUPPORT_BRIGHTNESS | SUPPORT_COLOR 
+
     def turn_on(self, **kwargs):
         """Turn the light on."""
+        _LOGGER.info("turn_on: {}".format(pprint.pformat(kwargs)))
+
         self._light.turn_on()
+        if ATTR_BRIGHTNESS in kwargs:
+            #self._light.set_brightness(kwargs[ATTR_BRIGHTNESS])
+            pass
+
+        if ATTR_HS_COLOR in kwargs:
+            rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
+            #self._light.set_rgb(red=rgb[0], green=rgb[1], blue=rgb[2])
+            pass
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
         self._light.turn_off()
+
+    @property
+    def brightness(self):
+        """Return the brightness of the light."""
+        return self._brightness
 
     @property
     def device_state_attributes(self):
