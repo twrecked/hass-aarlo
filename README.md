@@ -178,6 +178,7 @@ binary_sensor:
     - motion
     - sound
     - ding
+    - cry
 ```
 
 Items on the `monitored_conditions` can be one or more of the following:
@@ -185,6 +186,7 @@ Items on the `monitored_conditions` can be one or more of the following:
 * `motion` fires when a camera, doorbell or light detects motion.
 * `sound` fires when a camera detects a sound.
 * `ding` fires when a doorbell is pressed.
+* `cry` fires when crying is detected (ArloBaby only)
 
 The Arlo backend sends the notifications on the event stream so they are (almost) real time.
 
