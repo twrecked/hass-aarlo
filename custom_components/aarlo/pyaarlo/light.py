@@ -1,4 +1,7 @@
+import pprint
+
 from .constant import ( LAMP_STATE_KEY, BRIGHTNESS_KEY )
+from .util import ( rgb_to_hex )
 from .device import ArloChildDevice
 
 
@@ -21,12 +24,21 @@ class ArloLight(ArloChildDevice):
     def is_on(self):
         return self._arlo.st.get([self._device_id, LAMP_STATE_KEY], "off") == "on"
 
-    def turn_on(self):
+    def turn_on(self, brightness=None, rgb=None):
+
+        properties = {LAMP_STATE_KEY: 'on'}
+        if brightness is not None:
+            properties[BRIGHTNESS_KEY] = brightness
+        if rgb is not None:
+            #properties["single"] = rgb_to_hex(rgb)
+            pass
+
+        self._arlo.debug("{} sending {}".format(self._name,pprint.pformat(properties)))
         self._arlo.bg.run(self._arlo.be.notify,
                           base=self.base_station,
                           body={
                               'action': 'set',
-                              'properties': {LAMP_STATE_KEY: 'on'},
+                              'properties': properties,
                               'publishResponse': True,
                               'resource': self.resource_id,
                           })

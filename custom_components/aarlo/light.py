@@ -101,22 +101,18 @@ class ArloLight(Light):
         """Turn the light on."""
         _LOGGER.info("turn_on: {}".format(pprint.pformat(kwargs)))
 
-        #if not self.is_on:
-        if kwargs == {}:
-            self._light.turn_on()
+        rgb = kwargs.get(ATTR_HS_COLOR,None)
+        if rgb is not None:
+            rgb = color_util.color_hs_to_RGB(*rgb)
+        brightness = kwargs.get(ATTR_BRIGHTNESS,None)
 
-        if ATTR_BRIGHTNESS in kwargs:
-            self._light.set_brightness(kwargs[ATTR_BRIGHTNESS])
-            pass
-
-        if ATTR_HS_COLOR in kwargs:
-            rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
-            #self._light.set_rgb(red=rgb[0], green=rgb[1], blue=rgb[2])
-            pass
+        self._light.turn_on(brightness=brightness,rgb=rgb)
+        self._state = "on"
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
         self._light.turn_off()
+        self._state = "off"
 
     @property
     def brightness(self):
@@ -260,3 +256,15 @@ class ArloNightLight(ArloLight):
     def supported_features(self):
         """Flag features that are supported."""
         return SUPPORT_BRIGHTNESS | SUPPORT_COLOR | SUPPORT_COLOR_TEMP | SUPPORT_EFFECT
+
+    @property
+    def device_state_attributes(self):
+        """Return the state attributes."""
+        attrs = {}
+
+        attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
+        attrs['brand'] = DEFAULT_BRAND
+        attrs['friendly_name'] = self._name
+        attrs['brightness'] = self._brightness
+
+        return attrs
