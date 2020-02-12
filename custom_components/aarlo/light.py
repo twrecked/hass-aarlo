@@ -101,9 +101,12 @@ class ArloLight(Light):
         """Turn the light on."""
         _LOGGER.info("turn_on: {}".format(pprint.pformat(kwargs)))
 
-        self._light.turn_on()
+        #if not self.is_on:
+        if kwargs == {}:
+            self._light.turn_on()
+
         if ATTR_BRIGHTNESS in kwargs:
-            #self._light.set_brightness(kwargs[ATTR_BRIGHTNESS])
+            self._light.set_brightness(kwargs[ATTR_BRIGHTNESS])
             pass
 
         if ATTR_HS_COLOR in kwargs:
@@ -128,6 +131,7 @@ class ArloLight(Light):
         attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
         attrs['brand'] = DEFAULT_BRAND
         attrs['friendly_name'] = self._name
+        attrs['brightness'] = self._brightness
 
         return attrs
 

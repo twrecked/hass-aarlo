@@ -1,4 +1,4 @@
-from .constant import LAMP_STATE_KEY
+from .constant import ( LAMP_STATE_KEY, BRIGHTNESS_KEY )
 from .device import ArloChildDevice
 
 
@@ -38,6 +38,17 @@ class ArloLight(ArloChildDevice):
                           body={
                               'action': 'set',
                               'properties': {LAMP_STATE_KEY: 'off'},
+                              'publishResponse': True,
+                              'resource': self.resource_id,
+                          })
+        return True
+
+    def set_brightness(self,brightness):
+        self._arlo.bg.run(self._arlo.be.notify,
+                          base=self.base_station,
+                          body={
+                              'action': 'set',
+                              'properties': {BRIGHTNESS_KEY: brightness},
                               'publishResponse': True,
                               'resource': self.resource_id,
                           })
