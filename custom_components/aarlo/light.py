@@ -19,7 +19,9 @@ from homeassistant.components.light import (
     SUPPORT_EFFECT,
     Light,
 )
-from homeassistant.const import (ATTR_ATTRIBUTION)
+from homeassistant.const import (ATTR_ATTRIBUTION,
+                                 ATTR_BATTERY_CHARGING,
+                                 ATTR_BATTERY_LEVEL)
 from homeassistant.core import callback
 import homeassistant.util.color as color_util
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
@@ -31,6 +33,9 @@ from .pyaarlo.constant import (
 _LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = ['aarlo']
+
+ATTR_BATTERY_TECH = 'battery_tech'
+ATTR_CHARGER_TYPE = 'charger_type'
 
 LIGHT_EFFECT_RAINBOW = "rainbow"
 LIGHT_EFFECT_NONE = "none"
@@ -122,7 +127,15 @@ class ArloLight(Light):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
-        attrs = {}
+
+        attrs = {
+            name: value for name, value in (
+                (ATTR_BATTERY_LEVEL, self._light.battery_level),
+                (ATTR_BATTERY_TECH, self._light.battery_tech),
+                (ATTR_BATTERY_CHARGING, self._light.charging),
+                (ATTR_CHARGER_TYPE, self._light.charger_type),
+            ) if value is not None
+        }
 
         attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
         attrs['brand'] = DEFAULT_BRAND
