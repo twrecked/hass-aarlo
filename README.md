@@ -303,6 +303,8 @@ Unify your alarm mode names across all your base stations. There is no way to sp
 
 Alro will allow shared accounts to give cameras their own name. If you find cameras appearing with unexpected names (or not appearing at all), log into the Arlo web interface with your Home Assistant account and make sure the camera names are correct.
 
+You can change the brightness on the light but not while it's turned on. You need to turn it off and back on again for the change to take. This is how the web interface does it.
+
 <a name="other-debugging"></a>
 ### Debugging
 If you run into problems there please provide the following in the bug report to help debugging.
