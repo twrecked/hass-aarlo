@@ -31,6 +31,17 @@ from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import async_track_point_in_time
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
+from .pyaarlo.const import (
+    ACTIVITY_STATE_KEY,
+    CHARGER_KEY,
+    CHARGING_KEY
+    CONNECTION_KEY,
+    LAST_IMAGE_DATA_KEY,
+    MEDIA_UPLOAD_KEYS,
+    PRIVACY_KEY,
+    RECENT_ACTIVITY_KEY,
+)
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -257,7 +268,7 @@ class ArloCam(Camera):
             _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value)[:80])
 
             # set state 
-            if attr == 'activityState' or attr == 'connectionState':
+            if attr == ACTIVITY_STATE_KEY or attr == CONNECTION_KEY:
                 if value == 'thermalShutdownCold':
                     self._state = 'Offline, Too Cold'
                 elif value == 'userStreamActive':
@@ -268,19 +279,19 @@ class ArloCam(Camera):
                     self._state = 'Unavailable'
                 else:
                     self._state = STATE_IDLE
-            if attr == 'recentActivity':
+            if attr == RECENT_ACTIVITY_KEY:
                 self._recent = value
 
             self.async_schedule_update_ha_state()
 
-        self._camera.add_attr_callback('privacyActive', update_state)
-        self._camera.add_attr_callback('recentActivity', update_state)
-        self._camera.add_attr_callback('activityState', update_state)
-        self._camera.add_attr_callback('connectionState', update_state)
-        self._camera.add_attr_callback('presignedLastImageData', update_state)
-        self._camera.add_attr_callback('mediaUploadNotification', update_state)
-        self._camera.add_attr_callback('chargingState', update_state)
-        self._camera.add_attr_callback('chargingTech', update_state)
+        self._camera.add_attr_callback(ACTIVITY_STATE_KEY, update_state)
+        self._camera.add_attr_callback(CHARGER_KEY, update_state)
+        self._camera.add_attr_callback(CHARGING_KEY, update_state)
+        self._camera.add_attr_callback(CONNECTION_KEY, update_state)
+        self._camera.add_attr_callback(LAST_IMAGE_DATA_KEY, update_state)
+        self._camera.add_attr_callback(MEDIA_UPLOAD_KEYS, update_state)
+        self._camera.add_attr_callback(PRIVACY_KEY, update_state)
+        self._camera.add_attr_callback(RECENT_ACTIVITY_KEY, update_state)
 
     async def handle_async_mjpeg_stream(self, request):
         """Generate an HTTP MJPEG stream from the camera."""

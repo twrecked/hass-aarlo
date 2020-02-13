@@ -16,6 +16,10 @@ from homeassistant.core import callback
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import track_point_in_time
 from . import DATA_ARLO
+from .pyaarlo.const import (
+    ACTIVITY_STATE_KEY,
+    SIREN_STATE_KEY
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -191,7 +195,7 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
             self.async_schedule_update_ha_state()
 
         _LOGGER.debug("register siren callbacks for {}".format(self._device.name))
-        self._device.add_attr_callback('sirenState', update_state)
+        self._device.add_attr_callback(SIREN_STATE_KEY, update_state)
 
     def get_state(self):
         _LOGGER.debug("get state {} form".format(self._name))
@@ -235,7 +239,7 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
 
         for device in self._devices:
             _LOGGER.debug("register all siren callbacks for {}".format(device.name))
-            device.add_attr_callback('sirenState', update_state)
+            device.add_attr_callback(SIREN_STATE_KEY, update_state)
 
     def get_state(self):
         _LOGGER.debug("get state for {}".format(self._name))
@@ -271,7 +275,7 @@ class AarloSnapshotSwitch(AarloSwitch):
             _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value)[:80])
             self.async_schedule_update_ha_state()
 
-        self._camera.add_attr_callback('activityState', update_state)
+        self._camera.add_attr_callback(ACTIVITY_STATE_KEY, update_state)
 
     @property
     def state(self):

@@ -32,6 +32,9 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import track_point_in_time
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
+from . pyaarlo.const import (
+    MODE_KEY,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -174,11 +177,11 @@ class ArloBaseStation(AlarmControlPanel):
         @callback
         def update_state(_device, attr, value):
             _LOGGER.debug('callback:' + attr + ':' + str(value))
-            self._state = self._get_state_from_ha(self._base.attribute('activeMode'))
+            self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY))
             self.async_schedule_update_ha_state()
 
-        self._state = self._get_state_from_ha(self._base.attribute('activeMode', ARMED))
-        self._base.add_attr_callback('activeMode', update_state)
+        self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY, ARMED))
+        self._base.add_attr_callback(MODE_KEY, update_state)
 
     @property
     def state(self):
