@@ -234,7 +234,8 @@ The following enables any lights:
 light:
   - platform: aarlo
 ```
-
+The component supports the standard Arlo lights and Arlo Baby lights. There is one noticable quirk, you can adjust the brightness of a light while it is on but the change will not happen until you turn the light off and back on again. This how the official web interface works.
+ 
 <a name="configuration-switch"></a>
 ### Switch Configuration
 
@@ -302,6 +303,8 @@ If you do find the component locks up after a while (I've seen reports of hours,
 Unify your alarm mode names across all your base stations. There is no way to specify different mode names for each device.
 
 Alro will allow shared accounts to give cameras their own name. If you find cameras appearing with unexpected names (or not appearing at all), log into the Arlo web interface with your Home Assistant account and make sure the camera names are correct.
+
+You can change the brightness on the light but not while it's turned on. You need to turn it off and back on again for the change to take. This is how the web interface does it.
 
 <a name="other-debugging"></a>
 ### Debugging
@@ -502,6 +505,7 @@ If you are still having issues please read these 3 posts:
 <a name="to-do"></a>
 ## To Do
 
+* smarter light brightness...
 * coloured lights
 * custom mode - like SmartThings to better control motion detection
 * use asyncio loop internally
