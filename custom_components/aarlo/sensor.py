@@ -19,6 +19,17 @@ from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.entity import (Entity)
 from homeassistant.helpers.icon import icon_for_battery_level
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
+from .pyaarlo.const (
+    AIR_QUALITY_KEY,
+    BATTERY_KEY,
+    CAPTURED_TODAY_KEY,
+    HUMIDITY_KEY,
+    LAST_CAPTURE_KEY,
+    RECENT_ACTIVITY_KEY,
+    SIGNAL_STR_KEY,
+    TEMPERATURE_KEY,
+    TOTAL_CAMERAS_KEY,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,15 +37,15 @@ DEPENDENCIES = ['aarlo']
 
 # sensor_type [ description, unit, icon ]
 SENSOR_TYPES = {
-    'last_capture': ['Last', None, 'run-fast', 'lastCapture'],
-    'total_cameras': ['Arlo Cameras', None, 'video', 'totalCameras'],
-    'recent_activity': ['Recent Activity', None, 'run-fast', 'recentActivity'],
-    'captured_today': ['Captured Today', None, 'file-video', 'capturedToday'],
-    'battery_level': ['Battery Level', '%', 'battery-50', 'batteryLevel'],
-    'signal_strength': ['Signal Strength', None, 'signal', 'signalStrength'],
-    'temperature': ['Temperature', TEMP_CELSIUS, 'thermometer', 'temperature'],
-    'humidity': ['Humidity', '%', 'water-percent', 'humidity'],
-    'air_quality': ['Air Quality', 'ppm', 'biohazard', 'airQuality']
+    'last_capture': ['Last', None, 'run-fast', LAST_CAPTURE_KEY],
+    'total_cameras': ['Arlo Cameras', None, 'video', TOTAL_CAMERAS_KEY],
+    'recent_activity': ['Recent Activity', None, 'run-fast', RECENT_ACTIVITY_KEY],
+    'captured_today': ['Captured Today', None, 'file-video', CAPTURED_TODAY_KEY],
+    'battery_level': ['Battery Level', '%', 'battery-50', BATTERY_KEY],
+    'signal_strength': ['Signal Strength', None, 'signal', SIGNAL_STR_KEY],
+    'temperature': ['Temperature', TEMP_CELSIUS, 'thermometer', TEMPERATURE_KEY],
+    'humidity': ['Humidity', '%', 'water-percent', HUMIDITY_KEY],
+    'air_quality': ['Air Quality', 'ppm', 'biohazard', AIR_QUALITY_KEY]
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
