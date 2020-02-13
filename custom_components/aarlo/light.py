@@ -26,6 +26,8 @@ from homeassistant.core import callback
 import homeassistant.util.color as color_util
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
 from .pyaarlo.constant import (
+    BRIGHTNESS_KEY,
+    LAMP_STATE_KEY,
     LIGHT_BRIGHTNESS_KEY,
     LIGHT_MODE_KEY
 )
@@ -74,18 +76,18 @@ class ArloLight(Light):
         @callback
         def update_state(_light, attr, value):
             _LOGGER.debug('callback:' + attr + ':' + str(value)[:80])
-            if attr == "lampState":
+            if attr == LAMP_STATE_KEY:
                 self._state = value
-            if attr == "brightness":
+            if attr == BRIGHTNESS_KEY:
                 self._brightness = value
             self.async_schedule_update_ha_state()
 
         _LOGGER.info('ArloLight: %s registering callbacks', self._name)
-        self._state = self._light.attribute("lampState", default="off")
-        self._brightness = self._light.attribute("brightness", default=255)
+        self._state = self._light.attribute(LAMP_STATE_KEY, default="off")
+        self._brightness = self._light.attribute(BRIGHTNESS_KEY, default=255)
 
-        self._light.add_attr_callback("lampState", update_state)
-        self._light.add_attr_callback("brightness", update_state)
+        self._light.add_attr_callback(LAMP_STATE_KEY, update_state)
+        self._light.add_attr_callback(BRIGHTNESS_KEY, update_state)
 
     @property
     def unique_id(self):
@@ -100,7 +102,8 @@ class ArloLight(Light):
     @property
     def supported_features(self):
         """Flag features that are supported."""
-        return SUPPORT_BRIGHTNESS | SUPPORT_COLOR 
+        #return SUPPORT_BRIGHTNESS | SUPPORT_COLOR 
+        return SUPPORT_BRIGHTNESS 
 
     def turn_on(self, **kwargs):
         """Turn the light on."""
@@ -116,6 +119,7 @@ class ArloLight(Light):
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
+        _LOGGER.info("turn_off: {}".format(pprint.pformat(kwargs)))
         self._light.turn_off()
         self._state = "off"
 
@@ -134,13 +138,13 @@ class ArloLight(Light):
                 (ATTR_BATTERY_TECH, self._light.battery_tech),
                 (ATTR_BATTERY_CHARGING, self._light.charging),
                 (ATTR_CHARGER_TYPE, self._light.charger_type),
+                (BRIGHTNESS_KEY, self._brightness),
             ) if value is not None
         }
 
         attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
         attrs['brand'] = DEFAULT_BRAND
         attrs['friendly_name'] = self._name
-        attrs['brightness'] = self._brightness
 
         return attrs
 
@@ -269,15 +273,3 @@ class ArloNightLight(ArloLight):
     def supported_features(self):
         """Flag features that are supported."""
         return SUPPORT_BRIGHTNESS | SUPPORT_COLOR | SUPPORT_COLOR_TEMP | SUPPORT_EFFECT
-
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        attrs = {}
-
-        attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
-        attrs['brand'] = DEFAULT_BRAND
-        attrs['friendly_name'] = self._name
-        attrs['brightness'] = self._brightness
-
-        return attrs
