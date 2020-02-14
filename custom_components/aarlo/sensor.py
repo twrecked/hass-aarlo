@@ -19,17 +19,15 @@ from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.entity import (Entity)
 from homeassistant.helpers.icon import icon_for_battery_level
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
-from .pyaarlo.const (
-    AIR_QUALITY_KEY,
-    BATTERY_KEY,
-    CAPTURED_TODAY_KEY,
-    HUMIDITY_KEY,
-    LAST_CAPTURE_KEY,
-    RECENT_ACTIVITY_KEY,
-    SIGNAL_STR_KEY,
-    TEMPERATURE_KEY,
-    TOTAL_CAMERAS_KEY,
-)
+from .pyaarlo.constant import (AIR_QUALITY_KEY,
+                               BATTERY_KEY,
+                               CAPTURED_TODAY_KEY,
+                               HUMIDITY_KEY,
+                               LAST_CAPTURE_KEY,
+                               RECENT_ACTIVITY_KEY,
+                               SIGNAL_STR_KEY,
+                               TEMPERATURE_KEY,
+                               TOTAL_CAMERAS_KEY)
 
 _LOGGER = logging.getLogger(__name__)
 

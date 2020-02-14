@@ -15,12 +15,10 @@ from homeassistant.const import (ATTR_ATTRIBUTION,
 from homeassistant.core import callback
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
-from .pyaarlo.const import(
-    AUDIO_DETECTED_KEY,
-    BUTTON_PRESSED_KEY,
-    MOTION_DETECTED_KEY,
-    CRY_DETECTION_KEY
-)
+from .pyaarlo.constant import (AUDIO_DETECTED_KEY,
+                               BUTTON_PRESSED_KEY,
+                               MOTION_DETECTED_KEY,
+                               CRY_DETECTION_KEY)
 
 _LOGGER = logging.getLogger(__name__)
 

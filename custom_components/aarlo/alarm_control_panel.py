@@ -32,9 +32,8 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import track_point_in_time
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
-from . pyaarlo.const import (
-    MODE_KEY,
-)
+from .pyaarlo.constant import (MODE_KEY,
+                               SIREN_STATE_KEY)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -197,8 +196,11 @@ class ArloBaseStation(AlarmControlPanel):
         """Return the list of supported features."""
         """Make this non-dynamic later..."""
         try:
-            c = __import__("homeassistant.components.alarm_control_panel.const",fromlist=['SUPPORT_ALARM_ARM_HOME', 'SUPPORT_ALARM_ARM_AWAY', 'SUPPORT_ALARM_ARM_NIGHT', 'SUPPORT_ALARM_TRIGGER'])
-            _LOGGER.debug('supported: ' + str(c.SUPPORT_ALARM_ARM_HOME | c.SUPPORT_ALARM_ARM_AWAY | c.SUPPORT_ALARM_ARM_NIGHT | c.SUPPORT_ALARM_TRIGGER))
+            c = __import__("homeassistant.components.alarm_control_panel.const",
+                           fromlist=['SUPPORT_ALARM_ARM_HOME', 'SUPPORT_ALARM_ARM_AWAY', 'SUPPORT_ALARM_ARM_NIGHT',
+                                     'SUPPORT_ALARM_TRIGGER'])
+            _LOGGER.debug('supported: ' + str(
+                c.SUPPORT_ALARM_ARM_HOME | c.SUPPORT_ALARM_ARM_AWAY | c.SUPPORT_ALARM_ARM_NIGHT | c.SUPPORT_ALARM_TRIGGER))
             return c.SUPPORT_ALARM_ARM_HOME | c.SUPPORT_ALARM_ARM_AWAY | c.SUPPORT_ALARM_ARM_NIGHT | c.SUPPORT_ALARM_TRIGGER
         except ModuleNotFoundError:
             _LOGGER.debug('not supported')
@@ -333,6 +335,7 @@ class ArloBaseStation(AlarmControlPanel):
         if not check:
             _LOGGER.warning("Wrong code entered for %s", state)
         return check
+
 
 def _get_base_from_entity_id(hass, entity_id):
     component = hass.data.get(DOMAIN)

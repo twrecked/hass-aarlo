@@ -48,6 +48,6 @@ class ArloDoorBell(ArloChildDevice):
         return "doorbells"
 
     def has_capability(self, cap):
-        if cap in (MOTION_DETECTED_KEY,BATTERY_KEY,SIGNAL_STR_KEY,BUTTON_PRESSED_KEY):
+        if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY, BUTTON_PRESSED_KEY):
             return True
         return super().has_capability(cap)

@@ -31,17 +31,15 @@ from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import async_track_point_in_time
 from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
-from .pyaarlo.const import (
-    ACTIVITY_STATE_KEY,
-    CHARGER_KEY,
-    CHARGING_KEY
-    CONNECTION_KEY,
-    LAST_IMAGE_DATA_KEY,
-    MEDIA_UPLOAD_KEYS,
-    PRIVACY_KEY,
-    RECENT_ACTIVITY_KEY,
-)
-
+from .pyaarlo.constant import (ACTIVITY_STATE_KEY,
+                               CHARGER_KEY,
+                               CHARGING_KEY,
+                               CONNECTION_KEY,
+                               LAST_IMAGE_DATA_KEY,
+                               MEDIA_UPLOAD_KEYS,
+                               PRIVACY_KEY,
+                               RECENT_ACTIVITY_KEY,
+                               SIREN_STATE_KEY)
 
 _LOGGER = logging.getLogger(__name__)
 
