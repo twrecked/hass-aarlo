@@ -116,7 +116,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     base_stations_with_sirens = False
     for base_station in arlo.base_stations:
         base_stations.append(ArloBaseStation(base_station, config))
-        if base_station.has_capability('siren'):
+        if base_station.has_capability(SIREN_STATE_KEY):
             base_stations_with_sirens = True
 
     async_add_entities(base_stations, True)
@@ -277,7 +277,7 @@ class ArloBaseStation(AlarmControlPanel):
         attrs['model_id'] = self._base.model_id
         attrs['friendly_name'] = self._name
         attrs['on_schedule'] = self._base.on_schedule
-        attrs['siren'] = self._base.has_capability('siren')
+        attrs['siren'] = self._base.has_capability(SIREN_STATE_KEY)
 
         return attrs
 
@@ -307,14 +307,14 @@ class ArloBaseStation(AlarmControlPanel):
         self._base.mode = lmode
 
     def siren_on(self, duration=30, volume=10):
-        if self._base.has_capability('siren'):
+        if self._base.has_capability(SIREN_STATE_KEY):
             _LOGGER.debug("{0} siren on {1}/{2}".format(self.unique_id, volume, duration))
             self._base.siren_on(duration=duration, volume=volume)
             return True
         return False
 
     def siren_off(self):
-        if self._base.has_capability('siren'):
+        if self._base.has_capability(SIREN_STATE_KEY):
             _LOGGER.debug("{0} siren off".format(self.unique_id))
             self._base.siren_off()
             return True

@@ -53,7 +53,7 @@ async def async_setup_platform(hass, _config, async_add_entities, _discovery_inf
     for light in arlo.lights:
         lights.append(ArloLight(light))
     for camera in arlo.cameras:
-        if camera.has_capability('nightLight'):
+        if camera.has_capability(NIGHTLIGHT_KEY):
             lights.append(ArloNightLight(camera))
 
     async_add_entities(lights, True)

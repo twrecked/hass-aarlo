@@ -158,7 +158,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     cameras_with_siren = False
     for camera in arlo.cameras:
         cameras.append(ArloCam(camera, config))
-        if camera.has_capability('siren'):
+        if camera.has_capability(SIREN_STATE_KEY):
             cameras_with_siren = True
 
     async_add_entities(cameras)
@@ -375,7 +375,7 @@ class ArloCam(Camera):
         attrs['model_id'] = self._camera.model_id
         attrs['parent_id'] = self._camera.parent_id
         attrs['friendly_name'] = self._name
-        attrs['siren'] = self._camera.has_capability('siren')
+        attrs['siren'] = self._camera.has_capability(SIREN_STATE_KEY)
 
         return attrs
 
@@ -454,14 +454,14 @@ class ArloCam(Camera):
         return self.hass.async_add_job(self.stop_activity)
 
     def siren_on(self, duration=30, volume=10):
-        if self._camera.has_capability('siren'):
+        if self._camera.has_capability(SIREN_STATE_KEY):
             _LOGGER.debug("{0} siren on {1}/{2}".format(self.unique_id, volume, duration))
             self._camera.siren_on(duration=duration, volume=volume)
             return True
         return False
 
     def siren_off(self):
-        if self._camera.has_capability('siren'):
+        if self._camera.has_capability(SIREN_STATE_KEY):
             _LOGGER.debug("{0} siren off".format(self.unique_id))
             self._camera.siren_off()
             return True

@@ -67,8 +67,6 @@ class ArloLight(ArloChildDevice):
         return True
 
     def has_capability(self, cap):
-        if cap in 'battery_level':
-            return True
-        if cap in 'motionDetected':
+        if cap in (MOTION_DETECTED_KEY,BATTERY_KEY):
             return True
         return super().has_capability(cap)

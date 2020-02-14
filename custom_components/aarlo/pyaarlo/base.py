@@ -205,13 +205,11 @@ class ArloBase(ArloDevice):
             self._refresh_rate = value
 
     def has_capability(self, cap):
-        if cap in ('temperature', 'humidity', 'air_quality'):
-            if self.model_id == 'ABC1000':
+        if cap in (TEMPERATURE_KEY,HUMIDITY_KEY,AIR_QUALITY_KEY):
+            if self.model_id.startswith('ABC1000'):
                 return True
-        if cap in 'siren':
-            if self.model_id.startswith('VMB400'):
-                return True
-            if self.model_id.startswith('VMB450'):
+        if cap in (SIREN_STATE_KEY):
+            if self.model_id.startswith(('VMB400','VMB450')):
                 return True
         return super().has_capability(cap)
 

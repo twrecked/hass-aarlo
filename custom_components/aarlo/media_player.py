@@ -60,7 +60,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     players = []
     for camera in arlo.cameras:
-        if camera.has_capability('mediaPlayer'):
+        if camera.has_capability(MEDIA_PLAYER_KEY):
             name = '{0}'.format(camera.name)
             players.append(ArloMediaPlayerDevice(name, camera))
 

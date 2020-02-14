@@ -35,7 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = ['aarlo']
 
-# sensor_type [ description, unit, icon ]
+# sensor_type [ description, unit, icon, capability ]
 SENSOR_TYPES = {
     'last_capture': ['Last', None, 'run-fast', LAST_CAPTURE_KEY],
     'total_cameras': ['Arlo Cameras', None, 'video', TOTAL_CAMERAS_KEY],
@@ -66,15 +66,15 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             sensors.append(ArloSensor(SENSOR_TYPES[sensor_type][0], arlo, sensor_type))
         else:
             for camera in arlo.cameras:
-                if camera.has_capability(sensor_type):
+                if camera.has_capability(sensor_type[3]):
                     name = '{0} {1}'.format(SENSOR_TYPES[sensor_type][0], camera.name)
                     sensors.append(ArloSensor(name, camera, sensor_type))
             for doorbell in arlo.doorbells:
-                if doorbell.has_capability(sensor_type):
+                if doorbell.has_capability(sensor_type[3]):
                     name = '{0} {1}'.format(SENSOR_TYPES[sensor_type][0], doorbell.name)
                     sensors.append(ArloSensor(name, doorbell, sensor_type))
             for light in arlo.lights:
-                if light.has_capability(sensor_type):
+                if light.has_capability(sensor_type[3]):
                     name = '{0} {1}'.format(SENSOR_TYPES[sensor_type][0], light.name)
                     sensors.append(ArloSensor(name, light, sensor_type))
 

@@ -26,7 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = ['aarlo']
 
-# sensor_type [ description, unit, icon ]
+# sensor_type [ description, icon, capability ]
 SENSOR_TYPES = {
     'sound': ['Sound', 'sound', AUDIO_DETECTED_KEY],
     'motion': ['Motion', 'motion', MOTION_DETECTED_KEY],

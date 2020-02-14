@@ -56,6 +56,8 @@ LIGHT_MODE_KEY = 'lightMode'
 SIGNAL_STR_KEY = 'signalStrength'
 SIREN_STATE_KEY = 'sirenState'
 TEMPERATURE_KEY = 'temperature'
+NIGHTLIGHT_KEY = 'nightLight'
+MEDIA_PLAYER_KEY = 'mediaPlayer'
 
 AUDIO_CONFIG_KEY = 'config'
 AUDIO_PLAYLIST_KEY = 'playlist'
@@ -129,3 +131,4 @@ BLANK_IMAGE = "iVBORw0KGgoAAAANSUhEUgAAAKAAAABaCAQAAACVz5XZAAAAh0lEQVR42u3QMQ0AA
 # DEFAULT_MODES = [ { u'id':u'mode0',u'type':u'disarmed' }, { u'id':u'mode1',u'type':u'armed' } ]
 DEFAULT_MODES = {'disarmed': 'mode0', 'armed': 'mode1'}
 DEFAULT_RESOURCES = {'modes', 'siren', 'doorbells', 'lights', 'cameras'}
+

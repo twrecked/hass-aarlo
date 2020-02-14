@@ -63,10 +63,10 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     # See what cameras and bases have sirens.
     for base in arlo.base_stations:
-        if base.has_capability('siren'):
+        if base.has_capability(SIREN_STATE_KEY):
             adevices.append(base)
     for camera in arlo.cameras:
-        if camera.has_capability('siren'):
+        if camera.has_capability(SIREN_STATE_KEY):
             adevices.append(camera)
 
     # Create individual switches if asked for

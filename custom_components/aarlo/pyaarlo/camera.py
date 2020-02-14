@@ -355,27 +355,22 @@ class ArloCamera(ArloChildDevice):
                                     "publishResponse": False})
 
     def has_capability(self, cap):
-        if cap in MOTION_DETECTED_KEY:
+        if cap in (MOTION_DETECTED_KEY,BATTERY_KEY,SIGNAL_STR_KEY):
             return True
-        if cap in ('last_capture', 'captured_today', 'recent_activity', 'battery_level', 'signal_strength'):
+        if cap in (LAST_CAPTURE_KEY,CAPTURED_TODAY_KEY,RECENT_ACTIVITY_KEY):
             return True
-        if cap in ('temperature', 'humidity', 'air_quality', 'airQuality') and self.model_id == 'ABC1000':
-            return True
-        if cap in ('audio', 'audioDetected', 'sound'):
-            if self.model_id.startswith('VMC4030') or self.model_id.startswith('VMC5040') or self.model_id.startswith(
-                    'VMC4040') or self.model_id == 'ABC1000':
+        if cap in (AUDIO_DETECTED_KEY):
+            if self.model_id.startswith(('arloq','VMC4030','VMC4040','VMC5040','ABC1000')):
                 return True
-            if self.device_type.startswith('arloq'):
+        if cap in (SIREN_STATE_KEY):
+            if self.model_id.startswith(('VMC4040','VMC5040')):
                 return True
-        if cap in 'siren':
-            if self.model_id.startswith('VMC5040') or self.model_id.startswith('VMC4040'):
+        if cap in (TEMPERATURE_KEY,HUMIDITY_KEY,AIR_QUALITY_KEY):
+            if self.model_id.startswith('ABC1000'):
                 return True
-        if cap in 'mediaPlayer' and self.model_id == 'ABC1000':
-            return True
-        if cap in 'nightLight' and self.model_id.startswith("ABC1000"):
-            return True
-        if cap in 'babyCryDetection' and self.model_id.startswith("ABC1000"):
-            return True
+        if cap in (MEDIA_PLAYER_KEY,NIGHTLIGHT_KEY,CRY_DETECTION_KEY):
+            if self.model_id.startswith('ABC1000'):
+                return True
         return super().has_capability(cap)
 
     def take_streaming_snapshot(self):
