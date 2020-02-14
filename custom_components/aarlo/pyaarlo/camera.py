@@ -355,7 +355,7 @@ class ArloCamera(ArloChildDevice):
                                     "publishResponse": False})
 
     def has_capability(self, cap):
-        if cap in 'motionDetected':
+        if cap in MOTION_DETECTED_KEY:
             return True
         if cap in ('last_capture', 'captured_today', 'recent_activity', 'battery_level', 'signal_strength'):
             return True
