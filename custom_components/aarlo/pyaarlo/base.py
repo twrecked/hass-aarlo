@@ -1,7 +1,7 @@
 from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH,
                        MODE_ID_TO_NAME_KEY, MODE_KEY,
                        MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY,
-                       SCHEDULE_KEY, SIREN_STATE_KEY)
+                       SCHEDULE_KEY, SIREN_STATE_KEY, TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY)
 from .device import ArloDevice
 from .util import time_to_arlotime
 
@@ -208,7 +208,7 @@ class ArloBase(ArloDevice):
         if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
             if self.model_id.startswith('ABC1000'):
                 return True
-        if cap in (SIREN_STATE_KEY):
+        if cap in SIREN_STATE_KEY:
             if self.model_id.startswith(('VMB400', 'VMB450')):
                 return True
         return super().has_capability(cap)

@@ -13,7 +13,9 @@ from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        RECORD_START_PATH, RECORD_STOP_PATH,
                        SNAPSHOT_KEY, SIREN_STATE_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_PATH, STREAM_START_PATH, CAMERA_MEDIA_DELAY,
-                       AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, DEFAULT_TRACK_ID, MEDIA_PLAYER_RESOURCE_ID)
+                       AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, DEFAULT_TRACK_ID, MEDIA_PLAYER_RESOURCE_ID,
+                       MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY, RECENT_ACTIVITY_KEY, AUDIO_DETECTED_KEY,
+                       TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY, MEDIA_PLAYER_KEY, NIGHTLIGHT_KEY)
 from .device import ArloChildDevice
 from .util import http_get, http_get_img
 
@@ -359,10 +361,10 @@ class ArloCamera(ArloChildDevice):
             return True
         if cap in (LAST_CAPTURE_KEY, CAPTURED_TODAY_KEY, RECENT_ACTIVITY_KEY):
             return True
-        if cap in (AUDIO_DETECTED_KEY):
+        if cap in AUDIO_DETECTED_KEY:
             if self.model_id.startswith(('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000')):
                 return True
-        if cap in (SIREN_STATE_KEY):
+        if cap in SIREN_STATE_KEY:
             if self.model_id.startswith(('VMC4040', 'VMC5040')):
                 return True
         if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):

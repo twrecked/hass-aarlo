@@ -1,6 +1,6 @@
 import pprint
 
-from .constant import (LAMP_STATE_KEY, BRIGHTNESS_KEY)
+from .constant import (LAMP_STATE_KEY, BRIGHTNESS_KEY, BATTERY_KEY, MOTION_DETECTED_KEY)
 from .device import ArloChildDevice
 
 
