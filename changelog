@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.6.11: Added brightness for lamps, fixed alarm issue
 0.6.10: Add nightlamp support and cry detection for Arlo Baby.
 0.6.9: Add object detected to last_captured sensor
 0.6.8: Siren support for VMB4500r2
