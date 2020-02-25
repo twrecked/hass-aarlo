@@ -4,6 +4,7 @@ This component provides support for Netgear Arlo IP cameras.
 For more details about this component, please refer to the documentation at
 https://home-assistant.io/components/arlo/
 """
+import os.path
 import logging
 from datetime import timedelta
 
@@ -120,6 +121,12 @@ def setup(hass, config):
     # Fix up config
     if conf_dir == '':
         conf_dir = hass.config.config_dir + '/.aarlo'
+
+    # Fix up streaming...
+    patch_file = hass.config.config_dir + '/aarlo.patch'
+    if os.path.isfile(patch_file):
+        _LOGGER.error("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
+        os.system("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
 
     try:
         from .pyaarlo import PyArlo
