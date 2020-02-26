@@ -150,13 +150,13 @@ alarm_control_panel:
     alarm_volume: 8
 ```
 
-* `away_mode_name` Arlo mode to use when setting alarm to `Armed Away`. Default value `armed` or Arlo's `Armed` mode.
+* `away_mode_name` Arlo mode to use when setting alarm to `Armed Away`. Default value is `armed` which maps to Arlo's default `Armed` mode.
 * `home_mode_name` Arlo mode to use when setting alarm to `Armed Home`. Default value `home`.
 * `night_mode_name` Arlo mode to use when setting alarm to `Armed Night`. Default value `night`.
 * `trigger_time` determines how long, in seconds, the triggered alarm will sound
 * `alarm_volume` determine how loud, from 1 to 8, the triggered alarm will sound
 
-Arlo does not have a built in `home` or `night` mode. Use `home_mode_name` and `night_mode_name` to map them to one of your custom Arlo modes. If you don't map all your modes there is a possibility the alarm panel will appear blank. Names are case insensitive. Using duplicate names will cause problems, for example, mapping both `away` and `night` mode to `armed` will work when setting the mode from Home Assistant but might not show the correct mode if you change it in the Arlo app. 
+Arlo does not have a built in `home` or `night` mode. If you need them create a custom mode in Arlo and `home_mode_name` and `night_mode_name` to map to them. You don't need to map all modes - I don't use `night_mode`. Names are case insensitive. Using duplicate names will cause problems, for example, mapping both `away` and `night` mode to `armed` will work when setting the mode from Home Assistant but might not show the correct mode if you change it in the Arlo app. 
 
 See [here](https://www.home-assistant.io/components/arlo/#alarm) for more information on mode names. 
 
