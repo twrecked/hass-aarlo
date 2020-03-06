@@ -123,34 +123,29 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     async_add_entities(base_stations, True)
 
     # Component Services
-    async def async_alarm_mode(call):
-        """Call virtual service handler."""
-        _LOGGER.info("mode: {}".format(pprint.pformat(call)))
-        await async_alarm_mode_service(hass, call)
-
-    async def async_alarm_siren_on(call):
-        """Call virtual service handler."""
-        _LOGGER.info("alarm on: {}".format(pprint.pformat(call)))
-        await async_alarm_siren_on_service(hass, call)
-
-    async def async_alarm_siren_off(call):
-        """Call virtual service handler."""
-        _LOGGER.info("alarm_off: {}".format(pprint.pformat(call)))
-        await async_alarm_siren_off_service(hass, call)
+    async def async_alarm_service(call):
+        """Call aarlo service handler."""
+        _LOGGER.info("{} service called".format(call.service))
+        if call.service == SERVICE_MODE:
+            await async_alarm_mode_service(hass, call)
+        if call.service == SERVICE_SIREN_ON:
+            await async_alarm_siren_on_service(hass, call)
+        if call.service == SERVICE_SIREN_OFF:
+            await async_alarm_siren_off_service(hass, call)
 
     if not hasattr(hass.data[COMPONENT_SERVICES], DOMAIN):
         _LOGGER.info("installing handlers")
         hass.data[COMPONENT_SERVICES][DOMAIN] = 'installed'
 
         hass.services.async_register(
-            COMPONENT_DOMAIN, SERVICE_MODE, async_alarm_mode, schema=SERVICE_MODE_SCHEMA,
+            COMPONENT_DOMAIN, SERVICE_MODE, async_alarm_service, schema=SERVICE_MODE_SCHEMA,
         )
         if base_stations_with_sirens:
             hass.services.async_register(
-                COMPONENT_DOMAIN, SERVICE_SIREN_ON, async_alarm_mode, schema=SERVICE_SIREN_ON_SCHEMA,
+                COMPONENT_DOMAIN, SERVICE_SIREN_ON, async_alarm_service, schema=SERVICE_SIREN_ON_SCHEMA,
             )
             hass.services.async_register(
-                COMPONENT_DOMAIN, SERVICE_SIREN_OFF, async_alarm_mode, schema=SERVICE_SIREN_OFF_SCHEMA,
+                COMPONENT_DOMAIN, SERVICE_SIREN_OFF, async_alarm_service, schema=SERVICE_SIREN_OFF_SCHEMA,
             )
 
     # Deprecated Services.
