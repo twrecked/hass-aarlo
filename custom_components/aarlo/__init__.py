@@ -158,3 +158,15 @@ def setup(hass, config):
         return False
 
     return True
+
+
+def get_entity_from_domain(hass, domain, entity_id):
+    component = hass.data.get(domain)
+    if component is None:
+        raise HomeAssistantError("{} component not set up".format(domain))
+
+    entity = component.get_entity(entity_id)
+    if entity is None:
+        raise HomeAssistantError("{} not found".format(entity_id))
+
+    return entity
