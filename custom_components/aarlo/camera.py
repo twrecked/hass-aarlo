@@ -30,9 +30,11 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import async_track_point_in_time
-from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND
+from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND, COMPONENT_DOMAIN, COMPONENT_SERVICES, get_entity_from_domain
 
 _LOGGER = logging.getLogger(__name__)
+
+DEPENDENCIES = [COMPONENT_DOMAIN]
 
 ARLO_MODE_ARMED = 'armed'
 ARLO_MODE_DISARMED = 'disarmed'
@@ -71,14 +73,22 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_FFMPEG_ARGUMENTS): cv.string,
 })
 
-SERVICE_REQUEST_SNAPSHOT = 'aarlo_request_snapshot'
-SERVICE_REQUEST_SNAPSHOT_TO_FILE = 'aarlo_request_snapshot_to_file'
-SERVICE_REQUEST_VIDEO_TO_FILE = 'aarlo_request_video_to_file'
-SERVICE_STOP_ACTIVITY = 'aarlo_stop_activity'
-SERVICE_SIREN_ON = 'aarlo_siren_on'
-SERVICE_SIREN_OFF = 'aarlo_siren_off'
-SERVICE_RECORD_START = 'aarlo_start_recording'
-SERVICE_RECORD_STOP = 'aarlo_stop_recording'
+SERVICE_REQUEST_SNAPSHOT = 'camera_request_snapshot'
+SERVICE_REQUEST_SNAPSHOT_TO_FILE = 'camera_request_snapshot_to_file'
+SERVICE_REQUEST_VIDEO_TO_FILE = 'camera_request_video_to_file'
+SERVICE_STOP_ACTIVITY = 'camera_stop_activity'
+SERVICE_SIREN_ON = 'camera_siren_on'
+SERVICE_SIREN_OFF = 'camera_siren_off'
+SERVICE_RECORD_START = 'camera_start_recording'
+SERVICE_RECORD_STOP = 'camera_stop_recording'
+OLD_SERVICE_REQUEST_SNAPSHOT = 'aarlo_request_snapshot'
+OLD_SERVICE_REQUEST_SNAPSHOT_TO_FILE = 'aarlo_request_snapshot_to_file'
+OLD_SERVICE_REQUEST_VIDEO_TO_FILE = 'aarlo_request_video_to_file'
+OLD_SERVICE_STOP_ACTIVITY = 'aarlo_stop_activity'
+OLD_SERVICE_SIREN_ON = 'aarlo_siren_on'
+OLD_SERVICE_SIREN_OFF = 'aarlo_siren_off'
+OLD_SERVICE_RECORD_START = 'aarlo_start_recording'
+OLD_SERVICE_RECORD_STOP = 'aarlo_stop_recording'
 SIREN_ON_SCHEMA = vol.Schema({
     vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
     vol.Required(ATTR_DURATION): cv.positive_int,
@@ -141,7 +151,6 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
 async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP Camera."""
     arlo = hass.data[COMPONENT_DATA]
-    component = hass.data[DOMAIN]
 
     cameras = []
     cameras_with_siren = False
@@ -152,38 +161,74 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     async_add_entities(cameras)
 
-    # Services
+    # Component Services
+    async def async_camera_snapshot(call):
+        """Call aarlo service handler."""
+        await async_camera_snapshot_service(hass, call)
+
+    async def async_camera_snapshot_to_file(call):
+        """Call aarlo service handler."""
+        await async_camera_snapshot_to_file_service(hass, call)
+
+    async def async_camera_video_to_file(call):
+        """Call aarlo service handler."""
+        await async_camera_video_to_file_service(hass, call)
+
+    async def async_camera_stop_activity(call):
+        """Call aarlo service handler."""
+        await async_camera_stop_activity_service(hass, call)
+
+    async def async_camera_siren_on(call):
+        """Call aarlo service handler."""
+        await async_camera_siren_on_service(hass, call)
+
+    async def async_camera_siren_off(call):
+        """Call aarlo service handler."""
+        await async_camera_siren_off_service(hass, call)
+
+    async def async_camera_start_recording(call):
+        """Call aarlo service handler."""
+        await async_camera_start_recording_service(hass, call)
+
+    async def async_camera_stop_recording(call):
+        """Call aarlo service handler."""
+        await async_camera_stop_recording_service(hass, call)
+
+    if not hasattr(hass.data[COMPONENT_SERVICES], DOMAIN):
+
+    # Deprecated Services.
+    component = hass.data[DOMAIN]
     component.async_register_entity_service(
-        SERVICE_REQUEST_SNAPSHOT, CAMERA_SERVICE_SCHEMA,
+        OLD_SERVICE_REQUEST_SNAPSHOT, CAMERA_SERVICE_SCHEMA,
         aarlo_snapshot_service_handler
     )
     component.async_register_entity_service(
-        SERVICE_REQUEST_SNAPSHOT_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
+        OLD_SERVICE_REQUEST_SNAPSHOT_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
         aarlo_snapshot_to_file_service_handler
     )
     component.async_register_entity_service(
-        SERVICE_REQUEST_VIDEO_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
+        OLD_SERVICE_REQUEST_VIDEO_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
         aarlo_video_to_file_service_handler
     )
     component.async_register_entity_service(
-        SERVICE_STOP_ACTIVITY, CAMERA_SERVICE_SCHEMA,
+        OLD_SERVICE_STOP_ACTIVITY, CAMERA_SERVICE_SCHEMA,
         aarlo_stop_activity_handler
     )
     if cameras_with_siren:
         component.async_register_entity_service(
-            SERVICE_SIREN_ON, SIREN_ON_SCHEMA,
+            OLD_SERVICE_SIREN_ON, SIREN_ON_SCHEMA,
             aarlo_siren_on_service_handler
         )
         component.async_register_entity_service(
-            SERVICE_SIREN_OFF, SIREN_OFF_SCHEMA,
+            OLD_SERVICE_SIREN_OFF, SIREN_OFF_SCHEMA,
             aarlo_siren_off_service_handler
         )
     component.async_register_entity_service(
-        SERVICE_RECORD_START, RECORD_START_SCHEMA,
+        OLD_SERVICE_RECORD_START, RECORD_START_SCHEMA,
         aarlo_start_recording_handler
     )
     component.async_register_entity_service(
-        SERVICE_RECORD_STOP, CAMERA_SERVICE_SCHEMA,
+        OLD_SERVICE_RECORD_STOP, CAMERA_SERVICE_SCHEMA,
         aarlo_stop_recording_handler
     )
 
