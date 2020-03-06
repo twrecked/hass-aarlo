@@ -162,39 +162,28 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     async_add_entities(cameras)
 
     # Component Services
-    async def async_camera_snapshot(call):
+    async def async_camera_service(call):
         """Call aarlo service handler."""
-        await async_camera_snapshot_service(hass, call)
-
-    async def async_camera_snapshot_to_file(call):
-        """Call aarlo service handler."""
-        await async_camera_snapshot_to_file_service(hass, call)
-
-    async def async_camera_video_to_file(call):
-        """Call aarlo service handler."""
-        await async_camera_video_to_file_service(hass, call)
-
-    async def async_camera_stop_activity(call):
-        """Call aarlo service handler."""
-        await async_camera_stop_activity_service(hass, call)
-
-    async def async_camera_siren_on(call):
-        """Call aarlo service handler."""
-        await async_camera_siren_on_service(hass, call)
-
-    async def async_camera_siren_off(call):
-        """Call aarlo service handler."""
-        await async_camera_siren_off_service(hass, call)
-
-    async def async_camera_start_recording(call):
-        """Call aarlo service handler."""
-        await async_camera_start_recording_service(hass, call)
-
-    async def async_camera_stop_recording(call):
-        """Call aarlo service handler."""
-        await async_camera_stop_recording_service(hass, call)
+        _LOGGER.info("{} service called".format(call.service))
+        if call.service == SERVICE_REQUEST_SNAPSHOT:
+            await async_camera_snapshot_service(hass, call)
+        if call.service == SERVICE_REQUEST_SNAPSHOT_TO_FILE:
+            await async_camera_snapshot_to_file_service(hass, call)
+        if call.service == SERVICE_REQUEST_VIDEO_TO_FILE:
+            await async_camera_video_to_file_service(hass, call)
+        if call.service == SERVICE_STOP_ACTIVITY:
+            await async_camera_stop_activity_service(hass, call)
+        if call.service == SERVICE_SIREN_ON:
+            await async_camera_siren_on_service(hass, call)
+        if call.service == SERVICE_SIREN_OFF:
+            await async_camera_siren_off_service(hass, call)
+        if call.service == SERVICE_RECORD_START:
+            await async_camera_start_recording_service(hass, call)
+        if call.service == SERVICE_RECORD_STOP:
+            await async_camera_stop_recording_service(hass, call)
 
     if not hasattr(hass.data[COMPONENT_SERVICES], DOMAIN):
+        pass
 
     # Deprecated Services.
     component = hass.data[DOMAIN]
