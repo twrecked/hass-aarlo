@@ -30,7 +30,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import async_track_point_in_time
-from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
+from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
 
 async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP Camera."""
-    arlo = hass.data[DATA_ARLO]
+    arlo = hass.data[COMPONENT_DATA]
     component = hass.data[DOMAIN]
 
     cameras = []
@@ -358,8 +358,8 @@ class ArloCam(Camera):
             ) if value is not None
         }
 
-        attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
-        attrs['brand'] = DEFAULT_BRAND
+        attrs[ATTR_ATTRIBUTION] = COMPONENT_ATTRIBUTION
+        attrs['brand'] = COMPONENT_BRAND
         attrs['device_id'] = self._camera.device_id
         attrs['model_id'] = self._camera.model_id
         attrs['parent_id'] = self._camera.parent_id
@@ -376,7 +376,7 @@ class ArloCam(Camera):
     @property
     def brand(self):
         """Return the camera brand."""
-        return DEFAULT_BRAND
+        return COMPONENT_BRAND
 
     @property
     def motion_detection_enabled(self):

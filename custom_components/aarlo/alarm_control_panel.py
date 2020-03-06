@@ -31,7 +31,7 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import track_point_in_time
-from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
+from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
 
 async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up the Arlo Alarm Control Panels."""
-    arlo = hass.data[DATA_ARLO]
+    arlo = hass.data[COMPONENT_DATA]
     component = hass.data[DOMAIN]
 
     if not arlo.base_stations:
@@ -269,9 +269,9 @@ class ArloBaseStation(AlarmControlPanel):
         """Return the state attributes."""
         attrs = {}
 
-        attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
+        attrs[ATTR_ATTRIBUTION] = COMPONENT_ATTRIBUTION
         attrs[ATTR_TIME_ZONE] = self._base.timezone
-        attrs['brand'] = DEFAULT_BRAND
+        attrs['brand'] = COMPONENT_BRAND
         attrs['device_id'] = self._base.device_id
         attrs['model_id'] = self._base.model_id
         attrs['friendly_name'] = self._name

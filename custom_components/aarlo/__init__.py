@@ -19,10 +19,12 @@ __version__ = '0.6.13'
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_ATTRIBUTION = "Data provided by my.arlo.com"
-DATA_ARLO = 'data_aarlo'
-DEFAULT_BRAND = 'Netgear Arlo'
-DOMAIN = 'aarlo'
+
+COMPONENT_DOMAIN = 'aarlo'
+COMPONENT_DATA = 'aarlo-data'
+COMPONENT_SERVICES = 'aarlo-services'
+COMPONENT_ATTRIBUTION = "Data provided by my.arlo.com"
+COMPONENT_BRAND = 'Netgear Arlo'
 
 NOTIFICATION_ID = 'aarlo_notification'
 NOTIFICATION_TITLE = 'aarlo Component Setup'
@@ -66,7 +68,7 @@ DEFAULT_HOST = 'https://my.arlo.com'
 VERBOSE_DEBUG = False
 
 CONFIG_SCHEMA = vol.Schema({
-    DOMAIN: vol.Schema({
+    COMPONENT_DOMAIN: vol.Schema({
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Optional(CONF_HOST, default=DEFAULT_HOST): cv.url,
@@ -96,7 +98,7 @@ def setup(hass, config):
     """Set up an Arlo component."""
 
     # Read config
-    conf = config[DOMAIN]
+    conf = config[COMPONENT_DOMAIN]
     username = conf.get(CONF_USERNAME)
     password = conf.get(CONF_PASSWORD)
     host = conf.get(CONF_HOST)
@@ -144,7 +146,8 @@ def setup(hass, config):
         if not arlo.is_connected:
             return False
 
-        hass.data[DATA_ARLO] = arlo
+        hass.data[COMPONENT_DATA] = arlo
+        hass.data[COMPONENT_SERVICES] = {}
 
     except (ConnectTimeout, HTTPError) as ex:
         _LOGGER.error("Unable to connect to Netgear Arlo: %s", str(ex))
