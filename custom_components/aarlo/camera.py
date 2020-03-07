@@ -183,43 +183,71 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             await async_camera_stop_recording_service(hass, call)
 
     if not hasattr(hass.data[COMPONENT_SERVICES], DOMAIN):
-        pass
+        _LOGGER.info("installing handlers")
+        hass.data[COMPONENT_SERVICES][DOMAIN] = 'installed'
+
+        hass.services.async_register(
+            COMPONENT_DOMAIN, SERVICE_REQUEST_SNAPSHOT, async_camera_service, schema=CAMERA_SERVICE_SCHEMA,
+        )
+        hass.services.async_register(
+            COMPONENT_DOMAIN, SERVICE_REQUEST_SNAPSHOT_TO_FILE, async_camera_service, schema=CAMERA_SERVICE_SNAPSHOT,
+        )
+        hass.services.async_register(
+            COMPONENT_DOMAIN, SERVICE_REQUEST_VIDEO_TO_FILE, async_camera_service, schema=CAMERA_SERVICE_SNAPSHOT,
+        )
+        hass.services.async_register(
+            COMPONENT_DOMAIN, SERVICE_STOP_ACTIVITY, async_camera_service, schema=CAMERA_SERVICE_SCHEMA,
+        )
+        if cameras_with_siren:
+            hass.services.async_register(
+                COMPONENT_DOMAIN, SERVICE_SIREN_ON, async_camera_service, schema=SIREN_ON_SCHEMA,
+            )
+            hass.services.async_register(
+                COMPONENT_DOMAIN, SERVICE_SIREN_OFF, async_camera_service, schema=CAMERA_SERVICE_SCHEMA,
+            )
+        hass.services.async_register(
+            COMPONENT_DOMAIN, SERVICE_RECORD_START, async_camera_service, schema=RECORD_START_SCHEMA,
+        )
+        hass.services.async_register(
+            COMPONENT_DOMAIN, SERVICE_RECORD_STOP, async_camera_service, schema=CAMERA_SERVICE_SCHEMA,
+        )
 
     # Deprecated Services.
-    component = hass.data[DOMAIN]
-    component.async_register_entity_service(
-        OLD_SERVICE_REQUEST_SNAPSHOT, CAMERA_SERVICE_SCHEMA,
-        aarlo_snapshot_service_handler
-    )
-    component.async_register_entity_service(
-        OLD_SERVICE_REQUEST_SNAPSHOT_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
-        aarlo_snapshot_to_file_service_handler
-    )
-    component.async_register_entity_service(
-        OLD_SERVICE_REQUEST_VIDEO_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
-        aarlo_video_to_file_service_handler
-    )
-    component.async_register_entity_service(
-        OLD_SERVICE_STOP_ACTIVITY, CAMERA_SERVICE_SCHEMA,
-        aarlo_stop_activity_handler
-    )
-    if cameras_with_siren:
+    if not arlo.cfg.hide_deprecated_services:
+        component = hass.data[DOMAIN]
         component.async_register_entity_service(
-            OLD_SERVICE_SIREN_ON, SIREN_ON_SCHEMA,
-            aarlo_siren_on_service_handler
+            OLD_SERVICE_REQUEST_SNAPSHOT, CAMERA_SERVICE_SCHEMA,
+            aarlo_snapshot_service_handler
         )
         component.async_register_entity_service(
-            OLD_SERVICE_SIREN_OFF, SIREN_OFF_SCHEMA,
-            aarlo_siren_off_service_handler
+            OLD_SERVICE_REQUEST_SNAPSHOT_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
+            aarlo_snapshot_to_file_service_handler
         )
-    component.async_register_entity_service(
-        OLD_SERVICE_RECORD_START, RECORD_START_SCHEMA,
-        aarlo_start_recording_handler
-    )
-    component.async_register_entity_service(
-        OLD_SERVICE_RECORD_STOP, CAMERA_SERVICE_SCHEMA,
-        aarlo_stop_recording_handler
-    )
+        component.async_register_entity_service(
+            OLD_SERVICE_REQUEST_VIDEO_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
+            aarlo_video_to_file_service_handler
+        )
+        component.async_register_entity_service(
+            OLD_SERVICE_STOP_ACTIVITY, CAMERA_SERVICE_SCHEMA,
+            aarlo_stop_activity_handler
+        )
+        if cameras_with_siren:
+            component.async_register_entity_service(
+                OLD_SERVICE_SIREN_ON, SIREN_ON_SCHEMA,
+                aarlo_siren_on_service_handler
+            )
+            component.async_register_entity_service(
+                OLD_SERVICE_SIREN_OFF, SIREN_OFF_SCHEMA,
+                aarlo_siren_off_service_handler
+            )
+        component.async_register_entity_service(
+            OLD_SERVICE_RECORD_START, RECORD_START_SCHEMA,
+            aarlo_start_recording_handler
+        )
+        component.async_register_entity_service(
+            OLD_SERVICE_RECORD_STOP, CAMERA_SERVICE_SCHEMA,
+            aarlo_stop_recording_handler
+        )
 
     # Websockets
     hass.components.websocket_api.async_register_command(
@@ -516,21 +544,9 @@ class ArloCam(Camera):
         return self.hass.async_add_job(self.stop_recording)
 
 
-def _get_camera_from_entity_id(hass, entity_id):
-    component = hass.data.get(DOMAIN)
-    if component is None:
-        raise HomeAssistantError('Camera component not set up')
-
-    camera = component.get_entity(entity_id)
-    if camera is None:
-        raise HomeAssistantError('Camera not found')
-
-    return camera
-
-
 @websocket_api.async_response
 async def websocket_video_url(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
+    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
     video = camera.last_video
     url = video.video_url if video is not None else None
     url_type = video.content_type if video is not None else None
@@ -547,7 +563,7 @@ async def websocket_video_url(hass, connection, msg):
 
 @websocket_api.async_response
 async def websocket_library(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
+    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
     videos = []
     _LOGGER.debug('library+' + str(msg['at_most']))
     for v in camera.last_n_videos(msg['at_most']):
@@ -572,7 +588,7 @@ async def websocket_library(hass, connection, msg):
 
 @websocket_api.async_response
 async def websocket_stream_url(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
+    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
     _LOGGER.debug('stream_url for ' + str(camera.unique_id))
     try:
         stream = await camera.async_stream_source()
@@ -589,7 +605,7 @@ async def websocket_stream_url(hass, connection, msg):
 
 @websocket_api.async_response
 async def websocket_snapshot_image(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
+    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
     _LOGGER.debug('snapshot_image for ' + str(camera.unique_id))
 
     try:
@@ -608,7 +624,7 @@ async def websocket_snapshot_image(hass, connection, msg):
 
 @websocket_api.async_response
 async def websocket_video_data(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
+    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
     _LOGGER.debug('video_data for ' + str(camera.unique_id))
 
     try:
@@ -627,7 +643,7 @@ async def websocket_video_data(hass, connection, msg):
 
 @websocket_api.async_response
 async def websocket_stop_activity(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
+    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
     _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
 
     stopped = await camera.async_stop_activity()
@@ -640,7 +656,7 @@ async def websocket_stop_activity(hass, connection, msg):
 
 @websocket_api.async_response
 async def websocket_siren_on(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
+    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
     _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
 
     await camera.async_siren_on(duration=msg['duration'], volume=msg['volume'])
@@ -653,7 +669,7 @@ async def websocket_siren_on(hass, connection, msg):
 
 @websocket_api.async_response
 async def websocket_siren_off(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
+    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
     _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
 
     await camera.async_siren_off()
@@ -758,3 +774,108 @@ async def aarlo_start_recording_handler(camera, service):
 
 async def aarlo_stop_recording_handler(camera, _service):
     camera.stop_recording()
+
+
+async def async_camera_snapshot_service(hass, call):
+    for entity_id in call.data['entity_id']:
+        _LOGGER.info("{} snapshot".format(entity_id))
+        await get_entity_from_domain(hass,DOMAIN,entity_id).async_get_snapshot()
+        hass.bus.fire('aarlo_snapshot_ready', {
+            'entity_id': entity_id,
+        })
+
+
+async def async_camera_snapshot_to_file_service(hass, call):
+    for entity_id in call.data['entity_id']:
+        camera = get_entity_from_domain(hass,DOMAIN,entity_id)
+        filename = call.data[ATTR_FILENAME]
+        filename.hass = hass
+        snapshot_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
+        _LOGGER.info("{} snapshot(filename={})".format(entity_id,filename))
+
+        # check if we allow to access to that file
+        if not hass.config.is_allowed_path(snapshot_file):
+            _LOGGER.error("Can't write %s, no access to path!", snapshot_file)
+            return
+
+        image = await camera.async_get_snapshot()
+
+        def _write_image(to_file, image_data):
+            with open(to_file, 'wb') as img_file:
+                img_file.write(image_data)
+
+        try:
+            await hass.async_add_executor_job(_write_image, snapshot_file, image)
+            hass.bus.fire('aarlo_snapshot_ready', {
+                'entity_id': entity_id,
+                'file': snapshot_file
+            })
+        except OSError as err:
+            _LOGGER.error("Can't write image to file: %s", err)
+
+
+async def async_camera_video_to_file_service(hass, call):
+
+    for entity_id in call.data['entity_id']:
+        camera = get_entity_from_domain(hass,DOMAIN,entity_id)
+        filename = call.data[ATTR_FILENAME]
+        filename.hass = hass
+        video_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
+        _LOGGER.info("{} video to file {}".format(entity_id,filename))
+
+        # check if we allow to access to that file
+        if not hass.config.is_allowed_path(video_file):
+            _LOGGER.error("Can't write %s, no access to path!", video_file)
+            return
+
+        image = await camera.async_get_video()
+
+        def _write_image(to_file, image_data):
+            with open(to_file, 'wb') as img_file:
+                img_file.write(image_data)
+
+        try:
+            await hass.async_add_executor_job(_write_image, video_file, image)
+            hass.bus.fire('aarlo_video_ready', {
+                'entity_id': entity_id,
+                'file': video_file
+            })
+        except OSError as err:
+            _LOGGER.error("Can't write image to file: %s", err)
+
+        _LOGGER.debug("{0} video to file finished".format(entity_id))
+
+
+async def async_camera_stop_activity_service(hass, call):
+    for entity_id in call.data['entity_id']:
+        _LOGGER.info("{} stop activity".format(entity_id))
+        get_entity_from_domain(hass,DOMAIN,entity_id).stop_activity()
+
+
+async def async_camera_siren_on_service(hass, call):
+    for entity_id in call.data['entity_id']:
+        volume = call.data[ATTR_VOLUME]
+        duration = call.data[ATTR_DURATION]
+        _LOGGER.info("{} start siren(volume={}/duration={})".format(entity_id,volume,duration))
+        get_entity_from_domain(hass,DOMAIN,entity_id).siren_on(duration=duration, volume=volume)
+
+
+async def async_camera_siren_off_service(hass, call):
+    for entity_id in call.data['entity_id']:
+        _LOGGER.info("{} stop siren".format(entity_id))
+        get_entity_from_domain(hass,DOMAIN,entity_id).siren_off()
+
+
+async def async_camera_start_recording_service(hass, call):
+    for entity_id in call.data['entity_id']:
+        duration = service.data[ATTR_DURATION]
+        _LOGGER.info("{} start recording(duration={})".format(entity_id,duration))
+        get_entity_from_domain(hass,DOMAIN,entity_id).start_recording(duration=duration)
+
+
+async def async_camera_stop_recording_service(hass, call):
+    for entity_id in call.data['entity_id']:
+        duration = service.data[ATTR_DURATION]
+        _LOGGER.info("{} stop recording".format(entity_id))
+        get_entity_from_domain(hass,DOMAIN,entity_id).stop_recording()
+

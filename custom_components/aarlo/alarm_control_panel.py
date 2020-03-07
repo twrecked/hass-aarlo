@@ -149,20 +149,21 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             )
 
     # Deprecated Services.
-    component = hass.data[DOMAIN]
-    component.async_register_entity_service(
-        OLD_SERVICE_MODE, SERVICE_MODE_SCHEMA,
-        aarlo_mode_service_handler
-    )
-    if base_stations_with_sirens:
+    if not arlo.cfg.hide_deprecated_services:
+        component = hass.data[DOMAIN]
         component.async_register_entity_service(
-            OLD_SERVICE_SIREN_ON, SERVICE_SIREN_ON_SCHEMA,
-            aarlo_siren_on_service_handler
+            OLD_SERVICE_MODE, SERVICE_MODE_SCHEMA,
+            aarlo_mode_service_handler
         )
-        component.async_register_entity_service(
-            OLD_SERVICE_SIREN_OFF, SERVICE_SIREN_OFF_SCHEMA,
-            aarlo_siren_off_service_handler
-        )
+        if base_stations_with_sirens:
+            component.async_register_entity_service(
+                OLD_SERVICE_SIREN_ON, SERVICE_SIREN_ON_SCHEMA,
+                aarlo_siren_on_service_handler
+            )
+            component.async_register_entity_service(
+                OLD_SERVICE_SIREN_OFF, SERVICE_SIREN_OFF_SCHEMA,
+                aarlo_siren_off_service_handler
+            )
 
     # Websockets.
     if base_stations_with_sirens:

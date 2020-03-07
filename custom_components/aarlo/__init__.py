@@ -46,6 +46,7 @@ CONF_HTTP_CONNECTIONS = 'http_connections'
 CONF_HTTP_MAX_SIZE = 'http_max_size'
 CONF_RECONNECT_EVERY = 'reconnect_every'
 CONF_VERBOSE_DEBUG = 'verbose_debug'
+CONF_HIDE_DEPRECATED_SERVICES = 'hide_deprecated_services'
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -66,6 +67,7 @@ HTTP_MAX_SIZE = 10
 RECONNECT_EVERY = 0
 DEFAULT_HOST = 'https://my.arlo.com'
 VERBOSE_DEBUG = False
+HIDE_DEPRECATED_SERVICES = False
 
 CONFIG_SCHEMA = vol.Schema({
     COMPONENT_DOMAIN: vol.Schema({
@@ -90,6 +92,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_HTTP_MAX_SIZE, default=HTTP_MAX_SIZE): cv.positive_int,
         vol.Optional(CONF_RECONNECT_EVERY, default=RECONNECT_EVERY): cv.positive_int,
         vol.Optional(CONF_VERBOSE_DEBUG, default=VERBOSE_DEBUG): cv.boolean,
+        vol.Optional(CONF_HIDE_DEPRECATED_SERVICES, default=HIDE_DEPRECATED_SERVICES): cv.boolean,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -119,6 +122,7 @@ def setup(hass, config):
     http_max_size = conf.get(CONF_HTTP_MAX_SIZE)
     reconnect_every = conf.get(CONF_RECONNECT_EVERY)
     verbose_debug = conf.get(CONF_VERBOSE_DEBUG)
+    hide_deprecated_services = conf.get(CONF_HIDE_DEPRECATED_SERVICES)
 
     # Fix up config
     if conf_dir == '':
@@ -142,7 +146,7 @@ def setup(hass, config):
                       user_agent=user_agent, mode_api=mode_api,
                       refresh_devices_every=device_refresh, reconnect_every=reconnect_every,
                       http_connections=http_connections, http_max_size=http_max_size,
-                      verbose_debug=verbose_debug)
+                      hide_deprecated_services=hide_deprecated_services,verbose_debug=verbose_debug)
         if not arlo.is_connected:
             return False
 
