@@ -111,6 +111,7 @@ class PyArlo(object):
 
     def _refresh_devices(self):
         self._devices = self._be.get(DEVICES_PATH + "?t={}".format(time_to_arlotime()))
+        self.vdebug("devices={}".format(pprint.pformat(self._devices)))
 
     def _parse_devices(self):
         for device in self._devices:
