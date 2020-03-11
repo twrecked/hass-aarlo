@@ -19,7 +19,7 @@ class ArloDevice(object):
 
         # stuff we use a lot
         self._device_id = attrs.get('deviceId', None)
-        self._device_type = attrs.get('deviceType', None)
+        self._device_type = attrs.get('deviceType', 'unknown')
         self._unique_id = attrs.get('uniqueId', None)
 
         # add a listener
@@ -54,7 +54,7 @@ class ArloDevice(object):
 
     def _save(self, attr, value):
         # TODO only care if it changes?
-        key = [self.device_id, attr]
+        key = [self.device_id, self.device_type, attr]
         self._arlo.st.set(key, value)
 
     def _save_and_do_callbacks(self, attr, value):
