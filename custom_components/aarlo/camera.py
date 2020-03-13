@@ -173,10 +173,6 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             await async_camera_video_to_file_service(hass, call)
         if call.service == SERVICE_STOP_ACTIVITY:
             await async_camera_stop_activity_service(hass, call)
-        if call.service == SERVICE_SIREN_ON:
-            await async_camera_siren_on_service(hass, call)
-        if call.service == SERVICE_SIREN_OFF:
-            await async_camera_siren_off_service(hass, call)
         if call.service == SERVICE_RECORD_START:
             await async_camera_start_recording_service(hass, call)
         if call.service == SERVICE_RECORD_STOP:
@@ -198,13 +194,6 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         hass.services.async_register(
             COMPONENT_DOMAIN, SERVICE_STOP_ACTIVITY, async_camera_service, schema=CAMERA_SERVICE_SCHEMA,
         )
-        if cameras_with_siren:
-            hass.services.async_register(
-                COMPONENT_DOMAIN, SERVICE_SIREN_ON, async_camera_service, schema=SIREN_ON_SCHEMA,
-            )
-            hass.services.async_register(
-                COMPONENT_DOMAIN, SERVICE_SIREN_OFF, async_camera_service, schema=CAMERA_SERVICE_SCHEMA,
-            )
         hass.services.async_register(
             COMPONENT_DOMAIN, SERVICE_RECORD_START, async_camera_service, schema=RECORD_START_SCHEMA,
         )
