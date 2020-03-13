@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.6.14: Added unique keys
 0.6.13: Tidy default alarm modes
 0.6.12: Added schedule parsing and monitoring
 0.6.11: Added brightness for lamps, fixed alarm issue
