@@ -49,6 +49,7 @@ CONF_HTTP_MAX_SIZE = 'http_max_size'
 CONF_RECONNECT_EVERY = 'reconnect_every'
 CONF_VERBOSE_DEBUG = 'verbose_debug'
 CONF_HIDE_DEPRECATED_SERVICES = 'hide_deprecated_services'
+CONF_INJECTION_SERVICE = 'injection_service'
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -70,6 +71,7 @@ RECONNECT_EVERY = 0
 DEFAULT_HOST = 'https://my.arlo.com'
 VERBOSE_DEBUG = False
 HIDE_DEPRECATED_SERVICES = False
+DEFAULT_INJECTION_SERVICE = False
 
 CONFIG_SCHEMA = vol.Schema({
     COMPONENT_DOMAIN: vol.Schema({
@@ -95,6 +97,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_RECONNECT_EVERY, default=RECONNECT_EVERY): cv.positive_int,
         vol.Optional(CONF_VERBOSE_DEBUG, default=VERBOSE_DEBUG): cv.boolean,
         vol.Optional(CONF_HIDE_DEPRECATED_SERVICES, default=HIDE_DEPRECATED_SERVICES): cv.boolean,
+        vol.Optional(CONF_INJECTION_SERVICE, default=DEFAULT_INJECTION_SERVICE): cv.boolean,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -129,6 +132,7 @@ def setup(hass, config):
     reconnect_every = conf.get(CONF_RECONNECT_EVERY)
     verbose_debug = conf.get(CONF_VERBOSE_DEBUG)
     hide_deprecated_services = conf.get(CONF_HIDE_DEPRECATED_SERVICES)
+    injection_service = conf.get(CONF_INJECTION_SERVICE)
 
     # Fix up config
     if conf_dir == '':
@@ -174,9 +178,10 @@ def setup(hass, config):
         if call.service == SERVICE_INJECT_RESPONSE:
             await async_aarlo_inject_response(hass, call)
 
-    hass.services.async_register(
-        COMPONENT_DOMAIN, SERVICE_INJECT_RESPONSE, async_aarlo_service, schema=INJECT_RESPONSE_SCHEMA,
-    )
+    if injection_service:
+        hass.services.async_register(
+            COMPONENT_DOMAIN, SERVICE_INJECT_RESPONSE, async_aarlo_service, schema=INJECT_RESPONSE_SCHEMA,
+        )
 
     return True
 

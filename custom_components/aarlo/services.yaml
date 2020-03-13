@@ -98,3 +98,10 @@ alarm_siren_off:
       description: Name(s) of entities to turn off
       example: 'alarm_control_panel.aarlo_front'
 
+inject_response:
+  description: Inject a json packet into the Arlo event stream
+  fields:
+    filename:
+      description: File in /config containing json packet.
+      example: cry-off.json
+
