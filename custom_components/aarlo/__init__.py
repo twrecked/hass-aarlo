@@ -6,6 +6,8 @@ https://home-assistant.io/components/arlo/
 """
 import os.path
 import logging
+import json
+import pprint
 from datetime import timedelta
 
 import voluptuous as vol
@@ -15,7 +17,7 @@ from homeassistant.const import (
     CONF_USERNAME, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_HOST)
 from homeassistant.helpers import config_validation as cv
 
-__version__ = '0.6.13'
+__version__ = '0.6.14'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,6 +98,10 @@ CONFIG_SCHEMA = vol.Schema({
     }),
 }, extra=vol.ALLOW_EXTRA)
 
+SERVICE_INJECT_RESPONSE = 'inject_response'
+INJECT_RESPONSE_SCHEMA = vol.Schema({
+    vol.Required('filename'): cv.string,
+})
 
 def setup(hass, config):
     """Set up an Arlo component."""
@@ -161,6 +167,17 @@ def setup(hass, config):
             notification_id=NOTIFICATION_ID)
         return False
 
+    # Component Services
+    async def async_aarlo_service(call):
+        """Call aarlo service handler."""
+        _LOGGER.info("{} service called".format(call.service))
+        if call.service == SERVICE_INJECT_RESPONSE:
+            await async_aarlo_inject_response(hass, call)
+
+    hass.services.async_register(
+        COMPONENT_DOMAIN, SERVICE_INJECT_RESPONSE, async_aarlo_service, schema=INJECT_RESPONSE_SCHEMA,
+    )
+
     return True
 
 
@@ -174,3 +191,16 @@ def get_entity_from_domain(hass, domain, entity_id):
         raise HomeAssistantError("{} not found".format(entity_id))
 
     return entity
+
+
+async def async_aarlo_inject_response(hass, call):
+
+    patch_file = hass.config.config_dir + '/' + call.data['filename']
+    packet = None
+    with open(patch_file) as file:
+        packet = json.load(file)
+
+    if packet is not None:
+        _LOGGER.debug("injecting->{}".format(pprint.pformat(packet)))
+        hass.data[COMPONENT_DATA].inject_response(packet)
+
