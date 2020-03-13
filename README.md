@@ -405,6 +405,8 @@ The following additional parameters can be specified against the aarlo platform 
 | `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
 | `mode_api`              | string   | `auto`                  | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
 | `verbose_debug`         | boolean  | `False`                 | Turn on extra debug. This extra information is usually not needed! |
+| `hide_deprecated_services` | boolean  | `False`              | If `True` only show services on the `aarlo` domain. |
+| `injection_service`     | boolean  | `False`                 | If `True` enable the packet injection service. |
 
 <a name="advanced-statuses"></a>
 ### Camera Statuses
@@ -422,6 +424,22 @@ The following camera statuses are reported:
 ### Services
 
 The component provides the following services:
+
+| Service | Parameters | Description |
+|---------|------------|-------------|
+| `aarlo.camera_request_snapshot` | `entity_id` - name(s) of entities to use | This requests a snapshot be taken. Camera will move from `taking_snapshot` state when finished |
+| `aarlo.camera_request_snapshot_to_file` | `entity_id` - name(s) of entities to use <br/>`filename` - where to save snapshot | This requests a snapshot be taken and written to the passed file. Camera will move from  `taking_snapshot` state when finished |
+| `aarlo.camera_start_recording` | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record | Begins video capture from the specified camera |
+| `aarlo.camera_request_video_to_file` | `entity_id` - name(s) of entities to use <br/>`filename` - where to save video | This requests a video be taken and written to the passed file. Camera will move from `recording` state when finished |
+| `aarlo.camera_stop_activity` | `entity_id` - name(s) of entities to use | This moves the camera into the idle state. Can be used to stop streaming or recording. |
+| `aarlo.camera_siren_on` | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record<br/>`volume` - how loud to set siren | Turns camera siren on. |
+| `aarlo.camera_siren_off` | `entity_id` - name(s) of entities to use | Turns camera siren off. |
+| `aarlo.alarm_set_mode` | `entity_id` - name(s) of entities to use <br/>`mode` - custom mode to change to | Set the alarm to a custom mode |
+| `aarlo.alarm_siren_on` | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record<br/>`volume` - how loud to set siren | Turns alarm siren on. |
+| `aarlo.alarm_siren_off` | `entity_id` - name(s) of entities to use | Turns alarm siren off. |
+| `aarlo.inject_response` | `filename` - file to read packet from | Inject a packet into the event stream. |
+
+These services are deprecated and will be going away. By moving services under the aarlo domain it allows Home Assistant to use the `services.yaml` descriptions.
 
 | Service | Parameters | Description |
 |---------|------------|-------------|
