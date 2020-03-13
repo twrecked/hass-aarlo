@@ -249,10 +249,8 @@ class ArloCamera(ArloChildDevice):
         # audio analytics
         audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
         if audioanalytics is not None:
-            if audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered") is True:
-                self._save_and_do_callbacks(CRY_DETECTION_KEY, "on")
-            else:
-                self._save_and_do_callbacks(CRY_DETECTION_KEY, "off")
+            triggered = audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered",False)
+            self._save_and_do_callbacks(CRY_DETECTION_KEY, triggered)
 
         # pass on to lower layer
         super()._event_handler(resource, event)
