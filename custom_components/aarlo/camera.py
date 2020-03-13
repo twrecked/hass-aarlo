@@ -277,6 +277,7 @@ class ArloCam(Camera):
         self._camera.add_attr_callback('recentActivity', update_state)
         self._camera.add_attr_callback('activityState', update_state)
         self._camera.add_attr_callback('connectionState', update_state)
+        self._camera.add_attr_callback('presignedLastImageUrl', update_state)
         self._camera.add_attr_callback('presignedLastImageData', update_state)
         self._camera.add_attr_callback('mediaUploadNotification', update_state)
         self._camera.add_attr_callback('chargingState', update_state)
@@ -389,8 +390,14 @@ class ArloCam(Camera):
 
     @property
     def last_thumbnail_url(self):
-        video = self._camera.last_video
-        return video.thumbnail_url if video is not None else None
+        # prefer video or what arlo says?
+        #  video = self._camera.last_video
+        #  if video is None:
+            #  thumbnail =  self._camera.last_image
+        #  else:
+            #  thumbnail = video.thumbnail_url
+        #  return thumbnail
+        return self._camera.last_image
 
     @property
     def last_video_url(self):
