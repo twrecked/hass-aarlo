@@ -257,7 +257,7 @@ async def async_aarlo_siren_on(hass, call):
             volume = call.data['volume']
             duration = call.data['duration']
             _LOGGER.info("{} siren on {}/{}".format(entity_id,volume,duration))
-            #device.siren_on(duration=duration, volume=volume)
+            device.siren_on(duration=duration, volume=volume)
         else:
             _LOGGER.info("{} siren not found".format(entity_id))
 
@@ -269,7 +269,7 @@ async def async_aarlo_sirens_on(hass, call):
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability('siren'):
             _LOGGER.info("{} siren on {}/{}".format(device.unique_id,volume,duration))
-            #device.siren_on(duration=duration, volume=volume)
+            device.siren_on(duration=duration, volume=volume)
 
 
 async def async_aarlo_siren_off(hass, call):
@@ -281,7 +281,7 @@ async def async_aarlo_siren_off(hass, call):
             volume = call.data['volume']
             duration = call.data['duration']
             _LOGGER.info("{} siren off".format(entity_id))
-            #device.siren_off()
+            device.siren_off()
         else:
             _LOGGER.info("{} siren not found".format(entity_id))
 
@@ -291,7 +291,7 @@ async def async_aarlo_sirens_off(hass, call):
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability('siren'):
             _LOGGER.info("{} siren off".format(device.unique_id))
-            #device.siren_off()
+            device.siren_off()
 
 
 async def async_aarlo_inject_response(hass, call):
