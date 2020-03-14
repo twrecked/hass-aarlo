@@ -443,11 +443,11 @@ The component provides the following services:
 | `aarlo.camera_start_recording` | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record | Begins video capture from the specified camera |
 | `aarlo.camera_request_video_to_file` | `entity_id` - name(s) of entities to use <br/>`filename` - where to save video | This requests a video be taken and written to the passed file. Camera will move from `recording` state when finished |
 | `aarlo.camera_stop_activity` | `entity_id` - name(s) of entities to use | This moves the camera into the idle state. Can be used to stop streaming or recording. |
-| `aarlo.camera_siren_on` | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record<br/>`volume` - how loud to set siren | Turns camera siren on. |
-| `aarlo.camera_siren_off` | `entity_id` - name(s) of entities to use | Turns camera siren off. |
 | `aarlo.alarm_set_mode` | `entity_id` - name(s) of entities to use <br/>`mode` - custom mode to change to | Set the alarm to a custom mode |
-| `aarlo.alarm_siren_on` | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record<br/>`volume` - how loud to set siren | Turns alarm siren on. |
-| `aarlo.alarm_siren_off` | `entity_id` - name(s) of entities to use | Turns alarm siren off. |
+| `aarlo.siren_on` | `duration` - amount of time in seconds to record<br/>`volume` - how loud to set siren | Turn a siren on. |
+| `aarlo.sirens_on` | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record<br/>`volume` - how loud to set siren | Turns all sirens on. |
+| `aarlo.siren_off` | `entity_id` - name(s) of entities to use | Turns a siren off. |
+| `aarlo.sirens_off` | | Turns all sirens off. |
 | `aarlo.inject_response` | `filename` - file to read packet from | Inject a packet into the event stream. |
 
 These services are deprecated and will be going away. By moving services under the aarlo domain it allows Home Assistant to use the `services.yaml` descriptions.
