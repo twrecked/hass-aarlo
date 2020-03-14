@@ -75,8 +75,6 @@ ATTR_DURATION = 'duration'
 ATTR_TIME_ZONE = 'time_zone'
 
 SERVICE_MODE = 'alarm_set_mode'
-SERVICE_SIREN_ON = 'alarm_siren_on'
-SERVICE_SIREN_OFF = 'alarm_siren_off'
 OLD_SERVICE_MODE = 'aarlo_set_mode'
 OLD_SERVICE_SIREN_ON = 'aarlo_siren_on'
 OLD_SERVICE_SIREN_OFF = 'aarlo_siren_off'
