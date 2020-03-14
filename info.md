@@ -4,6 +4,17 @@ An (almost) drop in replacement for the standard [Arlo](https://my.arlo.com/#/ca
 
 Please visit the [Readme](https://github.com/twrecked/hass-aarlo/blob/master/README.md) for more details.
 
+## Breaking Changes
+
+### The custom services are moving into the `aarlo` domain.
+
+This release moves all the component services in the `aarlo` domain. This is their correct location and allows Home Assistant to use the component's `services.yaml` file to provide help with the services.
+
+To allow you to transition and test your scripts the old, incorrectly located, services will remain for a while. My plan is to remove them in a few months. If you move all your code over to the new services you can add the `hide_deprecated_services` option to your configuration to hide these old services.
+
+See [Services](#advanced-services) for more information.
+
+
 ## Features
 
 Aarlo provides:
