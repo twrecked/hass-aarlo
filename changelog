@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.6.15: Copied services into aarlo domain
 0.6.14: Added unique keys
         Fixed cry detection
 0.6.13: Tidy default alarm modes
