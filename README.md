@@ -1,5 +1,16 @@
 # hass-aarlo
 
+## Breaking Changes
+
+### The custom services are moving into the `aarlo` domain.
+
+This release moves all the component services in the `aarlo` domain. This is their correct location and allows Home Assistant to use the component's `services.yaml` file to provide help with the services.
+
+To allow you to transition and test your scripts the old, incorrectly located, services will remain for a while. My plan is to remove them in a few months. If you move all your code over to the new services you can add the `hide_deprecated_services` option to your configuration to hide these old services.
+
+See [Services](#advanced-services) for more information.
+
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Installation](#installation)
@@ -405,6 +416,8 @@ The following additional parameters can be specified against the aarlo platform 
 | `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
 | `mode_api`              | string   | `auto`                  | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
 | `verbose_debug`         | boolean  | `False`                 | Turn on extra debug. This extra information is usually not needed! |
+| `hide_deprecated_services` | boolean  | `False`              | If `True` only show services on the `aarlo` domain. |
+| `injection_service`     | boolean  | `False`                 | If `True` enable the packet injection service. |
 
 <a name="advanced-statuses"></a>
 ### Camera Statuses
@@ -422,6 +435,22 @@ The following camera statuses are reported:
 ### Services
 
 The component provides the following services:
+
+| Service | Parameters | Description |
+|---------|------------|-------------|
+| `aarlo.camera_request_snapshot` | `entity_id` - name(s) of entities to use | This requests a snapshot be taken. Camera will move from `taking_snapshot` state when finished |
+| `aarlo.camera_request_snapshot_to_file` | `entity_id` - name(s) of entities to use <br/>`filename` - where to save snapshot | This requests a snapshot be taken and written to the passed file. Camera will move from  `taking_snapshot` state when finished |
+| `aarlo.camera_start_recording` | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record | Begins video capture from the specified camera |
+| `aarlo.camera_request_video_to_file` | `entity_id` - name(s) of entities to use <br/>`filename` - where to save video | This requests a video be taken and written to the passed file. Camera will move from `recording` state when finished |
+| `aarlo.camera_stop_activity` | `entity_id` - name(s) of entities to use | This moves the camera into the idle state. Can be used to stop streaming or recording. |
+| `aarlo.alarm_set_mode` | `entity_id` - name(s) of entities to use <br/>`mode` - custom mode to change to | Set the alarm to a custom mode |
+| `aarlo.siren_on` | `duration` - amount of time in seconds to record<br/>`volume` - how loud to set siren | Turn a siren on. |
+| `aarlo.sirens_on` | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record<br/>`volume` - how loud to set siren | Turns all sirens on. |
+| `aarlo.siren_off` | `entity_id` - name(s) of entities to use | Turns a siren off. |
+| `aarlo.sirens_off` | | Turns all sirens off. |
+| `aarlo.inject_response` | `filename` - file to read packet from | Inject a packet into the event stream. |
+
+These services are deprecated and will be going away. By moving services under the aarlo domain it allows Home Assistant to use the `services.yaml` descriptions.
 
 | Service | Parameters | Description |
 |---------|------------|-------------|
