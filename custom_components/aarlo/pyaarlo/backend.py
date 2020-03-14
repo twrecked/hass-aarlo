@@ -11,7 +11,7 @@ import requests.adapters
 from .constant import (DEFAULT_RESOURCES, LOGIN_PATH, LOGOUT_PATH,
                        NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH)
 from .sseclient import SSEClient
-from .util import time_to_arlotime
+from .util import time_to_arlotime, now_strftime
 
 
 # include token and session details
@@ -61,9 +61,9 @@ class ArloBackEnd(object):
         try:
             with self._req_lock:
                 url = self._arlo.cfg.host + path
-                # self._arlo.debug('starting request=' + str(url))
-                # self._arlo.debug('starting request=' + str(params))
-                # self._arlo.debug('starting request=' + str(headers))
+                #self._arlo.vdebug('starting request=' + str(url))
+                #self._arlo.vdebug('starting request=' + str(params))
+                #self._arlo.vdebug('starting request=' + str(headers))
                 if method == 'GET':
                     r = self._session.get(url, params=params, headers=headers, stream=stream, timeout=timeout)
                     if stream is True:
@@ -111,7 +111,8 @@ class ArloBackEnd(object):
 
         #
         # I'm trying to keep this as generic as possible... but it needs some
-        # smarts to figure out where to send responses.
+        # smarts to figure out where to send responses - the packets from Arlo
+        # are anything but consistent...
         # See docs/packets for and idea of what we're parsing.
         #
 
@@ -160,15 +161,21 @@ class ArloBackEnd(object):
             if device_id is not None and properties is not None:
                 responses.append((device_id, resource, properties))
 
-        # These are generic responses, we look for device IDs and forward
-        # hoping the device can handle it.
+        # This a list ditch effort to funnel the answer the correct place...
+        #  Check for device_id
+        #  Check for unique_id
+        # If none of those then is unhandled
         # Packet number #?.
         else:
             device_id = response.get('deviceId', None)
             if device_id is not None:
                 responses.append((device_id, resource, response))
             else:
-                self._arlo.debug('unhandled response {} - {}'.format(resource, response))
+                device_id = response.get('uniqueId', None)
+                if device_id is not None:
+                    responses.append((device_id, resource, response))
+                else:
+                    self._arlo.debug('unhandled response {} - {}'.format(resource, response))
 
         # Now find something waiting for this/these.
         for device_id, resource, response in responses:
@@ -196,7 +203,8 @@ class ArloBackEnd(object):
             response = json.loads(event.data)
             if self._arlo.cfg.dump:
                 with open(self._dump_file, 'a') as dump:
-                    dump.write(pprint.pformat(response, indent=2) + '\n')
+                    time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
+                    dump.write("{}: {}\n".format(time_stamp,pprint.pformat(response, indent=2)))
 
             # logged out? signal exited
             if response.get('action') == 'logout':
@@ -399,6 +407,9 @@ class ArloBackEnd(object):
             if device.device_id not in self._callbacks:
                 self._callbacks[device.device_id] = []
             self._callbacks[device.device_id].append(callback)
+            if device.unique_id not in self._callbacks:
+                self._callbacks[device.unique_id] = []
+            self._callbacks[device.unique_id].append(callback)
 
     def add_any_listener(self, callback):
         with self._lock:
