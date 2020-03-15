@@ -223,12 +223,11 @@ class ArloNightLight(ArloLight):
             self._light.set_nightlight_color_temperature(kelvin)
 
         if ATTR_EFFECT in kwargs:
-            effect = kwargs[ATTR_BRIGHTNESS]
+            effect = kwargs[ATTR_EFFECT]
             if effect == LIGHT_EFFECT_RAINBOW:
                 self._light.set_nightlight_mode("rainbow")
             else:
-                rgb = color_util.color_hs_to_RGB(self._hs_color)
-                self._light.set_nightlight_rgb(red=rgb[0], green=rgb[1], blue=rgb[2])
+                self._light.set_nightlight_mode("rgb")
 
     def turn_off(self, **kwargs):
         """Turn the entity off."""
