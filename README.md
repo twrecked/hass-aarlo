@@ -1,6 +1,6 @@
 # hass-aarlo
 
-## Breaking Changes
+## Notice of Future Breaking Changes
 
 ### The custom services are moving into the `aarlo` domain.
 

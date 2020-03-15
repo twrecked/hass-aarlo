@@ -260,8 +260,21 @@ class ArloCamera(ArloChildDevice):
         return "cameras"
 
     @property
-    def last_image(self):
+    def last_thumbnail(self):
         return self._load(LAST_IMAGE_KEY, None)
+
+    @property
+    def last_snapshot(self):
+        return self._load(SNAPSHOT_KEY, None)
+
+    @property
+    def last_image(self):
+        image = None
+        if self.last_image_source.startswith('snapshot/'):
+            image = self.last_snapshot
+        if image is None:
+            image = self.last_thumbnail
+        return image
 
     # fill this out...
     @property

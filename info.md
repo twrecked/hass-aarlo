@@ -4,7 +4,7 @@ An (almost) drop in replacement for the standard [Arlo](https://my.arlo.com/#/ca
 
 Please visit the [Readme](https://github.com/twrecked/hass-aarlo/blob/master/README.md) for more details.
 
-## Breaking Changes
+## Notice of Future Breaking Changes
 
 ### The custom services are moving into the `aarlo` domain.
 
