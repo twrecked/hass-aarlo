@@ -14,7 +14,7 @@ from homeassistant.const import (ATTR_ATTRIBUTION,
                                  CONF_MONITORED_CONDITIONS)
 from homeassistant.core import callback
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
-from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
+from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND, COMPONENT_DOMAIN
 from .pyaarlo.constant import (AUDIO_DETECTED_KEY,
                                BUTTON_PRESSED_KEY,
                                MOTION_DETECTED_KEY,
@@ -22,9 +22,9 @@ from .pyaarlo.constant import (AUDIO_DETECTED_KEY,
 
 _LOGGER = logging.getLogger(__name__)
 
-DEPENDENCIES = ['aarlo']
+DEPENDENCIES = [COMPONENT_DOMAIN]
 
-# sensor_type [ description, icon, capability ]
+# sensor_type [ description, class, attribute ]
 SENSOR_TYPES = {
     'sound': ['Sound', 'sound', AUDIO_DETECTED_KEY],
     'motion': ['Motion', 'motion', MOTION_DETECTED_KEY],
@@ -40,7 +40,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP sensor."""
-    arlo = hass.data.get(DATA_ARLO)
+    arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
         return
 
@@ -101,8 +101,8 @@ class ArloBinarySensor(BinarySensorDevice):
         """Return the device state attributes."""
         attrs = {}
 
-        attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
-        attrs['brand'] = DEFAULT_BRAND
+        attrs[ATTR_ATTRIBUTION] = COMPONENT_ATTRIBUTION
+        attrs['brand'] = COMPONENT_BRAND
         attrs['friendly_name'] = self._name
         attrs['camera_name'] = self._device.name
 

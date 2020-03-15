@@ -22,7 +22,8 @@ from homeassistant.const import (ATTR_ATTRIBUTION,
                                  ATTR_BATTERY_CHARGING,
                                  ATTR_BATTERY_LEVEL)
 from homeassistant.core import callback
-from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
+import homeassistant.util.color as color_util
+from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND
 from .pyaarlo.constant import (BRIGHTNESS_KEY,
                                LAMP_STATE_KEY,
                                LIGHT_BRIGHTNESS_KEY,
@@ -42,7 +43,7 @@ LIGHT_EFFECT_NONE = "none"
 
 async def async_setup_platform(hass, _config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP light."""
-    arlo = hass.data.get(DATA_ARLO)
+    arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
         return
 
@@ -139,8 +140,8 @@ class ArloLight(Light):
             ) if value is not None
         }
 
-        attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
-        attrs['brand'] = DEFAULT_BRAND
+        attrs[ATTR_ATTRIBUTION] = COMPONENT_ATTRIBUTION
+        attrs['brand'] = COMPONENT_BRAND
         attrs['friendly_name'] = self._name
 
         return attrs
@@ -220,12 +221,11 @@ class ArloNightLight(ArloLight):
             self._light.set_nightlight_color_temperature(kelvin)
 
         if ATTR_EFFECT in kwargs:
-            effect = kwargs[ATTR_BRIGHTNESS]
+            effect = kwargs[ATTR_EFFECT]
             if effect == LIGHT_EFFECT_RAINBOW:
                 self._light.set_nightlight_mode("rainbow")
             else:
-                rgb = color_util.color_hs_to_RGB(self._hs_color)
-                self._light.set_nightlight_rgb(red=rgb[0], green=rgb[1], blue=rgb[2])
+                self._light.set_nightlight_mode("rgb")
 
     def turn_off(self, **kwargs):
         """Turn the entity off."""
