@@ -11,7 +11,7 @@ import requests.adapters
 from .constant import (DEFAULT_RESOURCES, LOGIN_PATH, LOGOUT_PATH,
                        NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH)
 from .sseclient import SSEClient
-from .util import time_to_arlotime
+from .util import time_to_arlotime, now_strftime
 
 
 # include token and session details
@@ -61,9 +61,9 @@ class ArloBackEnd(object):
         try:
             with self._req_lock:
                 url = self._arlo.cfg.host + path
-                # self._arlo.debug('starting request=' + str(url))
-                # self._arlo.debug('starting request=' + str(params))
-                # self._arlo.debug('starting request=' + str(headers))
+                #self._arlo.vdebug('starting request=' + str(url))
+                #self._arlo.vdebug('starting request=' + str(params))
+                #self._arlo.vdebug('starting request=' + str(headers))
                 if method == 'GET':
                     r = self._session.get(url, params=params, headers=headers, stream=stream, timeout=timeout)
                     if stream is True:
@@ -203,7 +203,8 @@ class ArloBackEnd(object):
             response = json.loads(event.data)
             if self._arlo.cfg.dump:
                 with open(self._dump_file, 'a') as dump:
-                    dump.write(pprint.pformat(response, indent=2) + '\n')
+                    time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
+                    dump.write("{}: {}\n".format(time_stamp,pprint.pformat(response, indent=2)))
 
             # logged out? signal exited
             if response.get('action') == 'logout':

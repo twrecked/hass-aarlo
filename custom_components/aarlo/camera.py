@@ -35,6 +35,7 @@ from .pyaarlo.constant import (ACTIVITY_STATE_KEY,
                                CHARGER_KEY,
                                CHARGING_KEY,
                                CONNECTION_KEY,
+                               LAST_IMAGE_KEY,
                                LAST_IMAGE_DATA_KEY,
                                MEDIA_UPLOAD_KEYS,
                                PRIVACY_KEY,
@@ -286,6 +287,7 @@ class ArloCam(Camera):
         self._camera.add_attr_callback(CHARGER_KEY, update_state)
         self._camera.add_attr_callback(CHARGING_KEY, update_state)
         self._camera.add_attr_callback(CONNECTION_KEY, update_state)
+        self._camera.add_attr_callback(LAST_IMAGE_KEY, update_state)
         self._camera.add_attr_callback(LAST_IMAGE_DATA_KEY, update_state)
         self._camera.add_attr_callback(MEDIA_UPLOAD_KEYS, update_state)
         self._camera.add_attr_callback(PRIVACY_KEY, update_state)
@@ -398,8 +400,14 @@ class ArloCam(Camera):
 
     @property
     def last_thumbnail_url(self):
-        video = self._camera.last_video
-        return video.thumbnail_url if video is not None else None
+        # prefer video or what arlo says?
+        #  video = self._camera.last_video
+        #  if video is None:
+            #  thumbnail =  self._camera.last_image
+        #  else:
+            #  thumbnail = video.thumbnail_url
+        #  return thumbnail
+        return self._camera.last_image
 
     @property
     def last_video_url(self):
