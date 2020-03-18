@@ -218,8 +218,6 @@ class ArloBaseStation(AlarmControlPanel):
             c = __import__("homeassistant.components.alarm_control_panel.const",
                            fromlist=['SUPPORT_ALARM_ARM_HOME', 'SUPPORT_ALARM_ARM_AWAY', 'SUPPORT_ALARM_ARM_NIGHT',
                                      'SUPPORT_ALARM_TRIGGER'])
-            _LOGGER.debug('supported: ' + str(
-                c.SUPPORT_ALARM_ARM_HOME | c.SUPPORT_ALARM_ARM_AWAY | c.SUPPORT_ALARM_ARM_NIGHT | c.SUPPORT_ALARM_TRIGGER))
             return c.SUPPORT_ALARM_ARM_HOME | c.SUPPORT_ALARM_ARM_AWAY | c.SUPPORT_ALARM_ARM_NIGHT | c.SUPPORT_ALARM_TRIGGER
         except ModuleNotFoundError:
             _LOGGER.debug('not supported')
