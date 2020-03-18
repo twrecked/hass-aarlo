@@ -18,6 +18,11 @@ from homeassistant.components.alarm_control_panel import (DOMAIN,
                                                           AlarmControlPanel,
                                                           FORMAT_NUMBER,
                                                           FORMAT_TEXT)
+from homeassistant.components.alarm_control_panel.const import (
+        SUPPORT_ALARM_ARM_HOME,
+        SUPPORT_ALARM_ARM_AWAY,
+        SUPPORT_ALARM_ARM_NIGHT,
+        SUPPORT_ALARM_TRIGGER)
 from homeassistant.const import (ATTR_ATTRIBUTION,
                                  ATTR_ENTITY_ID,
                                  CONF_CODE,
@@ -211,13 +216,7 @@ class ArloBaseStation(AlarmControlPanel):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        """Make this non-dynamic later..."""
-        try:
-            c = __import__("homeassistant.components.alarm_control_panel.const",fromlist=['SUPPORT_ALARM_ARM_HOME', 'SUPPORT_ALARM_ARM_AWAY', 'SUPPORT_ALARM_ARM_NIGHT', 'SUPPORT_ALARM_TRIGGER'])
-            return c.SUPPORT_ALARM_ARM_HOME | c.SUPPORT_ALARM_ARM_AWAY | c.SUPPORT_ALARM_ARM_NIGHT | c.SUPPORT_ALARM_TRIGGER
-        except ModuleNotFoundError:
-            _LOGGER.debug('not supported')
-            return 0
+        return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT | SUPPORT_ALARM_TRIGGER
 
     @property
     def code_format(self):
