@@ -192,7 +192,7 @@ class ArloBaseStation(AlarmControlPanel):
 
         @callback
         def update_state(_device, attr, value):
-            _LOGGER.debug('callback:' + attr + ':' + str(value))
+            _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value))
             self._state = self._get_state_from_ha(self._base.attribute('activeMode'))
             self.async_schedule_update_ha_state()
 
