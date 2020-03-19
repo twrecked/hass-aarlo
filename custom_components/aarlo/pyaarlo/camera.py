@@ -80,6 +80,11 @@ class ArloCamera(ArloChildDevice):
         # signal real mode, safe to call multiple times
         self._save_and_do_callbacks(ACTIVITY_STATE_KEY, self._load(ACTIVITY_STATE_KEY, 'unknown'))
 
+    def _stop_and_clear_snapshot(self):
+        if self._snapshot_state != 'idle':
+            self.stop_activity()
+        self._clear_snapshot()
+
     def _update_media_and_thumbnail(self):
         self._arlo.debug('getting media image for ' + self.name)
         self._update_media()
@@ -423,7 +428,7 @@ class ArloCamera(ArloChildDevice):
                 self._arlo.debug('idle snapshot')
                 self._snapshot_state = 'snapshot'
             self._arlo.debug('handle dodgy cameras')
-            self._arlo.bg.run_in(self._clear_snapshot, 45)
+            self._arlo.bg.run_in(self._stop_and_clear_snapshot, self._arlo.cfg.snapshot_timeout)
 
     def request_snapshot(self):
         with self._lock:
