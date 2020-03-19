@@ -73,14 +73,16 @@ class ArloCamera(ArloChildDevice):
         # signal to anybody waiting
         with self._lock:
             if self._snapshot_state != 'idle':
-                self._arlo.debug('our snapshot finished, signal real state')
+                self._arlo.debug('snapshot finished, signal real state')
                 self._snapshot_state = 'idle'
+                self._save(ACTIVITY_STATE_KEY, 'idle')
                 self._lock.notify_all()
 
         # signal real mode, safe to call multiple times
         self._save_and_do_callbacks(ACTIVITY_STATE_KEY, self._load(ACTIVITY_STATE_KEY, 'unknown'))
 
     def _stop_and_clear_snapshot(self):
+        self._arlo.debug('stopping snapshot ' + self.name)
         if self._snapshot_state != 'idle':
             self.stop_activity()
         self._clear_snapshot()

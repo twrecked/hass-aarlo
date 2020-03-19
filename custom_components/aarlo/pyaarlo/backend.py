@@ -75,12 +75,12 @@ class ArloBackEnd(object):
             self._arlo.warning('request-error={}'.format(type(e).__name__))
             return None
 
-        # self._arlo.debug('finish request=' + str(r.status_code))
+        # self._arlo.vdebug('finish request=' + str(r.status_code))
         if r.status_code != 200:
             return None
 
         body = r.json()
-        # self._arlo.debug(pprint.pformat(body, indent=2))
+        # self._arlo.vdebug(pprint.pformat(body, indent=2))
 
         if raw:
             return body
