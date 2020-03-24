@@ -1,4 +1,7 @@
-from .constant import DEFAULT_HOST
+from .constant import (
+        DEFAULT_HOST, 
+        TFA_CONSOLE_SOURCE,
+        TFA_EMAIL_TYPE )
 
 
 class ArloCfg(object):
@@ -107,3 +110,38 @@ class ArloCfg(object):
     @property
     def hide_deprecated_services(self, default=False):
         return self._kw.get('hide_deprecated_services', default)
+
+    @property
+    def tfa_source(self, default=TFA_CONSOLE_SOURCE):
+        return self._kw.get('tfa_source', default)
+
+    @property
+    def tfa_type(self, default=TFA_EMAIL_TYPE):
+        return self._kw.get('tfa_type', default).lower()
+
+    @property
+    def tfa_timeout(self, default=3):
+        return self._kw.get('tfa_timeout', default)
+
+    @property
+    def tfa_total_timeout(self, default=60):
+        return self._kw.get('tfa_total_timeout', default)
+
+    @property
+    def imap_host(self, default='unknown'):
+        return self._kw.get('imap_host', default)
+
+    @property
+    def imap_username(self, default=None):
+        u = self._kw.get('imap_username', default)
+        if u is None:
+            u = self.username
+        return u
+
+    @property
+    def imap_password(self, default=None):
+        p = self._kw.get('imap_password', default)
+        if p is None:
+            p = self.password
+        return p
+
