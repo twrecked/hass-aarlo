@@ -149,3 +149,19 @@ class ArloCfg(object):
     def wait_for_initial_setup(self, default=True):
         return self._kw.get('wait_for_initial_setup', default)
 
+    @property
+    def save_state(self, default=True):
+        return self._kw.get('save_state', default)
+
+    @property
+    def state_file(self):
+        if self.save_state:
+            return self.storage_dir + '/' + self.name + '.pickle'
+        return None
+
+    @property
+    def dump_file(self):
+        if self.dump:
+            return self.storage_dir + '/' + 'packets.dump'
+        return None
+

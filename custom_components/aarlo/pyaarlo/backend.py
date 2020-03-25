@@ -25,7 +25,7 @@ class ArloBackEnd(object):
         self._lock = threading.Condition()
         self._req_lock = threading.Lock()
 
-        self._dump_file = self._arlo.cfg.storage_dir + '/' + 'packets.dump'
+        self._dump_file = self._arlo.cfg.dump_file
 
         self._requests = {}
         self._callbacks = {}
@@ -207,7 +207,7 @@ class ArloBackEnd(object):
     def _ev_loop(self, stream):
 
         # say we're starting
-        if self._arlo.cfg.dump:
+        if self._dump_file is not None:
             with open(self._dump_file, 'a') as dump:
                 time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
                 dump.write("{}: {}\n".format(time_stamp,"ev_loop start"))
@@ -223,7 +223,7 @@ class ArloBackEnd(object):
                 break
 
             response = json.loads(event.data)
-            if self._arlo.cfg.dump:
+            if self._dump_file is not None:
                 with open(self._dump_file, 'a') as dump:
                     time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
                     dump.write("{}: {}\n".format(time_stamp,pprint.pformat(response, indent=2)))
