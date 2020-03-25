@@ -1,6 +1,0 @@
-#!/bin/bash
-#
-# small script to fix pyaarlo imports while testing hass-aarlo
-
-sed -i.old -e 's@from pyaarlo@from custom_components.aarlo.pyaarlo@' *py
-sed -i.old -e 's@import pyaarlo@import custom_components.aarlo.pyaarlo@' *py
