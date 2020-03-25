@@ -145,3 +145,7 @@ class ArloCfg(object):
             p = self.password
         return p
 
+    @property
+    def wait_for_initial_setup(self, default=True):
+        return self._kw.get('wait_for_initial_setup', default)
+
