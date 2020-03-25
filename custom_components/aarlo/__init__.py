@@ -194,6 +194,7 @@ def setup(hass, config):
                       http_connections=http_connections, http_max_size=http_max_size,
                       hide_deprecated_services=hide_deprecated_services, verbose_debug=verbose_debug,
                       tfa_source='imap', tfa_type='EMAIL',
+                      wait_for_initial_setup=False,
                       imap_host=imap_host, imap_username=imap_username, imap_password=imap_password)
         if not arlo.is_connected:
             return False

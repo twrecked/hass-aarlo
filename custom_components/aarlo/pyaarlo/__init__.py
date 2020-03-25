@@ -45,7 +45,7 @@ class PyArlo(object):
         self._be = ArloBackEnd(self)
         self._ml = ArloMediaLibrary(self)
 
-        self._lock = threading.Lock()
+        self._lock = threading.Condition()
         self._bases = []
         self._cameras = []
         self._lights = []
@@ -63,6 +63,7 @@ class PyArlo(object):
         # Slow piece.
         # Get devices, fill local db, and create device instance.
         self.info('pyaarlo starting')
+        self._started = False
         self._refresh_devices()
         for device in self._devices:
             dname = device.get('deviceName')
@@ -103,6 +104,14 @@ class PyArlo(object):
         self.debug('registering cron jobs')
         self._bg.run_every(self._fast_refresh, FAST_REFRESH_INTERVAL)
         self._bg.run_every(self._slow_refresh, SLOW_REFRESH_INTERVAL)
+
+        # Wait for initial refresh
+        if self._cfg.wait_for_initial_setup:
+            with self._lock:
+                while not self._started:
+                    self.debug('waiting for initial setup...')
+                    self._lock.wait(5)
+            self.debug('finished...')
 
     def __repr__(self):
         # Representation string of object.
@@ -173,6 +182,13 @@ class PyArlo(object):
         self.debug('initial refresh')
         self._bg.run(self._refresh_bases, initial=True)
         self._bg.run(self._refresh_ambient_sensors)
+        self._bg.run(self._initial_refresh_done)
+
+    def _initial_refresh_done(self):
+        self.debug('initial refresh done')
+        with self._lock:
+            self._started = True
+            self._lock.notify_all()
 
     def stop(self):
         self._st.save()
