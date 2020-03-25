@@ -5,6 +5,7 @@ DEFINITIONS_PATH = '/hmsweb/users/automation/definitions'
 AUTOMATION_PATH = '/hmsweb/users/devices/automation/active'
 LIBRARY_PATH = '/hmsweb/users/library'
 LOGIN_PATH = '/hmsweb/login/v2'
+SESSION_PATH = "/hmsweb/users/session/v2"
 LOGOUT_PATH = '/hmsweb/logout'
 NOTIFY_PATH = '/hmsweb/users/devices/notify/'
 SUBSCRIBE_PATH = '/hmsweb/client/subscribe'

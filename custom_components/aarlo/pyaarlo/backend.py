@@ -9,7 +9,7 @@ import uuid
 import urllib.parse
 
 from .constant import (AUTH_HOST, AUTH_PATH, AUTH_VALIDATE_PATH, AUTH_GET_FACTORS, AUTH_START_PATH, AUTH_FINISH_PATH,
-                       DEFAULT_RESOURCES, LOGIN_PATH, LOGOUT_PATH,
+                       DEFAULT_RESOURCES, LOGIN_PATH, LOGOUT_PATH, SESSION_PATH,
                        NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH)
 from .sseclient import SSEClient
 from .tfa import Arlo2FA
@@ -205,6 +205,13 @@ class ArloBackEnd(object):
                 cb(resource, response)
 
     def _ev_loop(self, stream):
+
+        # say we're starting
+        if self._arlo.cfg.dump:
+            with open(self._dump_file, 'a') as dump:
+                time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
+                dump.write("{}: {}\n".format(time_stamp,"ev_loop start"))
+
         # for event in stream.events():
         for event in stream:
 
@@ -294,8 +301,14 @@ class ArloBackEnd(object):
         self._ev_connected_ = False
         self._ev_thread = threading.Thread(name="ArloEventStream", target=self._ev_thread, args=())
         self._ev_thread.setDaemon(True)
-        self._ev_thread.start()
-        # No need to wait with new auth mechanism
+
+        with self._lock:
+            self._ev_thread.start()
+            if not self._ev_connected_:
+                self._arlo.debug('waiting for stream up')
+                self._lock.wait( 30 )
+
+        self._arlo.debug('stream up')
         return True
 
     def notify(self, base, body, trans_id=None):
@@ -446,6 +459,10 @@ class ArloBackEnd(object):
                                             headers )
         return validated is not None
 
+    def _v2_session(self):
+        v2_session = self.get( SESSION_PATH )
+        return v2_session is not None
+
     def _login(self):
 
         # set agent before starting
@@ -487,6 +504,10 @@ class ArloBackEnd(object):
             'Authorization': self._token
         }
         self._session.headers.update(headers)
+
+        if not self._v2_session():
+            self._arlo.debug('v2 session failed')
+            return False
 
         return True
 
