@@ -12,6 +12,7 @@ class ArloLight(ArloChildDevice):
 
     @property
     def resource_type(self):
+        """ Return the resource type this object describes. """
         return "lights"
 
     def _event_handler(self, resource, event):
@@ -22,10 +23,11 @@ class ArloLight(ArloChildDevice):
 
     @property
     def is_on(self):
+        """ Is the light on? """
         return self._load(LAMP_STATE_KEY, "off") == "on"
 
     def turn_on(self, brightness=None, rgb=None):
-
+        """ Turn the light on. """
         properties = {LAMP_STATE_KEY: 'on'}
         if brightness is not None:
             properties[BRIGHTNESS_KEY] = brightness
@@ -45,6 +47,7 @@ class ArloLight(ArloChildDevice):
         return True
 
     def turn_off(self):
+        """ Turn the light off. """
         self._arlo.bg.run(self._arlo.be.notify,
                           base=self.base_station,
                           body={
@@ -56,6 +59,7 @@ class ArloLight(ArloChildDevice):
         return True
 
     def set_brightness(self,brightness):
+        """ Set the light brightness. """
         self._arlo.bg.run(self._arlo.be.notify,
                           base=self.base_station,
                           body={
@@ -67,6 +71,7 @@ class ArloLight(ArloChildDevice):
         return True
 
     def has_capability(self, cap):
+        """ Is the camera capabale of performing an activity. """
         if cap in 'battery_level':
             return True
         if cap in 'motionDetected':

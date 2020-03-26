@@ -45,9 +45,11 @@ class ArloDoorBell(ArloChildDevice):
 
     @property
     def resource_type(self):
+        """ Return the resource type this object describes. """
         return "doorbells"
 
     def has_capability(self, cap):
+        """ Is the camera capabale of performing an activity. """
         if cap.startswith('button'):
             return True
         # video doorbell provides these as a camera type

@@ -405,7 +405,7 @@ class ArloCam(Camera):
                 (ATTR_POWERSAVE, POWERSAVE_MODE_MAPPING.get(self._camera.powersave_mode)),
                 (ATTR_SIGNAL_STRENGTH, self._camera.signal_strength),
                 (ATTR_UNSEEN_VIDEOS, self._camera.unseen_videos),
-                (ATTR_RECENT_ACTIVITY, self._camera.recent),
+                (ATTR_RECENT_ACTIVITY, self._camera.was_recently_active),
                 (ATTR_IMAGE_SRC, self._camera.last_image_source),
                 (ATTR_CHARGING, self._camera.charging),
                 (ATTR_CHARGER_TYPE, self._camera.charger_type),

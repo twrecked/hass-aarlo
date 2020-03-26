@@ -1,6 +1,6 @@
 import time
 
-from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH,
+from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH, CONNECTION_KEY,
                        MODE_ID_TO_NAME_KEY, MODE_KEY,
                        MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY,
                        SCHEDULE_KEY, SIREN_STATE_KEY)
@@ -267,3 +267,25 @@ class ArloBase(ArloDevice):
         }
         self._arlo.debug(str(body))
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+
+    def _ping_and_check_reply(self):
+        body = {
+            'action': 'set',
+            'resource': self._arlo.be.sub_id,
+            'publishResponse': False,
+            'properties': {'devices': [self.device_id]}
+        }
+        self._arlo.debug(str(body))
+        if self._arlo.be.notify(base=self, body=body) is None:
+            self._save_and_do_callbacks(CONNECTION_KEY, 'unavailable')
+        else:
+            self._save_and_do_callbacks(CONNECTION_KEY, 'available')
+
+    def ping(self):
+        self._arlo.bg.run(self._ping_and_check_reply)
+
+    @property
+    def state(self):
+        if self.is_unavailable:
+            return 'unavailable'
+        return 'available'

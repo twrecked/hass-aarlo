@@ -23,7 +23,7 @@ from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger('pyaarlo')
 
-__version__ = '0.6.89'
+__version__ = '0.6.17'
 
 
 class PyArlo(object):
@@ -138,7 +138,7 @@ class PyArlo(object):
 
     def _ping_bases(self):
         for base in self._bases:
-            self._bg.run(self._be.async_ping, base=base)
+            base.ping()
 
     def _refresh_bases(self, initial):
         for base in self._bases:
