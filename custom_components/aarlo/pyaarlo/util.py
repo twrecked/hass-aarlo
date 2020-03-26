@@ -1,36 +1,44 @@
 import requests
 import time
+import base64
 from datetime import datetime, timezone
 
 
 def arlotime_to_time(timestamp):
+    """ Convert Arlo timestamp to Unix timestamp. """
     return int(timestamp / 1000)
 
 
 def arlotime_to_datetime(timestamp):
+    """ Convert Arlo timestamp to Python datetime. """
     return datetime.fromtimestamp(int(timestamp / 1000))
 
 
 def arlotime_strftime(timestamp, date_format='%Y-%m-%dT%H:%M:%S'):
+    """ Convert Arlo timestamp to time string. """
     return arlotime_to_datetime(timestamp).strftime(date_format)
 
 
 def time_to_arlotime(timestamp=None):
+    """ Convert Unix timestamp to Arlo timestamp. """
     if timestamp is None:
         timestamp = time.time()
     return int(timestamp * 1000)
 
 
 def now_strftime(date_format='%Y-%m-%dT%H:%M:%S'):
+    """ Convert now to time string. """
     return datetime.now().strftime(date_format)
 
 
 def httptime_to_datetime(http_timestamp):
+    """ Convert HTTP timestamp to Python datetime. """
     utc_dt = datetime.strptime(http_timestamp, '%a, %d %b %Y %H:%M:%S GMT')
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
 
 def httptime_strftime(http_timestamp, date_format='%Y-%m-%dT%H:%M:%S'):
+    """ Convert HTTP timestamp to time string. """
     return httptime_to_datetime(http_timestamp).strftime(date_format)
 
 
@@ -53,7 +61,8 @@ def _http_get(url):
 
 
 def http_get(url, filename=None):
-    # make request
+    """Download HTTP data."""
+
     ret = _http_get(url)
     if ret is None:
         return False
@@ -67,7 +76,8 @@ def http_get(url, filename=None):
 
 
 def http_get_img(url):
-    # make request
+    """Download HTTP image data."""
+
     ret = _http_get(url)
     if ret is None:
         return None, datetime.now()
@@ -93,8 +103,14 @@ def http_stream(url, chunk=4096):
         yield data
 
 def rgb_to_hex(rgb):
+    """ Convert HA color to Arlo color. """
     return "#{:02x}{:02x}{:02x}".format(rgb[0],rgb[1],rgb[2])
 
 def hex_to_rgb(h):
+    """ Convert Arlo color to HA color. """
     return { 'red':int(h[1:3],16), 'green':int(h[3:5],16), 'blue':int(h[5:7],16) }
+
+def to_b64(in_str):
+    """ Convert a string into a base64 string. """
+    return base64.b64encode(in_str.encode()).decode()
 

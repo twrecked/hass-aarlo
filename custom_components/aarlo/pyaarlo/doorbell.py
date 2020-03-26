@@ -45,13 +45,17 @@ class ArloDoorBell(ArloChildDevice):
 
     @property
     def resource_type(self):
+        """ Return the resource type this object describes. """
         return "doorbells"
 
     def has_capability(self, cap):
-        if cap in 'motionDetected':
-            return True
-        if cap in ('battery_level', 'signal_strength'):
-            return True
+        """ Is the camera capabale of performing an activity. """
         if cap.startswith('button'):
             return True
+        # video doorbell provides these as a camera type
+        if self.model_id != 'AVD1001A':
+            if cap in 'motionDetected':
+                return True
+            if cap in ('battery_level', 'signal_strength'):
+                return True
         return super().has_capability(cap)

@@ -5,9 +5,10 @@ DEFINITIONS_PATH = '/hmsweb/users/automation/definitions'
 AUTOMATION_PATH = '/hmsweb/users/devices/automation/active'
 LIBRARY_PATH = '/hmsweb/users/library'
 LOGIN_PATH = '/hmsweb/login/v2'
+SESSION_PATH = "/hmsweb/users/session/v2"
 LOGOUT_PATH = '/hmsweb/logout'
 NOTIFY_PATH = '/hmsweb/users/devices/notify/'
-SUBSCRIBE_PATH = '/hmsweb/client/subscribe?token='
+SUBSCRIBE_PATH = '/hmsweb/client/subscribe'
 UNSUBSCRIBE_PATH = '/hmsweb/client/unsubscribe'
 MODES_PATH = '/hmsweb/users/devices/automation/active'
 RECORD_START_PATH = "/hmsweb/users/devices/startRecord"
@@ -16,6 +17,18 @@ STREAM_SNAPSHOT_PATH = '/hmsweb/users/devices/takeSnapshot'
 STREAM_START_PATH = '/hmsweb/users/devices/startStream'
 IDLE_SNAPSHOT_PATH = '/hmsweb/users/devices/fullFrameSnapshot'
 TRANSID_PREFIX = 'web'
+
+AUTH_HOST = 'https://ocapi-app.arlo.com'
+AUTH_PATH = '/api/auth'
+AUTH_START_PATH = '/api/startAuth'
+AUTH_FINISH_PATH = '/api/finishAuth'
+AUTH_GET_FACTORS = '/api/getFactors'
+AUTH_VALIDATE_PATH = '/api/validateAccessToken'
+
+TFA_CONSOLE_SOURCE = 'console'
+TFA_IMAP_SOURCE = 'imap'
+TFA_EMAIL_TYPE = 'EMAIL'
+TFA_SMS_TYPE = 'SMS'
 
 PRELOAD_DAYS = 30
 

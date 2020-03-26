@@ -404,7 +404,7 @@ async def aarlo_siren_off_service_handler(base, _service):
 async def async_alarm_mode_service(hass, call):
     for entity_id in call.data['entity_id']:
         mode = call.data['mode']
-        _LOGGER.info("{0} setting mode to {}".format(entity_id,mode))
+        _LOGGER.info("{0} setting mode to {1}".format(entity_id,mode))
         get_entity_from_domain(hass,DOMAIN,entity_id).set_mode_in_ha(mode)
 
 
@@ -412,7 +412,7 @@ async def async_alarm_siren_on_service(hass, call):
     for entity_id in call.data['entity_id']:
         volume = call.data['volume']
         duration = call.data['duration']
-        _LOGGER.info("{0} siren on {}/{}".format(entity_id,volume,duration))
+        _LOGGER.info("{0} siren on {1}/{2}".format(entity_id,volume,duration))
         get_entity_from_domain(hass,DOMAIN,entity_id).siren_on(duration=duration, volume=volume)
 
 
