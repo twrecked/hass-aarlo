@@ -19,6 +19,7 @@ from homeassistant.const import (
 from homeassistant.helpers import config_validation as cv
 from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
+from .pyaarlo.constant import (SIREN_STATE_KEY)
 
 __version__ = '0.6.89'
 
@@ -218,7 +219,7 @@ def setup(hass, config):
     # Component Services
     has_sirens = False
     for device in arlo.cameras + arlo.base_stations:
-        if device.has_capability('siren'):
+        if device.has_capability(SIREN_STATE_KEY):
             has_sirens = True
 
     async def async_aarlo_service(call):
@@ -287,7 +288,7 @@ async def async_aarlo_sirens_on(hass, call):
     volume = call.data['volume']
     duration = call.data['duration']
     for device in arlo.cameras + arlo.base_stations:
-        if device.has_capability('siren'):
+        if device.has_capability(SIREN_STATE_KEY):
             _LOGGER.info("{} siren on {}/{}".format(device.unique_id,volume,duration))
             device.siren_on(duration=duration, volume=volume)
 
@@ -309,7 +310,7 @@ async def async_aarlo_siren_off(hass, call):
 async def async_aarlo_sirens_off(hass, call):
     arlo = hass.data[COMPONENT_DATA]
     for device in arlo.cameras + arlo.base_stations:
-        if device.has_capability('siren'):
+        if device.has_capability(SIREN_STATE_KEY):
             _LOGGER.info("{} siren off".format(device.unique_id))
             device.siren_off()
 

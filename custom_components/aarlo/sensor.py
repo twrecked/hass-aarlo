@@ -64,15 +64,15 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             sensors.append(ArloSensor(SENSOR_TYPES[sensor_type][0], arlo, sensor_type))
         else:
             for camera in arlo.cameras:
-                if camera.has_capability(sensor_type[3]):
+                if camera.has_capability(SENSOR_TYPES[sensor_type][3]):
                     name = '{0} {1}'.format(SENSOR_TYPES[sensor_type][0], camera.name)
                     sensors.append(ArloSensor(name, camera, sensor_type))
             for doorbell in arlo.doorbells:
-                if doorbell.has_capability(sensor_type[3]):
+                if doorbell.has_capability(SENSOR_TYPES[sensor_type][3]):
                     name = '{0} {1}'.format(SENSOR_TYPES[sensor_type][0], doorbell.name)
                     sensors.append(ArloSensor(name, doorbell, sensor_type))
             for light in arlo.lights:
-                if light.has_capability(sensor_type[3]):
+                if light.has_capability(SENSOR_TYPES[sensor_type][3]):
                     name = '{0} {1}'.format(SENSOR_TYPES[sensor_type][0], light.name)
                     sensors.append(ArloSensor(name, light, sensor_type))
 
