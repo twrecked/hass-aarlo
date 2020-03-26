@@ -104,6 +104,10 @@ class ArloCfg(object):
         return self._kw.get('reconnect_every', default) * 60
 
     @property
+    def snapshot_timeout(self, default=45):
+        return self._kw.get('snapshot_timeout', default)
+
+    @property
     def verbose(self, default=False):
         return self._kw.get('verbose_debug', default)
 
