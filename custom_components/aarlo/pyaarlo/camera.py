@@ -386,26 +386,6 @@ class ArloCamera(ArloChildDevice):
                                     "resource": 'cameras/{}/ambientSensors/history'.format(self.device_id),
                                     "publishResponse": False})
 
-    def has_capability(self, cap):
-        """ Is the camera capabale of performing an activity. """
-        if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY):
-            return True
-        if cap in (LAST_CAPTURE_KEY, CAPTURED_TODAY_KEY, RECENT_ACTIVITY_KEY):
-            return True
-        if cap in (AUDIO_DETECTED_KEY):
-            if self.model_id.startswith(('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000')):
-                return True
-        if cap in (SIREN_STATE_KEY):
-            if self.model_id.startswith(('VMC4040', 'VMC5040')):
-                return True
-        if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
-            if self.model_id.startswith('ABC1000'):
-                return True
-        if cap in (MEDIA_PLAYER_KEY, NIGHTLIGHT_KEY, CRY_DETECTION_KEY):
-            if self.model_id.startswith('ABC1000'):
-                return True
-        return super().has_capability(cap)
-
     def _take_streaming_snapshot(self):
         body = {
             'xcloudId': self.xcloud_id,
@@ -777,3 +757,23 @@ class ArloCamera(ArloChildDevice):
         return self._set_nightlight_properties({
             'mode': mode
         })
+
+    def has_capability(self, cap):
+        """ Is the camera capabale of performing an activity. """
+        if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY):
+            return True
+        if cap in (LAST_CAPTURE_KEY, CAPTURED_TODAY_KEY, RECENT_ACTIVITY_KEY):
+            return True
+        if cap in (AUDIO_DETECTED_KEY):
+            if self.model_id.startswith(('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000')):
+                return True
+        if cap in (SIREN_STATE_KEY):
+            if self.model_id.startswith(('VMC4040', 'VMC5040')):
+                return True
+        if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
+            if self.model_id.startswith('ABC1000'):
+                return True
+        if cap in (MEDIA_PLAYER_KEY, NIGHTLIGHT_KEY, CRY_DETECTION_KEY):
+            if self.model_id.startswith('ABC1000'):
+                return True
+        return super().has_capability(cap)

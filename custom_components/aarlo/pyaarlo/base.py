@@ -233,15 +233,6 @@ class ArloBase(ArloDevice):
         if isinstance(value, (int, float)):
             self._refresh_rate = value
 
-    def has_capability(self, cap):
-        if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
-            if self.model_id.startswith('ABC1000'):
-                return True
-        if cap in (SIREN_STATE_KEY):
-            if self.model_id.startswith(('VMB400', 'VMB450')):
-                return True
-        return super().has_capability(cap)
-
     @property
     def siren_state(self):
         return self._load(SIREN_STATE_KEY, "off")
@@ -287,3 +278,12 @@ class ArloBase(ArloDevice):
         if self.is_unavailable:
             return 'unavailable'
         return 'available'
+
+    def has_capability(self, cap):
+        if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
+            if self.model_id.startswith('ABC1000'):
+                return True
+        if cap in (SIREN_STATE_KEY):
+            if self.model_id.startswith(('VMB400', 'VMB450')):
+                return True
+        return super().has_capability(cap)
