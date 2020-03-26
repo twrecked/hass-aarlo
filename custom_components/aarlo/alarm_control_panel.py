@@ -18,6 +18,11 @@ from homeassistant.components.alarm_control_panel import (DOMAIN,
                                                           AlarmControlPanel,
                                                           FORMAT_NUMBER,
                                                           FORMAT_TEXT)
+from homeassistant.components.alarm_control_panel.const import (
+        SUPPORT_ALARM_ARM_HOME,
+        SUPPORT_ALARM_ARM_AWAY,
+        SUPPORT_ALARM_ARM_NIGHT,
+        SUPPORT_ALARM_TRIGGER)
 from homeassistant.const import (ATTR_ATTRIBUTION,
                                  ATTR_ENTITY_ID,
                                  CONF_CODE,
@@ -194,7 +199,7 @@ class ArloBaseStation(AlarmControlPanel):
 
         @callback
         def update_state(_device, attr, value):
-            _LOGGER.debug('callback:' + attr + ':' + str(value))
+            _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value))
             self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY))
             self.async_schedule_update_ha_state()
 
@@ -213,15 +218,7 @@ class ArloBaseStation(AlarmControlPanel):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        """Make this non-dynamic later..."""
-        try:
-            c = __import__("homeassistant.components.alarm_control_panel.const",
-                           fromlist=['SUPPORT_ALARM_ARM_HOME', 'SUPPORT_ALARM_ARM_AWAY', 'SUPPORT_ALARM_ARM_NIGHT',
-                                     'SUPPORT_ALARM_TRIGGER'])
-            return c.SUPPORT_ALARM_ARM_HOME | c.SUPPORT_ALARM_ARM_AWAY | c.SUPPORT_ALARM_ARM_NIGHT | c.SUPPORT_ALARM_TRIGGER
-        except ModuleNotFoundError:
-            _LOGGER.debug('not supported')
-            return 0
+        return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT | SUPPORT_ALARM_TRIGGER
 
     @property
     def code_format(self):
@@ -410,7 +407,7 @@ async def aarlo_siren_off_service_handler(base, _service):
 async def async_alarm_mode_service(hass, call):
     for entity_id in call.data['entity_id']:
         mode = call.data['mode']
-        _LOGGER.info("{0} setting mode to {}".format(entity_id,mode))
+        _LOGGER.info("{0} setting mode to {1}".format(entity_id,mode))
         get_entity_from_domain(hass,DOMAIN,entity_id).set_mode_in_ha(mode)
 
 
@@ -418,7 +415,7 @@ async def async_alarm_siren_on_service(hass, call):
     for entity_id in call.data['entity_id']:
         volume = call.data['volume']
         duration = call.data['duration']
-        _LOGGER.info("{0} siren on {}/{}".format(entity_id,volume,duration))
+        _LOGGER.info("{0} siren on {1}/{2}".format(entity_id,volume,duration))
         get_entity_from_domain(hass,DOMAIN,entity_id).siren_on(duration=duration, volume=volume)
 
 

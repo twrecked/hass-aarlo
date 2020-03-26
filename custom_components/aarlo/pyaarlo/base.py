@@ -1,6 +1,6 @@
 import time
 
-from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH,
+from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH, CONNECTION_KEY,
                        MODE_ID_TO_NAME_KEY, MODE_KEY,
                        MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY,
                        SCHEDULE_KEY, SIREN_STATE_KEY, TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY)
@@ -72,6 +72,27 @@ class ArloBase(ArloDevice):
                 self._save([MODE_NAME_TO_ID_KEY, schedule_name.lower()], schedule_id)
                 self._save([MODE_IS_SCHEDULE_KEY, schedule_name.lower()], True)
 
+    def _set_mode_or_schedule(self,event):
+        # schedule on or off?
+        schedule_ids = event.get('activeSchedules', [])
+        if schedule_ids:
+            self._arlo.debug(self.name + ' schedule change ' + schedule_ids[0])
+            schedule_name = self._id_to_name(schedule_ids[0])
+            self._save_and_do_callbacks(SCHEDULE_KEY, schedule_name)
+        else:
+            self._arlo.debug(self.name + ' schedule cleared ')
+            self._save_and_do_callbacks(SCHEDULE_KEY, None)
+
+        # mode present? we just set to that one... If no mode but schedule then
+        # try to parse that out
+        mode_ids = event.get('activeModes', [])
+        if not mode_ids and schedule_ids:
+            mode_ids = self.schedule_to_modes()
+        if mode_ids:
+            self._arlo.debug(self.name + ' mode change ' + mode_ids[0])
+            mode_name = self._id_to_name(mode_ids[0])
+            self._save_and_do_callbacks(MODE_KEY, mode_name)
+
     def _event_handler(self, resource, event):
         self._arlo.debug(self.name + ' BASE got ' + resource)
 
@@ -90,26 +111,7 @@ class ArloBase(ArloDevice):
 
         # mode change?
         elif resource == 'activeAutomations':
-
-            # schedule on or off?
-            schedule_ids = event.get('activeSchedules', [])
-            if schedule_ids:
-                self._arlo.debug(self.name + ' schedule change ' + schedule_ids[0])
-                schedule_name = self._id_to_name(schedule_ids[0])
-                self._save_and_do_callbacks(SCHEDULE_KEY, schedule_name)
-            else:
-                self._arlo.debug(self.name + ' schedule cleared ')
-                self._save_and_do_callbacks(SCHEDULE_KEY, None)
-
-            # mode present? we just set to new one... If no mode but schedule
-            # then try to parse that out
-            mode_ids = event.get('activeModes', [])
-            if not mode_ids and schedule_ids:
-                mode_ids = self.schedule_to_modes()
-            if mode_ids:
-                self._arlo.debug(self.name + ' mode change ' + mode_ids[0])
-                mode_name = self._id_to_name(mode_ids[0])
-                self._save_and_do_callbacks(MODE_KEY, mode_name)
+            self._set_mode_or_schedule(event)
 
         # schdule has changed, so reload
         elif resource == 'automationRevisionUpdate':
@@ -200,12 +202,7 @@ class ArloBase(ArloDevice):
         data = self._arlo.be.get(AUTOMATION_PATH)
         for mode in data:
             if mode.get('uniqueId', '') == self.unique_id:
-                active_modes = mode.get('activeModes', [])
-                if active_modes:
-                    self._save_and_do_callbacks(MODE_KEY, self._id_to_name(active_modes[0]))
-                active_schedules = mode.get('activeSchedules', [])
-                if active_schedules:
-                    self._save_and_do_callbacks(SCHEDULE_KEY, self._id_to_name(active_schedules[0]))
+                self._set_mode_or_schedule(mode)
 
     def update_modes(self):
         if self._v1_modes:
@@ -268,3 +265,25 @@ class ArloBase(ArloDevice):
         }
         self._arlo.debug(str(body))
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+
+    def _ping_and_check_reply(self):
+        body = {
+            'action': 'set',
+            'resource': self._arlo.be.sub_id,
+            'publishResponse': False,
+            'properties': {'devices': [self.device_id]}
+        }
+        self._arlo.debug(str(body))
+        if self._arlo.be.notify(base=self, body=body) is None:
+            self._save_and_do_callbacks(CONNECTION_KEY, 'unavailable')
+        else:
+            self._save_and_do_callbacks(CONNECTION_KEY, 'available')
+
+    def ping(self):
+        self._arlo.bg.run(self._ping_and_check_reply)
+
+    @property
+    def state(self):
+        if self.is_unavailable:
+            return 'unavailable'
+        return 'available'
