@@ -294,6 +294,10 @@ class ArloCam(Camera):
         self._recent = False
         self._motion_status = False
         self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
+        self.stream_options = { 'use_wallclock_as_timestamps': 1,
+                                'rtsp_flags': 'prefer_tcp',
+                                'stimeout': '5000000', }
+
         _LOGGER.info('ArloCam: %s created', self._name)
 
     async def stream_source(self):
