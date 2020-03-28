@@ -1,7 +1,7 @@
 from .constant import (
-        DEFAULT_HOST, 
-        TFA_CONSOLE_SOURCE,
-        TFA_EMAIL_TYPE )
+    DEFAULT_HOST,
+    TFA_CONSOLE_SOURCE,
+    TFA_EMAIL_TYPE)
 
 
 class ArloCfg(object):
@@ -168,4 +168,3 @@ class ArloCfg(object):
         if self.dump:
             return self.storage_dir + '/' + 'packets.dump'
         return None
-

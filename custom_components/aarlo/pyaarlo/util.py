@@ -1,5 +1,5 @@
-import time
 import base64
+import time
 from datetime import datetime, timezone
 
 import requests
@@ -117,4 +117,3 @@ def hex_to_rgb(h):
 def to_b64(in_str):
     """ Convert a string into a base64 string. """
     return base64.b64encode(in_str.encode()).decode()
-

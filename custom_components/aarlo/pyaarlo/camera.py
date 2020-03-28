@@ -258,7 +258,7 @@ class ArloCamera(ArloChildDevice):
         # audio analytics
         audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
         if audioanalytics is not None:
-            triggered = audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered",False)
+            triggered = audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered", False)
             self._save_and_do_callbacks(CRY_DETECTION_KEY, triggered)
 
         # pass on to lower layer
@@ -764,10 +764,10 @@ class ArloCamera(ArloChildDevice):
             return True
         if cap in (LAST_CAPTURE_KEY, CAPTURED_TODAY_KEY, RECENT_ACTIVITY_KEY):
             return True
-        if cap in (AUDIO_DETECTED_KEY):
+        if cap in (AUDIO_DETECTED_KEY,):
             if self.model_id.startswith(('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000')):
                 return True
-        if cap in (SIREN_STATE_KEY):
+        if cap in (SIREN_STATE_KEY,):
             if self.model_id.startswith(('VMC4040', 'VMC5040')):
                 return True
         if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):

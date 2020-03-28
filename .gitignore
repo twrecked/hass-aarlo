@@ -111,4 +111,6 @@ venv.bak/
 *.orig
 *.diff
 tmp
+custom_components/aarlo/pyaarlo/main.py
+
 

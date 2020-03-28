@@ -51,7 +51,7 @@ class ArloDoorBell(ArloChildDevice):
 
     def has_capability(self, cap):
         """ Is the camera capabale of performing an activity. """
-        if cap in (BUTTON_PRESSED_KEY):
+        if cap in (BUTTON_PRESSED_KEY,):
             return True
         if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY):
             # video doorbell provides these as a camera type

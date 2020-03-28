@@ -7,7 +7,8 @@ from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH, CONNECT
 from .device import ArloDevice
 from .util import time_to_arlotime
 
-day_of_week = [ 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su', 'Mo'];
+day_of_week = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su', 'Mo']
+
 
 class ArloBase(ArloDevice):
 
@@ -46,14 +47,14 @@ class ArloBase(ArloDevice):
         day = day_of_week[now.tm_wday]
         minute = (now.tm_hour * 60) + now.tm_min
         for schedule in self._schedules:
-            if not schedule.get('enabled',False):
+            if not schedule.get('enabled', False):
                 continue
-            for schedule in schedule.get('schedule',[]):
-                if day in schedule.get('days',[]):
-                    start = schedule.get('startTime',65535)
-                    duration = schedule.get('duration',65536)
-                    if minute >= start and minute < (start + duration):
-                        modes = schedule.get('startActions',{}).get('enableModes',None)
+            for action in schedule.get('schedule', []):
+                if day in action.get('days', []):
+                    start = action.get('startTime', 65535)
+                    duration = action.get('duration', 65536)
+                    if start <= minute < (start + duration):
+                        modes = action.get('startActions', {}).get('enableModes', None)
                         if modes:
                             self._arlo.debug("schdule={}".format(modes[0]))
                             return modes
@@ -72,7 +73,7 @@ class ArloBase(ArloDevice):
                 self._save([MODE_NAME_TO_ID_KEY, schedule_name.lower()], schedule_id)
                 self._save([MODE_IS_SCHEDULE_KEY, schedule_name.lower()], True)
 
-    def _set_mode_or_schedule(self,event):
+    def _set_mode_or_schedule(self, event):
         # schedule on or off?
         schedule_ids = event.get('activeSchedules', [])
         if schedule_ids:
@@ -113,7 +114,7 @@ class ArloBase(ArloDevice):
         elif resource == 'activeAutomations':
             self._set_mode_or_schedule(event)
 
-        # schdule has changed, so reload
+        # schedule has changed, so reload
         elif resource == 'automationRevisionUpdate':
             self.update_modes()
 
@@ -179,10 +180,10 @@ class ArloBase(ArloDevice):
             else:
                 def _set_mode_v2_cb():
                     params = {'activeAutomations':
-                                  [{'deviceId': self.device_id,
-                                    'timestamp': time_to_arlotime(),
-                                    active: [mode_id],
-                                    inactive: []}]}
+                              [{'deviceId': self.device_id,
+                                'timestamp': time_to_arlotime(),
+                                active: [mode_id],
+                                inactive: []}]}
                     for i in range(1, 3):
                         body = self._arlo.be.post(AUTOMATION_PATH, params=params, raw=True)
                         if body['success']:
@@ -283,7 +284,7 @@ class ArloBase(ArloDevice):
         if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
             if self.model_id.startswith('ABC1000'):
                 return True
-        if cap in (SIREN_STATE_KEY):
+        if cap in (SIREN_STATE_KEY,):
             if self.model_id.startswith(('VMB400', 'VMB450')):
                 return True
         return super().has_capability(cap)

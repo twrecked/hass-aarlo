@@ -41,7 +41,7 @@ class ArloDevice(object):
 
     def _to_storage_key(self, attr):
         # Build a key incorporating the type!
-        if isinstance(attr,list):
+        if isinstance(attr, list):
             return [self.__class__.__name__, self._device_id] + attr
         else:
             return [self.__class__.__name__, self._device_id, attr]
@@ -49,7 +49,7 @@ class ArloDevice(object):
     def _event_handler(self, resource, event):
         self._arlo.vdebug("{}: got {} event {}".format(self.name, resource, pprint.pformat(event)))
 
-        # Find properties. Event either contains a item called properites or it
+        # Find properties. Event either contains a item called properties or it
         # is the whole thing.
         props = event.get("properties", event)
 
