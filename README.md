@@ -48,6 +48,7 @@ See [Services](#advanced-services) for more information.
    - [Naming](#other-naming)
    - [Best Practises and Known Limitations](#other-best)
    - [Debugging](#other-debugging)
+   - [Hiding Sensitive Data](#other-sensitive)
    - [Adding Devices](#other-adding)
 - [Advanced Use](#advanced)
    - [All Parameters](#advanced-parameters)
@@ -363,7 +364,6 @@ logger:
     custom_components.aarlo.switch: debug
     pyaarlo: debug
 ```
-
     If, for example, you suspect the problem is just with your lights you can remove unneeded debug:
 ```yaml
 logger:
@@ -380,7 +380,7 @@ logger:
 2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] day testing with 2020-01-21!
 2020-01-21 11:44:50 DEBUG (ArloEventStream) [pyaarlo] async ping response subscriptions/XXXXXX-XXX-XXXXXXX_web
 ```
-    If you fancy diving in, and please do, searching for exceptions and `traceback`s is a good place to start.
+    If you fancy diving in, and please do, searching for exceptions and any reference to `traceBack` is a good place to start.
 
 
 * Event logging. You can look at what events Arlo is sending you by turning on event stream dumping. Add the following to your `configuration.yaml` file and Aarlo will dump events into `/config/.aarlo/packets.dump`:
@@ -403,6 +403,54 @@ aarlo:
 ```
 'properties': {'motionDetected': True},
 ```
+
+<a name="other-sensitive"></a>
+### Hiding Sensitive Data
+
+If you paste any debug logs into github it's a good idea to encrypt them before uploading them. You can do this using the [pyaarlo](https://github.com/twrecked/pyaarlo) component. The easiest way to install it is in a virtual environment. The following steps will install Pyaarlo.
+
+```bash
+$ virtualenv -p /usr/bin/python3.6 pyaarlo
+$ source pyaarlo/bin/activate
+(pyaarlo) $ pip install git+https://github.com/twrecked/pyaarlo
+(pyaarlo) $ pyaarlo --help
+```
+
+To encrypt your logs save the output to a file and do the following:
+
+```bash
+(pyaarlo)$ cat your-log-file | pyaarlo encrypt
+```
+
+The output will look like this - only longer! Paste everything, including the BEGIN and END lines into your bug report.
+
+```
+-----BEGIN PYAARLO DUMP-----
+gAN9cQAoWAEAAABucQFCAAEAAJJ7SWmo+vX28ycatrCV2s1o0wiIo3SPVOaRkHBf6xVup2D/cdZI
+nvim30f/oTNwkuspbwYTwOzXHZJygnsi/9vX4+5g65te+bJczzVl6hoBM+2uaNfFi63iL0blMv32
+zwTZHPj7TxwcJbdOGuP+A+yqEpxPbIsI/8nUP9CLvE01cxje+a7swgUdidoPTAAPSjjteGWl/h+V
+DMX8UcDPtN+fdYOyEVlVOoFPQC4u/xXjN0qusfW0yNqpKHzD82Vkz0Igc5USXCRsbAs1YNgnZgXt
+KWwDrH5v31jNd6zppaF5EtgfnyDsUohzqYy0bciXfD0HAQS/6sbT+sSaRf39q7pxAlgBAAAAb3ED
+QyDC4o3xjAKAA4pGGxzZ7zyUP7nU6QgiqDD1aYi7C6SzcnEEdS4=
+-----END PYAARLO DUMP-----
+```
+
+#### Notes
+Data isn't anonymised internally... I will be adding that functionality.
+
+You don't need to keep re-installing pyaarlo, just re-activate the virtualenv.
+```bash
+$ cd where-you-where-before
+$ source pyaarlo/bin/activate
+(pyaarlo) $ pyaarlo --help
+```
+
+When you're finished with pyaarlo deactive the virtualenv.
+```bash
+(pyaarlo) $ deactivate
+$
+```
+
 
 <a name="other-adding"></a>
 ### Adding Devices
