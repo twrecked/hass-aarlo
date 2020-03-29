@@ -1,7 +1,8 @@
-import requests
-import time
 import base64
+import time
 from datetime import datetime, timezone
+
+import requests
 
 
 def arlotime_to_time(timestamp):
@@ -102,15 +103,17 @@ def http_stream(url, chunk=4096):
     for data in ret.iter_content(chunk):
         yield data
 
+
 def rgb_to_hex(rgb):
     """ Convert HA color to Arlo color. """
-    return "#{:02x}{:02x}{:02x}".format(rgb[0],rgb[1],rgb[2])
+    return "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
+
 
 def hex_to_rgb(h):
     """ Convert Arlo color to HA color. """
-    return { 'red':int(h[1:3],16), 'green':int(h[3:5],16), 'blue':int(h[5:7],16) }
+    return {'red': int(h[1:3], 16), 'green': int(h[3:5], 16), 'blue': int(h[5:7], 16)}
+
 
 def to_b64(in_str):
     """ Convert a string into a base64 string. """
     return base64.b64encode(in_str.encode()).decode()
-

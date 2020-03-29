@@ -1,15 +1,15 @@
 import json
 import pprint
 import re
-import requests
-import requests.adapters
 import threading
 import time
 import uuid
-import urllib.parse
+
+import requests
+import requests.adapters
 
 from .constant import (AUTH_HOST, AUTH_PATH, AUTH_VALIDATE_PATH, AUTH_GET_FACTORS, AUTH_START_PATH, AUTH_FINISH_PATH,
-                       DEFAULT_RESOURCES, LOGIN_PATH, LOGOUT_PATH, SESSION_PATH,
+                       DEFAULT_RESOURCES, LOGOUT_PATH, SESSION_PATH,
                        NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH)
 from .sseclient import SSEClient
 from .tfa import Arlo2FA
@@ -212,7 +212,7 @@ class ArloBackEnd(object):
         if self._dump_file is not None:
             with open(self._dump_file, 'a') as dump:
                 time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
-                dump.write("{}: {}\n".format(time_stamp,"ev_loop start"))
+                dump.write("{}: {}\n".format(time_stamp, "ev_loop start"))
 
         # for event in stream.events():
         for event in stream:
@@ -228,7 +228,7 @@ class ArloBackEnd(object):
             if self._dump_file is not None:
                 with open(self._dump_file, 'a') as dump:
                     time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
-                    dump.write("{}: {}\n".format(time_stamp,pprint.pformat(response, indent=2)))
+                    dump.write("{}: {}\n".format(time_stamp, pprint.pformat(response, indent=2)))
 
             # logged out? signal exited
             if response.get('action') == 'logout':
@@ -308,7 +308,7 @@ class ArloBackEnd(object):
             self._ev_thread.start()
             if not self._ev_connected_:
                 self._arlo.debug('waiting for stream up')
-                self._lock.wait( 30 )
+                self._lock.wait(30)
 
         self._arlo.debug('stream up')
         return True
@@ -345,7 +345,7 @@ class ArloBackEnd(object):
                 if mnow >= mend:
                     return self._requests.pop(tid)
 
-    def _update_auth_info(self,body):
+    def _update_auth_info(self, body):
         self._token = body['token']
         self._token64 = to_b64(self._token)
         self._user_id = body['userId']
@@ -353,18 +353,18 @@ class ArloBackEnd(object):
         self._sub_id = 'subscriptions/' + self._web_id
 
     def _auth(self):
-        headers = {'Auth-Version':'2',
+        headers = {'Auth-Version': '2',
                    'Accept': 'application/json, text/plain, */*',
                    'Referer': 'https://my.arlo.com',
                    'User-Agent': self._user_agent,
-                   'Source': 'arloCamWeb' }
+                   'Source': 'arloCamWeb'}
 
         # Initial attempt
         self._arlo.debug('login attempt #1')
         body = self.auth_post(AUTH_PATH, {'email': self._arlo.cfg.username,
                                           'password': to_b64(self._arlo.cfg.password),
                                           'language': "en",
-                                          'EnvSource': 'prod' }, headers )
+                                          'EnvSource': 'prod'}, headers)
         if body is None:
             return False
 
@@ -381,7 +381,7 @@ class ArloBackEnd(object):
 
             # get available 2fa choices,
             self._arlo.debug('getting tfa choices')
-            factors = self.auth_get( AUTH_GET_FACTORS + "?data = {}".format(int(time.time())), {}, headers)
+            factors = self.auth_get(AUTH_GET_FACTORS + "?data = {}".format(int(time.time())), {}, headers)
             if factors is None:
                 self._arlo.debug('couldnt find tfa choices')
                 return False
@@ -421,7 +421,7 @@ class ArloBackEnd(object):
             # finish authentication
             self._arlo.debug('finishing auth')
             body = self.auth_post(AUTH_FINISH_PATH, {'factorAuthCode': factor_auth_code,
-                                                     'otp': code }, headers)
+                                                     'otp': code}, headers)
             if body is None:
                 self._arlo.debug('finishAuth failed')
                 return False
@@ -432,20 +432,20 @@ class ArloBackEnd(object):
         return True
 
     def _validate(self):
-        headers = {'Auth-Version':'2',
+        headers = {'Auth-Version': '2',
                    'Accept': 'application/json, text/plain, */*',
                    'Authorization': self._token64,
                    'Referer': 'https://my.arlo.com',
                    'User-Agent': self._user_agent,
-                   'Source': 'arloCamWeb' }
+                   'Source': 'arloCamWeb'}
 
         # Validate it!
-        validated = self.auth_get( AUTH_VALIDATE_PATH + "?data = {}".format(int(time.time())), {},
-                                            headers )
+        validated = self.auth_get(AUTH_VALIDATE_PATH + "?data = {}".format(int(time.time())), {},
+                                  headers)
         return validated is not None
 
     def _v2_session(self):
-        v2_session = self.get( SESSION_PATH )
+        v2_session = self.get(SESSION_PATH)
         return v2_session is not None
 
     def _login(self):
@@ -453,11 +453,11 @@ class ArloBackEnd(object):
         # set agent before starting
         if self._arlo.cfg.user_agent == 'apple':
             self._user_agent = ('Mozilla/5.0 (iPhone; CPU iPhone OS 11_1_2 like Mac OS X) '
-                                     'AppleWebKit/604.3.5 (KHTML, like Gecko) Mobile/15B202 NETGEAR/v1 '
-                                     '(iOS Vuezone)')
+                                'AppleWebKit/604.3.5 (KHTML, like Gecko) Mobile/15B202 NETGEAR/v1 '
+                                '(iOS Vuezone)')
         else:
             self._user_agent = ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                                     'Chrome/72.0.3626.81 Safari/537.36')
+                                'Chrome/72.0.3626.81 Safari/537.36')
 
         # set up session
         self._session = requests.Session()

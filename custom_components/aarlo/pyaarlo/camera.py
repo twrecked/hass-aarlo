@@ -13,7 +13,9 @@ from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        RECORD_START_PATH, RECORD_STOP_PATH,
                        SNAPSHOT_KEY, SIREN_STATE_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_PATH, STREAM_START_PATH, CAMERA_MEDIA_DELAY,
-                       AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, DEFAULT_TRACK_ID, MEDIA_PLAYER_RESOURCE_ID)
+                       AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, DEFAULT_TRACK_ID, MEDIA_PLAYER_RESOURCE_ID,
+                       MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY, RECENT_ACTIVITY_KEY, AUDIO_DETECTED_KEY,
+                       TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY, MEDIA_PLAYER_KEY, NIGHTLIGHT_KEY)
 from .device import ArloChildDevice
 from .util import http_get, http_get_img
 
@@ -256,7 +258,7 @@ class ArloCamera(ArloChildDevice):
         # audio analytics
         audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
         if audioanalytics is not None:
-            triggered = audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered",False)
+            triggered = audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered", False)
             self._save_and_do_callbacks(CRY_DETECTION_KEY, triggered)
 
         # pass on to lower layer
@@ -383,31 +385,6 @@ class ArloCamera(ArloChildDevice):
                               body={"action": "get",
                                     "resource": 'cameras/{}/ambientSensors/history'.format(self.device_id),
                                     "publishResponse": False})
-
-    def has_capability(self, cap):
-        """ Is the camera capabale of performing an activity. """
-        if cap in 'motionDetected':
-            return True
-        if cap in ('last_capture', 'captured_today', 'recent_activity', 'battery_level', 'signal_strength'):
-            return True
-        if cap in ('temperature', 'humidity', 'air_quality', 'airQuality') and self.model_id == 'ABC1000':
-            return True
-        if cap in ('audio', 'audioDetected', 'sound'):
-            if self.model_id.startswith('VMC4030') or self.model_id.startswith('VMC5040') or self.model_id.startswith(
-                    'VMC4040') or self.model_id == 'ABC1000':
-                return True
-            if self.device_type.startswith('arloq'):
-                return True
-        if cap in 'siren':
-            if self.model_id.startswith('VMC5040') or self.model_id.startswith('VMC4040'):
-                return True
-        if cap in 'mediaPlayer' and self.model_id == 'ABC1000':
-            return True
-        if cap in 'nightLight' and self.model_id.startswith("ABC1000"):
-            return True
-        if cap in 'babyCryDetection' and self.model_id.startswith("ABC1000"):
-            return True
-        return super().has_capability(cap)
 
     def _take_streaming_snapshot(self):
         body = {
@@ -780,3 +757,23 @@ class ArloCamera(ArloChildDevice):
         return self._set_nightlight_properties({
             'mode': mode
         })
+
+    def has_capability(self, cap):
+        """ Is the camera capabale of performing an activity. """
+        if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY):
+            return True
+        if cap in (LAST_CAPTURE_KEY, CAPTURED_TODAY_KEY, RECENT_ACTIVITY_KEY):
+            return True
+        if cap in (AUDIO_DETECTED_KEY,):
+            if self.model_id.startswith(('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000')):
+                return True
+        if cap in (SIREN_STATE_KEY,):
+            if self.model_id.startswith(('VMC4040', 'VMC5040')):
+                return True
+        if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
+            if self.model_id.startswith('ABC1000'):
+                return True
+        if cap in (MEDIA_PLAYER_KEY, NIGHTLIGHT_KEY, CRY_DETECTION_KEY):
+            if self.model_id.startswith('ABC1000'):
+                return True
+        return super().has_capability(cap)
