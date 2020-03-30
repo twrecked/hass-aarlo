@@ -161,7 +161,9 @@ class ArloBackEnd(object):
             prop_or_props = response.get('properties', [])
             if isinstance(prop_or_props, list):
                 for prop in prop_or_props:
-                    device_id = prop.get('serialNumber')
+                    device_id = prop.get('serialNumber',None)
+                    if device_id is None:
+                        device_id = response.get('from', None)
                     responses.append((device_id, resource, prop))
             else:
                 device_id = response.get('from', None)
@@ -197,7 +199,7 @@ class ArloBackEnd(object):
         # Now find something waiting for this/these.
         for device_id, resource, response in responses:
             cbs = []
-            self._arlo.debug('sending ' + resource + ' to ' + device_id)
+            self._arlo.debug("sending {} to {}".format(resource, device_id))
             with self._lock:
                 if device_id and device_id in self._callbacks:
                     cbs.extend(self._callbacks[device_id])
@@ -230,6 +232,7 @@ class ArloBackEnd(object):
                     time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
                     dump.write("{}: {}\n".format(time_stamp, pprint.pformat(response, indent=2)))
             self._arlo.vdebug("packet in={}".format(pprint.pformat(response, indent=2)))
+
 
             # logged out? signal exited
             if response.get('action') == 'logout':
