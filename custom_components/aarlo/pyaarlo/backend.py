@@ -10,9 +10,9 @@ import requests.adapters
 
 from .constant import (AUTH_HOST, AUTH_PATH, AUTH_VALIDATE_PATH, AUTH_GET_FACTORS, AUTH_START_PATH, AUTH_FINISH_PATH,
                        DEFAULT_RESOURCES, LOGOUT_PATH, SESSION_PATH,
-                       NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH)
+                       NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH, TFA_CONSOLE_SOURCE, TFA_IMAP_SOURCE)
 from .sseclient import SSEClient
-from .tfa import Arlo2FA
+from .tfa import Arlo2FAConsole, Arlo2FAImap
 from .util import time_to_arlotime, now_strftime, to_b64
 
 
@@ -42,7 +42,7 @@ class ArloBackEnd(object):
         self._session = None
         self._logged_in = self._login()
         if not self._logged_in:
-            self._arlo.warning('failed to log in')
+            self._arlo.debug('failed to log in')
             return
 
         # event loop thread - started as needed
@@ -161,7 +161,7 @@ class ArloBackEnd(object):
             prop_or_props = response.get('properties', [])
             if isinstance(prop_or_props, list):
                 for prop in prop_or_props:
-                    device_id = prop.get('serialNumber',None)
+                    device_id = prop.get('serialNumber', None)
                     if device_id is None:
                         device_id = response.get('from', None)
                     responses.append((device_id, resource, prop))
@@ -231,8 +231,6 @@ class ArloBackEnd(object):
                 with open(self._dump_file, 'a') as dump:
                     time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
                     dump.write("{}: {}\n".format(time_stamp, pprint.pformat(response, indent=2)))
-            self._arlo.vdebug("packet in={}".format(pprint.pformat(response, indent=2)))
-
 
             # logged out? signal exited
             if response.get('action') == 'logout':
@@ -349,6 +347,16 @@ class ArloBackEnd(object):
                 if mnow >= mend:
                     return self._requests.pop(tid)
 
+    def _get_tfa(self):
+        """ Return the 2FA type we're using. """
+        tfa_type = self._arlo.cfg.tfa_source
+        if tfa_type == TFA_CONSOLE_SOURCE:
+            return Arlo2FAConsole(self._arlo)
+        elif tfa_type == TFA_IMAP_SOURCE:
+            return Arlo2FAImap(self._arlo)
+        else:
+            return tfa_type
+
     def _update_auth_info(self, body):
         self._token = body['token']
         self._token64 = to_b64(self._token)
@@ -370,6 +378,7 @@ class ArloBackEnd(object):
                                           'language': "en",
                                           'EnvSource': 'prod'}, headers)
         if body is None:
+            self._arlo.error('authentication failed')
             return False
 
         # save new login information
@@ -377,17 +386,17 @@ class ArloBackEnd(object):
 
         # Looks like we need 2FA. So, request a code be sent to our email address.
         if not body['authCompleted']:
+            self._arlo.debug('need 2FA...')
 
             # update headers and create 2fa instance
-            self._arlo.debug('need 2FA...')
             headers['Authorization'] = self._token64
-            tfa = Arlo2FA(self._arlo)
+            tfa = self._get_tfa()
 
             # get available 2fa choices,
             self._arlo.debug('getting tfa choices')
             factors = self.auth_get(AUTH_GET_FACTORS + "?data = {}".format(int(time.time())), {}, headers)
             if factors is None:
-                self._arlo.debug('couldnt find tfa choices')
+                self._arlo.error('2fa: no secondary choices available')
                 return False
 
             # look for code source choice
@@ -397,26 +406,26 @@ class ArloBackEnd(object):
                 if factor['factorType'].lower() == self._arlo.cfg.tfa_type:
                     factor_id = factor['factorId']
             if factor_id is None:
-                self._arlo.debug('couldnt find tfa choice')
+                self._arlo.error('2fa no suitable secondary choice available')
                 return False
 
             # snapshot 2fa before sending in request
             if not tfa.start():
-                self._arlo.debug('tfa start failed')
+                self._arlo.error('2fa startup failed')
                 return False
 
             # start authentication with email
             self._arlo.debug('starting auth with {}'.format(self._arlo.cfg.tfa_type))
             body = self.auth_post(AUTH_START_PATH, {'factorId': factor_id}, headers)
             if body is None:
-                self._arlo.debug('startAuth failed')
+                self._arlo.error('2fa startAuth failed')
                 return False
             factor_auth_code = body['factorAuthCode']
 
             # get code from TFA source
             code = tfa.get()
             if code is None:
-                self._arlo.debug('tfa get failed')
+                self._arlo.error('2fa core retrieval failed')
                 return False
 
             # tidy 2fa
@@ -427,7 +436,7 @@ class ArloBackEnd(object):
             body = self.auth_post(AUTH_FINISH_PATH, {'factorAuthCode': factor_auth_code,
                                                      'otp': code}, headers)
             if body is None:
-                self._arlo.debug('finishAuth failed')
+                self._arlo.error('2fa finishAuth failed')
                 return False
 
             # save new login information
@@ -446,11 +455,17 @@ class ArloBackEnd(object):
         # Validate it!
         validated = self.auth_get(AUTH_VALIDATE_PATH + "?data = {}".format(int(time.time())), {},
                                   headers)
-        return validated is not None
+        if validated is None:
+            self._arlo.error('token validation failed')
+            return False
+        return True
 
     def _v2_session(self):
         v2_session = self.get(SESSION_PATH)
-        return v2_session is not None
+        if v2_session is None:
+            self._arlo.error('session start failed')
+            return False
+        return True
 
     def _login(self):
 
@@ -474,11 +489,9 @@ class ArloBackEnd(object):
                                     pool_maxsize=self._arlo.cfg.http_max_size))
 
         if not self._auth():
-            self._arlo.debug('login failed')
             return False
 
         if not self._validate():
-            self._arlo.debug('validation failed')
             return False
 
         # update sessions headers
@@ -495,11 +508,10 @@ class ArloBackEnd(object):
         self._session.headers.update(headers)
 
         if not self._v2_session():
-            self._arlo.debug('v2 session failed')
             return False
-
         return True
 
+    @property
     def is_connected(self):
         return self._logged_in
 

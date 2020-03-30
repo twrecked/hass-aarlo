@@ -30,6 +30,9 @@ class PyArlo(object):
 
     def __init__(self, **kwargs):
 
+        # core values
+        self._last_error = None
+
         # Set up the config first.
         self._cfg = ArloCfg(self, **kwargs)
 
@@ -45,6 +48,10 @@ class PyArlo(object):
         self._st = ArloStorage(self)
         self._be = ArloBackEnd(self)
         self._ml = ArloMediaLibrary(self)
+
+        # Failed to login, then stop now!
+        if not self._be.is_connected:
+            return
 
         self._lock = threading.Condition()
         self._bases = []
@@ -217,7 +224,7 @@ class PyArlo(object):
 
     @property
     def is_connected(self):
-        return self._be.is_connected()
+        return self._be.is_connected
 
     @property
     def cameras(self):
@@ -278,7 +285,12 @@ class PyArlo(object):
         pass
 
     def error(self, msg):
+        self._last_error = msg
         _LOGGER.error(msg)
+
+    @property
+    def last_error(self):
+        return self._last_error
 
     def warning(self, msg):
         _LOGGER.warning(msg)
