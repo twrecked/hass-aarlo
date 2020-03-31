@@ -483,6 +483,7 @@ The following additional parameters can be specified against the aarlo platform 
 | `mode_api`              | string   | `auto`                  | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
 | `verbose_debug`         | boolean  | `False`                 | Turn on extra debug. This extra information is usually not needed! |
 | `hide_deprecated_services` | boolean  | `False`              | If `True` only show services on the `aarlo` domain. |
+| `library_days`          | integer  | `30` (days)             | Change the number of days of video the component downloads from Arlo. |
 | `injection_service`     | boolean  | `False`                 | If `True` enable the packet injection service. |
 
 <a name="advanced-statuses"></a>
