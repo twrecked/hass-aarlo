@@ -1,7 +1,7 @@
 import threading
 from datetime import datetime, timedelta
 
-from .constant import LIBRARY_PATH, PRELOAD_DAYS
+from .constant import LIBRARY_PATH
 from .util import (arlotime_strftime, arlotime_to_datetime, http_get,
                    http_stream)
 
@@ -66,14 +66,14 @@ class ArloMediaLibrary(object):
         for cb in cbs:
             cb()
 
-    def load(self, days=PRELOAD_DAYS):
+    def load(self):
 
-        self._arlo.debug('loading image library')
-
-        # set begining and end
+        # set beginning and end
+        days = self._arlo.cfg.library_days
         now = datetime.today()
         date_from = (now - timedelta(days=days)).strftime('%Y%m%d')
         date_to = now.strftime('%Y%m%d')
+        self._arlo.debug("loading image library ({} days)".format(days))
 
         # save videos for cameras we know about
         data = self._arlo.be.post(LIBRARY_PATH, {'dateFrom': date_from, 'dateTo': date_to})

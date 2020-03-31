@@ -58,6 +58,7 @@ CONF_SNAPSHOT_TIMEOUT = 'snapshot_timeout'
 CONF_IMAP_HOST = 'imap_host'
 CONF_IMAP_USERNAME = 'imap_username'
 CONF_IMAP_PASSWORD = 'imap_password'
+CONF_LIBRARY_DAYS = 'library_days'
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -84,6 +85,7 @@ SNAPSHOT_TIMEOUT = timedelta(seconds=45)
 DEFAULT_IMAP_HOST = 'unknown.imap.com'
 DEFAULT_IMAP_USERNAME = 'unknown@unknown.com'
 DEFAULT_IMAP_PASSWORD = 'unknown'
+DEFAULT_LIBRARY_DAYS = 30
 
 CONFIG_SCHEMA = vol.Schema({
     COMPONENT_DOMAIN: vol.Schema({
@@ -114,6 +116,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_IMAP_HOST, default=DEFAULT_IMAP_HOST): cv.string,
         vol.Optional(CONF_IMAP_USERNAME, default=DEFAULT_IMAP_USERNAME): cv.string,
         vol.Optional(CONF_IMAP_PASSWORD, default=DEFAULT_IMAP_PASSWORD): cv.string,
+        vol.Optional(CONF_LIBRARY_DAYS, default=DEFAULT_LIBRARY_DAYS): cv.positive_int,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -174,6 +177,7 @@ def setup(hass, config):
     imap_host = conf.get(CONF_IMAP_HOST)
     imap_username = conf.get(CONF_IMAP_USERNAME)
     imap_password = conf.get(CONF_IMAP_PASSWORD)
+    library_days = conf.get(CONF_LIBRARY_DAYS)
 
     # Fix up config
     if conf_dir == '':
@@ -197,12 +201,19 @@ def setup(hass, config):
                       user_agent=user_agent, mode_api=mode_api,
                       refresh_devices_every=device_refresh, reconnect_every=reconnect_every,
                       http_connections=http_connections, http_max_size=http_max_size,
-                      hide_deprecated_services=hide_deprecated_services,verbose_debug=verbose_debug,
+                      hide_deprecated_services=hide_deprecated_services,
                       snapshot_timeout=snapshot_timeout,
                       tfa_source='imap', tfa_type='EMAIL',
                       wait_for_initial_setup=False,
-                      imap_host=imap_host, imap_username=imap_username, imap_password=imap_password)
+                      imap_host=imap_host, imap_username=imap_username, imap_password=imap_password,
+                      library_days=library_days,
+                      verbose_debug=verbose_debug)
         if not arlo.is_connected:
+            _LOGGER.error("Unable to connect to Arlo: %s", arlo.last_error)
+            hass.components.persistent_notification.create(
+                'Error: {}<br />You will need to restart hass after fixing.'.format(arlo.last_error),
+                title=NOTIFICATION_TITLE,
+                notification_id=NOTIFICATION_ID)
             return False
 
         hass.data[COMPONENT_DATA] = arlo

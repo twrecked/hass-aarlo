@@ -9,7 +9,7 @@ from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY, LAMP_STATE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
-                       POWER_SAVE_KEY, PRELOAD_DAYS, PRIVACY_KEY,
+                       POWER_SAVE_KEY, PRIVACY_KEY,
                        RECORD_START_PATH, RECORD_STOP_PATH,
                        SNAPSHOT_KEY, SIREN_STATE_KEY, STREAM_SNAPSHOT_KEY,
                        STREAM_SNAPSHOT_PATH, STREAM_START_PATH, CAMERA_MEDIA_DELAY,
@@ -28,7 +28,7 @@ class ArloCamera(ArloChildDevice):
         self._recent_job = None
         self._cache_count = None
         self._cached_videos = None
-        self._min_days_vdo_cache = PRELOAD_DAYS
+        self._min_days_vdo_cache = self._arlo.cfg.library_days
         self._lock = threading.Condition()
         self._snapshot_state = 'idle'
         self._clear_snapshot_cb = None

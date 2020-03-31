@@ -1,7 +1,7 @@
 from .constant import (
     DEFAULT_HOST,
     TFA_CONSOLE_SOURCE,
-    TFA_EMAIL_TYPE)
+    TFA_EMAIL_TYPE, PRELOAD_DAYS)
 
 
 class ArloCfg(object):
@@ -168,3 +168,7 @@ class ArloCfg(object):
         if self.dump:
             return self.storage_dir + '/' + 'packets.dump'
         return None
+
+    @property
+    def library_days(self):
+        return self._kw.get('library_days', PRELOAD_DAYS)
