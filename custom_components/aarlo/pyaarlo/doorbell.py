@@ -51,7 +51,7 @@ class ArloDoorBell(ArloChildDevice):
         if cap.startswith('button'):
             return True
         # video doorbell provides these as a camera type
-        if self.model_id != 'AVD1001A':
+        if not self.model_id.startswith('AVD1001'):
             if cap in 'motionDetected':
                 return True
             if cap in ('battery_level', 'signal_strength'):
