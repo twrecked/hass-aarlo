@@ -82,11 +82,12 @@ class PyArlo(object):
 
             if dtype == 'basestation' or \
                     device.get('modelId') == 'ABC1000' or dtype == 'arloq' or dtype == 'arloqs' or \
-                    device.get('modelId') == 'AVD1001A':
+                    device.get('modelId').startswith('AVD1001'):
                 self._bases.append(ArloBase(dname, self, device))
             if dtype == 'arlobridge':
                 self._bases.append(ArloBase(dname, self, device))
-            if dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs' or device.get('modelId') == 'AVD1001A':
+            if dtype == 'camera' or dtype == 'arloq' or dtype == 'arloqs' or \
+                    device.get('modelId').startswith('AVD1001'):
                 self._cameras.append(ArloCamera(dname, self, device))
             if dtype == 'doorbell':
                 self._doorbells.append(ArloDoorBell(dname, self, device))
