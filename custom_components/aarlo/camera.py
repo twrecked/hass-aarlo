@@ -898,7 +898,7 @@ async def async_camera_siren_off_service(hass, call):
 
 async def async_camera_start_recording_service(hass, call):
     for entity_id in call.data['entity_id']:
-        duration = hass.data[ATTR_DURATION]
+        duration = call.data[ATTR_DURATION]
         _LOGGER.info("{} start recording(duration={})".format(entity_id,duration))
         get_entity_from_domain(hass,DOMAIN,entity_id).start_recording(duration=duration)
 
