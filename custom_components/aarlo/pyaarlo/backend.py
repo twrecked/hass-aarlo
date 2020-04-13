@@ -9,7 +9,7 @@ import uuid
 import base64
 
 from .constant import (AUTH_HOST, AUTH_PATH, AUTH_VALIDATE_PATH,
-                       DEFAULT_RESOURCES, LOGIN_PATH, LOGOUT_PATH,
+                       DEFAULT_RESOURCES, LOGIN_PATH, LOGOUT_PATH, SESSION_PATH,
                        NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH)
 from .sseclient import SSEClient
 from .util import time_to_arlotime, now_strftime
@@ -420,6 +420,11 @@ class ArloBackEnd(object):
                                      'Chrome/72.0.3626.81 Safari/537.36')
 
         self._session.headers.update(headers)
+
+        session = self.get(SESSION_PATH)
+        if (session is None):
+            self._arlo.debug('session failed')
+            return False
 
         return True
 
