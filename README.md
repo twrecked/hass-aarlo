@@ -333,7 +333,7 @@ If you do find the component locks up after a while (I've seen reports of hours,
 * `refresh_devices_every`, tell Aarlo to request the device list every so often. This will sometimes prevent the back end from aging you out. The value is in hours and a good starting point is 3.
 * `stream_timeout`, tell Aarlo to close and reopen the event stream after a certain period of inactivity. Aarlo will send keep alive every minute so a good starting point is 180 seconds.
 * `reconnect_every`, tell Aarlo to logout and back in every so often. This establishes a new session at the risk of losing an event notification. The value is minutes and a good starting point is 90.
-* `request_timout`, the amount of time to allow for a http request to work. A good starting point is 120 seconds.
+* `request_timeout`, the amount of time to allow for a http request to work. A good starting point is 120 seconds.
 
 Unify your alarm mode names across all your base stations. There is no way to specify different mode names for each device.
 
