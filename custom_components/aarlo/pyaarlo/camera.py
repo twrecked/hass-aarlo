@@ -386,6 +386,8 @@ class ArloCamera(ArloChildDevice):
             return True
         if cap in 'nightLight' and self.model_id.startswith("ABC1000"):
             return True
+        if cap in 'nightLight' and self.model_id.startswith("VMC5040"):
+            return True
         if cap in 'babyCryDetection' and self.model_id.startswith("ABC1000"):
             return True
         return super().has_capability(cap)
