@@ -232,6 +232,7 @@ class ArloBackEnd(object):
                     time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
                     dump.write("{}: {}\n".format(time_stamp, pprint.pformat(response, indent=2)))
 
+
             # logged out? signal exited
             if response.get('action') == 'logout':
                 with self._lock:
