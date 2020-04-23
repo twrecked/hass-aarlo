@@ -6,6 +6,7 @@ import zlib
 from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        CAPTURED_TODAY_KEY, FLIP_KEY, IDLE_SNAPSHOT_PATH, LAST_CAPTURE_KEY,
                        CRY_DETECTION_KEY, LIGHT_BRIGHTNESS_KEY, LIGHT_MODE_KEY,
+                       SPOTLIGHT_KEY, SPOTLIGHT_BRIGHTNESS_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY, LAMP_STATE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
@@ -248,6 +249,19 @@ class ArloCamera(ArloChildDevice):
 
                 self._save_and_do_callbacks(LIGHT_MODE_KEY, light_mode)
 
+        # spotlight
+        spotlight = event.get("properties", {}).get("spotlight", None)
+        if spotlight is not None:
+            self._arlo.debug("got a spotlight {}".format(spotlight.get("enabled", False)))
+            if spotlight.get("enabled", False) is True:
+                self._save_and_do_callbacks(SPOTLIGHT_KEY, "on")
+            else:
+                self._save_and_do_callbacks(SPOTLIGHT_KEY, "off")
+
+            brightness = spotlight.get("intensity")
+            if brightness is not None:
+                self._save_and_do_callbacks(SPOTLIGHT_BRIGHTNESS_KEY, brightness)
+
         # audio analytics
         audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
         if audioanalytics is not None:
@@ -386,7 +400,7 @@ class ArloCamera(ArloChildDevice):
             return True
         if cap in 'nightLight' and self.model_id.startswith("ABC1000"):
             return True
-        if cap in 'nightLight' and self.model_id.startswith("VMC5040"):
+        if cap in 'spotlight' and self.model_id.startswith("VMC5040"):
             return True
         if cap in 'babyCryDetection' and self.model_id.startswith("ABC1000"):
             return True
@@ -722,3 +736,36 @@ class ArloCamera(ArloChildDevice):
         return self._set_nightlight_properties({
             'mode': mode
         })
+
+    def _set_spotlight_properties(self, properties):
+        self._arlo.debug('{}: setting spotlight properties: {}'.format(self._name, properties))
+        self._arlo.bg.run(self._arlo.be.notify,
+                          base=self.base_station,
+                          body={
+                              'action': 'set',
+                              'properties': {
+                                  'spotlight': properties
+                              },
+                              'publishResponse': True,
+                              'resource': self.resource_id,
+                          })
+        return True
+
+    def set_spotlight_on(self):
+        """Turns the spotlight on."""
+        return self._set_spotlight_properties({
+            'enabled': True
+        })
+
+    def set_spotlight_off(self):
+        """Turns the spotlight off."""
+        return self._set_spotlight_properties({
+            'enabled': False
+        })
+
+    def set_spotlight_brightness(self, brightness):
+        """Turns the spotlight brightness value (0-100)."""
+        return self._set_spotlight_properties({
+            'intensity': (brightness / 255 * 100)
+        })
+
