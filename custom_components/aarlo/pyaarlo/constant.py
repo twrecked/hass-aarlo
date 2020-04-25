@@ -18,7 +18,7 @@ STREAM_START_PATH = '/hmsweb/users/devices/startStream'
 IDLE_SNAPSHOT_PATH = '/hmsweb/users/devices/fullFrameSnapshot'
 TRANSID_PREFIX = 'web'
 
-AUTH_HOST = 'https://ocapi-app.arlo.com'
+DEFAULT_AUTH_HOST = 'https://ocapi-app.arlo.com'
 AUTH_PATH = '/api/auth'
 AUTH_START_PATH = '/api/startAuth'
 AUTH_FINISH_PATH = '/api/finishAuth'
