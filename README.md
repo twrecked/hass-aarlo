@@ -479,6 +479,7 @@ The following additional parameters can be specified against the aarlo platform 
 | `packet_dump`           | boolean  | `False`                 | Causes aarlo to store all the packets it sees in `/config/.aarlo/packets.dump` file. Only really needed for debugging and reverse engineering the API. |
 | `conf_dir`              | string   | `'/config/.aarlo'`      | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems - don't set this value unless asked to.) |
 | `host`                  | string   | `https://my.arlo.com`   | Sets the host aarlo will connect to |
+| `auth_host`             | string   | `https://ocapi-app.arlo.com`   | Sets the authentication host aarlo will connect to |
 | `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
 | `mode_api`              | string   | `auto`                  | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
 | `verbose_debug`         | boolean  | `False`                 | Turn on extra debug. This extra information is usually not needed! |
@@ -610,4 +611,3 @@ If you are still having issues please read these 3 posts:
 * coloured lights
 * custom mode - like SmartThings to better control motion detection
 * use asyncio loop internally
-
