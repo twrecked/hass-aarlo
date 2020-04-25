@@ -466,26 +466,26 @@ The following additional parameters can be specified against the aarlo platform 
 
 | Field  | Type | Default | Description |
 | ------ | ---- | ------- | ----------- |
-| `db_motion_time`        | integer  | `30` (s)                | Duration of doorbell motion. (Arlo doorbell only indicates motion is present not that it stops) |
-| `db_ding_time`          | integer  | `60` (s)                | Duration of doorbell press. (Arlo doorbell only indicates doorbell was pressed, not that it was released) |
-| `recent_time`           | integer  | `600` (s)               | Used to hold the cameras in a recent activity state after a recording or streaming event. (Streaming & recording can be over in a few seconds, without this the camera will revert to idle, possibly looking like nothing has happened.) |
-| `last_format`           | strftime | `'%m-%d %H:%M'`         | Display format of last captured time  |
-| `http_connections`      | integer  | `5`                     | Adjust the number http connections pools to cache |
-| `http_max_size`         | integer  | `10`                    | Adjust the maximum number connects to save in the pool |
-| `request_timeout`       | time period  | `60`                | Timeout for requests sent to Arlo server. 0 means no timeout. |
-| `stream_timeout`        | time period  | `0`                 | Timeout for inactivity on the Arlo event stream. 0 means no timeout. Used to help with Arlo components becoming unresponsive. |
-| `reconnect_every`       | integer  | `0` (minutes)           | If not 0 then force a logout every `reconect_entry` time period. Used to help with Arlo components becoming unresponsive.|
-| `refresh_devices_every` | integer  | `0` (hours)             | Used to force a refresh every x hours. 0 = no refreshing. Used to resolve issue with mode changes failing after several days of use |
-| `packet_dump`           | boolean  | `False`                 | Causes aarlo to store all the packets it sees in `/config/.aarlo/packets.dump` file. Only really needed for debugging and reverse engineering the API. |
-| `conf_dir`              | string   | `'/config/.aarlo'`      | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems - don't set this value unless asked to.) |
-| `host`                  | string   | `https://my.arlo.com`   | Sets the host aarlo will connect to |
+| `db_motion_time`        | integer  | `30` (s)                       | Duration of doorbell motion. (Arlo doorbell only indicates motion is present not that it stops) |
+| `db_ding_time`          | integer  | `60` (s)                       | Duration of doorbell press. (Arlo doorbell only indicates doorbell was pressed, not that it was released) |
+| `recent_time`           | integer  | `600` (s)                      | Used to hold the cameras in a recent activity state after a recording or streaming event. (Streaming & recording can be over in a few seconds, without this the camera will revert to idle, possibly looking like nothing has happened.) |
+| `last_format`           | strftime | `'%m-%d %H:%M'`                | Display format of last captured time  |
+| `http_connections`      | integer  | `5`                            | Adjust the number http connections pools to cache |
+| `http_max_size`         | integer  | `10`                           | Adjust the maximum number connects to save in the pool |
+| `request_timeout`       | time period  | `60`                       | Timeout for requests sent to Arlo server. 0 means no timeout. |
+| `stream_timeout`        | time period  | `0`                        | Timeout for inactivity on the Arlo event stream. 0 means no timeout. Used to help with Arlo components becoming unresponsive. |
+| `reconnect_every`       | integer  | `0` (minutes)                  | If not 0 then force a logout every `reconect_entry` time period. Used to help with Arlo components becoming unresponsive.|
+| `refresh_devices_every` | integer  | `0` (hours)                    | Used to force a refresh every x hours. 0 = no refreshing. Used to resolve issue with mode changes failing after several days of use |
+| `packet_dump`           | boolean  | `False`                        | Causes aarlo to store all the packets it sees in `/config/.aarlo/packets.dump` file. Only really needed for debugging and reverse engineering the API. |
+| `conf_dir`              | string   | `'/config/.aarlo'`             | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems - don't set this value unless asked to.) |
+| `host`                  | string   | `https://my.arlo.com`          | Sets the host aarlo will connect to |
 | `auth_host`             | string   | `https://ocapi-app.arlo.com`   | Sets the authentication host aarlo will connect to |
-| `no_media_upload`       | boolean  | `False`                 | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
-| `mode_api`              | string   | `auto`                  | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
-| `verbose_debug`         | boolean  | `False`                 | Turn on extra debug. This extra information is usually not needed! |
-| `hide_deprecated_services` | boolean  | `False`              | If `True` only show services on the `aarlo` domain. |
-| `library_days`          | integer  | `30` (days)             | Change the number of days of video the component downloads from Arlo. |
-| `injection_service`     | boolean  | `False`                 | If `True` enable the packet injection service. |
+| `no_media_upload`       | boolean  | `False`                        | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) |
+| `mode_api`              | string   | `auto`                         | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device |
+| `verbose_debug`         | boolean  | `False`                        | Turn on extra debug. This extra information is usually not needed! |
+| `hide_deprecated_services` | boolean  | `False`                     | If `True` only show services on the `aarlo` domain. |
+| `library_days`          | integer  | `30` (days)                    | Change the number of days of video the component downloads from Arlo. |
+| `injection_service`     | boolean  | `False`                        | If `True` enable the packet injection service. |
 
 <a name="advanced-statuses"></a>
 ### Camera Statuses
