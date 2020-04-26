@@ -178,6 +178,8 @@ class ArloDevice(object):
 
     def has_capability(self, cap):
         """ Is the camera capabale of performing an activity. """
+        if cap in (CONNECTION_KEY,):
+            return True
         return False
 
     @property
