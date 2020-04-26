@@ -8,7 +8,7 @@ import uuid
 import requests
 import requests.adapters
 
-from .constant import (AUTH_HOST, AUTH_PATH, AUTH_VALIDATE_PATH, AUTH_GET_FACTORS, AUTH_START_PATH, AUTH_FINISH_PATH,
+from .constant import (AUTH_PATH, AUTH_VALIDATE_PATH, AUTH_GET_FACTORS, AUTH_START_PATH, AUTH_FINISH_PATH,
                        DEFAULT_RESOURCES, LOGOUT_PATH, SESSION_PATH,
                        NOTIFY_PATH, SUBSCRIBE_PATH, TRANSID_PREFIX, DEVICES_PATH, TFA_CONSOLE_SOURCE, TFA_IMAP_SOURCE)
 from .sseclient import SSEClient
@@ -367,7 +367,7 @@ class ArloBackEnd(object):
     def _auth(self):
         headers = {'Auth-Version': '2',
                    'Accept': 'application/json, text/plain, */*',
-                   'Referer': 'https://my.arlo.com',
+                   'Referer': self._arlo.cfg.host,
                    'User-Agent': self._user_agent,
                    'Source': 'arloCamWeb'}
 
@@ -448,7 +448,7 @@ class ArloBackEnd(object):
         headers = {'Auth-Version': '2',
                    'Accept': 'application/json, text/plain, */*',
                    'Authorization': self._token64,
-                   'Referer': 'https://my.arlo.com',
+                   'Referer': self._arlo.cfg.host,
                    'User-Agent': self._user_agent,
                    'Source': 'arloCamWeb'}
 
@@ -531,10 +531,14 @@ class ArloBackEnd(object):
         return self._request(path, 'POST', params, headers, False, raw, timeout)
 
     def auth_post(self, path, params=None, headers=None, raw=False, timeout=None):
-        return self._request(path, 'POST', params, headers, False, raw, timeout, AUTH_HOST)
+        return self._request(
+            path, "POST", params, headers, False, raw, timeout, self._arlo.cfg.auth_host
+        )
 
     def auth_get(self, path, params=None, headers=None, stream=False, raw=False, timeout=None):
-        return self._request(path, 'GET', params, headers, stream, raw, timeout, AUTH_HOST)
+        return self._request(
+            path, "GET", params, headers, stream, raw, timeout, self._arlo.cfg.auth_host
+        )
 
     @property
     def session(self):
