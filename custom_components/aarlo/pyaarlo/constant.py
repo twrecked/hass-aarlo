@@ -27,8 +27,10 @@ AUTH_VALIDATE_PATH = '/api/validateAccessToken'
 
 TFA_CONSOLE_SOURCE = 'console'
 TFA_IMAP_SOURCE = 'imap'
+TFA_REST_API_SOURCE = 'rest-api'
 TFA_EMAIL_TYPE = 'EMAIL'
 TFA_SMS_TYPE = 'SMS'
+TFA_DEFAULT_HOST = 'https://pyaarlo-tfa.appspot.com'
 
 PRELOAD_DAYS = 30
 
@@ -66,6 +68,8 @@ POWER_SAVE_KEY = 'powerSaveMode'
 PRIVACY_KEY = 'privacyActive'
 LIGHT_BRIGHTNESS_KEY = 'lightBrightness'
 LIGHT_MODE_KEY = 'lightMode'
+SPOTLIGHT_KEY = 'spotlight'
+SPOTLIGHT_BRIGHTNESS_KEY = 'spotlightBrightness'
 SIGNAL_STR_KEY = 'signalStrength'
 SIREN_STATE_KEY = 'sirenState'
 TEMPERATURE_KEY = 'temperature'

@@ -17,7 +17,7 @@ class ArloBackgroundWorker(threading.Thread):
 
     def _run_next(self):
 
-        # timout in the future
+        # timeout in the future
         timeout = int(time.monotonic() + 60)
 
         # go by priority...

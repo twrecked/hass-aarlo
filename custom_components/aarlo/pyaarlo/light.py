@@ -7,11 +7,16 @@ from .device import ArloChildDevice
 class ArloLight(ArloChildDevice):
 
     def __init__(self, name, arlo, attrs):
+        """An Arlo Light.
+
+        :param name: name of light
+        :param arlo: controlling arlo instance
+        :param attrs: initial attributes give by Arlo
+        """
         super().__init__(name, arlo, attrs)
 
     @property
     def resource_type(self):
-        """ Return the resource type this object describes. """
         return "lights"
 
     def _event_handler(self, resource, event):
@@ -22,11 +27,14 @@ class ArloLight(ArloChildDevice):
 
     @property
     def is_on(self):
-        """ Is the light on? """
         return self._load(LAMP_STATE_KEY, "off") == "on"
 
     def turn_on(self, brightness=None, rgb=None):
-        """ Turn the light on. """
+        """Turn the light on.
+
+        :param brightness: how bright to make the light
+        :param rgb: what color to make the light
+        """
         properties = {LAMP_STATE_KEY: 'on'}
         if brightness is not None:
             properties[BRIGHTNESS_KEY] = brightness
@@ -35,42 +43,41 @@ class ArloLight(ArloChildDevice):
             pass
 
         self._arlo.debug("{} sending {}".format(self._name, pprint.pformat(properties)))
-        self._arlo.bg.run(self._arlo.be.notify,
-                          base=self.base_station,
-                          body={
-                              'action': 'set',
-                              'properties': properties,
-                              'publishResponse': True,
-                              'resource': self.resource_id,
-                          })
+        self._arlo.be.notify(base=self.base_station,
+                             body={
+                                 'action': 'set',
+                                 'properties': properties,
+                                 'publishResponse': True,
+                                 'resource': self.resource_id,
+                             })
         return True
 
     def turn_off(self):
-        """ Turn the light off. """
-        self._arlo.bg.run(self._arlo.be.notify,
-                          base=self.base_station,
-                          body={
-                              'action': 'set',
-                              'properties': {LAMP_STATE_KEY: 'off'},
-                              'publishResponse': True,
-                              'resource': self.resource_id,
-                          })
+        """Turn the light off. """
+        self._arlo.be.notify(base=self.base_station,
+                             body={
+                                 'action': 'set',
+                                 'properties': {LAMP_STATE_KEY: 'off'},
+                                 'publishResponse': True,
+                                 'resource': self.resource_id,
+                             })
         return True
 
     def set_brightness(self, brightness):
-        """ Set the light brightness. """
-        self._arlo.bg.run(self._arlo.be.notify,
-                          base=self.base_station,
-                          body={
-                              'action': 'set',
-                              'properties': {BRIGHTNESS_KEY: brightness},
-                              'publishResponse': True,
-                              'resource': self.resource_id,
-                          })
+        """Set the light brightness.
+
+        :param brightness: brightness to use (0-255)
+        """
+        self._arlo.be.notify(base=self.base_station,
+                             body={
+                                 'action': 'set',
+                                 'properties': {BRIGHTNESS_KEY: brightness},
+                                 'publishResponse': True,
+                                 'resource': self.resource_id,
+                             })
         return True
 
     def has_capability(self, cap):
-        """ Is the camera capabale of performing an activity. """
         if cap in (MOTION_DETECTED_KEY, BATTERY_KEY):
             return True
         return super().has_capability(cap)

@@ -6,6 +6,7 @@ import zlib
 from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        CAPTURED_TODAY_KEY, FLIP_KEY, IDLE_SNAPSHOT_PATH, LAST_CAPTURE_KEY,
                        CRY_DETECTION_KEY, LIGHT_BRIGHTNESS_KEY, LIGHT_MODE_KEY,
+                       SPOTLIGHT_KEY, SPOTLIGHT_BRIGHTNESS_KEY,
                        LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY, LAMP_STATE_KEY,
                        LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
                        MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
@@ -207,8 +208,10 @@ class ArloCamera(ArloChildDevice):
         # no media uploads and stream stopped?
         if self._arlo.cfg.no_media_upload:
             if event.get('properties', {}).get('activityState', 'unknown') == 'idle' and self.is_recording:
-                self._arlo.debug('got a stream stop')
+                self._arlo.debug('got a stream stop, queueing update')
                 self._arlo.bg.run_in(self._arlo.ml.queue_update, 5, cb=self._update_media_and_thumbnail)
+                self._arlo.bg.run_in(self._arlo.ml.queue_update, 10, cb=self._update_media_and_thumbnail)
+                self._arlo.bg.run_in(self._arlo.ml.queue_update, 15, cb=self._update_media_and_thumbnail)
 
         # get it an update last image
         if event.get('action', '') == 'fullFrameSnapshotAvailable':
@@ -255,6 +258,19 @@ class ArloCamera(ArloChildDevice):
 
                 self._save_and_do_callbacks(LIGHT_MODE_KEY, light_mode)
 
+        # spotlight
+        spotlight = event.get("properties", {}).get("spotlight", None)
+        if spotlight is not None:
+            self._arlo.debug("got a spotlight {}".format(spotlight.get("enabled", False)))
+            if spotlight.get("enabled", False) is True:
+                self._save_and_do_callbacks(SPOTLIGHT_KEY, "on")
+            else:
+                self._save_and_do_callbacks(SPOTLIGHT_KEY, "off")
+
+            brightness = spotlight.get("intensity")
+            if brightness is not None:
+                self._save_and_do_callbacks(SPOTLIGHT_BRIGHTNESS_KEY, brightness)
+
         # audio analytics
         audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
         if audioanalytics is not None:
@@ -266,22 +282,26 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def resource_type(self):
-        """ Return the resource type this object describes. """
         return "cameras"
 
     @property
     def last_thumbnail(self):
-        """ Return the url of the last image as reported by Arlo. """
+        """Returns the URL of the last image as reported by Arlo.
+        """
         return self._load(LAST_IMAGE_KEY, None)
 
     @property
     def last_snapshot(self):
-        """ Return the url of the last snapshot taken as reported by Arlo. """
+        """Returns the URL of the last snapshot as reported by Arlo.
+        """
         return self._load(SNAPSHOT_KEY, None)
 
     @property
     def last_image(self):
-        """ Return the url of the last snapshot or image taken. """
+        """Returns the URL of the last snapshot or image taken.
+
+        Will pick snapshot or image based on most recently updated.
+        """
         image = None
         if self.last_image_source.startswith('snapshot/'):
             image = self.last_snapshot
@@ -291,24 +311,39 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def last_image_from_cache(self):
-        """ Return the last image or snapshot in binary format. """
+        """Returns the last image or snapshot in binary format.
+
+        :return: Binary reprsensation of the last image.
+        :rtype: bytearray
+        """
         return self._load(LAST_IMAGE_DATA_KEY, self._arlo.blank_image)
 
     @property
     def last_image_source(self):
-        """ Return a string what triggered the last image capture. """
+        """Returns a string describing what triggered the last image capture.
+
+        Currently either `capture/${date}` or `snapshot/${date}`.
+        """
         return self._load(LAST_IMAGE_SRC_KEY, '')
 
     @property
     def last_video(self):
-        """ Return an ArloVideo object describing the last captured video. """
+        """Returns a video object describing the last captured video.
+
+        :return: Video object or `None` if no videos present.
+        :rtype: ArloVideo
+        """
         with self._lock:
             if self._cached_videos:
                 return self._cached_videos[0]
         return None
 
     def last_n_videos(self, count):
-        """ Return the last count ArloVideo objects describing the last captured videos. """
+        """Returns the last count video objects describing the last captured videos.
+
+        :return: `count` video objects or `None` if no videos present.
+        :rtype: list(ArloVideo)
+        """
         with self._lock:
             if self._cached_videos:
                 return self._cached_videos[:count]
@@ -316,47 +351,58 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def last_capture(self):
-        """ Return a date string showing when the last video was captured. """
+        """Returns a date string showing when the last video was captured.
+
+        It uses the format returned by `last_capture_date_format`.
+        """
         return self._load(LAST_CAPTURE_KEY, None)
 
     @property
     def last_capture_date_format(self):
-        """ Return a date format string used by the last_capture function. """
+        """Returns a date format string used by the last_capture function.
+
+        You can set this value in the parameters passed to PyArlo.
+        """
         return self._arlo.cfg.last_format
 
     @property
     def brightness(self):
-        """ Return the camera brightness setting. """
+        """Returns the camera brightness setting.
+        """
         return self._load(BRIGHTNESS_KEY, None)
 
     @property
     def flip_state(self):
-        """ Return the camera flip state setting. """
+        """Returns `True` if the camera is flipped, `False` otherwise.
+        """
         return self._load(FLIP_KEY, None)
 
     @property
     def mirror_state(self):
-        """ Return the camera mirror state setting. """
+        """Returns `True` if the camera is mirrored, `False` otherwise.
+        """
         return self._load(MIRROR_KEY, None)
 
     @property
     def motion_detection_sensitivity(self):
-        """ Return the camera motion sensitivity setting. """
+        """Returns the camera motion sensitivity setting.
+        """
         return self._load(MOTION_SENS_KEY, None)
 
     @property
     def powersave_mode(self):
-        """ Return the camera powersave mode. """
+        """Returns `True` if the camera is on power save mode, `False` otherwise.
+        """
         return self._load(POWER_SAVE_KEY, None)
 
     @property
     def unseen_videos(self):
-        """ Return the camera unseen video count. """
+        """Returns the camera unseen video count. """
         return self._load(MEDIA_COUNT_KEY, 0)
 
     @property
     def captured_today(self):
-        """ Return the number of videos captured today. """
+        """Returns the number of videos captured today. """
         return self._load(CAPTURED_TODAY_KEY, 0)
 
     @property
@@ -368,23 +414,28 @@ class ArloCamera(ArloChildDevice):
         self._min_days_vdo_cache = value
 
     def update_media(self):
-        """ Get latest list of recordings from the backend server. """
+        """Requests latest list of recordings from the backend server.
+
+        Queues a job that runs in the back ground a reloads the videos library from Arlo.
+        """
         self._arlo.debug('queing media update')
         self._arlo.bg.run_low(self._update_media)
 
     def update_last_image(self):
-        """ Get last thumbnail from the backend server. """
+        """Requests last thumbnail from the backend server. """
         self._arlo.debug('queing image update')
         self._arlo.bg.run_low(self._update_last_image)
 
     def update_ambient_sensors(self):
-        """ Get the latest temperature, humidity and air quality settings. """
+        """Requests the latest temperature, humidity and air quality settings.
+
+        Queues a job that requests the info from Arlo.
+        """
         if self.model_id == 'ABC1000':
-            self._arlo.bg.run(self._arlo.be.notify,
-                              base=self.base_station,
-                              body={"action": "get",
-                                    "resource": 'cameras/{}/ambientSensors/history'.format(self.device_id),
-                                    "publishResponse": False})
+            self._arlo.be.notify(base=self.base_station,
+                                 body={"action": "get",
+                                       "resource": 'cameras/{}/ambientSensors/history'.format(self.device_id),
+                                       "publishResponse": False})
 
     def _take_streaming_snapshot(self):
         body = {
@@ -424,12 +475,20 @@ class ArloCamera(ArloChildDevice):
             self._arlo.bg.run_in(self._stop_and_clear_snapshot, self._arlo.cfg.snapshot_timeout)
 
     def request_snapshot(self):
-        """ Request the camera gets a snapshot. """
+        """Request the camera gets a snapshot.
+
+        Queues a job with Arlo that takes a snapshot on the camera.
+        """
         with self._lock:
             self._request_snapshot()
 
     def get_snapshot(self, timeout=30):
-        """ Request the camera gets a snapshot and return it. """
+        """Gets a snapshot from the camera and returns it.
+
+        :param timeout: how long to wait, in seconds, before stopping the snapshot attempt
+        :return: a binary represention of the image, or the last image if snapshot timed out
+        :rtype: bytearray
+        """
         with self._lock:
             self._request_snapshot()
             mnow = time.monotonic()
@@ -441,29 +500,34 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def is_taking_snapshot(self):
-        """ True if camera is taking a snapshot. """
+        """Returns `True` if camera is taking a snapshot, `False` otherwise.
+        """
         if self._snapshot_state != 'idle':
             return True
         return self._load(ACTIVITY_STATE_KEY, 'unknown') == 'fullFrameSnapshot'
 
     @property
     def is_recording(self):
-        """ True if camera is recording a video. """
+        """Returns `True` if camera is recording a video, `False` otherwise.
+        """
         return self._load(ACTIVITY_STATE_KEY, 'unknown') == 'alertStreamActive'
 
     @property
     def is_streaming(self):
-        """ True if camera is streaming a video. """
+        """Returns `True` if camera is streaming a video, `False` otherwise.
+        """
         return self._load(ACTIVITY_STATE_KEY, 'unknown') == 'userStreamActive'
 
     @property
     def was_recently_active(self):
-        """ Return if camera was recently active. """
+        """Returns `True` if camera was recently active, `False` otherwise.
+        """
         return self._recent
 
     @property
     def state(self):
-        """ Return the camera current state. """
+        """Returns the camera's current state.
+        """
         if self.is_taking_snapshot:
             return 'taking snapshot'
         if self.is_recording:
@@ -475,9 +539,11 @@ class ArloCamera(ArloChildDevice):
         return super().state
 
     def get_stream(self):
-        """ Start a stream and return the url for it. 
+        """Start a stream and return the URL for it.
 
         Code does nothing with the url, it's up to you to pass the url to something.
+
+        The stream will stop if nothing connects to it within 30 seconds.
         """
         body = {
             'action': 'set',
@@ -497,9 +563,9 @@ class ArloCamera(ArloChildDevice):
         return url
 
     def get_video(self):
-        """ Download and return the last recorded video.
+        """Download and return the last recorded video.
 
-        Prefer getting the url and downloading it yourself.
+        **Note:** Prefer getting the url and downloading it yourself.
         """
         video = self.last_video
         if video is not None:
@@ -507,19 +573,24 @@ class ArloCamera(ArloChildDevice):
         return None
 
     def stop_activity(self):
-        """ Stop whatever the camera is doing and return it to the idle state. """
-        self._arlo.bg.run(self._arlo.be.notify,
-                          base=self.base_station,
-                          body={
-                              'action': 'set',
-                              'properties': {'activityState': 'idle'},
-                              'publishResponse': True,
-                              'resource': self.resource_id,
-                          })
+        """Request the camera stop whatever it is doing and return to the idle state.
+        """
+        self._arlo.be.notify(base=self.base_station,
+                             body={
+                                 'action': 'set',
+                                 'properties': {'activityState': 'idle'},
+                                 'publishResponse': True,
+                                 'resource': self.resource_id,
+                             })
         return True
 
     def start_recording(self, duration=None):
-        """ Start the camera recording. """
+        """Request the camera start recording.
+
+        :param duration: seconds for recording to run, `None` means no stopping.
+
+        **Note:** Arlo will stop the recording after 30 minutes.
+        """
         body = {
             'parentId': self.parent_id,
             'deviceId': self.device_id,
@@ -534,7 +605,8 @@ class ArloCamera(ArloChildDevice):
             self._arlo.bg.run_in(self.stop_recording)
 
     def stop_recording(self):
-        """ Stop the camera recording. """
+        """Request the camera stop recording.
+        """
         body = {
             'parentId': self.parent_id,
             'deviceId': self.device_id,
@@ -552,9 +624,12 @@ class ArloCamera(ArloChildDevice):
         return self._load(SIREN_STATE_KEY, "off")
 
     def siren_on(self, duration=300, volume=8):
-        """ Turn camera siren on.
+        """Turn camera siren on.
 
         Does nothing if camera doesn't support sirens.
+
+        :param duration: how long, in seconds, to sound for
+        :param volume: how long, from 1 to 8, to sound
         """
         body = {
             'action': 'set',
@@ -562,10 +637,10 @@ class ArloCamera(ArloChildDevice):
             'publishResponse': True,
             'properties': {'sirenState': 'on', 'duration': int(duration), 'volume': int(volume), 'pattern': 'alarm'}
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def siren_off(self):
-        """ Turn camera siren off.
+        """Turn camera siren off.
 
         Does nothing if camera doesn't support sirens.
         """
@@ -575,43 +650,52 @@ class ArloCamera(ArloChildDevice):
             'publishResponse': True,
             'properties': {'sirenState': 'off'}
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     @property
     def is_on(self):
-        """ Is the camera turned on? """
+        """Returns `True` if the camera turned on.
+        """
         return not self._load(PRIVACY_KEY, False)
 
     def turn_on(self):
-        """ Turn the camera on. """
+        """Turn the camera on.
+        """
         body = {
             'action': 'set',
             'resource': self.resource_id,
             'publishResponse': True,
             'properties': {'privacyActive': False}
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self.base_station, body=body)
+        self._arlo.be.notify(base=self.base_station, body=body)
 
     def turn_off(self):
-        """ Turn the camera off. """
+        """Turn the camera off.
+        """
         body = {
             'action': 'set',
             'resource': self.resource_id,
             'publishResponse': True,
             'properties': {'privacyActive': True}
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self.base_station, body=body)
+        self._arlo.be.notify(base=self.base_station, body=body)
 
     def get_audio_playback_status(self):
-        """Gets the current playback status and available track list"""
+        """Gets the current playback status and available track list
+        """
         body = {
             'action': 'get',
             'publishResponse': True,
             'resource': 'audioPlayback'
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def play_track(self, track_id=DEFAULT_TRACK_ID, position=0):
+        """Play the track.
+
+        :param track_id: track id
+        :param position: position in the track
+        """
         body = {
             'action': 'playTrack',
             'publishResponse': True,
@@ -621,36 +705,41 @@ class ArloCamera(ArloChildDevice):
                 AUDIO_POSITION_KEY: position
             }
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def pause_track(self):
+        """Pause the playing track.
+        """
         body = {
             'action': 'pause',
             'publishResponse': True,
             'resource': MEDIA_PLAYER_RESOURCE_ID,
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def previous_track(self):
-        """Skips to the previous track in the playlist."""
+        """Skips to the previous track in the playlist.
+        """
         body = {
             'action': 'prevTrack',
             'publishResponse': True,
             'resource': MEDIA_PLAYER_RESOURCE_ID,
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def next_track(self):
-        """Skips to the next track in the playlist."""
+        """Skips to the next track in the playlist.
+        """
         body = {
             'action': 'nextTrack',
             'publishResponse': True,
             'resource': MEDIA_PLAYER_RESOURCE_ID,
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def set_music_loop_mode_continuous(self):
-        """Sets the music loop mode to repeat the entire playlist."""
+        """Sets the music loop mode to repeat the entire playlist.
+        """
         body = {
             'action': 'set',
             'publishResponse': True,
@@ -661,10 +750,11 @@ class ArloCamera(ArloChildDevice):
                 }
             }
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def set_music_loop_mode_single(self):
-        """Sets the music loop mode to repeat the current track."""
+        """Sets the music loop mode to repeat the current track.
+        """
         body = {
             'action': 'set',
             'publishResponse': True,
@@ -675,10 +765,13 @@ class ArloCamera(ArloChildDevice):
                 }
             }
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def set_shuffle(self, shuffle=True):
-        """Sets playback to shuffle."""
+        """Sets playback to shuffle.
+
+        :param shuffle: `True` to turn on shuffle.
+        """
         body = {
             'action': 'set',
             'publishResponse': True,
@@ -689,10 +782,14 @@ class ArloCamera(ArloChildDevice):
                 }
             }
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def set_volume(self, mute=False, volume=50):
-        """Sets the music volume (0-100)"""
+        """Sets the music volume.
+
+        :param mute: `True` to mute the volume.
+        :param volume: set volume (0-100)
+        """
         body = {
             'action': 'set',
             'publishResponse': True,
@@ -704,62 +801,115 @@ class ArloCamera(ArloChildDevice):
                 }
             }
         }
-        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+        self._arlo.be.notify(base=self, body=body)
 
     def _set_nightlight_properties(self, properties):
         self._arlo.debug('{}: setting nightlight properties: {}'.format(self._name, properties))
-        self._arlo.bg.run(self._arlo.be.notify,
-                          base=self.base_station,
-                          body={
-                              'action': 'set',
-                              'properties': {
-                                  'nightLight': properties
-                              },
-                              'publishResponse': True,
-                              'resource': self.resource_id,
-                          })
+        self._arlo.be.notify(base=self.base_station,
+                             body={
+                                 'action': 'set',
+                                 'properties': {
+                                     'nightLight': properties
+                                 },
+                                 'publishResponse': True,
+                                 'resource': self.resource_id,
+                             })
         return True
 
     def nightlight_on(self):
-        """Turns the nightlight on."""
+        """Turns the nightlight on.
+        """
         return self._set_nightlight_properties({
             'enabled': True
         })
 
     def nightlight_off(self):
-        """Turns the nightlight off."""
+        """Turns the nightlight off.
+        """
         return self._set_nightlight_properties({
             'enabled': False
         })
 
     def set_nightlight_brightness(self, brightness):
-        """Turns the nightlight brightness value (0-255)."""
+        """Sets the nightlight brightness.
+
+        :param brightness: brightness (0-255)
+        """
         return self._set_nightlight_properties({
             'brightness': brightness
         })
 
     def set_nightlight_rgb(self, red=255, green=255, blue=255):
-        """Turns the nightlight color to the specified RGB value."""
+        """Turns the nightlight color to the specified RGB value.
+
+        :param red: red value
+        :param green: green value
+        :param blue: blue value
+        """
         return self._set_nightlight_properties({
             'mode': 'rgb',
             'rgb': {'red': red, 'green': green, 'blue': blue}
         })
 
     def set_nightlight_color_temperature(self, temperature):
-        """Turns the nightlight to the specified Kelvin color temperature."""
+        """Turns the nightlight to the specified Kelvin color temperature.
+
+        :param temperature: temperature, in Kelvin
+        """
         return self._set_nightlight_properties({
             'mode': 'temperature',
             'temperature': str(temperature)
         })
 
     def set_nightlight_mode(self, mode):
-        """Turns the nightlight to a particular mode (rgb, temperature, rainbow)."""
+        """Turns the nightlight to a particular mode.
+
+        :param mode: either `rgb`, `temperature` or `rainbow`
+        :return:
+        """
         return self._set_nightlight_properties({
             'mode': mode
         })
 
+    def _set_spotlight_properties(self, properties):
+        self._arlo.debug('{}: setting spotlight properties: {}'.format(self._name, properties))
+        self._arlo.be.notify(base=self.base_station,
+                             body={
+                                 'action': 'set',
+                                 'properties': {
+                                     'spotlight': properties
+                                 },
+                                 'publishResponse': True,
+                                 'resource': self.resource_id,
+                             })
+        return True
+
+    def set_spotlight_on(self):
+        """Turns the spotlight on
+        """
+        return self._set_spotlight_properties({
+            'enabled': True
+        })
+
+    def set_spotlight_off(self):
+        """Turns the spotlight off
+        """
+        return self._set_spotlight_properties({
+            'enabled': False
+        })
+
+    def set_spotlight_brightness(self, brightness):
+        """Sets the nightlight brightness.
+
+        :param brightness: brightness (0-255)
+        """
+        # Note: Intensity is 0-100 scale, which we map from 0-255 to
+        #       provide an API consistent with nightlight brightness
+        return self._set_spotlight_properties({
+            'intensity': (brightness / 255 * 100)
+        })
+
     def has_capability(self, cap):
-        """ Is the camera capabale of performing an activity. """
         if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY):
             return True
         if cap in (LAST_CAPTURE_KEY, CAPTURED_TODAY_KEY, RECENT_ACTIVITY_KEY):
@@ -768,6 +918,9 @@ class ArloCamera(ArloChildDevice):
             if self.model_id.startswith(('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000')):
                 return True
         if cap in (SIREN_STATE_KEY,):
+            if self.model_id.startswith(('VMC4040', 'VMC5040')):
+                return True
+        if cap in (SPOTLIGHT_KEY,):
             if self.model_id.startswith(('VMC4040', 'VMC5040')):
                 return True
         if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):

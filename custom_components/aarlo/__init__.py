@@ -22,7 +22,7 @@ from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 from .pyaarlo.constant import SIREN_STATE_KEY, DEFAULT_HOST, DEFAULT_AUTH_HOST
 
-__version__ = '0.6.89'
+__version__ = '0.7.0.alpha.1'
 
 _LOGGER = logging.getLogger(__name__)
 

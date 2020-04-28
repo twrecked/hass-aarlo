@@ -132,6 +132,8 @@ class ArloVideo(object):
     """Object for Arlo Video file."""
 
     def __init__(self, attrs, camera, arlo):
+        """ Video Object.
+        """
         self._arlo = arlo
         self._attrs = attrs
         self._camera = camera
@@ -147,27 +149,41 @@ class ArloVideo(object):
     # pylint: disable=invalid-name
     @property
     def id(self):
+        """Returns unique id representing the video.
+        """
         return self._attrs.get('name', None)
 
     @property
     def created_at(self):
+        """Returns date video was creaed.
+        """
         return self._attrs.get('localCreatedDate', None)
 
     def created_at_pretty(self, date_format=None):
+        """Returns date video was taken formated with `last_date_format`
+        """
         if date_format:
             return arlotime_strftime(self.created_at, date_format=date_format)
         return arlotime_strftime(self.created_at)
 
     @property
     def created_today(self):
+        """Returns `True` if video was taken today, `False` otherwise.
+        """
         return self.datetime.date() == datetime.today().date()
 
     @property
     def datetime(self):
+        """Returns a python datetime object of when video was created.
+        """
         return arlotime_to_datetime(self.created_at)
 
     @property
     def content_type(self):
+        """Returns the video content type.
+
+        Usually `video/mp4`
+        """
         return self._attrs.get('contentType', None)
 
     @property
@@ -176,6 +192,8 @@ class ArloVideo(object):
 
     @property
     def media_duration_seconds(self):
+        """Returns how long the recording last.
+        """
         return self._attrs.get('mediaDurationSecond', None)
 
     @property
@@ -184,18 +202,28 @@ class ArloVideo(object):
 
     @property
     def object_type(self):
+        """Returns what object caused the video to start.
+
+        Currently is `vehicle`, `person`, `animal` or `other`.
+        """
         return self._attrs.get('objCategory', None)
 
     @property
     def object_region(self):
+        """Returns the region of the thumbnail showing the object.
+        """
         return self._attrs.get('objRegion', None)
 
     @property
     def thumbnail_url(self):
+        """Returns the URL of the thumbnail image.
+        """
         return self._attrs.get('presignedThumbnailUrl', None)
 
     @property
     def video_url(self):
+        """Returns the URL of the video.
+        """
         return self._attrs.get('presignedContentUrl', None)
 
     def download_thumbnail(self, filename=None):
