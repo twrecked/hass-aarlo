@@ -1,7 +1,10 @@
 from .constant import (
     DEFAULT_HOST,
+    DEFAULT_AUTH_HOST,
     TFA_CONSOLE_SOURCE,
-    TFA_EMAIL_TYPE, PRELOAD_DAYS)
+    TFA_EMAIL_TYPE,
+    PRELOAD_DAYS,
+)
 
 
 class ArloCfg(object):
@@ -42,6 +45,10 @@ class ArloCfg(object):
     @property
     def host(self, default=DEFAULT_HOST):
         return self._kw.get('host', default)
+
+    @property
+    def auth_host(self, default=DEFAULT_AUTH_HOST):
+        return self._kw.get('auth_host', default)
 
     @property
     def dump(self, default=False):

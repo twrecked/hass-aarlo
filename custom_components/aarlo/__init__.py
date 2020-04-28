@@ -20,7 +20,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
-from .pyaarlo.constant import (SIREN_STATE_KEY)
+from .pyaarlo.constant import SIREN_STATE_KEY, DEFAULT_HOST, DEFAULT_AUTH_HOST
 
 __version__ = '0.6.89'
 
@@ -60,6 +60,7 @@ CONF_IMAP_HOST = 'imap_host'
 CONF_IMAP_USERNAME = 'imap_username'
 CONF_IMAP_PASSWORD = 'imap_password'
 CONF_LIBRARY_DAYS = 'library_days'
+CONF_AUTH_HOST = 'auth_host'
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -78,7 +79,6 @@ DEVICE_REFRESH = 0
 HTTP_CONNECTIONS = 5
 HTTP_MAX_SIZE = 10
 RECONNECT_EVERY = 0
-DEFAULT_HOST = 'https://my.arlo.com'
 VERBOSE_DEBUG = False
 HIDE_DEPRECATED_SERVICES = False
 DEFAULT_INJECTION_SERVICE = False
@@ -93,6 +93,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Optional(CONF_HOST, default=DEFAULT_HOST): cv.url,
+        vol.Optional(CONF_AUTH_HOST, default=DEFAULT_AUTH_HOST): cv.url,
         vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
         vol.Optional(CONF_PACKET_DUMP, default=PACKET_DUMP): cv.boolean,
         vol.Optional(CONF_CACHE_VIDEOS, default=CACHE_VIDEOS): cv.boolean,
@@ -147,6 +148,7 @@ INJECT_RESPONSE_SCHEMA = vol.Schema({
     vol.Required('filename'): cv.string,
 })
 
+
 def setup(hass, config):
     """Set up an Arlo component."""
 
@@ -155,6 +157,7 @@ def setup(hass, config):
     username = conf.get(CONF_USERNAME)
     password = conf.get(CONF_PASSWORD)
     host = conf.get(CONF_HOST)
+    auth_host = conf.get(CONF_AUTH_HOST)
     packet_dump = conf.get(CONF_PACKET_DUMP)
     cache_videos = conf.get(CONF_CACHE_VIDEOS)
     motion_time = conf.get(CONF_DB_MOTION_TIME).total_seconds()
@@ -194,7 +197,7 @@ def setup(hass, config):
         from .pyaarlo import PyArlo
 
         arlo = PyArlo(username=username, password=password, cache_videos=cache_videos,
-                      storage_dir=conf_dir, dump=packet_dump, host=host,
+                      storage_dir=conf_dir, dump=packet_dump, host=host, auth_host=auth_host,
                       db_motion_time=motion_time, db_ding_time=ding_time,
                       request_timeout=req_timeout, stream_timeout=str_timeout,
                       recent_time=recent_time, last_format=last_format,
@@ -337,4 +340,3 @@ async def async_aarlo_inject_response(hass, call):
     if packet is not None:
         _LOGGER.debug("injecting->{}".format(pprint.pformat(packet)))
         hass.data[COMPONENT_DATA].inject_response(packet)
-
