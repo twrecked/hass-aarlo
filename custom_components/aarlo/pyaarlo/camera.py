@@ -622,6 +622,14 @@ class ArloCamera(ArloChildDevice):
             }
         }
         self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+    
+    def unpause_track(self):
+        body = {
+            'action': 'play',
+            'publishResponse': True,
+            'resource': MEDIA_PLAYER_RESOURCE_ID,
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
     def pause_track(self):
         body = {
