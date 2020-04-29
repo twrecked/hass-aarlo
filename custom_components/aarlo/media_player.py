@@ -219,7 +219,7 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
 
     def media_play(self):
         """Send play command."""
-        self._device.unpause_track()
+        self._device.play_track()
         self._state = STATE_PLAYING
 
     def media_pause(self):
