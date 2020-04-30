@@ -690,21 +690,30 @@ class ArloCamera(ArloChildDevice):
         }
         self._arlo.be.notify(base=self, body=body)
 
-    def play_track(self, track_id=DEFAULT_TRACK_ID, position=0):
-        """Play the track.
+    def play_track(self, track_id=None, position=0):
+        """Play the track. A track ID of None will resume playing the current
+        track.
 
         :param track_id: track id
         :param position: position in the track
         """
         body = {
-            'action': 'playTrack',
             'publishResponse': True,
             'resource': MEDIA_PLAYER_RESOURCE_ID,
-            'properties': {
-                AUDIO_TRACK_KEY: track_id,
-                AUDIO_POSITION_KEY: position
-            }
         }
+
+        if track_id is not None:
+            body.update({
+                'action': 'playTrack',
+                'properties': {
+                    AUDIO_TRACK_KEY: track_id,
+                    AUDIO_POSITION_KEY: position
+                }
+            })
+        else:
+            body.update({
+                'action': 'play',
+            })
         self._arlo.be.notify(base=self, body=body)
 
     def pause_track(self):
