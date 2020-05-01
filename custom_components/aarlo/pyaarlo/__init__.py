@@ -82,7 +82,8 @@ class PyArlo(object):
 
             if dtype == 'basestation' or \
                     device.get('modelId') == 'ABC1000' or dtype == 'arloq' or dtype == 'arloqs' or \
-                    device.get('modelId').startswith('AVD1001'):
+                    device.get('modelId').startswith('AVD1001') or \
+                    device.get("modelId").startswith("FB1001A"):
                 self._bases.append(ArloBase(dname, self, device))
             if dtype == 'arlobridge':
                 self._bases.append(ArloBase(dname, self, device))

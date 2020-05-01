@@ -269,7 +269,14 @@ The following enables any lights:
 light:
   - platform: aarlo
 ```
-The component supports the standard Arlo lights and Arlo Baby lights. There is one noticable quirk, you can adjust the brightness of a light while it is on but the change will not happen until you turn the light off and back on again. This how the official web interface works.
+The component supports the standard Arlo lights, Arlo Baby lights and 
+Arlo Pro 3 Floodlight. 
+There is one noticable quirk, you can adjust the brightness of a light 
+while it is on but the change will not happen until you turn the light 
+off and back on again. This how the official web interface works. 
+
+This does not apply to the Pro 3 Floodlight as the brightness 
+can be changed while it is turned on.
  
 <a name="configuration-switch"></a>
 ### Switch Configuration

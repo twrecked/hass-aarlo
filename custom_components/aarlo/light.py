@@ -28,7 +28,8 @@ from .pyaarlo.constant import (BRIGHTNESS_KEY,
                                LAMP_STATE_KEY,
                                LIGHT_BRIGHTNESS_KEY,
                                LIGHT_MODE_KEY,
-                               NIGHTLIGHT_KEY)
+                               NIGHTLIGHT_KEY,
+                               FLOODLIGHT_KEY)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -53,6 +54,8 @@ async def async_setup_platform(hass, _config, async_add_entities, _discovery_inf
     for camera in arlo.cameras:
         if camera.has_capability(NIGHTLIGHT_KEY):
             lights.append(ArloNightLight(camera))
+        if camera.has_capability(FLOODLIGHT_KEY):
+            lights.append(ArloFloodLight(camera))
 
     async_add_entities(lights, True)
 
@@ -270,3 +273,98 @@ class ArloNightLight(ArloLight):
     def supported_features(self):
         """Flag features that are supported."""
         return SUPPORT_BRIGHTNESS | SUPPORT_COLOR | SUPPORT_COLOR_TEMP | SUPPORT_EFFECT
+
+
+class ArloFloodLight(ArloLight):
+    def __init__(self, camera):
+        self._brightness = None
+        self._mode = None
+
+        self._duration = None
+        self._als_sensitivity = None
+
+        self._sleep_time = None
+        self._sleep_time_rel = None
+
+        super().__init__(camera)
+
+        _LOGGER.info("ArloFloodLight: %s created", self._name)
+
+    async def async_added_to_hass(self):
+        """Register callbacks."""
+
+        def set_states(state):
+            if "on" in state:
+                self._state = "on" if state.get("on") else "off"
+            if "brightness1" in state:
+                self._brightness = int(state.get("brightness1") / 100.0 * 255)
+            if "behavior" in state:
+                self._mode = state.get("behavior")
+            if "alsSensitivity" in state:
+                self._als_sensitivity = state.get("alsSensitivity")
+            if "duration" in state:
+                self._duration = state.get("duration")
+            if self._state == 'on':
+                if "sleepTime" in state:
+                    self._sleep_time = state.get("sleepTime")
+                if "sleepTimeRel" in state:
+                    self._sleep_time_rel = state.get("sleepTimeRel")
+            elif self._state == 'off':
+                self._sleep_time = None
+                self._sleep_time_rel = None
+
+        @callback
+        def update_attr(_light, attr, value):
+            _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value)[:80])
+            set_states(value)
+            self.async_schedule_update_ha_state()
+
+        _LOGGER.info("ArloFloodLight: %s registering callbacks", self._name)
+        floodlight = self._light.attribute(FLOODLIGHT_KEY, default={})
+        set_states(floodlight)
+
+        self._light.add_attr_callback(FLOODLIGHT_KEY, update_attr)
+
+    def turn_on(self, **kwargs):
+        """Turn the entity on."""
+        _LOGGER.debug("turn_on: {} {} {}".format(self._name, self._state, kwargs))
+
+        self._light.floodlight_on()
+        if ATTR_BRIGHTNESS in kwargs:
+            self._light.set_floodlight_brightness(kwargs[ATTR_BRIGHTNESS])
+
+    def turn_off(self, **kwargs):
+        """Turn the entity off."""
+        self._light.floodlight_off()
+
+    @property
+    def brightness(self):
+        """Return the brightness of the light."""
+        return self._brightness
+
+    @property
+    def supported_features(self):
+        """Flag features that are supported."""
+        return SUPPORT_BRIGHTNESS
+
+    @property
+    def device_state_attributes(self):
+        """Return the state attributes."""
+
+        super_attrs = super().device_state_attributes
+        flood_attrs = {
+            name: value
+            for name, value in (
+                ("duration", self._duration),
+                ("sleep_time_rel", self._sleep_time_rel),
+                ("sleep_time", self._sleep_time),
+                ("mode", self._mode),
+                ("als_sensitivity", self._als_sensitivity),
+            )
+            if value is not None
+        }
+        attrs = dict()
+        attrs.update(super_attrs)
+        attrs.update(flood_attrs)
+
+        return attrs
