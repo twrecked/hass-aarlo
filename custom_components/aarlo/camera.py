@@ -573,10 +573,10 @@ async def websocket_video_url(hass, connection, msg):
                 'thumbnail_type': 'image/jpeg',
             }
         ))
-    except HomeAssistantError:
+    except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'video_url_ws', 'Unable to fetch url'))
-        _LOGGER.warning("{} video uel websocket failed".format(entity_id))
+            msg['id'], 'video_url_ws', "Unable to fetch url ({})".format(str(error))))
+        _LOGGER.warning("{} video url websocket failed".format(entity_id))
 
 
 @websocket_api.async_response
@@ -603,9 +603,9 @@ async def websocket_library(hass, connection, msg):
                 'videos': videos,
             }
         ))
-    except HomeAssistantError:
+    except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'library_ws', 'Unable to fetch library'))
+            msg['id'], 'library_ws', "Unable to fetch library ({})".format(str(error))))
         _LOGGER.warning("{} library websocket failed".format(entity_id))
 
 
@@ -621,9 +621,9 @@ async def websocket_stream_url(hass, connection, msg):
                 'url': stream
             }
         ))
-    except HomeAssistantError:
+    except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'stream_url_ws', 'Unable to fetch stream'))
+            msg['id'], 'stream_url_ws', "Unable to fetch stream ({})".format(str(error))))
         _LOGGER.warning("{} stream url websocket failed".format(entity_id))
 
 
@@ -640,9 +640,9 @@ async def websocket_snapshot_image(hass, connection, msg):
                 'content': base64.b64encode(image).decode('utf-8')
             }
         ))
-    except HomeAssistantError:
+    except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'snapshot_image_ws', 'Unable to fetch image'))
+            msg['id'], 'snapshot_image_ws', "Unable to take snapshot ({})".format(str(error))))
         _LOGGER.warning("{} snapshot image websocket failed".format(entity_id))
 
 @websocket_api.async_response
@@ -657,9 +657,9 @@ async def websocket_request_snapshot(hass, connection, msg):
                 'snapshot requested'
             }
         ))
-    except HomeAssistantError:
+    except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'request_snapshot_ws', 'Unable to fetch image'))
+            msg['id'], 'requst_snapshot_ws', "Unable to request snapshot ({})".format(str(error))))
         _LOGGER.warning("{} snapshot request websocket failed".format(entity_id))
 
 
@@ -676,9 +676,9 @@ async def websocket_video_data(hass, connection, msg):
                 'content': base64.b64encode(video).decode('utf-8')
             }
         ))
-    except HomeAssistantError:
+    except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'video_data_ws', 'Unable to fetch video'))
+            msg['id'], 'video_data_ws', "Unable to get video data ({})".format(str(error))))
         _LOGGER.warning("{} video data websocket failed".format(entity_id))
 
 
@@ -694,9 +694,9 @@ async def websocket_stop_activity(hass, connection, msg):
                 'stopped': stopped
             }
         ))
-    except HomeAssistantError:
+    except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'stop_activity_ws', 'Unable to stop activity'))
+            msg['id'], 'stop_activity_ws', "Unable to stop activity ({})".format(str(error))))
         _LOGGER.warning("{} stop activity websocket failed".format(entity_id))
 
 
@@ -712,9 +712,9 @@ async def websocket_siren_on(hass, connection, msg):
                 'siren': 'on'
             }
         ))
-    except HomeAssistantError:
+    except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'siren_on_ws', 'Unable to turn siren on'))
+            msg['id'], 'siren_on_ws', "Unable to turn siren on ({})".format(str(error))))
         _LOGGER.warning("{} siren on websocket failed".format(entity_id))
 
 
@@ -730,9 +730,9 @@ async def websocket_siren_off(hass, connection, msg):
                 'siren': 'off'
             }
         ))
-    except HomeAssistantError:
+    except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'siren_off_ws', 'Unable to turn siren off'))
+            msg['id'], 'siren_off_ws', "Unable to turn siren off ({})".format(str(error))))
         _LOGGER.warning("{} siren off websocket failed".format(entity_id))
 
 

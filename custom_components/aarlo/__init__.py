@@ -288,14 +288,15 @@ def setup(hass, config):
 
 
 def get_entity_from_domain(hass, domains, entity_id):
-    for domain in domains if isinstance(domains, list) else [domains]:
+    domains = domains if isinstance(domains, list) else [domains]
+    for domain in domains:
         component = hass.data.get(domain)
         if component is None:
             raise HomeAssistantError("{} component not set up".format(domain))
         entity = component.get_entity(entity_id)
         if entity is not None:
             return entity
-    raise HomeAssistantError("{} not found".format(entity_id))
+    raise HomeAssistantError("{} not found in {}".format(entity_id,",".join(domains)))
 
 
 async def async_aarlo_siren_on(hass, call):
