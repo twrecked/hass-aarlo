@@ -287,30 +287,27 @@ def setup(hass, config):
     return True
 
 
-def get_entity_from_domain(hass, domain, entity_id):
-    component = hass.data.get(domain)
-    if component is None:
-        raise HomeAssistantError("{} component not set up".format(domain))
-
-    entity = component.get_entity(entity_id)
-    if entity is None:
-        raise HomeAssistantError("{} not found".format(entity_id))
-
-    return entity
+def get_entity_from_domain(hass, domains, entity_id):
+    for domain in domains if isinstance(domains, list) else [domains]:
+        component = hass.data.get(domain)
+        if component is None:
+            raise HomeAssistantError("{} component not set up".format(domain))
+        entity = component.get_entity(entity_id)
+        if entity is not None:
+            return entity
+    raise HomeAssistantError("{} not found".format(entity_id))
 
 
 async def async_aarlo_siren_on(hass, call):
     for entity_id in call.data['entity_id']:
-        device = get_entity_from_domain(hass,ALARM_DOMAIN,entity_id)
-        if device is None:
-            device = get_entity_from_domain(hass,CAMERA_DOMAIN,entity_id)
-        if device is not None:
+        try:
             volume = call.data['volume']
             duration = call.data['duration']
-            _LOGGER.info("{} siren on {}/{}".format(entity_id,volume,duration))
+            device = get_entity_from_domain(hass,[ALARM_DOMAIN,CAMERA_DOMAIN],entity_id)
             device.siren_on(duration=duration, volume=volume)
-        else:
-            _LOGGER.info("{} siren not found".format(entity_id))
+            _LOGGER.info("{} siren on {}/{}".format(entity_id,volume,duration))
+        except HomeAssistantError:
+            _LOGGER.info("{} siren device not found".format(entity_id))
 
 
 async def async_aarlo_sirens_on(hass, call):
@@ -319,21 +316,19 @@ async def async_aarlo_sirens_on(hass, call):
     duration = call.data['duration']
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability(SIREN_STATE_KEY):
-            _LOGGER.info("{} siren on {}/{}".format(device.unique_id,volume,duration))
             device.siren_on(duration=duration, volume=volume)
+            _LOGGER.info("{} siren on {}/{}".format(device.unique_id,volume,duration))
 
 
 async def async_aarlo_siren_off(hass, call):
     for entity_id in call.data['entity_id']:
-        device = get_entity_from_domain(hass,ALARM_DOMAIN,entity_id)
-        if device is None:
-            device = get_entity_from_domain(hass,CAMERA_DOMAIN,entity_id)
-        if device is not None:
+        try:
             volume = call.data['volume']
             duration = call.data['duration']
-            _LOGGER.info("{} siren off".format(entity_id))
+            device = get_entity_from_domain(hass,[ALARM_DOMAIN,CAMERA_DOMAIN],entity_id)
             device.siren_off()
-        else:
+            _LOGGER.info("{} siren off".format(entity_id))
+        except HomeAssistantError:
             _LOGGER.info("{} siren not found".format(entity_id))
 
 
@@ -341,8 +336,8 @@ async def async_aarlo_sirens_off(hass, call):
     arlo = hass.data[COMPONENT_DATA]
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability(SIREN_STATE_KEY):
-            _LOGGER.info("{} siren off".format(device.unique_id))
             device.siren_off()
+            _LOGGER.info("{} siren off".format(device.unique_id))
 
 
 async def async_aarlo_inject_response(hass, call):

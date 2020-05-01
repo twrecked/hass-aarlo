@@ -559,69 +559,80 @@ class ArloCam(Camera):
 
 @websocket_api.async_response
 async def websocket_video_url(hass, connection, msg):
-    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
-    video = camera.last_video
-    url = video.video_url if video is not None else None
-    url_type = video.content_type if video is not None else None
-    thumbnail = video.thumbnail_url if video is not None else None
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'url': url,
-            'url_type': url_type,
-            'thumbnail': thumbnail,
-            'thumbnail_type': 'image/jpeg',
-        }
-    ))
+    try:
+        camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
+        video = camera.last_video
+        url = video.video_url if video is not None else None
+        url_type = video.content_type if video is not None else None
+        thumbnail = video.thumbnail_url if video is not None else None
+        connection.send_message(websocket_api.result_message(
+            msg['id'], {
+                'url': url,
+                'url_type': url_type,
+                'thumbnail': thumbnail,
+                'thumbnail_type': 'image/jpeg',
+            }
+        ))
+    except HomeAssistantError:
+        connection.send_message(websocket_api.error_message(
+            msg['id'], 'video_url_ws', 'Unable to fetch url'))
+        _LOGGER.warning("{} video uel websocket failed".format(entity_id))
 
 
 @websocket_api.async_response
 async def websocket_library(hass, connection, msg):
-    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
-    videos = []
-    _LOGGER.debug('library+' + str(msg['at_most']))
-    for v in camera.last_n_videos(msg['at_most']):
-        videos.append({
-            'created_at': v.created_at,
-            'created_at_pretty': v.created_at_pretty(camera.last_capture_date_format),
-            'url': v.video_url,
-            'url_type': v.content_type,
-            'thumbnail': v.thumbnail_url,
-            'thumbnail_type': 'image/jpeg',
-            'object': v.object_type,
-            'object_region': v.object_region,
-            'trigger': v.object_type,
-            'trigger_region': v.object_region,
-        })
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'videos': videos,
-        }
-    ))
+    try:
+        camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
+        videos = []
+        _LOGGER.debug('library+' + str(msg['at_most']))
+        for v in camera.last_n_videos(msg['at_most']):
+            videos.append({
+                'created_at': v.created_at,
+                'created_at_pretty': v.created_at_pretty(camera.last_capture_date_format),
+                'url': v.video_url,
+                'url_type': v.content_type,
+                'thumbnail': v.thumbnail_url,
+                'thumbnail_type': 'image/jpeg',
+                'object': v.object_type,
+                'object_region': v.object_region,
+                'trigger': v.object_type,
+                'trigger_region': v.object_region,
+            })
+        connection.send_message(websocket_api.result_message(
+            msg['id'], {
+                'videos': videos,
+            }
+        ))
+    except HomeAssistantError:
+        connection.send_message(websocket_api.error_message(
+            msg['id'], 'library_ws', 'Unable to fetch library'))
+        _LOGGER.warning("{} library websocket failed".format(entity_id))
 
 
 @websocket_api.async_response
 async def websocket_stream_url(hass, connection, msg):
-    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
-    _LOGGER.debug('stream_url for ' + str(camera.unique_id))
     try:
+        camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
+        _LOGGER.debug('stream_url for ' + str(camera.unique_id))
+
         stream = await camera.async_stream_source()
         connection.send_message(websocket_api.result_message(
             msg['id'], {
                 'url': stream
             }
         ))
-
     except HomeAssistantError:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'image_fetch_failed', 'Unable to fetch stream'))
+            msg['id'], 'stream_url_ws', 'Unable to fetch stream'))
+        _LOGGER.warning("{} stream url websocket failed".format(entity_id))
 
 
 @websocket_api.async_response
 async def websocket_snapshot_image(hass, connection, msg):
-    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
-    _LOGGER.debug('snapshot_image for ' + str(camera.unique_id))
-
     try:
+        camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
+        _LOGGER.debug('snapshot_image for ' + str(camera.unique_id))
+
         image = await camera.async_get_snapshot()
         connection.send_message(websocket_api.result_message(
             msg['id'], {
@@ -629,35 +640,35 @@ async def websocket_snapshot_image(hass, connection, msg):
                 'content': base64.b64encode(image).decode('utf-8')
             }
         ))
-
     except HomeAssistantError:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'image_fetch_failed', 'Unable to fetch image'))
+            msg['id'], 'snapshot_image_ws', 'Unable to fetch image'))
+        _LOGGER.warning("{} snapshot image websocket failed".format(entity_id))
 
 @websocket_api.async_response
 async def websocket_request_snapshot(hass, connection, msg):
-    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
-    _LOGGER.debug('request_snapshot_image for ' + str(camera.unique_id))
-
     try:
+        camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
+        _LOGGER.debug('request_snapshot_image for ' + str(camera.unique_id))
+
         await camera.async_request_snapshot()
         connection.send_message(websocket_api.result_message(
             msg['id'], {
                 'snapshot requested'
             }
         ))
-
     except HomeAssistantError:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'image_fetch_failed', 'Unable to fetch image'))
+            msg['id'], 'request_snapshot_ws', 'Unable to fetch image'))
+        _LOGGER.warning("{} snapshot request websocket failed".format(entity_id))
 
 
 @websocket_api.async_response
 async def websocket_video_data(hass, connection, msg):
-    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
-    _LOGGER.debug('video_data for ' + str(camera.unique_id))
-
     try:
+        camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
+        _LOGGER.debug('video_data for ' + str(camera.unique_id))
+
         video = await camera.async_get_video()
         connection.send_message(websocket_api.result_message(
             msg['id'], {
@@ -665,49 +676,64 @@ async def websocket_video_data(hass, connection, msg):
                 'content': base64.b64encode(video).decode('utf-8')
             }
         ))
-
     except HomeAssistantError:
         connection.send_message(websocket_api.error_message(
-            msg['id'], 'video_fetch_failed', 'Unable to fetch video'))
+            msg['id'], 'video_data_ws', 'Unable to fetch video'))
+        _LOGGER.warning("{} video data websocket failed".format(entity_id))
 
 
 @websocket_api.async_response
 async def websocket_stop_activity(hass, connection, msg):
-    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
-    _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
+    try:
+        camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
+        _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
 
-    stopped = await camera.async_stop_activity()
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'stopped': stopped
-        }
-    ))
+        stopped = await camera.async_stop_activity()
+        connection.send_message(websocket_api.result_message(
+            msg['id'], {
+                'stopped': stopped
+            }
+        ))
+    except HomeAssistantError:
+        connection.send_message(websocket_api.error_message(
+            msg['id'], 'stop_activity_ws', 'Unable to stop activity'))
+        _LOGGER.warning("{} stop activity websocket failed".format(entity_id))
 
 
 @websocket_api.async_response
 async def websocket_siren_on(hass, connection, msg):
-    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
-    _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
+    try:
+        camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
+        _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
 
-    await camera.async_siren_on(duration=msg['duration'], volume=msg['volume'])
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'siren': 'on'
-        }
-    ))
+        await camera.async_siren_on(duration=msg['duration'], volume=msg['volume'])
+        connection.send_message(websocket_api.result_message(
+            msg['id'], {
+                'siren': 'on'
+            }
+        ))
+    except HomeAssistantError:
+        connection.send_message(websocket_api.error_message(
+            msg['id'], 'siren_on_ws', 'Unable to turn siren on'))
+        _LOGGER.warning("{} siren on websocket failed".format(entity_id))
 
 
 @websocket_api.async_response
 async def websocket_siren_off(hass, connection, msg):
-    camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
-    _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
+    try:
+        camera = get_entity_from_domain(hass, DOMAIN, msg['entity_id'])
+        _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
 
-    await camera.async_siren_off()
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'siren': 'off'
-        }
-    ))
+        await camera.async_siren_off()
+        connection.send_message(websocket_api.result_message(
+            msg['id'], {
+                'siren': 'off'
+            }
+        ))
+    except HomeAssistantError:
+        connection.send_message(websocket_api.error_message(
+            msg['id'], 'siren_off_ws', 'Unable to turn siren off'))
+        _LOGGER.warning("{} siren off websocket failed".format(entity_id))
 
 
 async def aarlo_snapshot_service_handler(camera, _service):
@@ -808,33 +834,36 @@ async def aarlo_stop_recording_handler(camera, _service):
 
 async def async_camera_snapshot_service(hass, call):
     for entity_id in call.data['entity_id']:
-        _LOGGER.info("{} snapshot".format(entity_id))
-        await get_entity_from_domain(hass,DOMAIN,entity_id).async_get_snapshot()
-        hass.bus.fire('aarlo_snapshot_ready', {
-            'entity_id': entity_id,
-        })
+        try:
+            _LOGGER.info("{} snapshot".format(entity_id))
+            await get_entity_from_domain(hass,DOMAIN,entity_id).async_get_snapshot()
+            hass.bus.fire('aarlo_snapshot_ready', {
+                'entity_id': entity_id,
+            })
+        except HomeAssistantError:
+            _LOGGER.warning("{} snapshot service failed".format(entity_id))
 
 
 async def async_camera_snapshot_to_file_service(hass, call):
     for entity_id in call.data['entity_id']:
-        camera = get_entity_from_domain(hass,DOMAIN,entity_id)
-        filename = call.data[ATTR_FILENAME]
-        filename.hass = hass
-        snapshot_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-        _LOGGER.info("{} snapshot(filename={})".format(entity_id,filename))
-
-        # check if we allow to access to that file
-        if not hass.config.is_allowed_path(snapshot_file):
-            _LOGGER.error("Can't write %s, no access to path!", snapshot_file)
-            return
-
-        image = await camera.async_get_snapshot()
-
-        def _write_image(to_file, image_data):
-            with open(to_file, 'wb') as img_file:
-                img_file.write(image_data)
-
         try:
+            camera = get_entity_from_domain(hass,DOMAIN,entity_id)
+            filename = call.data[ATTR_FILENAME]
+            filename.hass = hass
+            snapshot_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
+            _LOGGER.info("{} snapshot(filename={})".format(entity_id,filename))
+
+            # check if we allow to access to that file
+            if not hass.config.is_allowed_path(snapshot_file):
+                _LOGGER.error("Can't write %s, no access to path!", snapshot_file)
+                return
+
+            image = await camera.async_get_snapshot()
+
+            def _write_image(to_file, image_data):
+                with open(to_file, 'wb') as img_file:
+                    img_file.write(image_data)
+
             await hass.async_add_executor_job(_write_image, snapshot_file, image)
             hass.bus.fire('aarlo_snapshot_ready', {
                 'entity_id': entity_id,
@@ -842,29 +871,30 @@ async def async_camera_snapshot_to_file_service(hass, call):
             })
         except OSError as err:
             _LOGGER.error("Can't write image to file: %s", err)
+        except HomeAssistantError:
+            _LOGGER.warning("{} snapshot to file service failed".format(entity_id))
 
 
 async def async_camera_video_to_file_service(hass, call):
-
     for entity_id in call.data['entity_id']:
-        camera = get_entity_from_domain(hass,DOMAIN,entity_id)
-        filename = call.data[ATTR_FILENAME]
-        filename.hass = hass
-        video_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-        _LOGGER.info("{} video to file {}".format(entity_id,filename))
-
-        # check if we allow to access to that file
-        if not hass.config.is_allowed_path(video_file):
-            _LOGGER.error("Can't write %s, no access to path!", video_file)
-            return
-
-        image = await camera.async_get_video()
-
-        def _write_image(to_file, image_data):
-            with open(to_file, 'wb') as img_file:
-                img_file.write(image_data)
-
         try:
+            camera = get_entity_from_domain(hass,DOMAIN,entity_id)
+            filename = call.data[ATTR_FILENAME]
+            filename.hass = hass
+            video_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
+            _LOGGER.info("{} video to file {}".format(entity_id,filename))
+
+            # check if we allow to access to that file
+            if not hass.config.is_allowed_path(video_file):
+                _LOGGER.error("Can't write %s, no access to path!", video_file)
+                return
+
+            image = await camera.async_get_video()
+
+            def _write_image(to_file, image_data):
+                with open(to_file, 'wb') as img_file:
+                    img_file.write(image_data)
+
             await hass.async_add_executor_job(_write_image, video_file, image)
             hass.bus.fire('aarlo_video_ready', {
                 'entity_id': entity_id,
@@ -872,39 +902,55 @@ async def async_camera_video_to_file_service(hass, call):
             })
         except OSError as err:
             _LOGGER.error("Can't write image to file: %s", err)
-
+        except HomeAssistantError:
+            _LOGGER.warning("{} video to file service failed".format(entity_id))
         _LOGGER.debug("{0} video to file finished".format(entity_id))
 
 
 async def async_camera_stop_activity_service(hass, call):
     for entity_id in call.data['entity_id']:
-        _LOGGER.info("{} stop activity".format(entity_id))
-        get_entity_from_domain(hass,DOMAIN,entity_id).stop_activity()
+        try:
+            _LOGGER.info("{} stop activity".format(entity_id))
+            get_entity_from_domain(hass,DOMAIN,entity_id).stop_activity()
+        except HomeAssistantError:
+            _LOGGER.warning("{} stop activity service failed".format(entity_id))
 
 
 async def async_camera_siren_on_service(hass, call):
     for entity_id in call.data['entity_id']:
-        volume = call.data[ATTR_VOLUME]
-        duration = call.data[ATTR_DURATION]
-        _LOGGER.info("{} start siren(volume={}/duration={})".format(entity_id,volume,duration))
-        get_entity_from_domain(hass,DOMAIN,entity_id).siren_on(duration=duration, volume=volume)
+        try:
+            volume = call.data[ATTR_VOLUME]
+            duration = call.data[ATTR_DURATION]
+            _LOGGER.info("{} start siren(volume={}/duration={})".format(entity_id,volume,duration))
+            get_entity_from_domain(hass,DOMAIN,entity_id).siren_on(duration=duration, volume=volume)
+        except HomeAssistantError:
+            _LOGGER.warning("{} siren on service failed".format(entity_id))
 
 
 async def async_camera_siren_off_service(hass, call):
     for entity_id in call.data['entity_id']:
-        _LOGGER.info("{} stop siren".format(entity_id))
-        get_entity_from_domain(hass,DOMAIN,entity_id).siren_off()
+        try:
+            _LOGGER.info("{} stop siren".format(entity_id))
+            get_entity_from_domain(hass,DOMAIN,entity_id).siren_off()
+        except HomeAssistantError:
+            _LOGGER.warning("{} siren off service failed".format(entity_id))
 
 
 async def async_camera_start_recording_service(hass, call):
     for entity_id in call.data['entity_id']:
-        duration = call.data[ATTR_DURATION]
-        _LOGGER.info("{} start recording(duration={})".format(entity_id,duration))
-        get_entity_from_domain(hass,DOMAIN,entity_id).start_recording(duration=duration)
+        try:
+            duration = call.data[ATTR_DURATION]
+            _LOGGER.info("{} start recording(duration={})".format(entity_id,duration))
+            get_entity_from_domain(hass,DOMAIN,entity_id).start_recording(duration=duration)
+        except HomeAssistantError:
+            _LOGGER.warning("{} start recording service failed".format(entity_id))
 
 
 async def async_camera_stop_recording_service(hass, call):
     for entity_id in call.data['entity_id']:
-        _LOGGER.info("{} stop recording".format(entity_id))
-        get_entity_from_domain(hass,DOMAIN,entity_id).stop_recording()
+        try:
+            _LOGGER.info("{} stop recording".format(entity_id))
+            get_entity_from_domain(hass,DOMAIN,entity_id).stop_recording()
+        except HomeAssistantError:
+            _LOGGER.warning("{} stop recording service failed".format(entity_id))
 
