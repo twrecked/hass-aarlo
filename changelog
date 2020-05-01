@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.6.18: Fix siren_on service call when entity_id is an Arlo ultra camera
 0.6.17: Add request_snapshot webservice
 0.6.16: Fix last_image so lovelace card works
         Arlo Baby: fix effect switching

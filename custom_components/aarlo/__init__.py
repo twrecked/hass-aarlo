@@ -21,7 +21,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 
-__version__ = '0.6.17'
+__version__ = '0.6.18'
 
 _LOGGER = logging.getLogger(__name__)
 
