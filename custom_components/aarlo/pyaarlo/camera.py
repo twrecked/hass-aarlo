@@ -16,7 +16,8 @@ from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
                        STREAM_SNAPSHOT_PATH, STREAM_START_PATH, CAMERA_MEDIA_DELAY,
                        AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, DEFAULT_TRACK_ID, MEDIA_PLAYER_RESOURCE_ID,
                        MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY, RECENT_ACTIVITY_KEY, AUDIO_DETECTED_KEY,
-                       TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY, MEDIA_PLAYER_KEY, NIGHTLIGHT_KEY)
+                       TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY, MEDIA_PLAYER_KEY, NIGHTLIGHT_KEY,
+                       FLOODLIGHT_KEY, FLOODLIGHT_BRIGHTNESS1_KEY, FLOODLIGHT_BRIGHTNESS2_KEY)
 from .device import ArloChildDevice
 from .util import http_get, http_get_img
 
@@ -270,6 +271,11 @@ class ArloCamera(ArloChildDevice):
             brightness = spotlight.get("intensity")
             if brightness is not None:
                 self._save_and_do_callbacks(SPOTLIGHT_BRIGHTNESS_KEY, brightness)
+
+        floodlight = event.get("properties", {}).get(FLOODLIGHT_KEY, None)
+        if floodlight is not None:
+            self._arlo.debug("got a flood light {}".format(floodlight.get("on", False)))
+            self._save_and_do_callbacks(FLOODLIGHT_KEY, floodlight)
 
         # audio analytics
         audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
@@ -918,16 +924,51 @@ class ArloCamera(ArloChildDevice):
             'intensity': (brightness / 255 * 100)
         })
 
+    def _set_floodlight_properties(self, properties):
+        self._arlo.debug(
+            "{}: setting floodlight properties: {}".format(self._name, properties)
+        )
+        self._arlo.be.notify(
+            base=self.base_station,
+            body={
+                "action": "set",
+                "properties": {"floodlight": properties},
+                "publishResponse": True,
+                "resource": self.resource_id,
+            },
+        )
+        return True
+
+    def floodlight_on(self):
+        """Turns the floodlight on."""
+        return self._set_floodlight_properties({"on": True})
+
+    def floodlight_off(self):
+        """Turns the floodlight off."""
+        return self._set_floodlight_properties({"on": False})
+
+    def set_floodlight_brightness(self, brightness):
+        """Turns the floodlight brightness value (0-255)."""
+        percentage = int(brightness / 255 * 100)
+        return self._set_floodlight_properties(
+            {
+                FLOODLIGHT_BRIGHTNESS1_KEY: percentage,
+                FLOODLIGHT_BRIGHTNESS2_KEY: percentage,
+            }
+        )
+
     def has_capability(self, cap):
         if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY):
             return True
         if cap in (LAST_CAPTURE_KEY, CAPTURED_TODAY_KEY, RECENT_ACTIVITY_KEY):
             return True
         if cap in (AUDIO_DETECTED_KEY,):
-            if self.model_id.startswith(('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000')):
+            if self.model_id.startswith(
+                ('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000', 'FB1001A')
+            ):
                 return True
         if cap in (SIREN_STATE_KEY,):
-            if self.model_id.startswith(('VMC4040', 'VMC5040')):
+            if self.model_id.startswith(('VMC4040', 'VMC5040', 'FB1001A')):
                 return True
         if cap in (SPOTLIGHT_KEY,):
             if self.model_id.startswith(('VMC4040', 'VMC5040')):
@@ -937,5 +978,8 @@ class ArloCamera(ArloChildDevice):
                 return True
         if cap in (MEDIA_PLAYER_KEY, NIGHTLIGHT_KEY, CRY_DETECTION_KEY):
             if self.model_id.startswith('ABC1000'):
+                return True
+        if cap in (FLOODLIGHT_KEY,):
+            if self.model_id.startswith('FB1001A'):
                 return True
         return super().has_capability(cap)
