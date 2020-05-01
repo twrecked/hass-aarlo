@@ -11,9 +11,9 @@ This release contains beta 2FA support. It works by requesting an email with the
 There is a **lot** that can go wrong with this - for starters, I've only tested it in English - but to get it working add the following configuration (with the correct values obviously) - to `aarlo:`
 
 ```yaml
-  imap_host: 'imap.gmail.com'
-  imap_username: 'your.email.account@gmail.com'
-  imap_password: 'roygbiv'
+  tfa_host: 'imap.gmail.com'
+  tfa_username: 'your.email.account@gmail.com'
+  tfa_password: 'roygbiv'
 
 ```
 

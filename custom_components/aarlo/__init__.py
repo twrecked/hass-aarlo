@@ -56,9 +56,11 @@ CONF_VERBOSE_DEBUG = 'verbose_debug'
 CONF_HIDE_DEPRECATED_SERVICES = 'hide_deprecated_services'
 CONF_INJECTION_SERVICE = 'injection_service'
 CONF_SNAPSHOT_TIMEOUT = 'snapshot_timeout'
-CONF_IMAP_HOST = 'imap_host'
-CONF_IMAP_USERNAME = 'imap_username'
-CONF_IMAP_PASSWORD = 'imap_password'
+CONF_TFA_SOURCE = 'tfa_source'
+CONF_TFA_TYPE = 'tfa_type'
+CONF_TFA_HOST = 'tfa_host'
+CONF_TFA_USERNAME = 'tfa_username'
+CONF_TFA_PASSWORD = 'tfa_password'
 CONF_LIBRARY_DAYS = 'library_days'
 CONF_AUTH_HOST = 'auth_host'
 
@@ -83,9 +85,11 @@ VERBOSE_DEBUG = False
 HIDE_DEPRECATED_SERVICES = False
 DEFAULT_INJECTION_SERVICE = False
 SNAPSHOT_TIMEOUT = timedelta(seconds=45)
-DEFAULT_IMAP_HOST = 'unknown.imap.com'
-DEFAULT_IMAP_USERNAME = 'unknown@unknown.com'
-DEFAULT_IMAP_PASSWORD = 'unknown'
+DEFAULT_TFA_SOURCE = 'imap'
+DEFAULT_TFA_TYPE = 'email'
+DEFAULT_TFA_HOST = 'unknown.imap.com'
+DEFAULT_TFA_USERNAME = 'unknown@unknown.com'
+DEFAULT_TFA_PASSWORD = 'unknown'
 DEFAULT_LIBRARY_DAYS = 30
 
 CONFIG_SCHEMA = vol.Schema({
@@ -115,9 +119,11 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_HIDE_DEPRECATED_SERVICES, default=HIDE_DEPRECATED_SERVICES): cv.boolean,
         vol.Optional(CONF_INJECTION_SERVICE, default=DEFAULT_INJECTION_SERVICE): cv.boolean,
         vol.Optional(CONF_SNAPSHOT_TIMEOUT, default=SNAPSHOT_TIMEOUT): cv.time_period,
-        vol.Optional(CONF_IMAP_HOST, default=DEFAULT_IMAP_HOST): cv.string,
-        vol.Optional(CONF_IMAP_USERNAME, default=DEFAULT_IMAP_USERNAME): cv.string,
-        vol.Optional(CONF_IMAP_PASSWORD, default=DEFAULT_IMAP_PASSWORD): cv.string,
+        vol.Optional(CONF_TFA_SOURCE, default=DEFAULT_TFA_SOURCE): cv.string,
+        vol.Optional(CONF_TFA_TYPE, default=DEFAULT_TFA_TYPE): cv.string,
+        vol.Optional(CONF_TFA_HOST, default=DEFAULT_TFA_HOST): cv.string,
+        vol.Optional(CONF_TFA_USERNAME, default=DEFAULT_TFA_USERNAME): cv.string,
+        vol.Optional(CONF_TFA_PASSWORD, default=DEFAULT_TFA_PASSWORD): cv.string,
         vol.Optional(CONF_LIBRARY_DAYS, default=DEFAULT_LIBRARY_DAYS): cv.positive_int,
     }),
 }, extra=vol.ALLOW_EXTRA)
@@ -178,9 +184,11 @@ def setup(hass, config):
     hide_deprecated_services = conf.get(CONF_HIDE_DEPRECATED_SERVICES)
     injection_service = conf.get(CONF_INJECTION_SERVICE)
     snapshot_timeout = conf.get(CONF_SNAPSHOT_TIMEOUT).total_seconds()
-    imap_host = conf.get(CONF_IMAP_HOST)
-    imap_username = conf.get(CONF_IMAP_USERNAME)
-    imap_password = conf.get(CONF_IMAP_PASSWORD)
+    tfa_source = conf.get(CONF_TFA_SOURCE)
+    tfa_type = conf.get(CONF_TFA_TYPE)
+    tfa_host = conf.get(CONF_TFA_HOST)
+    tfa_username = conf.get(CONF_TFA_USERNAME)
+    tfa_password = conf.get(CONF_TFA_PASSWORD)
     library_days = conf.get(CONF_LIBRARY_DAYS)
 
     # Fix up config
@@ -196,21 +204,28 @@ def setup(hass, config):
     try:
         from .pyaarlo import PyArlo
 
-        arlo = PyArlo(username=username, password=password, cache_videos=cache_videos,
-                      storage_dir=conf_dir, dump=packet_dump, host=host, auth_host=auth_host,
+        arlo = PyArlo(username=username, password=password,
+                      cache_videos=cache_videos,
+                      storage_dir=conf_dir,
+                      dump=packet_dump,
+                      host=host,
+                      auth_host=auth_host,
                       db_motion_time=motion_time, db_ding_time=ding_time,
                       request_timeout=req_timeout, stream_timeout=str_timeout,
-                      recent_time=recent_time, last_format=last_format,
+                      recent_time=recent_time,
+                      last_format=last_format,
                       no_media_upload=no_media_up,
-                      user_agent=user_agent, mode_api=mode_api,
-                      refresh_devices_every=device_refresh, reconnect_every=reconnect_every,
+                      user_agent=user_agent,
+                      mode_api=mode_api,
+                      refresh_devices_every=device_refresh,
+                      reconnect_every=reconnect_every,
                       http_connections=http_connections, http_max_size=http_max_size,
                       hide_deprecated_services=hide_deprecated_services,
                       snapshot_timeout=snapshot_timeout,
-                      tfa_source='imap', tfa_type='EMAIL',
-                      wait_for_initial_setup=False,
-                      imap_host=imap_host, imap_username=imap_username, imap_password=imap_password,
+                      tfa_source=tfa_source, tfa_type=tfa_type,
+                      tfa_host=tfa_host, tfa_username=tfa_username, tfa_password=tfa_password,
                       library_days=library_days,
+                      wait_for_initial_setup=False,
                       verbose_debug=verbose_debug)
         if not arlo.is_connected:
             _LOGGER.error("Unable to connect to Arlo: %s", arlo.last_error)
