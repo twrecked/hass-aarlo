@@ -776,7 +776,7 @@ https://custom-host/get?email=test@test.com&token=1234567890
 * Failures always have `code` value of anything other than 200.
 ```json
 { "meta": { "code": 400 },
-  "data": { "success": False, "error": "permission denied" }}
+  "data": { "success": false, "error": "permission denied" }}
 ```
 
 Aarlo doesn't care how you get the codes into the system only that they are there. Feel
