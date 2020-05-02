@@ -759,7 +759,7 @@ https://custom-host/clear?email=test@test.com&token=1234567890
 * And the server will respond with this on success:
 ```json
 { "meta": { "code": 200 },
-  "data": { "success": True, "email": "test@test.com" } }
+  "data": { "success": true, "email": "test@test.com" } }
 ```
 
 * Aarlo will look up the current code with this HTTP GET request:
@@ -770,7 +770,7 @@ https://custom-host/get?email=test@test.com&token=1234567890
 * And the server will respond with this on success:
 ```json
 { "meta": { "code": 200 },
-  "data": { "success": True, "email": "test@test.com", "code": "123456", "timestamp": "123445666" } }
+  "data": { "success": true, "email": "test@test.com", "code": "123456", "timestamp": "123445666" } }
 ```
 
 * Failures always have `code` value of anything other than 200.
