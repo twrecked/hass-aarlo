@@ -745,7 +745,7 @@ well defined but the host Arlo uses is configurable.
 ```yaml
 aarlo:
     tfa_source='rest-api',
-	tfa_type='email',
+    tfa_type='SMS',
     tfa_host='custom-host',
     tfa_username='test@test.com',
     tfa_password='1234567890'
