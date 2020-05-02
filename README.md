@@ -723,11 +723,11 @@ Arlo sent.
 
 ```yaml
 aarlo:
-   tfa_source='imap',
-   tfa_type='email',
-   tfa_host='imap.host.com',
-   tfa_username='your-user-name',
-   tfa_password='your-imap-password'
+  tfa_source='imap',
+  tfa_type='email',
+  tfa_host='imap.host.com',
+  tfa_username='your-user-name',
+  tfa_password='your-imap-password'
 ```
 
 It's working well with my gmail account, see
@@ -744,11 +744,11 @@ well defined but the host Arlo uses is configurable.
 
 ```yaml
 aarlo:
-    tfa_source='rest-api',
-    tfa_type='SMS',
-    tfa_host='custom-host',
-    tfa_username='test@test.com',
-    tfa_password='1234567890'
+  tfa_source='rest-api',
+  tfa_type='SMS',
+  tfa_host='custom-host',
+  tfa_username='test@test.com',
+  tfa_password='1234567890'
 ```
 
 * Pyaarlo will clear the current code with this HTTP GET request:
@@ -758,8 +758,8 @@ https://custom-host/clear?email=test@test.com&token=1234567890
 
 * And the server will respond with this on success:
 ```json
-{ 'meta': { 'code': 200 },
-  'data': { 'success': True, 'email': 'test@test.com' } }
+{ "meta": { "code": 200 },
+  "data": { "success": True, "email": "test@test.com" } }
 ```
 
 * Aarlo will look up the current code with this HTTP GET request:
@@ -769,14 +769,14 @@ https://custom-host/get?email=test@test.com&token=1234567890
 
 * And the server will respond with this on success:
 ```json
-{ 'meta': { 'code': 200 },
-  'data': { 'success': True, 'email': 'test@test.com', 'code': '123456', 'timestamp': '123445666' } }
+{ "meta": { "code": 200 },
+  "data": { "success": True, "email": "test@test.com", "code": "123456", "timestamp": "123445666" } }
 ```
 
 * Failures always have `code` value of anything other than 200.
 ```json
-{ 'meta': { 'code': 400 },
-  'data': { 'success': False, 'error': 'permission denied' }}
+{ "meta": { "code": 400 },
+  "data": { "success": False, "error": "permission denied" }}
 ```
 
 Aarlo doesn't care how you get the codes into the system only that they are there. Feel
