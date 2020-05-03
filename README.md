@@ -120,9 +120,11 @@ Many thanks to:
   stream
 * [Button Card](https://github.com/kuuji/button-card/blob/master/button-card.js)
   for a working lovelace card I could understand
-* [![JetBrains](/images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
-  for the excellent **PyCharm IDE** and providing me with an open source license
-  to speed up the project development.
+* [JetBrains](https://www.jetbrains.com/?from=hass-aarlo) for the excellent
+  **PyCharm IDE** and providing me with an open source license to speed up the
+  project development.
+  
+  [![JetBrains](/images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
 
 
 <a name="installation"></a>
