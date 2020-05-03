@@ -264,7 +264,7 @@ binary_sensor:
     - sound
     - ding
     - cry
-	- connectivity
+    - connectivity
 ```
 
 Items on the `monitored_conditions` can be one or more of the following:
