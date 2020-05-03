@@ -4,7 +4,7 @@ from .constant import (
     TFA_CONSOLE_SOURCE,
     TFA_EMAIL_TYPE,
     PRELOAD_DAYS,
-)
+    TFA_DEFAULT_HOST)
 
 
 class ArloCfg(object):
@@ -139,19 +139,19 @@ class ArloCfg(object):
         return self._kw.get('tfa_total_timeout', default)
 
     @property
-    def imap_host(self, default='unknown'):
-        return self._kw.get('imap_host', default)
+    def tfa_host(self, ):
+        return self._kw.get('tfa_host', TFA_DEFAULT_HOST)
 
     @property
-    def imap_username(self, default=None):
-        u = self._kw.get('imap_username', default)
+    def tfa_username(self, default=None):
+        u = self._kw.get('tfa_username', default)
         if u is None:
             u = self.username
         return u
 
     @property
-    def imap_password(self, default=None):
-        p = self._kw.get('imap_password', default)
+    def tfa_password(self, default=None):
+        p = self._kw.get('tfa_password', default)
         if p is None:
             p = self.password
         return p
@@ -179,3 +179,7 @@ class ArloCfg(object):
     @property
     def library_days(self):
         return self._kw.get('library_days', PRELOAD_DAYS)
+
+    @property
+    def synchronous_mode(self):
+        return self._kw.get('synchronous_mode', False)

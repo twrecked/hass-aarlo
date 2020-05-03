@@ -85,17 +85,20 @@ class ArloDevice(object):
 
     @property
     def name(self):
-        """ Return the device name. """
+        """Returns the device name.
+        """
         return self._name
 
     @property
     def device_id(self):
-        """ Return the Arlo provided device id. """
+        """Returns the device's id.
+
+        """
         return self._device_id
 
     @property
     def resource_id(self):
-        """ The resource id, used for making requests and checking responses.
+        """Returns the resource id, used for making requests and checking responses.
 
         For base stations has the format [DEVICE-ID] and for other devices has
         the format [RESOURCE-TYPE]/[DEVICE-ID]
@@ -104,64 +107,85 @@ class ArloDevice(object):
 
     @property
     def resource_type(self):
-        """ The type of resource this is.
+        """Returns the type of resource this is.
 
-        For example, cameras, doorbells or basestations.
+        For now it's, `cameras`, `doorbells`, `lights` or `basestations`.
         """
         return None
 
     @property
     def serial_number(self):
-        """ Return the device serial number. """
+        """Returns the device serial number.
+        """
         return self._device_id
 
     @property
     def device_type(self):
-        """ Return the device type. """
+        """Returns the Arlo reported device type.
+\
+        """
         return self._device_type
 
     @property
     def model_id(self):
-        """ Return the model id. """
+        """Returns the model id.
+        """
         return self._attrs.get('modelId', None)
 
     @property
     def hw_version(self):
-        """ Return the hardware version. """
+        """Returns the hardware version.
+        """
         return self._attrs.get('properties', {}).get('hwVersion', None)
 
     @property
     def timezone(self):
-        """ Return the timezone. """
+        """Returns the timezone.
+        """
         return self._attrs.get('properties', {}).get('olsonTimeZone', None)
 
     @property
     def user_id(self):
-        """ Return the user id. """
+        """Returns the user id.
+        """
         return self._attrs.get('userId', None)
 
     @property
     def user_role(self):
-        """ Return the user role. """
+        """Returns the user role.
+        """
         return self._attrs.get('userRole', None)
 
     @property
     def xcloud_id(self):
-        """ Return the xcloud id. """
+        """Returns the device's xcloud id.
+        """
         return self._load(XCLOUD_ID_KEY, 'UNKNOWN')
 
     @property
     def web_id(self):
-        """ Return the web id. """
+        """Return the device's web id.
+        """
         return self.user_id + '_web'
 
     @property
     def unique_id(self):
-        """ Return the unique id. """
+        """Returns the device's unique id.
+        """
         return self._unique_id
 
     def attribute(self, attr, default=None):
-        """ Return the value of a given attribute. """
+        """Return the value of attribute attr.
+
+        PyArlo stores its state in key/value pairs. This returns the value associated with the key.
+
+        See PyArlo for a non-exhaustive list of attributes.
+
+        :param attr: Attribute to look up.
+        :type attr: str
+        :param default: value to return if not found.
+        :return: The value associated with attribute or `default` if not found.
+        """
         value = self._load(attr, None)
         if value is None:
             value = self._attrs.get(attr, None)
@@ -172,42 +196,67 @@ class ArloDevice(object):
         return value
 
     def add_attr_callback(self, attr, cb):
-        """ Add an callback to be triggered when an attribute changes. """
+        """Add an callback to be triggered when an attribute changes.
+
+        Used to register callbacks to track device activity. For example, get a notification whenever
+        motion stop and starts.
+
+        See PyArlo for a non-exhaustive list of attributes.
+
+        :param attr: Attribute - eg `motionStarted` - to monitor.
+        :type attr: str
+        :param cb: Callback to run.
+        """
         with self._lock:
             self._attr_cbs_.append((attr, cb))
 
     def has_capability(self, cap):
-        """ Is the camera capabale of performing an activity. """
+        """Is the device capable of performing activity cap:.
+
+        Used to determine if devices can perform certain actions, like motion or audio detection.
+
+        See attribute list against PyArlo.
+
+        :param cap: Attribute - eg `motionStarted` - to check.
+        :return: `True` it is, `False` it isn't.
+        """
         if cap in (CONNECTION_KEY,):
             return True
         return False
 
     @property
     def state(self):
-        """ Return the current state. """
+        """Returns a string describing the device's current state.
+        """
         return 'idle'
 
     @property
     def is_on(self):
-        """ Is the device turned on? """
+        """Returns `True` if the device is on, `False` otherwise.
+        """
         return True
 
     def turn_on(self):
-        """ Turn the device on. """
+        """Turn the device on.
+        """
         pass
 
     def turn_off(self):
-        """ Turn the device off. """
+        """Turn the device off.
+        """
         pass
 
     @property
     def is_unavailable(self):
-        """ Is the device available. """
+        """Returns `True` if the device is unavailable, `False` otherwise.
+
+        **Note:** Sorry about the double negative.
+        """
         return self._load(CONNECTION_KEY, 'unknown') == 'unavailable'
 
 
 class ArloChildDevice(ArloDevice):
-    """ Base class for all Arlo devices that attach to a base station.
+    """Base class for all Arlo devices that attach to a base station.
     """
 
     def __init__(self, name, arlo, attrs):
@@ -219,12 +268,15 @@ class ArloChildDevice(ArloDevice):
 
     @property
     def resource_type(self):
-        """ Return the resource type this object describes. """
+        """Return the resource type this child device describes.
+
+        Currently limited to `camera`, `doorbell` and `light`.
+        """
         return "child"
 
     @property
     def resource_id(self):
-        """ Shortcut for mostly used resource id.
+        """Returns the child device resource id.
 
         Some devices - certain cameras - can provide other types.
         """
@@ -232,9 +284,9 @@ class ArloChildDevice(ArloDevice):
 
     @property
     def parent_id(self):
-        """ Parent device id.
+        """Returns the parent device id.
 
-        Some devices - ArloBaby for example - are their own parents.
+        **Note:** Some devices - ArloBaby for example - are their own parents.
         """
         if self._parent_id is not None:
             return self._parent_id
@@ -242,7 +294,7 @@ class ArloChildDevice(ArloDevice):
 
     @property
     def base_station(self):
-        """ Return the base station controlling this device.
+        """Returns the base station controlling this device.
 
         Some devices - ArloBaby for example - are their own parents. If we
         can't find a basestation we return the first one.
@@ -260,55 +312,60 @@ class ArloChildDevice(ArloDevice):
 
     @property
     def battery_level(self):
-        """ Return the current battery level. """
+        """Returns the current battery level.
+        """
         return self._load(BATTERY_KEY, 100)
 
     @property
     def battery_tech(self):
-        """ Return the current battery technology. """
+        """Returns the current battery technology.
+
+        Is it rechargable, wired...
+        """
         return self._load(BATTERY_TECH_KEY, 'None')
 
     @property
     def charging(self):
-        """ Is the device recharging. """
+        """Returns `True` if the device is recharging, `False` otherwise.
+        """
         return self._load(CHARGING_KEY, 'off').lower() == 'on'
 
     @property
     def charger_type(self):
-        """ How the device is recharging. """
+        """Returns how the device is recharging.
+        """
         return self._load(CHARGER_KEY, 'None')
 
     @property
     def wired(self):
-        """ Is the device plugged in? """
+        """Returns `True` if the device plugged in, `False` otherwise.
+        """
         return self.charger_type.lower() != 'none'
 
     @property
     def wired_only(self):
-        """ Is the device plugged only in?
-
-        ie. Does it have battery back up?
+        """Returns `True` if the device is plugged in with no batteries, `False` otherwise.
         """
         return self.battery_tech.lower() == 'none' and self.wired
 
     @property
     def signal_strength(self):
-        """ Return the WiFi signal strength. """
+        """Returns the WiFi signal strength (0-5).
+        """
         return self._load(SIGNAL_STR_KEY, 3)
 
     @property
     def is_unavailable(self):
-        """ Is the device available. """
         return self.base_station.is_unavailable or self._load(CONNECTION_KEY, 'unknown') == 'unavailable'
 
     @property
     def too_cold(self):
-        """ Is the device too cold to operate? """
+        """Returns `True` if the device too cold to operate, `False` otherwise.
+        """
         return self._load(CONNECTION_KEY, 'unknown') == 'thermalShutdownCold'
 
     @property
     def state(self):
-        """ Return the camera current state. """
         if self.is_unavailable:
             return 'unavailable'
         if not self.is_on:
