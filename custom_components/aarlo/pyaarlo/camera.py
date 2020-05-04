@@ -964,11 +964,11 @@ class ArloCamera(ArloChildDevice):
             return True
         if cap in (AUDIO_DETECTED_KEY,):
             if self.model_id.startswith(
-                ('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000', 'FB1001A')
+                ('arloq', 'VMC4030', 'VMC4040', 'VMC5040', 'ABC1000', 'FB1001')
             ):
                 return True
         if cap in (SIREN_STATE_KEY,):
-            if self.model_id.startswith(('VMC4040', 'VMC5040', 'FB1001A')):
+            if self.model_id.startswith(('VMC4040', 'VMC5040', 'FB1001')):
                 return True
         if cap in (SPOTLIGHT_KEY,):
             if self.model_id.startswith(('VMC4040', 'VMC5040')):
@@ -980,6 +980,6 @@ class ArloCamera(ArloChildDevice):
             if self.model_id.startswith('ABC1000'):
                 return True
         if cap in (FLOODLIGHT_KEY,):
-            if self.model_id.startswith('FB1001A'):
+            if self.model_id.startswith('FB1001'):
                 return True
         return super().has_capability(cap)
