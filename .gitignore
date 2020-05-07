@@ -112,5 +112,6 @@ venv.bak/
 *.diff
 tmp
 custom_components/aarlo/pyaarlo/main.py
+.ycm_extra_conf.py
 
 
