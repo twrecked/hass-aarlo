@@ -208,11 +208,12 @@ class ArloCamera(ArloChildDevice):
 
         # no media uploads and stream stopped?
         if self._arlo.cfg.no_media_upload:
-            if event.get('properties', {}).get('activityState', 'unknown') == 'idle' and self.is_recording:
+            if event.get('properties', {}).get('activityState', 'unknown') == 'idle' and \
+                    (self.is_recording or self.is_streaming):
                 self._arlo.debug('got a stream stop, queueing update')
+                self._arlo.bg.run_in(self._arlo.ml.queue_update, 1, cb=self._update_media_and_thumbnail)
                 self._arlo.bg.run_in(self._arlo.ml.queue_update, 5, cb=self._update_media_and_thumbnail)
                 self._arlo.bg.run_in(self._arlo.ml.queue_update, 10, cb=self._update_media_and_thumbnail)
-                self._arlo.bg.run_in(self._arlo.ml.queue_update, 15, cb=self._update_media_and_thumbnail)
 
         # get it an update last image
         if event.get('action', '') == 'fullFrameSnapshotAvailable':
