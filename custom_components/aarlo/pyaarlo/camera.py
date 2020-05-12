@@ -523,7 +523,7 @@ class ArloCamera(ArloChildDevice):
                           })
         return True
 
-    def start_recording(self, duration=None):
+    def start_recording(self, duration=30):
         body = {
             'parentId': self.parent_id,
             'deviceId': self.device_id,
@@ -535,7 +535,7 @@ class ArloCamera(ArloChildDevice):
                           headers={"xcloudId": self.xcloud_id})
         if duration is not None:
             self._arlo.debug('queueing stop')
-            self._arlo.bg.run_in(self.stop_recording)
+            self._arlo.bg.run_in(self.stop_recording,duration)
 
     def stop_recording(self):
         body = {
