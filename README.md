@@ -623,6 +623,11 @@ The component provides the following services:
 | `aarlo.sirens_off`                      |                                                                                                                                    | Turns all sirens off.                                                                                                          |
 | `aarlo.inject_response`                 | `filename` - file to read packet from                                                                                              | Inject a packet into the event stream.                                                                                         |
 
+For recordings longer than 30 seconds you will need to whitelist the /tmp
+directory. This is because we have to keep a stream to Arlo open to prevent them
+from stopping the recording after 30 seconds. And we write this stream to the
+/tmp directory.
+
 These services are deprecated and will be going away. By moving services under the aarlo
 domain it allows Home Assistant to use the `services.yaml` descriptions.
 
