@@ -549,7 +549,7 @@ class ArloCam(Camera):
         if source is not None:
             self._camera.start_recording(duration=duration)
         else:
-            _LOGGER.warning("failed to start recording for {}".self._camera.name)
+            _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
         return source
 
     def stop_recording(self):
