@@ -71,10 +71,10 @@ class ArloCamera(ArloChildDevice):
                 url = self._cached_videos[0].thumbnail_url
         if url is not None:
             self._save(LAST_IMAGE_KEY, url)
-            self._update_last_image()
+            self._update_image()
 
     # Update last captured image.
-    def _update_last_image(self):
+    def _update_image(self):
         self._arlo.debug('getting image for ' + self.name)
 
         # Get image and date, if fails set to blank.
@@ -90,10 +90,7 @@ class ArloCamera(ArloChildDevice):
             self._save_and_do_callbacks(LAST_CAPTURE_KEY, date)
             self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
-        # Clean up snapshot handler.
-        self._clear_snapshot()
-
-    def _update_last_snapshot(self):
+    def _update_snapshot(self):
         self._arlo.debug('getting snapshot for ' + self.name)
 
         # Get image and date, if fails ignore.
@@ -205,7 +202,7 @@ class ArloCamera(ArloChildDevice):
             # The last image thumnbail has changed. Queue an update.
             if LAST_IMAGE_KEY in event:
                 self._arlo.debug("{} -> thumbnail changed".format(self.name))
-                self._arlo.bg.run_low(self._update_last_image)
+                self._arlo.bg.run_low(self._update_image)
 
             # Recording has stopped so a new video is available. Queue and
             # update.
@@ -218,7 +215,7 @@ class ArloCamera(ArloChildDevice):
             if '/snapshots/' in value:
                 self._arlo.debug("{} -> snapshot ready".format(self.name))
                 self._save(SNAPSHOT_KEY, value)
-                self._arlo.bg.run_low(self._update_last_snapshot)
+                self._arlo.bg.run_low(self._update_snapshot)
 
             # Something just happened.
             self._set_recent(self._arlo.cfg.recent_time)
@@ -269,7 +266,7 @@ class ArloCamera(ArloChildDevice):
             if value is not None:
                 self._arlo.debug("{} -> snapshot ready".format(self.name))
                 self._save(SNAPSHOT_KEY, value)
-                self._arlo.bg.run_low(self._update_last_snapshot)
+                self._arlo.bg.run_low(self._update_snapshot)
 
         # Ambient sensors update, decode and push changes.
         if resource.endswith('/ambientSensors/history'):
@@ -489,7 +486,7 @@ class ArloCamera(ArloChildDevice):
     def update_last_image(self):
         """Requests last thumbnail from the backend server. """
         self._arlo.debug('queing image update')
-        self._arlo.bg.run_low(self._update_last_image)
+        self._arlo.bg.run_low(self._update_image)
 
     def update_ambient_sensors(self):
         """Requests the latest temperature, humidity and air quality settings.
