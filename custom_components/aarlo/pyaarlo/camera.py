@@ -7,7 +7,7 @@ from .constant import (
     ACTIVITY_STATE_KEY, AIR_QUALITY_KEY, AUDIO_ANALYTICS_KEY,
     AUDIO_DETECTED_KEY, AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, BATTERY_KEY,
     BRIGHTNESS_KEY, CAMERA_MEDIA_DELAY, CAPTURED_TODAY_KEY, CRY_DETECTION_KEY,
-    DEFAULT_TRACK_ID, FLIP_KEY, FLOODLIGHT_BRIGHTNESS1_KEY,
+    FLIP_KEY, FLOODLIGHT_BRIGHTNESS1_KEY,
     FLOODLIGHT_BRIGHTNESS2_KEY, FLOODLIGHT_KEY, HUMIDITY_KEY,
     IDLE_SNAPSHOT_PATH, LAMP_STATE_KEY, LAST_CAPTURE_KEY, LAST_IMAGE_DATA_KEY,
     LAST_IMAGE_KEY, LAST_IMAGE_SRC_KEY, LIGHT_BRIGHTNESS_KEY, LIGHT_MODE_KEY,
@@ -17,7 +17,7 @@ from .constant import (
     RECENT_ACTIVITY_KEY, RECORDING_STOPPED_KEY, RECORD_START_PATH,
     RECORD_STOP_PATH, SIGNAL_STR_KEY, SIREN_STATE_KEY, SNAPSHOT_KEY,
     SPOTLIGHT_BRIGHTNESS_KEY, SPOTLIGHT_KEY, STREAM_SNAPSHOT_KEY,
-    STREAM_SNAPSHOT_PATH, STREAM_START_PATH, TEMPERATURE_KEY,
+    STREAM_SNAPSHOT_PATH, STREAM_START_PATH, TEMPERATURE_KEY, RECENT_ACTIVITY_KEYS,
 )
 from .device import ArloChildDevice
 from .util import http_get, http_get_img
@@ -232,7 +232,7 @@ class ArloCamera(ArloChildDevice):
         if activity == 'idle':
             # Currently recording or streaming and media upload not working?
             # Then send in a request for updated media.
-            if (self.is_recording or self.is_streaming):
+            if self.is_recording or self.is_streaming:
                 self._arlo.debug('got a stream/recording stop')
                 if self._arlo.cfg.no_media_upload:
                     self._arlo.debug('got a stream stop, queueing update')
@@ -245,6 +245,9 @@ class ArloCamera(ArloChildDevice):
                 with self._lock:
                     self._activity_state = []
                     self._lock.notify_all()
+
+            # Something just happened.
+            self._set_recent(self._arlo.cfg.recent_time)
 
         # Camera is active. If we don't know about it then update our status.
         if activity == 'alertStreamActive':
@@ -276,8 +279,17 @@ class ArloCamera(ArloChildDevice):
                 self._save_and_do_callbacks('humidity', data.get('humidity'))
                 self._save_and_do_callbacks('airQuality', data.get('airQuality'))
 
+        # Properties settings.
+        properties = event.get("properties", {})
+
+        # Anything to trip recent activity?
+        for key in properties:
+            if key in RECENT_ACTIVITY_KEYS:
+                self._arlo.debug('recent activity key')
+                self._set_recent(self._arlo.cfg.recent_time)
+
         # Night light status.
-        nightlight = event.get("properties", {}).get(NIGHTLIGHT_KEY, None)
+        nightlight = properties.get(NIGHTLIGHT_KEY, None)
         if nightlight is not None:
             self._arlo.debug("got a night light {}".format(nightlight.get("enabled", False)))
             if nightlight.get("enabled", False) is True:
@@ -306,7 +318,7 @@ class ArloCamera(ArloChildDevice):
                 self._save_and_do_callbacks(LIGHT_MODE_KEY, light_mode)
 
         # Spotlight status.
-        spotlight = event.get("properties", {}).get(SPOTLIGHT_KEY, None)
+        spotlight = properties.get(SPOTLIGHT_KEY, None)
         if spotlight is not None:
             self._arlo.debug("got a spotlight {}".format(spotlight.get("enabled", False)))
             if spotlight.get("enabled", False) is True:
@@ -319,13 +331,13 @@ class ArloCamera(ArloChildDevice):
                 self._save_and_do_callbacks(SPOTLIGHT_BRIGHTNESS_KEY, brightness)
 
         # Floodlight status.
-        floodlight = event.get("properties", {}).get(FLOODLIGHT_KEY, None)
+        floodlight = properties.get(FLOODLIGHT_KEY, None)
         if floodlight is not None:
             self._arlo.debug("got a flood light {}".format(floodlight.get("on", False)))
             self._save_and_do_callbacks(FLOODLIGHT_KEY, floodlight)
 
         # Audio analytics.
-        audioanalytics = event.get("properties", {}).get(AUDIO_ANALYTICS_KEY, None)
+        audioanalytics = properties.get(AUDIO_ANALYTICS_KEY, None)
         if audioanalytics is not None:
             triggered = audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered", False)
             self._save_and_do_callbacks(CRY_DETECTION_KEY, triggered)
@@ -537,7 +549,7 @@ class ArloCamera(ArloChildDevice):
         :return: a binary represention of the image, or the last image if snapshot timed out
         :rtype: bytearray
         """
-        self._request_snapshot()
+        self.request_snapshot()
 
         mnow = time.monotonic()
         mend = mnow + timeout
@@ -576,6 +588,10 @@ class ArloCamera(ArloChildDevice):
         """Returns the camera's current state.
         """
         if self.is_taking_snapshot:
+            if self.is_recording:
+                return 'recording + snapshot'
+            if self.is_streaming:
+                return 'streaming + snapshot'
             return 'taking snapshot'
         if self.is_recording:
             return 'recording'
@@ -663,7 +679,7 @@ class ArloCamera(ArloChildDevice):
         # Queue up stop.
         if duration is not None:
             self._arlo.debug('queueing stop')
-            self._arlo.bg.run_in(self.stop_recording,duration)
+            self._arlo.bg.run_in(self.stop_recording, duration)
 
         return self._stream_url
 
@@ -675,7 +691,6 @@ class ArloCamera(ArloChildDevice):
                 return
             self._activity_state.remove("recording")
 
-        self._stream_state = 'idle'
         body = {
             'parentId': self.parent_id,
             'deviceId': self.device_id,
