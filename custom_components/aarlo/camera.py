@@ -6,10 +6,8 @@ https://home-assistant.io/components/camera.arlo/
 """
 import base64
 import logging
-from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
-import homeassistant.util.dt as dt_util
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (ATTR_FILENAME,
@@ -20,6 +18,7 @@ from homeassistant.components.camera import (ATTR_FILENAME,
                                              STATE_RECORDING,
                                              STATE_STREAMING,
                                              Camera)
+from homeassistant.components.ffmpeg import DATA_FFMPEG
 from homeassistant.components.stream.const import (
     CONF_DURATION,
     CONF_LOOKBACK,
@@ -27,7 +26,6 @@ from homeassistant.components.stream.const import (
     DOMAIN as DOMAIN_STREAM,
     SERVICE_RECORD,
 )
-from homeassistant.components.ffmpeg import DATA_FFMPEG
 from homeassistant.const import (ATTR_ATTRIBUTION,
                                  ATTR_BATTERY_LEVEL,
                                  ATTR_ENTITY_ID,
@@ -36,7 +34,6 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
-from homeassistant.helpers.event import async_track_point_in_time
 
 from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND, COMPONENT_DOMAIN, COMPONENT_SERVICES, \
     get_entity_from_domain

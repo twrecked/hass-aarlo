@@ -1,4 +1,7 @@
 aarlo/pyaarlo
+0.7.0.alpha.2: State machine improvements.
+        Services.yaml now has all parameters
+		Allow recording longer than 30 seconds.
 0.7.0.alpha.1: First 0.7 test build
 0.6.89: Beta 2FA support
 0.6.17: Add request_snapshot webservice
