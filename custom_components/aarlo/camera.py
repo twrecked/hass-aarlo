@@ -6,12 +6,9 @@ https://home-assistant.io/components/camera.arlo/
 """
 import base64
 import logging
-from datetime import timedelta
-
-import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-import homeassistant.util.dt as dt_util
+import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (ATTR_FILENAME,
                                              CAMERA_SERVICE_SCHEMA,
@@ -22,15 +19,24 @@ from homeassistant.components.camera import (ATTR_FILENAME,
                                              STATE_STREAMING,
                                              Camera)
 from homeassistant.components.ffmpeg import DATA_FFMPEG
+from homeassistant.components.stream.const import (
+    CONF_DURATION,
+    CONF_LOOKBACK,
+    CONF_STREAM_SOURCE,
+    DOMAIN as DOMAIN_STREAM,
+    SERVICE_RECORD,
+)
 from homeassistant.const import (ATTR_ATTRIBUTION,
                                  ATTR_BATTERY_LEVEL,
-                                 ATTR_ENTITY_ID)
+                                 ATTR_ENTITY_ID,
+                                 CONF_FILENAME)
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
-from homeassistant.helpers.event import async_track_point_in_time
-from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND, COMPONENT_DOMAIN, COMPONENT_SERVICES, get_entity_from_domain
+
+from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND, COMPONENT_DOMAIN, COMPONENT_SERVICES, \
+    get_entity_from_domain
 from .pyaarlo.constant import (ACTIVITY_STATE_KEY,
                                CHARGER_KEY,
                                CHARGING_KEY,
@@ -44,7 +50,7 @@ from .pyaarlo.constant import (ACTIVITY_STATE_KEY,
 
 _LOGGER = logging.getLogger(__name__)
 
-DEPENDENCIES = [COMPONENT_DOMAIN]
+DEPENDENCIES = [COMPONENT_DOMAIN, 'ffmpeg']
 
 ARLO_MODE_ARMED = 'armed'
 ARLO_MODE_DISARMED = 'disarmed'
@@ -70,8 +76,6 @@ ATTR_DURATION = 'duration'
 ATTR_TIME_ZONE = 'time_zone'
 
 CONF_FFMPEG_ARGUMENTS = 'ffmpeg_arguments'
-
-DEPENDENCIES = ['aarlo', 'ffmpeg']
 
 POWERSAVE_MODE_MAPPING = {
     1: 'best_battery_life',
@@ -461,9 +465,9 @@ class ArloCam(Camera):
         # prefer video or what arlo says?
         #  video = self._camera.last_video
         #  if video is None:
-            #  thumbnail =  self._camera.last_image
+        #  thumbnail =  self._camera.last_image
         #  else:
-            #  thumbnail = video.thumbnail_url
+        #  thumbnail = video.thumbnail_url
         #  return thumbnail
         return self._camera.last_image
 
@@ -537,21 +541,20 @@ class ArloCam(Camera):
     def async_siren_off(self):
         return self.hass.async_add_job(self.siren_off)
 
-    def start_recording(self, duration):
-
-        def _stop_recording(_now):
-            self.stop_recording()
-
-        if self._camera.get_stream() is not None:
-            self._camera.start_recording()
-            async_track_point_in_time(self.hass, _stop_recording, dt_util.utcnow() + timedelta(seconds=duration))
+    def start_recording(self, duration=30):
+        source = self._camera.get_stream()
+        if source is not None:
+            self._camera.start_recording(duration=duration)
+        else:
+            _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
+        return source
 
     def stop_recording(self):
         self._camera.stop_recording()
         self._camera.stop_activity()
 
     def async_start_recording(self, duration):
-        return self.hass.async_add_job(self.start_recording, duration=duration)
+        return self.hass.async_add_job(self.start_recording, duration)
 
     def async_stop_recording(self):
         return self.hass.async_add_job(self.stop_recording)
@@ -576,7 +579,7 @@ async def websocket_video_url(hass, connection, msg):
     except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
             msg['id'], 'video_url_ws', "Unable to fetch url ({})".format(str(error))))
-        _LOGGER.warning("{} video url websocket failed".format(entity_id))
+        _LOGGER.warning("{} video url websocket failed".format(msg['entity_id']))
 
 
 @websocket_api.async_response
@@ -606,7 +609,7 @@ async def websocket_library(hass, connection, msg):
     except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
             msg['id'], 'library_ws', "Unable to fetch library ({})".format(str(error))))
-        _LOGGER.warning("{} library websocket failed".format(entity_id))
+        _LOGGER.warning("{} library websocket failed".format(msg['entity_id']))
 
 
 @websocket_api.async_response
@@ -624,7 +627,7 @@ async def websocket_stream_url(hass, connection, msg):
     except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
             msg['id'], 'stream_url_ws', "Unable to fetch stream ({})".format(str(error))))
-        _LOGGER.warning("{} stream url websocket failed".format(entity_id))
+        _LOGGER.warning("{} stream url websocket failed".format(msg['entity_id']))
 
 
 @websocket_api.async_response
@@ -643,7 +646,8 @@ async def websocket_snapshot_image(hass, connection, msg):
     except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
             msg['id'], 'snapshot_image_ws', "Unable to take snapshot ({})".format(str(error))))
-        _LOGGER.warning("{} snapshot image websocket failed".format(entity_id))
+        _LOGGER.warning("{} snapshot image websocket failed".format(msg['entity_id']))
+
 
 @websocket_api.async_response
 async def websocket_request_snapshot(hass, connection, msg):
@@ -660,7 +664,7 @@ async def websocket_request_snapshot(hass, connection, msg):
     except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
             msg['id'], 'requst_snapshot_ws', "Unable to request snapshot ({})".format(str(error))))
-        _LOGGER.warning("{} snapshot request websocket failed".format(entity_id))
+        _LOGGER.warning("{} snapshot request websocket failed".format(msg['entity_id']))
 
 
 @websocket_api.async_response
@@ -679,7 +683,7 @@ async def websocket_video_data(hass, connection, msg):
     except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
             msg['id'], 'video_data_ws', "Unable to get video data ({})".format(str(error))))
-        _LOGGER.warning("{} video data websocket failed".format(entity_id))
+        _LOGGER.warning("{} video data websocket failed".format(msg['entity_id']))
 
 
 @websocket_api.async_response
@@ -697,7 +701,7 @@ async def websocket_stop_activity(hass, connection, msg):
     except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
             msg['id'], 'stop_activity_ws', "Unable to stop activity ({})".format(str(error))))
-        _LOGGER.warning("{} stop activity websocket failed".format(entity_id))
+        _LOGGER.warning("{} stop activity websocket failed".format(msg['entity_id']))
 
 
 @websocket_api.async_response
@@ -715,7 +719,7 @@ async def websocket_siren_on(hass, connection, msg):
     except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
             msg['id'], 'siren_on_ws', "Unable to turn siren on ({})".format(str(error))))
-        _LOGGER.warning("{} siren on websocket failed".format(entity_id))
+        _LOGGER.warning("{} siren on websocket failed".format(msg['entity_id']))
 
 
 @websocket_api.async_response
@@ -733,7 +737,7 @@ async def websocket_siren_off(hass, connection, msg):
     except HomeAssistantError as error:
         connection.send_message(websocket_api.error_message(
             msg['id'], 'siren_off_ws', "Unable to turn siren off ({})".format(str(error))))
-        _LOGGER.warning("{} siren off websocket failed".format(entity_id))
+        _LOGGER.warning("{} siren off websocket failed".format(msg['entity_id']))
 
 
 async def aarlo_snapshot_service_handler(camera, _service):
@@ -836,7 +840,7 @@ async def async_camera_snapshot_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             _LOGGER.info("{} snapshot".format(entity_id))
-            await get_entity_from_domain(hass,DOMAIN,entity_id).async_get_snapshot()
+            await get_entity_from_domain(hass, DOMAIN, entity_id).async_get_snapshot()
             hass.bus.fire('aarlo_snapshot_ready', {
                 'entity_id': entity_id,
             })
@@ -847,11 +851,11 @@ async def async_camera_snapshot_service(hass, call):
 async def async_camera_snapshot_to_file_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
-            camera = get_entity_from_domain(hass,DOMAIN,entity_id)
+            camera = get_entity_from_domain(hass, DOMAIN, entity_id)
             filename = call.data[ATTR_FILENAME]
             filename.hass = hass
             snapshot_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-            _LOGGER.info("{} snapshot(filename={})".format(entity_id,filename))
+            _LOGGER.info("{} snapshot(filename={})".format(entity_id, filename))
 
             # check if we allow to access to that file
             if not hass.config.is_allowed_path(snapshot_file):
@@ -878,11 +882,11 @@ async def async_camera_snapshot_to_file_service(hass, call):
 async def async_camera_video_to_file_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
-            camera = get_entity_from_domain(hass,DOMAIN,entity_id)
+            camera = get_entity_from_domain(hass, DOMAIN, entity_id)
             filename = call.data[ATTR_FILENAME]
             filename.hass = hass
             video_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-            _LOGGER.info("{} video to file {}".format(entity_id,filename))
+            _LOGGER.info("{} video to file {}".format(entity_id, filename))
 
             # check if we allow to access to that file
             if not hass.config.is_allowed_path(video_file):
@@ -911,7 +915,7 @@ async def async_camera_stop_activity_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             _LOGGER.info("{} stop activity".format(entity_id))
-            get_entity_from_domain(hass,DOMAIN,entity_id).stop_activity()
+            get_entity_from_domain(hass, DOMAIN, entity_id).stop_activity()
         except HomeAssistantError:
             _LOGGER.warning("{} stop activity service failed".format(entity_id))
 
@@ -921,8 +925,8 @@ async def async_camera_siren_on_service(hass, call):
         try:
             volume = call.data[ATTR_VOLUME]
             duration = call.data[ATTR_DURATION]
-            _LOGGER.info("{} start siren(volume={}/duration={})".format(entity_id,volume,duration))
-            get_entity_from_domain(hass,DOMAIN,entity_id).siren_on(duration=duration, volume=volume)
+            _LOGGER.info("{} start siren(volume={}/duration={})".format(entity_id, volume, duration))
+            get_entity_from_domain(hass, DOMAIN, entity_id).siren_on(duration=duration, volume=volume)
         except HomeAssistantError:
             _LOGGER.warning("{} siren on service failed".format(entity_id))
 
@@ -931,7 +935,7 @@ async def async_camera_siren_off_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             _LOGGER.info("{} stop siren".format(entity_id))
-            get_entity_from_domain(hass,DOMAIN,entity_id).siren_off()
+            get_entity_from_domain(hass, DOMAIN, entity_id).siren_off()
         except HomeAssistantError:
             _LOGGER.warning("{} siren off service failed".format(entity_id))
 
@@ -940,8 +944,30 @@ async def async_camera_start_recording_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             duration = call.data[ATTR_DURATION]
-            _LOGGER.info("{} start recording(duration={})".format(entity_id,duration))
-            get_entity_from_domain(hass,DOMAIN,entity_id).start_recording(duration=duration)
+            _LOGGER.info("{} start recording(duration={})".format(entity_id, duration))
+            camera = get_entity_from_domain(hass, DOMAIN, entity_id)
+            source = await camera.async_start_recording(duration=duration)
+
+            # Longer than 25 seconds means we need to attach a stream and record to disk to keep
+            # Arlo recording.
+            if source is not None and duration > 25:
+                _LOGGER.info("{} attaching hidden stream for duration {}".format(entity_id, duration))
+
+                #  filename = "/tmp/scratch-{}.mp4".format(entity_id)
+                #  filename.hass = hass
+                #  video_path = filename.async_render(variables={ATTR_ENTITY_ID: camera})
+                video_path = "/tmp/scratch-{}.mp4".format(entity_id)
+
+                data = {
+                    CONF_STREAM_SOURCE: source,
+                    CONF_FILENAME: video_path,
+                    CONF_DURATION: duration,
+                    CONF_LOOKBACK: 0,
+                }
+                await hass.services.async_call(
+                    DOMAIN_STREAM, SERVICE_RECORD, data, blocking=True, context=call.context
+                )
+
         except HomeAssistantError:
             _LOGGER.warning("{} start recording service failed".format(entity_id))
 
@@ -950,7 +976,6 @@ async def async_camera_stop_recording_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             _LOGGER.info("{} stop recording".format(entity_id))
-            get_entity_from_domain(hass,DOMAIN,entity_id).stop_recording()
+            get_entity_from_domain(hass, DOMAIN, entity_id).stop_recording()
         except HomeAssistantError:
             _LOGGER.warning("{} stop recording service failed".format(entity_id))
-
