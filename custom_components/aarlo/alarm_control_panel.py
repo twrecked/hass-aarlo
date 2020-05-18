@@ -336,11 +336,11 @@ class ArloBaseStation(AlarmControlPanel):
             return True
         return False
 
-    def async_siren_on(self, duration, volume):
-        return self.hass.async_add_job(self.siren_on, duration=duration, volume=volume)
+    async def async_siren_on(self, duration, volume):
+        return await self.hass.async_add_executor_job(self.siren_on, duration, volume)
 
-    def async_siren_off(self):
-        return self.hass.async_add_job(self.siren_off)
+    async def async_siren_off(self):
+        return await self.hass.async_add_executor_job(self.siren_off)
 
     def _validate_code(self, code, state):
         """Validate given code."""

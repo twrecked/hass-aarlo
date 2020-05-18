@@ -310,17 +310,6 @@ class ArloCam(Camera):
         self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info('ArloCam: %s created', self._name)
 
-    async def stream_source(self):
-        """Return the source of the stream."""
-        return self._camera.get_stream()
-
-    def async_stream_source(self):
-        return self.hass.async_add_job(self.stream_source)
-
-    def camera_image(self):
-        """Return a still image response from the camera."""
-        return self._camera.last_image_from_cache
-
     async def async_added_to_hass(self):
         """Register callbacks."""
 
@@ -451,6 +440,17 @@ class ArloCam(Camera):
         """Return the camera brand."""
         return COMPONENT_BRAND
 
+    async def stream_source(self):
+        """Return the source of the stream."""
+        return await self.hass.async_add_executor_job(self._camera.get_stream)
+
+    async def async_stream_source(self):
+        return await self.hass.async_add_executor_job(self._camera.get_stream)
+
+    def camera_image(self):
+        """Return a still image response from the camera."""
+        return self._camera.last_image_from_cache
+
     @property
     def motion_detection_enabled(self):
         """Return the camera motion detection status."""
@@ -500,26 +500,26 @@ class ArloCam(Camera):
     def request_snapshot(self):
         self._camera.request_snapshot()
 
-    def async_request_snapshot(self):
-        return self.hass.async_add_job(self.request_snapshot)
+    async def async_request_snapshot(self):
+        return await self.hass.async_add_executor_job(self.request_snapshot)
 
     def get_snapshot(self):
         return self._camera.get_snapshot()
 
-    def async_get_snapshot(self):
-        return self.hass.async_add_job(self.get_snapshot)
+    async def async_get_snapshot(self):
+        return await self.hass.async_add_executor_job(self.get_snapshot)
 
     def get_video(self):
         return self._camera.get_video()
 
-    def async_get_video(self):
-        return self.hass.async_add_job(self.get_video)
+    async def async_get_video(self):
+        return await self.hass.async_add_executor_job(self.get_video)
 
     def stop_activity(self):
         return self._camera.stop_activity()
 
-    def async_stop_activity(self):
-        return self.hass.async_add_job(self.stop_activity)
+    async def async_stop_activity(self):
+        return await self.hass.async_add_executor_job(self.stop_activity)
 
     def siren_on(self, duration=30, volume=10):
         if self._camera.has_capability(SIREN_STATE_KEY):
@@ -535,11 +535,11 @@ class ArloCam(Camera):
             return True
         return False
 
-    def async_siren_on(self, duration, volume):
-        return self.hass.async_add_job(self.siren_on, duration=duration, volume=volume)
+    async def async_siren_on(self, duration, volume):
+        return await self.hass.async_add_executor_job(self.siren_on, duration, volume)
 
-    def async_siren_off(self):
-        return self.hass.async_add_job(self.siren_off)
+    async def async_siren_off(self):
+        return await self.hass.async_add_executor_job(self.siren_off)
 
     def start_recording(self, duration=30):
         source = self._camera.get_stream()
@@ -553,11 +553,11 @@ class ArloCam(Camera):
         self._camera.stop_recording()
         self._camera.stop_activity()
 
-    def async_start_recording(self, duration):
-        return self.hass.async_add_job(self.start_recording, duration)
+    async def async_start_recording(self, duration):
+        return await self.hass.async_add_executor_job(self.start_recording, duration)
 
-    def async_stop_recording(self):
-        return self.hass.async_add_job(self.stop_recording)
+    async def async_stop_recording(self):
+        return await self.hass.async_add_executor_job(self.stop_recording)
 
 
 @websocket_api.async_response
