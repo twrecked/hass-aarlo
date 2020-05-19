@@ -26,6 +26,9 @@ class ArloDevice(object):
         self._device_type = attrs.get('deviceType', 'unknown')
         self._unique_id = attrs.get('uniqueId', None)
 
+        # Activities. Used by camera for now but made available to all.
+        self._activities = {}
+
         # Build initial values... attrs is device state
         for key in DEVICE_KEYS:
             value = attrs.get(key, None)
@@ -47,7 +50,7 @@ class ArloDevice(object):
             return [self.__class__.__name__, self._device_id, attr]
 
     def _event_handler(self, resource, event):
-        self._arlo.vdebug("{}: got {} event {}".format(self.name, resource, pprint.pformat(event)))
+        self._arlo.vdebug("{}: got {} event **".format(self.name, resource))
 
         # Find properties. Event either contains a item called properties or it
         # is the whole thing.
@@ -82,6 +85,44 @@ class ArloDevice(object):
 
     def _load_matching(self, attr, default=None):
         return self._arlo.st.get_matching(self._to_storage_key(attr), default)
+
+    def _has_activity(self, activity):
+        return activity in self._activities
+
+    def _activity_has_any_subactivity(self, activity):
+        return len(self._activities.get(activity,{})) != 0
+
+    def _activity_has_subactivity(self, activity, subactivity):
+        return subactivity in self._activities.get(activity,{})
+
+    def _has_subactivity(self, subactivity):
+        for activity in self._activities:
+            if self._activity_has_subactivity(self, activity, subactivity):
+                return True
+        return False
+
+    def _add_activity(self, activity, subactivity=None):
+        if activity not in self._activities:
+            self._activities[activity] = set()
+        if subactivity is not None:
+            self._activities[activity].add(subactivity)
+
+    def _add_subactivity(self, subactivity):
+        for activity in self._activities:
+            self._add_activity(self, activity, subactivity)
+
+    def _remove_activity(self, activity):
+        self._activities.remove(activity)
+
+    def _remove_subactivity_from_activity(self, activity, subactivity):
+        self._activities.get(activity,{}).remove(subactivity)
+
+    def _remove_subactivity(self, activity):
+        for activity in self._activities:
+            self._remove_subactivity_from_activity(self, activity, subactivity)
+
+    def _clear_activities(self):
+        self._activities = {}
 
     @property
     def name(self):

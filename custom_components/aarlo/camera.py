@@ -6,6 +6,7 @@ https://home-assistant.io/components/camera.arlo/
 """
 import base64
 import logging
+import time
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -497,13 +498,36 @@ class ArloCam(Camera):
         self._motion_status = False
         self.set_base_station_mode(ARLO_MODE_DISARMED)
 
+    def _start_snapshot_stream(self):
+        # XXX make optional
+        source = self._camera.start_snapshot_stream()
+        if source is not None:
+            _LOGGER.info("{} attaching hidden stream for duration {}".format(self._unique_id, 15))
+
+            video_path = "/tmp/snapshot-{}.mp4".format(self._unique_id)
+
+            data = {
+                CONF_STREAM_SOURCE: source,
+                CONF_FILENAME: video_path,
+                CONF_DURATION: 15,
+                CONF_LOOKBACK: 0,
+            }
+            self.hass.services.call(
+                DOMAIN_STREAM, SERVICE_RECORD, data, blocking=True
+            )
+            # do better than this!
+            _LOGGER.debug("waiting on stream")
+            time.sleep(2)
+
     def request_snapshot(self):
+        self._start_snapshot_stream()
         self._camera.request_snapshot()
 
     async def async_request_snapshot(self):
         return await self.hass.async_add_executor_job(self.request_snapshot)
 
     def get_snapshot(self):
+        self._start_snapshot_stream()
         return self._camera.get_snapshot()
 
     async def async_get_snapshot(self):
@@ -542,7 +566,7 @@ class ArloCam(Camera):
         return await self.hass.async_add_executor_job(self.siren_off)
 
     def start_recording(self, duration=30):
-        source = self._camera.get_stream()
+        source = self._camera.start_recording_stream()
         if source is not None:
             self._camera.start_recording(duration=duration)
         else:
@@ -550,8 +574,7 @@ class ArloCam(Camera):
         return source
 
     def stop_recording(self):
-        self._camera.stop_recording()
-        self._camera.stop_activity()
+        self._camera.stop_recording_stream()
 
     async def async_start_recording(self, duration):
         return await self.hass.async_add_executor_job(self.start_recording, duration)
@@ -840,7 +863,8 @@ async def async_camera_snapshot_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             _LOGGER.info("{} snapshot".format(entity_id))
-            await get_entity_from_domain(hass, DOMAIN, entity_id).async_get_snapshot()
+            camera = get_entity_from_domain(hass, DOMAIN, entity_id)
+            await camera.async_get_snapshot()
             hass.bus.fire('aarlo_snapshot_ready', {
                 'entity_id': entity_id,
             })
