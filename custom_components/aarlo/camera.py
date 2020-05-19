@@ -498,26 +498,34 @@ class ArloCam(Camera):
         self._motion_status = False
         self.set_base_station_mode(ARLO_MODE_DISARMED)
 
+    def _attach_hidden_stream(self,source,duration):
+        _LOGGER.info("{} attaching hidden stream for duration {}".format(self._unique_id, 15))
+
+        video_path = "/tmp/aarlo-hidden-{}.mp4".format(self._unique_id)
+
+        data = {
+            CONF_STREAM_SOURCE: source,
+            CONF_FILENAME: video_path,
+            CONF_DURATION: duration,
+            CONF_LOOKBACK: 0,
+        }
+        self.hass.services.call(
+            DOMAIN_STREAM, SERVICE_RECORD, data, blocking=True
+        )
+
+        _LOGGER.debug("waiting on stream connect")
+        rc = self._camera.wait_for_user_stream()
+        time.sleep(2)
+        return rc
+
     def _start_snapshot_stream(self):
         # XXX make optional
         source = self._camera.start_snapshot_stream()
         if source is not None:
-            _LOGGER.info("{} attaching hidden stream for duration {}".format(self._unique_id, 15))
-
-            video_path = "/tmp/snapshot-{}.mp4".format(self._unique_id)
-
-            data = {
-                CONF_STREAM_SOURCE: source,
-                CONF_FILENAME: video_path,
-                CONF_DURATION: 15,
-                CONF_LOOKBACK: 0,
-            }
-            self.hass.services.call(
-                DOMAIN_STREAM, SERVICE_RECORD, data, blocking=True
-            )
-            # do better than this!
-            _LOGGER.debug("waiting on stream")
+            #  self._attach_hidden_stream(source,45)
+            self._camera.wait_for_user_stream()
             time.sleep(2)
+        return source
 
     def request_snapshot(self):
         self._start_snapshot_stream()
@@ -568,10 +576,11 @@ class ArloCam(Camera):
     def start_recording(self, duration=30):
         source = self._camera.start_recording_stream()
         if source is not None:
+            self._attach_hidden_stream(source,duration + 10)
             self._camera.start_recording(duration=duration)
-        else:
-            _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
-        return source
+            return source
+        _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
+        return None
 
     def stop_recording(self):
         self._camera.stop_recording_stream()
@@ -972,25 +981,25 @@ async def async_camera_start_recording_service(hass, call):
             camera = get_entity_from_domain(hass, DOMAIN, entity_id)
             source = await camera.async_start_recording(duration=duration)
 
-            # Longer than 25 seconds means we need to attach a stream and record to disk to keep
-            # Arlo recording.
-            if source is not None and duration > 25:
-                _LOGGER.info("{} attaching hidden stream for duration {}".format(entity_id, duration))
+            #  # Longer than 25 seconds means we need to attach a stream and record to disk to keep
+            #  # Arlo recording.
+            #  if source is not None and duration > 25:
+                #  _LOGGER.info("{} attaching hidden stream for duration {}".format(entity_id, duration))
 
-                #  filename = "/tmp/scratch-{}.mp4".format(entity_id)
-                #  filename.hass = hass
-                #  video_path = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-                video_path = "/tmp/scratch-{}.mp4".format(entity_id)
+                #  #  filename = "/tmp/scratch-{}.mp4".format(entity_id)
+                #  #  filename.hass = hass
+                #  #  video_path = filename.async_render(variables={ATTR_ENTITY_ID: camera})
+                #  video_path = "/tmp/scratch-{}.mp4".format(entity_id)
 
-                data = {
-                    CONF_STREAM_SOURCE: source,
-                    CONF_FILENAME: video_path,
-                    CONF_DURATION: duration,
-                    CONF_LOOKBACK: 0,
-                }
-                await hass.services.async_call(
-                    DOMAIN_STREAM, SERVICE_RECORD, data, blocking=True, context=call.context
-                )
+                #  data = {
+                    #  CONF_STREAM_SOURCE: source,
+                    #  CONF_FILENAME: video_path,
+                    #  CONF_DURATION: duration,
+                    #  CONF_LOOKBACK: 0,
+                #  }
+                #  await hass.services.async_call(
+                    #  DOMAIN_STREAM, SERVICE_RECORD, data, blocking=True, context=call.context
+                #  )
 
         except HomeAssistantError:
             _LOGGER.warning("{} start recording service failed".format(entity_id))

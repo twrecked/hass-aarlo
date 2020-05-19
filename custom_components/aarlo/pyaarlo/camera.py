@@ -297,18 +297,23 @@ class ArloCamera(ArloChildDevice):
             with self._lock:
                 if not self.is_taking_snapshot:
                     self._activity_state.add("snapshot")
-                    self._da("_event::snap")
+                self._da("_event::snap")
         if activity == 'alertStreamActive':
             with self._lock:
                 if not self.is_recording:
                     self._activity_state.add("recording")
-                    self._da("_event::record")
+                if not self.has_activity("alert-stream-active"):
+                    self._activity_state.add("alert-stream-active")
+                    self._lock.notify_all()
+                self._da("_event::record")
         if activity == 'userStreamActive':
             with self._lock:
                 if not self.is_streaming:
                     self._activity_state.add("streaming")
-                    self._da("_event::stream")
-                # signal streaming here...
+                if not self.has_activity("user-stream-active"):
+                    self._activity_state.add("user-stream-active")
+                    self._lock.notify_all()
+                self._da("_event::stream")
 
         # Snapshot is updated. Queue retrieval.
         if event.get('action', '') == 'fullFrameSnapshotAvailable':
@@ -699,6 +704,17 @@ class ArloCamera(ArloChildDevice):
     def stop_recording_stream(self):
         self._stop_stream("recording-stream")
 
+    def wait_for_user_stream(self,timeout=15):
+        self._arlo.debug('waiting for stream')
+        mnow = time.monotonic()
+        mend = mnow + timeout
+        with self._lock:
+            while mnow < mend and not self.has_activity("user-stream-active"):
+                self._lock.wait(mend - mnow)
+                mnow = time.monotonic()
+            self._arlo.debug("got {}".format(self.has_activity("user-stream-active")))
+            return self.has_activity("user-stream-active")
+
     def get_video(self):
         """Download and return the last recorded video.
 
@@ -730,7 +746,7 @@ class ArloCamera(ArloChildDevice):
                 return None
             if self.is_recording:
                 return self._stream_url
-            self._activity_state.append("recording")
+            self._activity_state.add("recording")
             self._da("start_recording")
 
         body = {
