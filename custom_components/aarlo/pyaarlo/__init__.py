@@ -197,12 +197,25 @@ class PyArlo(object):
         # Always ping bases first!
         self._ping_bases()
 
-        # Queue up initial config and state retrieval.
-        self.debug('getting initial settings')
-        self._bg.run_in(self._refresh_camera_thumbnails, REFRESH_CAMERA_DELAY)
-        self._bg.run_in(self._refresh_camera_media, REFRESH_CAMERA_DELAY)
-        self._bg.run_in(self._initial_refresh, INITIAL_REFRESH_DELAY)
-        self._bg.run_in(self._ml.load, MEDIA_LIBRARY_DELAY)
+        # Initial config and state retrieval.
+        if self._cfg.synchronous_mode:
+            # Synchronous; run them one after the other
+            self.debug('getting initial settings')
+            self._refresh_bases(initial=True)
+            self._refresh_ambient_sensors()
+            self._ml.load()
+            self._refresh_camera_thumbnails(True)
+            self._refresh_camera_media(True)
+            self._initial_refresh_done()
+        else:
+            # Asynchronous; queue them to run one after the other
+            self.debug('queueing initial settings')
+            self._bg.run(self._refresh_bases, initial=True)
+            self._bg.run(self._refresh_ambient_sensors)
+            self._bg.run(self._ml.load)
+            self._bg.run(self._refresh_camera_thumbnails, wait=False)
+            self._bg.run(self._refresh_camera_media, wait=False)
+            self._bg.run(self._initial_refresh_done)
 
         # Register house keeping cron jobs.
         self.debug('registering cron jobs')
@@ -214,8 +227,8 @@ class PyArlo(object):
             with self._lock:
                 while not self._started:
                     self.debug('waiting for initial setup...')
-                    self._lock.wait(5)
-            self.debug('finished...')
+                    self._lock.wait(1)
+            self.debug('setup finished...')
 
     def __repr__(self):
         # Representation string of object.
@@ -225,15 +238,15 @@ class PyArlo(object):
         self._devices = self._be.get(DEVICES_PATH + "?t={}".format(time_to_arlotime()))
         self.vdebug("devices={}".format(pprint.pformat(self._devices)))
 
-    def _refresh_camera_thumbnails(self):
+    def _refresh_camera_thumbnails(self, wait=False):
         """Request latest camera thumbnails, called at start up. """
         for camera in self._cameras:
-            camera.update_last_image()
+            camera.update_last_image(wait)
 
-    def _refresh_camera_media(self):
+    def _refresh_camera_media(self, wait=False):
         """Rebuild cameras media library, called at start up or when day changes. """
         for camera in self._cameras:
-            camera.update_media()
+            camera.update_media(wait)
 
     def _refresh_ambient_sensors(self):
         for camera in self._cameras:
@@ -267,7 +280,7 @@ class PyArlo(object):
             self.debug('day changed to {}!'.format(str(today)))
             self._today = today
             self._bg.run(self._ml.load)
-            self._bg.run(self._refresh_camera_media)
+            self._bg.run(self._refresh_camera_media, wait=False)
 
     def _slow_refresh(self):
         self.debug('slow refresh')
