@@ -311,7 +311,7 @@ class ArloCam(Camera):
 
     async def stream_source(self):
         """Return the source of the stream."""
-        return self._camera.get_stream()
+        return await self.hass.async_add_executor_job(self._camera.get_stream)
 
     def async_stream_source(self):
         return self.hass.async_add_job(self.stream_source)
