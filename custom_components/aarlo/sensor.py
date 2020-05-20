@@ -140,11 +140,11 @@ class ArloSensor(Entity):
     @property
     def device_state_attributes(self):
         """Return the device state attributes."""
-        attrs = {}
-
-        attrs[ATTR_ATTRIBUTION] = COMPONENT_ATTRIBUTION
-        attrs['brand'] = COMPONENT_BRAND
-        attrs['friendly_name'] = self._name
+        attrs = {
+            ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
+            'brand': COMPONENT_BRAND,
+            'friendly_name': self._name
+        }
 
         if self._sensor_type != 'total_cameras':
             attrs['camera_name'] = self._device.name

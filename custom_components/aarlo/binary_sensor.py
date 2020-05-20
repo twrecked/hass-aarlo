@@ -105,14 +105,12 @@ class ArloBinarySensor(BinarySensorDevice):
     @property
     def device_state_attributes(self):
         """Return the device state attributes."""
-        attrs = {}
-
-        attrs[ATTR_ATTRIBUTION] = COMPONENT_ATTRIBUTION
-        attrs['brand'] = COMPONENT_BRAND
-        attrs['friendly_name'] = self._name
-        attrs['camera_name'] = self._device.name
-
-        return attrs
+        return {
+            ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
+            'brand': COMPONENT_BRAND,
+            'friendly_name': self._name,
+            'camera_name': self._device.name
+        }
 
     @property
     def is_on(self):

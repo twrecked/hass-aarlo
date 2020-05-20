@@ -430,7 +430,7 @@ class PyArlo(object):
         :type response: JSON data
         """
         self.debug("injecting\n{}".format(pprint.pformat(response)))
-        self._be._ev_dispatcher(response)
+        self._be.ev_inject(response)
 
     def attribute(self, attr):
         """Return the value of attribute attr.
