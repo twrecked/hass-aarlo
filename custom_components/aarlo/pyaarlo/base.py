@@ -202,10 +202,10 @@ class ArloBase(ArloDevice):
                 def _set_mode_v2_cb(attempt):
                     self._arlo.debug('v2 arming')
                     params = {'activeAutomations':
-                                  [{'deviceId': self.device_id,
-                                    'timestamp': time_to_arlotime(),
-                                    active: [mode_id],
-                                    inactive: []}]}
+                              [{'deviceId': self.device_id,
+                                'timestamp': time_to_arlotime(),
+                                active: [mode_id],
+                                inactive: []}]}
                     if attempt < 4:
                         body = self._arlo.be.post(AUTOMATION_PATH, params=params, raw=True, wait_for=None)
                         if body.get('success', False) is True or body.get('resource', '') == 'activeAutomations':

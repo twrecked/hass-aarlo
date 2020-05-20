@@ -1,4 +1,3 @@
-import pprint
 import threading
 
 from .constant import (BATTERY_KEY, BATTERY_TECH_KEY, CHARGING_KEY, CHARGER_KEY,
@@ -26,6 +25,9 @@ class ArloDevice(object):
         self._device_type = attrs.get('deviceType', 'unknown')
         self._unique_id = attrs.get('uniqueId', None)
 
+        # Activities. Used by camera for now but made available to all.
+        self._activities = {}
+
         # Build initial values... attrs is device state
         for key in DEVICE_KEYS:
             value = attrs.get(key, None)
@@ -47,7 +49,7 @@ class ArloDevice(object):
             return [self.__class__.__name__, self._device_id, attr]
 
     def _event_handler(self, resource, event):
-        self._arlo.vdebug("{}: got {} event {}".format(self.name, resource, pprint.pformat(event)))
+        self._arlo.vdebug("{}: got {} event **".format(self.name, resource))
 
         # Find properties. Event either contains a item called properties or it
         # is the whole thing.

@@ -11,18 +11,13 @@ from homeassistant.components.media_player.const import (MEDIA_TYPE_MUSIC,
                                                          SUPPORT_SHUFFLE_SET,
                                                          SUPPORT_VOLUME_MUTE,
                                                          SUPPORT_VOLUME_SET)
-from homeassistant.const import (ATTR_ATTRIBUTION,
-                                 STATE_IDLE,
-                                 STATE_PAUSED,
-                                 STATE_PLAYING)
-from homeassistant.core import callback
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     STATE_IDLE,
     STATE_PAUSED,
     STATE_PLAYING
 )
-import homeassistant.helpers.config_validation as cv
+from homeassistant.core import callback
 from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND
 from .pyaarlo.constant import MEDIA_PLAYER_KEY
 
@@ -53,7 +48,7 @@ SUPPORT_ARLO = (
 """
 
 
-async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
+async def async_setup_platform(hass, _config, async_add_entities, _discovery_info=None):
     """Set up an Arlo media player."""
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
@@ -181,13 +176,11 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
     @property
     def device_state_attributes(self):
         """Return the device state attributes."""
-        attrs = {}
-
-        attrs[ATTR_ATTRIBUTION] = COMPONENT_ATTRIBUTION
-        attrs['brand'] = COMPONENT_BRAND
-        attrs['friendly_name'] = self._name
-
-        return attrs
+        return {
+            ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
+            'brand': COMPONENT_BRAND,
+            'friendly_name': self._name
+        }
 
     @property
     def shuffle(self):

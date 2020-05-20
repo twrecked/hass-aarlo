@@ -2,6 +2,7 @@ import base64
 import threading
 import time
 import zlib
+import pprint
 
 from .constant import (
     ACTIVITY_STATE_KEY, AIR_QUALITY_KEY, AUDIO_ANALYTICS_KEY,
@@ -33,11 +34,53 @@ class ArloCamera(ArloChildDevice):
         self._cached_videos = None
         self._min_days_vdo_cache = self._arlo.cfg.library_days
         self._lock = threading.Condition()
+        self._event = threading.Event()
         self._snapshot_time = None
         self._stream_url = None
-        self._activity_state = []
-        self._clear_snapshot_cb = None
+        self._activity_state = set()
         self._arlo.bg.run_in(self._update_media, CAMERA_MEDIA_DELAY)
+
+    def _parse_statistic(self, data, scale):
+        """Parse binary statistics returned from the history API"""
+        i = 0
+        for byte in bytearray(data):
+            i = (i << 8) + byte
+
+        if i == 32768:
+            return None
+
+        if scale == 0:
+            return i
+
+        return float(i) / (scale * 10)
+
+    def _decode_sensor_data(self, properties):
+        """Decode, decompress, and parse the data from the history API"""
+        b64_input = ""
+        for s in properties.get('payload', []):
+            # pylint: disable=consider-using-join
+            b64_input += s
+        if b64_input == "":
+            return None
+
+        decoded = base64.b64decode(b64_input)
+        data = zlib.decompress(decoded)
+        points = []
+        i = 0
+
+        while i < len(data):
+            points.append({
+                'timestamp': int(1e3 * self._parse_statistic(data[i:(i + 4)], 0)),
+                'temperature': self._parse_statistic(data[(i + 8):(i + 10)], 1),
+                'humidity': self._parse_statistic(data[(i + 14):(i + 16)], 1),
+                'airQuality': self._parse_statistic(data[(i + 20):(i + 22)], 1)
+            })
+            i += 22
+
+        return points[-1]
+
+    def _dump_activities(self, msg):
+        self._arlo.debug("{}::actvities=\n{}".format(msg, pprint.pformat(self._activity_state)))
 
     # Media library has updated, reload todays events.
     def _update_media(self):
@@ -104,7 +147,7 @@ class ArloCamera(ArloChildDevice):
             self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
         # Clean up snapshot handler.
-        self._clear_snapshot()
+        self._stop_snapshot()
 
     def _set_recent(self, timeo):
         with self._lock:
@@ -121,15 +164,17 @@ class ArloCamera(ArloChildDevice):
         self._arlo.debug('turning recent OFF for ' + self._name)
         self._do_callbacks(RECENT_ACTIVITY_KEY, False)
 
-    def _clear_snapshot(self):
+    def _stop_snapshot(self):
         # Signal to anybody waiting.
         with self._lock:
             if not self.is_taking_snapshot:
                 return
             self._activity_state.remove("snapshot")
+            self._dump_activities("_stop_snapshot")
             self._lock.notify_all()
 
-        self._arlo.debug('snapshot finished, resignal real state')
+        self._stop_stream(stopping_for="snapshot-stream")
+        self._arlo.debug('snapshot finished, re-signal real state')
         self._save_and_do_callbacks(ACTIVITY_STATE_KEY, self._load(ACTIVITY_STATE_KEY, 'unknown'))
 
     def _stop_activity(self):
@@ -143,49 +188,48 @@ class ArloCamera(ArloChildDevice):
                                  'resource': self.resource_id,
                              })
 
-    def _stop_snapshot(self):
-        self._arlo.debug('stopping snapshot ' + self.name)
+    def _start_stream(self, starting_for):
+        with self._lock:
+            # Already streaming. Update subactivity as needed.
+            if self.is_streaming:
+                self._activity_state.add(starting_for)
+                self._dump_activities("_start_stream")
+                return self._stream_url
+
+            # We can't start a stream if we are doing a straight snapshot.
+            if self.is_taking_idle_snapshot:
+                return None
+            self._activity_state.add(starting_for)
+            self._dump_activities("_start_stream2")
+
+        body = {
+            'action': 'set',
+            'from': self.web_id,
+            'properties': {'activityState': 'startUserStream', 'cameraId': self.device_id},
+            'publishResponse': True,
+            'responseUrl': '',
+            'resource': self.resource_id,
+            'to': self.parent_id,
+            'transId': self._arlo.be.gen_trans_id()
+        }
+        self._stream_url = self._arlo.be.post(STREAM_START_PATH, body, headers={"xcloudId": self.xcloud_id})
+        if self._stream_url is not None:
+            self._stream_url = self._stream_url['url'].replace("rtsp://", "rtsps://")
+            self._arlo.debug('url={}'.format(self._stream_url))
+        else:
+            with self._lock:
+                self._activity_state = set()
+        return self._stream_url
+
+    def _stop_stream(self, stopping_for="user-stream"):
+        with self._lock:
+            if not self.is_streaming:
+                return
+            self._activity_state.remove(stopping_for)
+            self._dump_activities("_stop_stream")
+            if self.is_streaming:
+                return
         self._stop_activity()
-        self._clear_snapshot()
-
-    def _parse_statistic(self, data, scale):
-        """Parse binary statistics returned from the history API"""
-        i = 0
-        for byte in bytearray(data):
-            i = (i << 8) + byte
-
-        if i == 32768:
-            return None
-
-        if scale == 0:
-            return i
-
-        return float(i) / (scale * 10)
-
-    def _decode_sensor_data(self, properties):
-        """Decode, decompress, and parse the data from the history API"""
-        b64_input = ""
-        for s in properties.get('payload', []):
-            # pylint: disable=consider-using-join
-            b64_input += s
-        if b64_input == "":
-            return None
-
-        decoded = base64.b64decode(b64_input)
-        data = zlib.decompress(decoded)
-        points = []
-        i = 0
-
-        while i < len(data):
-            points.append({
-                'timestamp': int(1e3 * self._parse_statistic(data[i:(i + 4)], 0)),
-                'temperature': self._parse_statistic(data[(i + 8):(i + 10)], 1),
-                'humidity': self._parse_statistic(data[(i + 14):(i + 16)], 1),
-                'airQuality': self._parse_statistic(data[(i + 20):(i + 22)], 1)
-            })
-            i += 22
-
-        return points[-1]
 
     def _event_handler(self, resource, event):
         self._arlo.debug(self.name + ' CAMERA got one ' + resource)
@@ -237,28 +281,39 @@ class ArloCamera(ArloChildDevice):
                     self._arlo.bg.run_in(self._arlo.ml.queue_update, 5, cb=self._update_media_and_thumbnail)
                     self._arlo.bg.run_in(self._arlo.ml.queue_update, 10, cb=self._update_media_and_thumbnail)
 
-                # Reset and signal anybody waiting.
-                self._arlo.debug("resetting activity state")
-                with self._lock:
-                    self._activity_state = []
-                    self._lock.notify_all()
+            # Reset and signal anybody waiting.
+            self._arlo.debug("resetting activity state")
+            with self._lock:
+                self._activity_state = set()
+                #  self._clear_activities()
+                self._dump_activities("_event::idle")
+                self._lock.notify_all()
 
             # Something just happened.
             self._set_recent(self._arlo.cfg.recent_time)
 
         # Camera is active. If we don't know about it then update our status.
-        if activity == 'alertStreamActive':
-            with self._lock:
-                if not self.is_recording:
-                    self._activity_state.append('recording')
-        if activity == 'userStreamActive':
-            with self._lock:
-                if not self.is_streaming:
-                    self._activity_state.append('streaming')
         if activity == 'fullFrameSnapshot':
             with self._lock:
                 if not self.is_taking_snapshot:
-                    self._activity_state.append('Snapshot')
+                    self._activity_state.add("snapshot")
+                self._dump_activities("_event::snap")
+        if activity == 'alertStreamActive':
+            with self._lock:
+                if not self.is_recording:
+                    self._activity_state.add("recording")
+                if not self.has_activity("alert-stream-active"):
+                    self._activity_state.add("alert-stream-active")
+                    self._lock.notify_all()
+                self._dump_activities("_event::record")
+        if activity == 'userStreamActive':
+            with self._lock:
+                if not self.is_streaming:
+                    self._activity_state.add("streaming")
+                if not self.has_activity("user-stream-active"):
+                    self._activity_state.add("user-stream-active")
+                    self._lock.notify_all()
+                self._dump_activities("_event::stream")
 
         # Snapshot is updated. Queue retrieval.
         if event.get('action', '') == 'fullFrameSnapshotAvailable':
@@ -527,16 +582,18 @@ class ArloCamera(ArloChildDevice):
         with self._lock:
             if self.is_taking_snapshot:
                 return
-            self._activity_state.append('snapshot')
+            stream_snapshot = self.is_streaming
+            self._activity_state.add("snapshot")
+            self._dump_activities("request_snapshot")
 
-        if self.is_streaming or self.is_recording:
-            self._arlo.debug('streaming snapshot')
+        if stream_snapshot:
+            self._arlo.debug("streaming/recording snapshot")
             self._take_streaming_snapshot()
         else:
-            self._arlo.debug('idle snapshot')
+            self._arlo.debug("idle snapshot")
             self._take_idle_snapshot()
 
-        self._arlo.debug('handle dodgy cameras')
+        self._arlo.debug("handle dodgy cameras")
         self._arlo.bg.run_in(self._stop_snapshot, self._arlo.cfg.snapshot_timeout)
 
     def get_snapshot(self, timeout=30):
@@ -563,6 +620,13 @@ class ArloCamera(ArloChildDevice):
         return "snapshot" in self._activity_state
 
     @property
+    def is_taking_idle_snapshot(self):
+        """Returns `True` if camera is taking a non-streaming snapshot, `False`
+        otherwise.
+        """
+        return "snapshot" in self._activity_state and len(self._activity_state) == 1
+
+    @property
     def is_recording(self):
         """Returns `True` if camera is recording a video, `False` otherwise.
         """
@@ -572,7 +636,16 @@ class ArloCamera(ArloChildDevice):
     def is_streaming(self):
         """Returns `True` if camera is streaming a video, `False` otherwise.
         """
-        return "streaming" in self._activity_state
+        return "streaming" in self._activity_state or \
+               "user-stream" in self._activity_state or \
+               "recording-stream" in self._activity_state or \
+               "snapshot-stream" in self._activity_state
+
+    def has_activity(self, activity):
+        """ Returns `True` is camera is performing a particular activity,
+        `False` otherwise.
+        """
+        return activity in self._activity_state
 
     @property
     def was_recently_active(self):
@@ -584,13 +657,13 @@ class ArloCamera(ArloChildDevice):
     def state(self):
         """Returns the camera's current state.
         """
-        if self.is_taking_snapshot:
-            if self.is_recording:
+        if self.is_taking_snapshot or self.has_activity("snapshot-stream"):
+            if self.is_recording or self.has_activity("recording-stream"):
                 return 'recording + snapshot'
-            if self.is_streaming:
+            if self.has_activity("streaming") or self.has_activity("user-stream"):
                 return 'streaming + snapshot'
             return 'taking snapshot'
-        if self.is_recording:
+        if self.is_recording or self.has_activity("recording-stream"):
             return 'recording'
         if self.is_streaming:
             return 'streaming'
@@ -605,31 +678,47 @@ class ArloCamera(ArloChildDevice):
 
         The stream will stop if nothing connects to it within 30 seconds.
         """
-        with self._lock:
-            if self.is_streaming:
-                return self._stream_url
-            if self.is_taking_snapshot:
-                return None
-            self._activity_state.append("streaming")
+        return self._start_stream("user-stream")
 
-        body = {
-            'action': 'set',
-            'from': self.web_id,
-            'properties': {'activityState': 'startUserStream', 'cameraId': self.device_id},
-            'publishResponse': True,
-            'responseUrl': '',
-            'resource': self.resource_id,
-            'to': self.parent_id,
-            'transId': self._arlo.be.gen_trans_id()
-        }
-        self._stream_url = self._arlo.be.post(STREAM_START_PATH, body, headers={"xcloudId": self.xcloud_id})
-        if self._stream_url is not None:
-            self._stream_url = self._stream_url['url'].replace("rtsp://", "rtsps://")
-            self._arlo.debug('url={}'.format(self._stream_url))
-        else:
-            with self._lock:
-                self._activity_state.remove("streaming")
-        return self._stream_url
+    def start_stream(self):
+        """Start a stream and return the URL for it.
+
+        Code does nothing with the url, it's up to you to pass the url to something.
+
+        The stream will stop if nothing connects to it within 30 seconds.
+        """
+        return self._start_stream("user-stream")
+
+    def start_snapshot_stream(self):
+        return self._start_stream("snapshot-stream")
+
+    def start_recording_stream(self):
+        return self._start_stream("recording-stream")
+
+    def stop_stream(self):
+        self._stop_stream("user-stream")
+
+    def stop_snapshot_stream(self):
+        self._stop_stream("snapshot-stream")
+
+    def stop_recording_stream(self):
+        self._stop_stream("recording-stream")
+
+    def wait_for_user_stream(self, timeout=15):
+        self._arlo.debug('waiting for stream')
+        mnow = time.monotonic()
+        mend = mnow + timeout
+        with self._lock:
+            while mnow < mend and not self.has_activity("user-stream-active"):
+                self._lock.wait(mend - mnow)
+                mnow = time.monotonic()
+            self._arlo.debug("got {}".format(self.has_activity("user-stream-active")))
+            active = self.has_activity("user-stream-active")
+
+        # Is active, give a small delay to get going.
+        if active:
+            self._event.wait(self._arlo.cfg.user_stream_delay)
+        return active
 
     def get_video(self):
         """Download and return the last recorded video.
@@ -644,6 +733,7 @@ class ArloCamera(ArloChildDevice):
     def stop_activity(self):
         """Request the camera stop whatever it is doing and return to the idle state.
         """
+        # has_any_activity
         self._stop_activity()
         return True
 
@@ -661,7 +751,8 @@ class ArloCamera(ArloChildDevice):
                 return None
             if self.is_recording:
                 return self._stream_url
-            self._activity_state.append("recording")
+            self._activity_state.add("recording")
+            self._dump_activities("start_recording")
 
         body = {
             'parentId': self.parent_id,
@@ -687,6 +778,7 @@ class ArloCamera(ArloChildDevice):
             if not self.is_recording:
                 return
             self._activity_state.remove("recording")
+            self._dump_activities("stop_recording")
 
         body = {
             'parentId': self.parent_id,
@@ -695,6 +787,9 @@ class ArloCamera(ArloChildDevice):
         self._arlo.debug('stopping recording')
         self._arlo.bg.run(self._arlo.be.post, path=RECORD_STOP_PATH, params=body,
                           headers={"xcloudId": self.xcloud_id})
+
+        # stop stream
+        self._arlo.bg.run_in(self.stop_recording_stream, 1)
 
     @property
     def _siren_resource_id(self):

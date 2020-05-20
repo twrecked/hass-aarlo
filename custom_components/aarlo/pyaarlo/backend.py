@@ -648,3 +648,6 @@ class ArloBackEnd(object):
 
     def devices(self):
         return self.get(DEVICES_PATH + "?t={}".format(time_to_arlotime()))
+
+    def ev_inject(self, response):
+        self._ev_dispatcher(response)

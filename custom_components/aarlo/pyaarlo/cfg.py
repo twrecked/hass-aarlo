@@ -183,3 +183,7 @@ class ArloCfg(object):
     @property
     def synchronous_mode(self):
         return self._kw.get('synchronous_mode', False)
+
+    @property
+    def user_stream_delay(self):
+        return self._kw.get('user_stream_delay', 2)

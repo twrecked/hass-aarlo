@@ -8,7 +8,6 @@ https://home-assistant.io/components/sensor.arlo/
 import logging
 import pprint
 
-import homeassistant.util.color as color_util
 from homeassistant.components.light import (ATTR_BRIGHTNESS,
                                             ATTR_COLOR_TEMP,
                                             ATTR_EFFECT,
