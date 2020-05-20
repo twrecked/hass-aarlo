@@ -1,4 +1,3 @@
-import pprint
 import threading
 
 from .constant import (BATTERY_KEY, BATTERY_TECH_KEY, CHARGING_KEY, CHARGER_KEY,
@@ -85,44 +84,6 @@ class ArloDevice(object):
 
     def _load_matching(self, attr, default=None):
         return self._arlo.st.get_matching(self._to_storage_key(attr), default)
-
-    def _has_activity(self, activity):
-        return activity in self._activities
-
-    def _activity_has_any_subactivity(self, activity):
-        return len(self._activities.get(activity,{})) != 0
-
-    def _activity_has_subactivity(self, activity, subactivity):
-        return subactivity in self._activities.get(activity,{})
-
-    def _has_subactivity(self, subactivity):
-        for activity in self._activities:
-            if self._activity_has_subactivity(self, activity, subactivity):
-                return True
-        return False
-
-    def _add_activity(self, activity, subactivity=None):
-        if activity not in self._activities:
-            self._activities[activity] = set()
-        if subactivity is not None:
-            self._activities[activity].add(subactivity)
-
-    def _add_subactivity(self, subactivity):
-        for activity in self._activities:
-            self._add_activity(self, activity, subactivity)
-
-    def _remove_activity(self, activity):
-        self._activities.remove(activity)
-
-    def _remove_subactivity_from_activity(self, activity, subactivity):
-        self._activities.get(activity,{}).remove(subactivity)
-
-    def _remove_subactivity(self, activity):
-        for activity in self._activities:
-            self._remove_subactivity_from_activity(self, activity, subactivity)
-
-    def _clear_activities(self):
-        self._activities = {}
 
     @property
     def name(self):
