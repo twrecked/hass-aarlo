@@ -9,6 +9,7 @@ import logging
 import json
 import pprint
 from datetime import timedelta
+from traceback import extract_stack
 
 import voluptuous as vol
 from requests.exceptions import HTTPError, ConnectTimeout
@@ -243,6 +244,17 @@ def get_entity_from_domain(hass, domain, entity_id):
         raise HomeAssistantError("{} component not set up".format(domain))
 
     return component.get_entity(entity_id)
+
+def is_homekit():
+    for frame in reversed(extract_stack()):
+        try:
+            frame.filename.index("homeassistant/components/homekit")
+            _LOGGER.debug("homekit detected")
+            return True
+        except ValueError:
+            continue
+    _LOGGER.debug("not homekit detected")
+    return False
 
 
 async def async_aarlo_siren_on(hass, call):

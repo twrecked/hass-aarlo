@@ -38,7 +38,8 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import async_track_point_in_time
-from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND, COMPONENT_DOMAIN, COMPONENT_SERVICES, get_entity_from_domain
+from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND, COMPONENT_DOMAIN, COMPONENT_SERVICES, \
+    get_entity_from_domain, is_homekit
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -311,7 +312,10 @@ class ArloCam(Camera):
 
     async def stream_source(self):
         """Return the source of the stream."""
-        return await self.hass.async_add_executor_job(self._camera.get_stream)
+        if is_homekit():
+            return self._camera.get_stream()
+        else:
+            return await self.hass.async_add_executor_job(self._camera.get_stream)
 
     def async_stream_source(self):
         return self.hass.async_add_job(self.stream_source)
