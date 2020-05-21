@@ -1,8 +1,9 @@
 aarlo/pyaarlo
+0.6.19: Fix direct i/o messages
+        Use new entity device names.
 0.6.18: Fix siren_on service call when entity_id is an Arlo ultra camera
         no_media_upload now working on more streams
         fixed recording duration
-        Fix direct i/o messages
 0.6.17: Add request_snapshot webservice
 0.6.16: Fix last_image so lovelace card works
         Arlo Baby: fix effect switching
@@ -82,3 +83,4 @@ old-version:
 0.0.2: Added manifest to aarlo
 0.0.1: Initial version
 
+# vim: set expandtab:
