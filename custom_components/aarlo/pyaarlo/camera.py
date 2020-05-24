@@ -79,7 +79,7 @@ class ArloCamera(ArloChildDevice):
         return points[-1]
 
     def _dump_activities(self, msg):
-        self._arlo.debug("{}::actvities=\n{}".format(msg, pprint.pformat(self._activity_state)))
+        self._arlo.debug("{}::activities={}".format(msg, pprint.pformat(self._activity_state)))
 
     # Media library has updated, reload todays events.
     def _update_media(self):
