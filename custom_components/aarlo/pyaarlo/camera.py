@@ -38,7 +38,6 @@ class ArloCamera(ArloChildDevice):
         self._snapshot_time = None
         self._stream_url = None
         self._activity_state = set()
-        self._arlo.bg.run_in(self._update_media, CAMERA_MEDIA_DELAY)
 
     def _parse_statistic(self, data, scale):
         """Parse binary statistics returned from the history API"""
@@ -80,7 +79,7 @@ class ArloCamera(ArloChildDevice):
         return points[-1]
 
     def _dump_activities(self, msg):
-        self._arlo.debug("{}::actvities=\n{}".format(msg, pprint.pformat(self._activity_state)))
+        self._arlo.debug("{}::activities={}".format(msg, pprint.pformat(self._activity_state)))
 
     # Media library has updated, reload todays events.
     def _update_media(self):
@@ -530,18 +529,39 @@ class ArloCamera(ArloChildDevice):
     def min_days_vdo_cache(self, value):
         self._min_days_vdo_cache = value
 
-    def update_media(self):
+    def update_media(self, wait=None):
         """Requests latest list of recordings from the backend server.
 
-        Queues a job that runs in the back ground a reloads the videos library from Arlo.
-        """
-        self._arlo.debug('queing media update')
-        self._arlo.bg.run_low(self._update_media)
+        :param wait if True then wait for completion, if False then don't wait,
+        if None then use synchronous_mode setting.
 
-    def update_last_image(self):
-        """Requests last thumbnail from the backend server. """
-        self._arlo.debug('queing image update')
-        self._arlo.bg.run_low(self._update_image)
+        Reloads the videos library from Arlo. 
+        """
+        if wait is None:
+            wait = self._cfg.synchronous_mode
+        if wait:
+            self._arlo.debug('doing media update')
+            self._update_media()
+        else:
+            self._arlo.debug('queueing media update')
+            self._arlo.bg.run_low(self._update_media)
+
+    def update_last_image(self, wait=None):
+        """Requests last thumbnail from the backend server. 
+
+        :param wait if True then wait for completion, if False then don't wait,
+        if None then use synchronous_mode setting.
+
+        Updates the last image.
+        """
+        if wait is None:
+            wait = self._cfg.synchronous_mode
+        if wait:
+            self._arlo.debug('doing image update')
+            self._update_image()
+        else:
+            self._arlo.debug('queueing image update')
+            self._arlo.bg.run_low(self._update_image)
 
     def update_ambient_sensors(self):
         """Requests the latest temperature, humidity and air quality settings.
