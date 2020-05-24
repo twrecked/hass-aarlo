@@ -1,7 +1,7 @@
 """Provide functionality to interact with vlc devices on the network."""
 import logging
 
-from homeassistant.components.media_player import DEVICE_CLASS_SPEAKER, MediaPlayerDevice
+from homeassistant.components.media_player import DEVICE_CLASS_SPEAKER, MediaPlayerEntity
 from homeassistant.components.media_player.const import (MEDIA_TYPE_MUSIC,
                                                          SUPPORT_PAUSE,
                                                          SUPPORT_PLAY,
@@ -58,12 +58,12 @@ async def async_setup_platform(hass, _config, async_add_entities, _discovery_inf
     for camera in arlo.cameras:
         if camera.has_capability(MEDIA_PLAYER_KEY):
             name = '{0}'.format(camera.name)
-            players.append(ArloMediaPlayerDevice(name, camera))
+            players.append(ArloMediaPlayer(name, camera))
 
     async_add_entities(players, True)
 
 
-class ArloMediaPlayerDevice(MediaPlayerDevice):
+class ArloMediaPlayer(MediaPlayerEntity):
     """Representation of an arlo media player."""
 
     def __init__(self, name, device):
@@ -81,7 +81,7 @@ class ArloMediaPlayerDevice(MediaPlayerDevice):
         self._track_id = None
         self._playlist = []
 
-        _LOGGER.info('ArloMediaPlayerDevice: %s created', self._name)
+        _LOGGER.info('ArloMediaPlayer: %s created', self._name)
 
     async def async_added_to_hass(self):
         """Register callbacks."""
