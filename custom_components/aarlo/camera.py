@@ -37,7 +37,7 @@ from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 
 from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND, COMPONENT_DOMAIN, COMPONENT_SERVICES, \
-    get_entity_from_domain
+    get_entity_from_domain, is_homekit
 from .pyaarlo.constant import (ACTIVITY_STATE_KEY,
                                CHARGER_KEY,
                                CHARGING_KEY,
@@ -443,7 +443,10 @@ class ArloCam(Camera):
 
     async def stream_source(self):
         """Return the source of the stream."""
-        return await self.hass.async_add_executor_job(self._camera.get_stream)
+        if is_homekit():
+            return self._camera.get_stream()
+        else:
+            return await self.hass.async_add_executor_job(self._camera.get_stream)
 
     async def async_stream_source(self):
         return await self.hass.async_add_executor_job(self._camera.get_stream)

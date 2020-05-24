@@ -9,6 +9,7 @@ import logging
 import json
 import pprint
 from datetime import timedelta
+from traceback import extract_stack
 
 import voluptuous as vol
 from requests.exceptions import HTTPError, ConnectTimeout
@@ -285,6 +286,17 @@ def setup(hass, config):
         )
 
     return True
+
+def is_homekit():
+    for frame in reversed(extract_stack()):
+        try:
+            frame.filename.index("homeassistant/components/homekit")
+            _LOGGER.debug("homekit detected")
+            return True
+        except ValueError:
+            continue
+    _LOGGER.debug("not homekit detected")
+    return False
 
 
 def get_entity_from_domain(hass, domains, entity_id):
