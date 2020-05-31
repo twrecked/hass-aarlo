@@ -11,9 +11,9 @@ it in English - but to get it working add the following configuration (with the
 correct values obviously) - to `aarlo:`
 
 ```yaml
-  tfa_host: 'imap.gmail.com'
-  tfa_username: 'your.email.account@gmail.com'
-  tfa_password: 'roygbiv'
+  tfa_host: imap.gmail.com
+  tfa_username: your.email.account@gmail.com
+  tfa_password: roygbiv
 
 ```
 
@@ -730,11 +730,11 @@ Arlo sent.
 
 ```yaml
 aarlo:
-  tfa_source='imap',
-  tfa_type='email',
-  tfa_host='imap.host.com',
-  tfa_username='your-user-name',
-  tfa_password='your-imap-password'
+  tfa_source: imap
+  tfa_type: email
+  tfa_host: imap.host.com
+  tfa_username: your-user-name
+  tfa_password: your-imap-password
 ```
 
 It's working well with my gmail account, see
@@ -751,11 +751,11 @@ well defined but the host Arlo uses is configurable.
 
 ```yaml
 aarlo:
-  tfa_source='rest-api',
-  tfa_type='SMS',
-  tfa_host='custom-host',
-  tfa_username='test@test.com',
-  tfa_password='1234567890'
+  tfa_source: rest-api
+  tfa_type: SMS
+  tfa_host: custom-host
+  tfa_username: test@test.com
+  tfa_password: 1234567890
 ```
 
 * Pyaarlo will clear the current code with this HTTP GET request:
