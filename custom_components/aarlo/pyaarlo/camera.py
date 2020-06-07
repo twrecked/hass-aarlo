@@ -128,7 +128,7 @@ class ArloCamera(ArloChildDevice):
         # If newer than latest snapshot make it the new thumbnail image.
         if self._snapshot_time is None or self._snapshot_time < date:
             date = date.strftime(self._arlo.cfg.last_format)
-            self._save(LAST_IMAGE_SRC_KEY, 'capture/' + date)
+            self._save_and_do_callbacks(LAST_IMAGE_SRC_KEY, 'capture/' + date)
             self._save_and_do_callbacks(LAST_CAPTURE_KEY, date)
             self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
@@ -142,7 +142,7 @@ class ArloCamera(ArloChildDevice):
         if img is not None:
             self._snapshot_time = date
             date = date.strftime(self._arlo.cfg.last_format)
-            self._save(LAST_IMAGE_SRC_KEY, 'snapshot/' + date)
+            self._save_and_do_callbacks(LAST_IMAGE_SRC_KEY, 'snapshot/' + date)
             self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
         # Clean up snapshot handler.
