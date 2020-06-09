@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from .constant import (
     DEFAULT_HOST,
     DEFAULT_AUTH_HOST,
@@ -92,7 +90,7 @@ class ArloCfg(object):
     def media_retry(self):
         retries = self._kw.get('media_retry', [])
         if not retries and self.no_media_upload:
-            retries = [ timedelta(seconds=0), timedelta(seconds=5), timedelta(seconds=10) ]
+            retries = [ 0, 5, 10 ]
         return retries
 
     @property

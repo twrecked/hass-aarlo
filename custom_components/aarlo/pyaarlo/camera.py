@@ -275,7 +275,6 @@ class ArloCamera(ArloChildDevice):
             if self.is_recording or self.is_streaming:
                 self._arlo.debug('got a stream/recording stop')
                 for retry in self._arlo.cfg.media_retry:
-                    retry = retry.total_seconds()
                     self._arlo.debug("queueing update in {}".format(retry))
                     self._arlo.bg.run_in(self._arlo.ml.queue_update, retry, cb=self._update_media_and_thumbnail)
 

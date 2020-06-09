@@ -90,6 +90,11 @@ class PyArlo(object):
     * **request_timeout** - Time, in seconds, for requests sent to Arlo to succeed. Default 60 seconds.
     * **recent_time** - Time, in seconds, for the camera to indicate it has seen motion. Default 600 seconds.
     * **no_media_upload** - Force a media upload after camera activity.
+      Normally not needed but some systems fail to push media uploads. Default 'False'. Deprecated, use `media_retry`.
+    * **media_retry** - Force a media upload after camera activity.
+      Normally not needed but some systems fail to push media uploads. An
+      integer array of timeout to use to get the update image. Default '[]'.
+    * **no_media_upload** - Force a media upload after camera activity.
       Normally not needed but some systems fail to push media uploads. Default 'False'.
     * **user_agent** - Set what 'user-agent' string is passed in request headers. It affects what video stream type is
       returned. Default is `apple`.
