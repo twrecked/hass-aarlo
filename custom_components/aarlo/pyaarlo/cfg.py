@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from .constant import (
     DEFAULT_HOST,
     DEFAULT_AUTH_HOST,
@@ -83,8 +85,15 @@ class ArloCfg(object):
         return self._kw.get('last_format', default)
 
     @property
-    def no_media_upload(self, default=False):
-        return self._kw.get('no_media_upload', default)
+    def no_media_upload(self):
+        return self._kw.get('no_media_upload', False)
+
+    @property
+    def media_retry(self):
+        retries = self._kw.get('media_retry', [])
+        if not retries and self.no_media_upload:
+            retries = [ timedelta(seconds=0), timedelta(seconds=5), timedelta(seconds=10) ]
+        return retries
 
     @property
     def user_agent(self, default='apple'):

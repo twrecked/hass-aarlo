@@ -274,11 +274,10 @@ class ArloCamera(ArloChildDevice):
             # Then send in a request for updated media.
             if self.is_recording or self.is_streaming:
                 self._arlo.debug('got a stream/recording stop')
-                if self._arlo.cfg.no_media_upload:
-                    self._arlo.debug('got a stream stop, queueing update')
-                    self._arlo.bg.run(self._arlo.ml.queue_update, cb=self._update_media_and_thumbnail)
-                    self._arlo.bg.run_in(self._arlo.ml.queue_update, 5, cb=self._update_media_and_thumbnail)
-                    self._arlo.bg.run_in(self._arlo.ml.queue_update, 10, cb=self._update_media_and_thumbnail)
+                for retry in self._arlo.cfg.media_retry:
+                    retry = retry.total_seconds()
+                    self._arlo.debug("queueing update in {}".format(retry))
+                    self._arlo.bg.run_in(self._arlo.ml.queue_update, retry, cb=self._update_media_and_thumbnail)
 
             # Reset and signal anybody waiting.
             self._arlo.debug("resetting activity state")

@@ -47,6 +47,7 @@ CONF_CONF_DIR = 'conf_dir'
 CONF_REQ_TIMEOUT = 'request_timeout'
 CONF_STR_TIMEOUT = 'stream_timeout'
 CONF_NO_MEDIA_UP = 'no_media_upload'
+CONF_MEDIA_RETRY = 'media_retry'
 CONF_USER_AGENT = 'user_agent'
 CONF_MODE_API = 'mode_api'
 CONF_DEVICE_REFRESH = 'refresh_devices_every'
@@ -76,6 +77,7 @@ CONF_DIR = ''
 REQ_TIMEOUT = timedelta(seconds=60)
 STR_TIMEOUT = timedelta(seconds=0)
 NO_MEDIA_UP = False
+MEDIA_RETRY = None
 USER_AGENT = 'apple'
 MODE_API = 'auto'
 DEVICE_REFRESH = 0
@@ -110,6 +112,7 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_REQ_TIMEOUT, default=REQ_TIMEOUT): cv.time_period,
         vol.Optional(CONF_STR_TIMEOUT, default=STR_TIMEOUT): cv.time_period,
         vol.Optional(CONF_NO_MEDIA_UP, default=NO_MEDIA_UP): cv.boolean,
+        vol.Optional(CONF_MEDIA_RETRY, default=list()): vol.All(cv.ensure_list,[cv.time_period]),
         vol.Optional(CONF_USER_AGENT, default=USER_AGENT): cv.string,
         vol.Optional(CONF_MODE_API, default=MODE_API): cv.string,
         vol.Optional(CONF_DEVICE_REFRESH, default=DEVICE_REFRESH): cv.positive_int,
@@ -175,6 +178,7 @@ def setup(hass, config):
     req_timeout = conf.get(CONF_REQ_TIMEOUT).total_seconds()
     str_timeout = conf.get(CONF_STR_TIMEOUT).total_seconds()
     no_media_up = conf.get(CONF_NO_MEDIA_UP)
+    media_retry = conf.get(CONF_MEDIA_RETRY)
     user_agent = conf.get(CONF_USER_AGENT)
     mode_api = conf.get(CONF_MODE_API)
     device_refresh = conf.get(CONF_DEVICE_REFRESH)
@@ -191,6 +195,8 @@ def setup(hass, config):
     tfa_username = conf.get(CONF_TFA_USERNAME)
     tfa_password = conf.get(CONF_TFA_PASSWORD)
     library_days = conf.get(CONF_LIBRARY_DAYS)
+
+    _LOGGER.info("retry={}".format(pprint.pformat(media_retry)))
 
     # Fix up config
     if conf_dir == '':
@@ -215,7 +221,7 @@ def setup(hass, config):
                       request_timeout=req_timeout, stream_timeout=str_timeout,
                       recent_time=recent_time,
                       last_format=last_format,
-                      no_media_upload=no_media_up,
+                      no_media_upload=no_media_up, media_retry=media_retry,
                       user_agent=user_agent,
                       mode_api=mode_api,
                       refresh_devices_every=device_refresh,

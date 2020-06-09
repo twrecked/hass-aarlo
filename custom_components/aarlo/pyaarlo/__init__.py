@@ -218,6 +218,7 @@ class PyArlo(object):
             self._bg.run(self._initial_refresh_done)
 
         # Register house keeping cron jobs.
+        self.debug("retry={}".format(self._cfg.media_retry))
         self.debug('registering cron jobs')
         self._bg.run_every(self._fast_refresh, FAST_REFRESH_INTERVAL)
         self._bg.run_every(self._slow_refresh, SLOW_REFRESH_INTERVAL)
