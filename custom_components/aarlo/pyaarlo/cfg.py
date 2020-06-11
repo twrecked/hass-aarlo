@@ -1,10 +1,11 @@
 from .constant import (
-    DEFAULT_HOST,
     DEFAULT_AUTH_HOST,
-    TFA_CONSOLE_SOURCE,
-    TFA_EMAIL_TYPE,
+    DEFAULT_HOST,
     PRELOAD_DAYS,
-    TFA_DEFAULT_HOST)
+    TFA_CONSOLE_SOURCE,
+    TFA_DEFAULT_HOST,
+    TFA_EMAIL_TYPE,
+)
 
 
 class ArloCfg(object):
@@ -27,60 +28,60 @@ class ArloCfg(object):
         self._arlo.debug('Cfg started')
 
     @property
-    def storage_dir(self, default='/config/.aarlo'):
-        return self._kw.get('storage_dir', default)
+    def storage_dir(self):
+        return self._kw.get('storage_dir', "/config/.aarlo")
 
     @property
-    def name(self, default='aarlo'):
-        return self._kw.get('name', default)
+    def name(self):
+        return self._kw.get('name', "aarlo")
 
     @property
-    def username(self, default='unknown'):
-        return self._kw.get('username', default)
+    def username(self):
+        return self._kw.get('username', "unknown")
 
     @property
-    def password(self, default='unknown'):
-        return self._kw.get('password', default)
+    def password(self):
+        return self._kw.get('password', "unknown")
 
     @property
-    def host(self, default=DEFAULT_HOST):
-        return self._kw.get('host', default)
+    def host(self):
+        return self._kw.get('host', DEFAULT_HOST)
 
     @property
-    def auth_host(self, default=DEFAULT_AUTH_HOST):
-        return self._kw.get('auth_host', default)
+    def auth_host(self):
+        return self._kw.get('auth_host', DEFAULT_AUTH_HOST)
 
     @property
-    def dump(self, default=False):
-        return self._kw.get('dump', default)
+    def dump(self):
+        return self._kw.get('dump', False)
 
     @property
-    def max_days(self, default=365):
-        return self._kw.get('max_days', default)
+    def max_days(self):
+        return self._kw.get('max_days', 365)
 
     @property
-    def db_motion_time(self, default=30):
-        return self._kw.get('db_motion_time', default)
+    def db_motion_time(self):
+        return self._kw.get('db_motion_time', 30)
 
     @property
-    def db_ding_time(self, default=10):
-        return self._kw.get('db_ding_time', default)
+    def db_ding_time(self):
+        return self._kw.get('db_ding_time', 10)
 
     @property
-    def request_timeout(self, default=60):
-        return self._kw.get('request_timeout', default)
+    def request_timeout(self):
+        return self._kw.get('request_timeout', 60)
 
     @property
-    def stream_timeout(self, default=0):
-        return self._kw.get('stream_timeout', default)
+    def stream_timeout(self):
+        return self._kw.get('stream_timeout', 0)
 
     @property
-    def recent_time(self, default=600):
-        return self._kw.get('recent_time', default)
+    def recent_time(self):
+        return self._kw.get('recent_time', 600)
 
     @property
-    def last_format(self, default='%m-%d %H:%M'):
-        return self._kw.get('last_format', default)
+    def last_format(self):
+        return self._kw.get('last_format', '%m-%d %H:%M')
 
     @property
     def no_media_upload(self):
@@ -94,82 +95,82 @@ class ArloCfg(object):
         return retries
 
     @property
-    def user_agent(self, default='apple'):
-        return self._kw.get('user_agent', default)
+    def user_agent(self):
+        return self._kw.get('user_agent', "apple")
 
     @property
-    def mode_api(self, default='auto'):
-        return self._kw.get('mode_api', default)
+    def mode_api(self):
+        return self._kw.get('mode_api', "auto")
 
     @property
-    def refresh_devices_every(self, default=0):
-        return self._kw.get('refresh_devices_every', default) * 60 * 60
+    def refresh_devices_every(self):
+        return self._kw.get('refresh_devices_every', 0) * 60 * 60
 
     @property
-    def http_connections(self, default=20):
-        return self._kw.get('http_connections', default)
+    def http_connections(self):
+        return self._kw.get('http_connections', 20)
 
     @property
-    def http_max_size(self, default=10):
-        return self._kw.get('http_maz_size', default)
+    def http_max_size(self):
+        return self._kw.get('http_maz_size', 10)
 
     @property
-    def reconnect_every(self, default=0):
-        return self._kw.get('reconnect_every', default) * 60
+    def reconnect_every(self):
+        return self._kw.get('reconnect_every', 0) * 60
 
     @property
-    def snapshot_timeout(self, default=45):
-        return self._kw.get('snapshot_timeout', default)
+    def snapshot_timeout(self):
+        return self._kw.get('snapshot_timeout', 45)
 
     @property
-    def verbose(self, default=False):
-        return self._kw.get('verbose_debug', default)
+    def verbose(self):
+        return self._kw.get('verbose_debug', False)
 
     @property
-    def hide_deprecated_services(self, default=False):
-        return self._kw.get('hide_deprecated_services', default)
+    def hide_deprecated_services(self):
+        return self._kw.get('hide_deprecated_services', False)
 
     @property
-    def tfa_source(self, default=TFA_CONSOLE_SOURCE):
-        return self._kw.get('tfa_source', default)
+    def tfa_source(self):
+        return self._kw.get('tfa_source', TFA_CONSOLE_SOURCE)
 
     @property
-    def tfa_type(self, default=TFA_EMAIL_TYPE):
-        return self._kw.get('tfa_type', default).lower()
+    def tfa_type(self):
+        return self._kw.get('tfa_type', TFA_EMAIL_TYPE).lower()
 
     @property
-    def tfa_timeout(self, default=3):
-        return self._kw.get('tfa_timeout', default)
+    def tfa_timeout(self):
+        return self._kw.get('tfa_timeout', 3)
 
     @property
-    def tfa_total_timeout(self, default=60):
-        return self._kw.get('tfa_total_timeout', default)
+    def tfa_total_timeout(self):
+        return self._kw.get('tfa_total_timeout', 60)
 
     @property
-    def tfa_host(self, ):
+    def tfa_host(self):
         return self._kw.get('tfa_host', TFA_DEFAULT_HOST)
 
     @property
-    def tfa_username(self, default=None):
-        u = self._kw.get('tfa_username', default)
+    def tfa_username(self):
+        u = self._kw.get('tfa_username', None)
         if u is None:
             u = self.username
         return u
 
     @property
-    def tfa_password(self, default=None):
-        p = self._kw.get('tfa_password', default)
+    def tfa_password(self):
+        p = self._kw.get('tfa_password', None)
         if p is None:
             p = self.password
         return p
 
     @property
-    def wait_for_initial_setup(self, default=True):
-        return self._kw.get('wait_for_initial_setup', default)
+    def wait_for_initial_setup(self):
+        return self._kw.get('wait_for_initial_setup', True)
 
     @property
-    def save_state(self, default=True):
-        return self._kw.get('save_state', default)
+    def save_state(self):
+        return self._kw.get('save_state', True)
 
     @property
     def state_file(self):
