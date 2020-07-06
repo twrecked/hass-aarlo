@@ -128,7 +128,7 @@ class ArloCamera(ArloChildDevice):
         # If newer than latest snapshot make it the new thumbnail image.
         if self._snapshot_time is None or self._snapshot_time < date:
             date = date.strftime(self._arlo.cfg.last_format)
-            self._save(LAST_IMAGE_SRC_KEY, 'capture/' + date)
+            self._save_and_do_callbacks(LAST_IMAGE_SRC_KEY, 'capture/' + date)
             self._save_and_do_callbacks(LAST_CAPTURE_KEY, date)
             self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
@@ -142,7 +142,7 @@ class ArloCamera(ArloChildDevice):
         if img is not None:
             self._snapshot_time = date
             date = date.strftime(self._arlo.cfg.last_format)
-            self._save(LAST_IMAGE_SRC_KEY, 'snapshot/' + date)
+            self._save_and_do_callbacks(LAST_IMAGE_SRC_KEY, 'snapshot/' + date)
             self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
 
         # Clean up snapshot handler.
@@ -274,11 +274,9 @@ class ArloCamera(ArloChildDevice):
             # Then send in a request for updated media.
             if self.is_recording or self.is_streaming:
                 self._arlo.debug('got a stream/recording stop')
-                if self._arlo.cfg.no_media_upload:
-                    self._arlo.debug('got a stream stop, queueing update')
-                    self._arlo.bg.run(self._arlo.ml.queue_update, cb=self._update_media_and_thumbnail)
-                    self._arlo.bg.run_in(self._arlo.ml.queue_update, 5, cb=self._update_media_and_thumbnail)
-                    self._arlo.bg.run_in(self._arlo.ml.queue_update, 10, cb=self._update_media_and_thumbnail)
+                for retry in self._arlo.cfg.media_retry:
+                    self._arlo.debug("queueing update in {}".format(retry))
+                    self._arlo.bg.run_in(self._arlo.ml.queue_update, retry, cb=self._update_media_and_thumbnail)
 
             # Reset and signal anybody waiting.
             self._arlo.debug("resetting activity state")

@@ -44,6 +44,7 @@ from .pyaarlo.constant import (ACTIVITY_STATE_KEY,
                                CONNECTION_KEY,
                                LAST_IMAGE_KEY,
                                LAST_IMAGE_DATA_KEY,
+                               LAST_IMAGE_SRC_KEY,
                                MEDIA_UPLOAD_KEYS,
                                PRIVACY_KEY,
                                RECENT_ACTIVITY_KEY,
@@ -307,6 +308,7 @@ class ArloCam(Camera):
         self._camera = camera
         self._state = None
         self._recent = False
+        self._last_image_source_ = None
         self._motion_status = False
         self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info('ArloCam: %s created', self._name)
@@ -333,6 +335,25 @@ class ArloCam(Camera):
             if attr == RECENT_ACTIVITY_KEY:
                 self._recent = value
 
+            # Trigger snapshot/capture/image updated events
+            if attr == LAST_IMAGE_SRC_KEY:
+                if self._last_image_source_ is not None and self._last_image_source_ != value:
+                    if value.startswith("snapshot/"):
+                        _LOGGER.debug("{0} snapshot updated".format(self._unique_id))
+                        self.hass.bus.fire('aarlo_snapshot_updated', {
+                            'entity_id': 'aarlo.' + self._unique_id
+                        })
+                    else:
+                        _LOGGER.debug("{0} capture updated".format(self._unique_id))
+                        self.hass.bus.fire('aarlo_capture_updated', {
+                            'entity_id': 'aarlo.' + self._unique_id
+                        })
+                    self.hass.bus.fire('aarlo_image_updated', {
+                        'entity_id': 'aarlo.' + self._unique_id
+                    })
+                self._last_image_source_ = value
+
+            # Signal changes.
             self.async_schedule_update_ha_state()
 
         self._camera.add_attr_callback(ACTIVITY_STATE_KEY, update_state)
@@ -340,6 +361,7 @@ class ArloCam(Camera):
         self._camera.add_attr_callback(CHARGING_KEY, update_state)
         self._camera.add_attr_callback(CONNECTION_KEY, update_state)
         self._camera.add_attr_callback(LAST_IMAGE_KEY, update_state)
+        self._camera.add_attr_callback(LAST_IMAGE_SRC_KEY, update_state)
         self._camera.add_attr_callback(LAST_IMAGE_DATA_KEY, update_state)
         self._camera.add_attr_callback(MEDIA_UPLOAD_KEYS, update_state)
         self._camera.add_attr_callback(PRIVACY_KEY, update_state)
@@ -775,7 +797,6 @@ async def aarlo_snapshot_service_handler(camera, _service):
     _LOGGER.debug("{0} snapshot".format(camera.unique_id))
     await camera.async_get_snapshot()
     hass = camera.hass
-    _LOGGER.debug("{0} snapshot event".format(camera.unique_id))
     hass.bus.fire('aarlo_snapshot_ready', {
         'entity_id': 'aarlo.' + camera.unique_id,
     })

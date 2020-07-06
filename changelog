@@ -1,4 +1,6 @@
 aarlo/pyaarlo
+0.7.0.alpha.5: Added new image update events.
+        Fixed backend not starting promptly.
 0.7.0.alpha.4: Further State machine improvements.
         Speed up startup.
         Use new Home Assistant entitry names.

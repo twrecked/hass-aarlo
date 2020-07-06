@@ -47,6 +47,7 @@ class ArloBackgroundWorker(threading.Thread):
                 else:
                     if run_at < timeout:
                         timeout = run_at
+                    break
 
         return timeout
 

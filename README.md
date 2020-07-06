@@ -585,7 +585,8 @@ granular control:
 | `conf_dir`                 | string      | `'/config/.aarlo'`           | Location to store component state. (The default is fine for hass.io, docker, and virtualenv systems - don't set this value unless asked to.)                                                                                             |
 | `host`                     | string      | `https://my.arlo.com`        | Sets the host aarlo will connect to                                                                                                                                                                                                      |
 | `auth_host`                | string      | `https://ocapi-app.arlo.com` | Sets the authentication host aarlo will connect to                                                                                                                                                                                       |
-| `no_media_upload`          | boolean     | `False`                      | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.)                                                                                                                |
+| `no_media_upload`          | boolean     | `False`                      | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) *Deprecated, prefer `media_retry`.                                                                             |
+| `media_retry`              | boolean     | list(time_outs)              | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.)                                                                                                                |
 | `mode_api`                 | string      | `auto`                       | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device                                                        |
 | `verbose_debug`            | boolean     | `False`                      | Turn on extra debug. This extra information is usually not needed!                                                                                                                                                                       |
 | `hide_deprecated_services` | boolean     | `False`                      | If `True` only show services on the `aarlo` domain.                                                                                                                                                                                      |
@@ -639,6 +640,24 @@ domain it allows Home Assistant to use the `services.yaml` descriptions.
 | `camera.start_recording`                | `entity_id` - camera to start recording<br>`duration` - amount of time in seconds to record | Begins video capture from the specified camera                                                                               |
 | `camera.stop_recording`                 | `entity_id` - camera to stop recording                                                      | Ends video capture from the specified camera                                                                                 |
 | `alarm_control_panel.aarlo_set_mode`    | `entity_id` - camera to get snapshot from<br/>`mode` - custom mode to change to             | Set the alarm to a custom mode                                                                                               |
+
+<a name="advanced-events"></a>
+### Events
+
+The following events can fire:
+
+| Event                  | Description                                                |
+|------------------------|------------------------------------------------------------|
+| aarlo_image_updated    | The image updated                                          |
+| aarlo_snapshot_updated | The image updated, and it was caused by a snapshot.        |
+| aarlo_image_updated    | The image updated, and it was caused by an Arlo recording. |
+
+The following events are deprecated:
+
+| Event                | Description          |
+|----------------------|----------------------|
+| aarlo_snapshot_ready | The image is updated |
+
 
 <a name="advanced-websockets"></a>
 ### Web Sockets
