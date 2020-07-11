@@ -40,7 +40,7 @@ CONF_SIREN_VOLUME = "siren_volume"
 CONF_SIREN_ALLOW_OFF = "siren_allow_off"
 CONF_SNAPSHOT = "snapshot"
 CONF_SNAPSHOT_TIMEOUT = "snapshot_timeout"
-CONF_SILENT_MODE = "silent_mode"
+CONF_DOORBELL_SILENCE = "doorbell_silence"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_SIRENS, default=SIRENS_DEFAULT): cv.boolean,
@@ -51,7 +51,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_SNAPSHOT, default=SNAPSHOTS_DEFAULT): cv.boolean,
     vol.Optional(CONF_SNAPSHOT_TIMEOUT, default=SNAPSHOT_TIMEOUT_DEFAULT): vol.All(cv.time_period,
                                                                                    cv.positive_timedelta),
-    vol.Optional(CONF_SILENT_MODE, default=SILENT_MODE_DEFAULT): cv.boolean,
+    vol.Optional(CONF_DOORBELL_SILENCE, default=SILENT_MODE_DEFAULT): cv.boolean,
 })
 
 
@@ -86,7 +86,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         for camera in arlo.cameras:
             devices.append(AarloSnapshotSwitch(config, camera))
 
-    if config.get(CONF_SILENT_MODE) is True:
+    if config.get(CONF_DOORBELL_SILENCE) is True:
         for doorbell in arlo.doorbells:
             if doorbell.has_capability(SILENT_MODE_KEY):
                 devices.append(AarloSilentModeChimeSwitch(doorbell))
