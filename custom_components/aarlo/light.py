@@ -69,7 +69,7 @@ class ArloLight(LightEntity):
     def __init__(self, light):
         """Initialize an Arlo light."""
         self._name = light.name
-        self._unique_id = self._name.lower().replace(' ', '_')
+        self._unique_id = light.entity_id
         self._state = "off"
         self._brightness = None
         self._light = light
@@ -372,6 +372,7 @@ class ArloFloodLight(ArloLight):
         attrs.update(flood_attrs)
 
         return attrs
+
 
 class ArloSpotlight(ArloLight):
 

@@ -86,6 +86,13 @@ class ArloDevice(object):
         return self._arlo.st.get_matching(self._to_storage_key(attr), default)
 
     @property
+    def entity_id(self):
+        if self._arlo.cfg.serial_ids:
+            return self.device_id
+        else:
+            return self.name.lower().replace(' ', '_')
+
+    @property
     def name(self):
         """Returns the device name.
         """

@@ -6,7 +6,6 @@ https://home-assistant.io/components/camera.arlo/
 """
 import base64
 import logging
-import time
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -304,7 +303,7 @@ class ArloCam(Camera):
         """Initialize an Arlo camera."""
         super().__init__()
         self._name = camera.name
-        self._unique_id = self._name.lower().replace(' ', '_')
+        self._unique_id = camera.entity_id
         self._camera = camera
         self._state = None
         self._recent = False

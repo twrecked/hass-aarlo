@@ -322,6 +322,25 @@ class PyArlo(object):
         self._be.logout()
 
     @property
+    def entity_id(self):
+        if self.cfg.serial_ids:
+            return self.device_id
+        else:
+            return self.name.lower().replace(' ', '_')
+
+    @property
+    def name(self):
+        return 'ARLO CONTROLLER'
+
+    @property
+    def device_id(self):
+        return 'ARLO'
+
+    @property
+    def model_id(self):
+        return self.name
+
+    @property
     def cfg(self):
         return self._cfg
 
