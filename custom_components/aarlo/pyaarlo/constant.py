@@ -44,6 +44,7 @@ CAMERA_MEDIA_DELAY = MEDIA_LIBRARY_DELAY + 10
 FAST_REFRESH_INTERVAL = 60
 SLOW_REFRESH_INTERVAL = (10 * 60)
 EVENT_STREAM_TIMEOUT = ((FAST_REFRESH_INTERVAL * 2) + 5)
+MODE_UPDATE_INTERVAL = 5
 
 # update keys
 ACTIVITY_STATE_KEY = 'activityState'
@@ -154,4 +155,4 @@ BLANK_IMAGE = "iVBORw0KGgoAAAANSUhEUgAAAKAAAABaCAQAAACVz5XZAAAAh0lEQVR42u3QMQ0AA
 
 # DEFAULT_MODES = [ { u'id':u'mode0',u'type':u'disarmed' }, { u'id':u'mode1',u'type':u'armed' } ]
 DEFAULT_MODES = {'disarmed': 'mode0', 'armed': 'mode1'}
-DEFAULT_RESOURCES = {'modes', 'siren', 'doorbells', 'lights', 'cameras'}
+DEFAULT_RESOURCES = {'modes', 'siren', 'doorbells', 'lights', 'cameras', 'devices'}
