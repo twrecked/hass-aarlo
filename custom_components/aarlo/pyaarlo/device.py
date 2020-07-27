@@ -371,7 +371,7 @@ class ArloChildDevice(ArloDevice):
         if self.is_unavailable:
             return 'unavailable'
         if not self.is_on:
-            return 'turned off'
+            return 'off'
         if self.too_cold:
             return 'offline, too cold'
         return 'idle'

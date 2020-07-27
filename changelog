@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+        Fix camera on/off.
 0.7.0.alpha.6: Fix spotlight merge issue.
         Fix arloq audio merge issue.
 0.7.0.alpha.5: Added new image update events.
