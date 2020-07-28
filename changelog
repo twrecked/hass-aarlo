@@ -1,4 +1,8 @@
 aarlo/pyaarlo
+        Fix missing mode update.
+        Fix camera on/off.
+0.7.0.alpha.6: Fix spotlight merge issue.
+        Fix arloq audio merge issue.
 0.7.0.alpha.5: Added new image update events.
         Fixed backend not starting promptly.
 0.7.0.alpha.4: Further State machine improvements.

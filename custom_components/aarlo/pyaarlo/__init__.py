@@ -23,7 +23,7 @@ from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger('pyaarlo')
 
-__version__ = '0.7.0.alpha.5'
+__version__ = '0.7.0.alpha.6'
 
 
 class PyArlo(object):
