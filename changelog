@@ -1,5 +1,6 @@
 aarlo/pyaarlo
         Support serial numbers as IDs
+        Add switches to turn off doorbell chimes.
         Fix missing mode update.
         Fix camera on/off.
 0.7.0.alpha.6: Fix spotlight merge issue.

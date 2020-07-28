@@ -123,7 +123,7 @@ Many thanks to:
 * [JetBrains](https://www.jetbrains.com/?from=hass-aarlo) for the excellent
   **PyCharm IDE** and providing me with an open source license to speed up the
   project development.
-  
+
   [![JetBrains](/images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
 
 
@@ -237,10 +237,10 @@ mode in Arlo and `home_mode_name` and `night_mode_name` to map to them. You don'
 map all modes - I don't use `night_mode`. Names are case insensitive. Using duplicate
 names will cause problems, for example, mapping both `away` and `night` mode to `armed`
 will work when setting the mode from Home Assistant but might not show the correct mode if
-you change it in the Arlo app. 
+you change it in the Arlo app.
 
 See [here](https://www.home-assistant.io/components/arlo/#alarm) for more information on
-mode names. 
+mode names.
 
 
 <a name="configuration-camera"></a>
@@ -327,11 +327,11 @@ light:
 The component supports the standard Arlo lights, Arlo Baby lights and Arlo Pro 3
 Floodlight. There is one noticable quirk, you can adjust the brightness of a light while
 it is on but the change will not happen until you turn the light off and back on again.
-This how the official web interface works. 
+This how the official web interface works.
 
-This does not apply to the Pro 3 Floodlight as the brightness 
+This does not apply to the Pro 3 Floodlight as the brightness
 can be changed while it is turned on.
- 
+
 <a name="configuration-switch"></a>
 ### Switch Configuration
 
@@ -343,6 +343,7 @@ switch:
     siren: True
     all_sirens: True
     snapshot: True
+    doorbell_silence: True
     siren_volume: 1
     siren_duration: 10
 ```
@@ -353,6 +354,8 @@ switch:
   to turn them all on and off.
 * `snapshot` If `True`, will create a switch for each camera to allow you to take a
   snapshot.
+* `doorbell_silence` If `True`, will create two switches for each doorbell, to allow
+  silencing of chimes alone, or both chimes and calls.
 
 `siren_volume` and `siren_duration` controls how loud, from 1 to 10, the siren is and how
 long, in seconds, it sounds.
@@ -781,7 +784,7 @@ aarlo:
 * Pyaarlo will clear the current code with this HTTP GET request:
 ```http request
 https://custom-host/clear?email=test@test.com&token=1234567890
-``` 
+```
 
 * And the server will respond with this on success:
 ```json
@@ -792,7 +795,7 @@ https://custom-host/clear?email=test@test.com&token=1234567890
 * Aarlo will look up the current code with this HTTP GET request:
 ```http request
 https://custom-host/get?email=test@test.com&token=1234567890
-``` 
+```
 
 * And the server will respond with this on success:
 ```json

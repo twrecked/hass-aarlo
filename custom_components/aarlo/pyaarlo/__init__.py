@@ -208,6 +208,7 @@ class PyArlo(object):
             self.debug('getting initial settings')
             self._refresh_bases(initial=True)
             self._refresh_ambient_sensors()
+            self._refresh_doorbells()
             self._ml.load()
             self._refresh_camera_thumbnails(True)
             self._refresh_camera_media(True)
@@ -217,6 +218,7 @@ class PyArlo(object):
             self.debug('queueing initial settings')
             self._bg.run(self._refresh_bases, initial=True)
             self._bg.run(self._refresh_ambient_sensors)
+            self._bg.run(self._refresh_doorbells)
             self._bg.run(self._ml.load)
             self._bg.run(self._refresh_camera_thumbnails, wait=False)
             self._bg.run(self._refresh_camera_media, wait=False)
@@ -257,6 +259,10 @@ class PyArlo(object):
     def _refresh_ambient_sensors(self):
         for camera in self._cameras:
             camera.update_ambient_sensors()
+
+    def _refresh_doorbells(self):
+        for doorbell in self._doorbells:
+            doorbell.update_silent_mode()
 
     def _ping_bases(self):
         for base in self._bases:
