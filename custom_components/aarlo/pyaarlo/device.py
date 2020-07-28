@@ -268,6 +268,16 @@ class ArloChildDevice(ArloDevice):
         self._arlo.debug('parent is {}'.format(self._parent_id))
         self._arlo.vdebug('resource is {}'.format(self.resource_id))
 
+    def _event_handler(self, resource, event):
+        self._arlo.vdebug("{}: child got {} event **".format(self.name, resource))
+
+        if resource.endswith('/states'):
+            self._arlo.bg.run(self.base_station.update_mode)
+            return
+
+        # Pass event to lower level.
+        super()._event_handler(resource, event)
+
     @property
     def resource_type(self):
         """Return the resource type this child device describes.
