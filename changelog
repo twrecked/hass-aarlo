@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+        Support serial numbers as IDs
         Fix missing mode update.
         Fix camera on/off.
 0.7.0.alpha.6: Fix spotlight merge issue.
