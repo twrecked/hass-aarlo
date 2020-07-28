@@ -71,6 +71,7 @@ PRIVACY_KEY = 'privacyActive'
 LIGHT_BRIGHTNESS_KEY = 'lightBrightness'
 LIGHT_MODE_KEY = 'lightMode'
 RECORDING_STOPPED_KEY = 'recordingStopped'
+SILENT_MODE_KEY = 'silentMode'
 SPOTLIGHT_KEY = 'spotlight'
 SPOTLIGHT_BRIGHTNESS_KEY = 'spotlightBrightness'
 SIGNAL_STR_KEY = 'signalStrength'
@@ -143,6 +144,8 @@ SCHEDULE_KEY = 'activeSchedule'
 TOTAL_BELLS_KEY = 'totalDoorBells'
 TOTAL_CAMERAS_KEY = 'totalCameras'
 TOTAL_LIGHTS_KEY = 'totalLights'
+SILENT_MODE_CALL_KEY = 'call'
+SILENT_MODE_ACTIVE_KEY = 'active'
 
 # Media player
 MEDIA_PLAYER_RESOURCE_ID = "audioPlayback/player"
