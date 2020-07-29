@@ -195,3 +195,7 @@ class ArloCfg(object):
     @property
     def user_stream_delay(self):
         return self._kw.get('user_stream_delay', 2)
+
+    @property
+    def serial_ids(self):
+        return self._kw.get('serial_ids', False)

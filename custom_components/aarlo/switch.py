@@ -12,10 +12,11 @@ import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 import homeassistant.util.dt as dt_util
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import (ATTR_ATTRIBUTION)
 from homeassistant.core import callback
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
 from homeassistant.helpers.event import track_point_in_time
-from . import COMPONENT_DATA
+from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND
 from .pyaarlo.constant import (ACTIVITY_STATE_KEY, SILENT_MODE_KEY,
                                SILENT_MODE_ACTIVE_KEY, SILENT_MODE_CALL_KEY,
                                SIREN_STATE_KEY)
@@ -79,7 +80,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     # Then create all_sirens if asked for.
     if config.get(CONF_ALL_SIRENS) is True:
         if len(adevices) != 0:
-            devices.append(AarloAllSirensSwitch(config, adevices))
+            devices.append(AarloAllSirensSwitch(config, arlo, adevices))
 
     # Add snapshot for each camera
     if config.get(CONF_SNAPSHOT) is True:
@@ -98,11 +99,12 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 class AarloSwitch(SwitchEntity):
     """Representation of an Aarlo switch."""
 
-    def __init__(self, name, icon):
+    def __init__(self, name, identifier, icon):
         """Initialize the Aarlo switch device."""
         self._name = name
-        self._unique_id = self._name.lower().replace(' ', '_')
+        self._unique_id = identifier
         self._icon = "mdi:{}".format(icon)
+        self._device = None
         _LOGGER.info('AarloSwitch: {} created'.format(self._name))
 
     @property
@@ -132,13 +134,29 @@ class AarloSwitch(SwitchEntity):
         """Turn the switch off."""
         _LOGGER.debug('implement turn off')
 
+    @property
+    def device_state_attributes(self):
+        """Return the device state attributes."""
+        attrs = {
+            ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
+            'brand': COMPONENT_BRAND,
+            'friendly_name': self._name,
+            'icon': self._icon
+        }
+
+        if self._device is not None:
+            attrs['device_id'] = self._device.device_id
+            attrs['model_id'] = self._device.model_id
+
+        return attrs
+
 
 class AarloSirenBaseSwitch(AarloSwitch):
     """Representation of an Aarlo Momentary switch."""
 
-    def __init__(self, name, icon, on_for, allow_off):
+    def __init__(self, name, identifier, icon, on_for, allow_off):
         """Initialize the Aarlo Momentary switch device."""
-        super().__init__(name, icon)
+        super().__init__(name, identifier, icon)
         self._on_for = on_for
         self._allow_off = allow_off
         self._on_until = None
@@ -186,7 +204,8 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
 
     def __init__(self, config, device):
         """Initialize the Aarlo siren switch device."""
-        super().__init__("{0} Siren".format(device.name), "alarm-bell", config.get(CONF_SIREN_DURATION),
+        super().__init__("{0} Siren".format(device.name), "siren_{}".format(device.entity_id), "alarm-bell",
+                         config.get(CONF_SIREN_DURATION),
                          config.get(CONF_SIREN_ALLOW_OFF))
         self._device = device
         self._volume = config.get(CONF_SIREN_VOLUME)
@@ -223,11 +242,13 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
 class AarloAllSirensSwitch(AarloSirenBaseSwitch):
     """Representation of an Aarlo switch."""
 
-    def __init__(self, config, devices):
+    def __init__(self, config, arlo, devices):
         """Initialize the Aarlo siren switch device."""
-        super().__init__("All Sirens", "alarm-light", config.get(CONF_SIREN_DURATION), config.get(CONF_SIREN_ALLOW_OFF))
+        super().__init__("All Sirens", "all_sirens", "alarm-light", config.get(CONF_SIREN_DURATION),
+                         config.get(CONF_SIREN_ALLOW_OFF))
         self._volume = config.get(CONF_SIREN_VOLUME)
         self._devices = devices
+        self._device = arlo
         self._state = "off"
 
     async def async_added_to_hass(self):
@@ -271,8 +292,8 @@ class AarloSnapshotSwitch(AarloSwitch):
 
     def __init__(self, config, camera):
         """Initialize the Aarlo snapshot switch device."""
-        super().__init__("{0} Snapshot".format(camera.name), "camera")
-        self._camera = camera
+        super().__init__("{0} Snapshot".format(camera.name), "snapshot_{}".format(camera.entity_id), "camera")
+        self._device = camera
         self._timeout = config.get(CONF_SNAPSHOT_TIMEOUT)
 
     async def async_added_to_hass(self):
@@ -283,24 +304,24 @@ class AarloSnapshotSwitch(AarloSwitch):
             _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value)[:80])
             self.async_schedule_update_ha_state()
 
-        self._camera.add_attr_callback(ACTIVITY_STATE_KEY, update_state)
+        self._device.add_attr_callback(ACTIVITY_STATE_KEY, update_state)
 
     @property
     def state(self):
         """Return the state of the switch."""
-        if self._camera.is_taking_snapshot:
+        if self._device.is_taking_snapshot:
             return "on"
         return "off"
 
     def turn_on(self, **kwargs):
         _LOGGER.debug("starting snapshot for {}".format(self._name))
-        if not self._camera.is_taking_snapshot:
-            self._camera.request_snapshot()
+        if not self._device.is_taking_snapshot:
+            self._device.request_snapshot()
 
     def turn_off(self, **kwargs):
         _LOGGER.debug("cancelling snapshot for {}".format(self._name))
-        if self._camera.is_taking_snapshot:
-            self._camera.stop_activity()
+        if self._device.is_taking_snapshot:
+            self._device.stop_activity()
 
 
 class AarloSilentModeBaseSwitch(AarloSwitch):
