@@ -1,5 +1,5 @@
 aarlo/pyaarlo
-        Support serial numbers as IDs
+0.7.0.alpha.8 Support serial numbers as IDs
         Add switches to turn off doorbell chimes.
         Fix missing mode update.
         Fix camera on/off.
