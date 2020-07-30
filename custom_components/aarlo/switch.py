@@ -327,9 +327,9 @@ class AarloSnapshotSwitch(AarloSwitch):
 class AarloSilentModeBaseSwitch(AarloSwitch):
     """Representation of an Aarlo switch."""
 
-    def __init__(self, name, doorbell, block_call):
+    def __init__(self, name, identifier, doorbell, block_call):
         """Initialize the Aarlo silent mode switch device."""
-        super().__init__(name, "doorbell")
+        super().__init__(name, identifier, "doorbell")
         self._doorbell = doorbell
         self._state = False
         self._block_call = block_call
@@ -384,8 +384,9 @@ class AarloSilentModeChimeSwitch(AarloSilentModeBaseSwitch):
 
     def __init__(self, doorbell):
         """Initialize the Aarlo silent mode switch device."""
-        super().__init__("{0} Silent Mode Chime".format(
-            doorbell.name), doorbell, block_call=False)
+        super().__init__("{0} Silent Mode Chime".format( doorbell.name), 
+            "{0} Silent Mode Chime".format(doorbell.entity_id),
+            doorbell, block_call=False)
 
 
 class AarloSilentModeChimeCallSwitch(AarloSilentModeBaseSwitch):
@@ -393,5 +394,6 @@ class AarloSilentModeChimeCallSwitch(AarloSilentModeBaseSwitch):
 
     def __init__(self, doorbell):
         """Initialize the Aarlo silent mode switch device."""
-        super().__init__("{0} Silent Mode Chime Call".format(
-            doorbell.name), doorbell, block_call=True)
+        super().__init__("{0} Silent Mode Chime Call".format(doorbell.name),
+            "{0} Silent Mode Chime Call".format(doorbell.entity_id),
+            doorbell, block_call=True)
