@@ -755,7 +755,7 @@ aarlo:
   user_agent: linux
 ```
 
-And `play_direct: true` to your camera Lovelace `aarlo-glance` cards.
+And and `play_direct: true` to your camera Lovelace `aarlo-glance` cards.
 
 <a name="2fa"></a>
 ## 2FA
