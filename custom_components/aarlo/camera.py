@@ -173,7 +173,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     cameras = []
     cameras_with_siren = False
     for camera in arlo.cameras:
-        cameras.append(ArloCam(camera, config))
+        cameras.append(ArloCam(camera, config, arlo))
         if camera.has_capability(SIREN_STATE_KEY):
             cameras_with_siren = True
 
@@ -299,7 +299,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
-    def __init__(self, camera, config):
+    def __init__(self, camera, config, arlo):
         """Initialize an Arlo camera."""
         super().__init__()
         self._name = camera.name
@@ -309,6 +309,7 @@ class ArloCam(Camera):
         self._recent = False
         self._last_image_source_ = None
         self._motion_status = False
+        self._stream_snapshot = arlo.cfg.stream_snapshot
         self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info('ArloCam: %s created', self._name)
 
@@ -541,11 +542,12 @@ class ArloCam(Camera):
         return self._camera.wait_for_user_stream()
 
     def _start_snapshot_stream(self):
-        # XXX make optional
-        source = self._camera.start_snapshot_stream()
-        if source is not None:
-            self._camera.wait_for_user_stream()
-        return source
+        if self._stream_snapshot:
+            source = self._camera.start_snapshot_stream()
+            if source is not None:
+                self._camera.wait_for_user_stream()
+            return source
+        return None
 
     def request_snapshot(self):
         self._start_snapshot_stream()

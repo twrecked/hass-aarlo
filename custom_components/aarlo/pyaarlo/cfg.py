@@ -199,3 +199,7 @@ class ArloCfg(object):
     @property
     def serial_ids(self):
         return self._kw.get('serial_ids', False)
+
+    @property
+    def stream_snapshot(self):
+        return self._kw.get('stream_snapshot', False)
