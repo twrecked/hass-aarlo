@@ -310,6 +310,7 @@ class ArloCam(Camera):
         self._last_image_source_ = None
         self._motion_status = False
         self._stream_snapshot = arlo.cfg.stream_snapshot
+        self._save_updates_to = arlo.cfg.save_updates_to
         self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info('ArloCam: %s created', self._name)
 
@@ -352,6 +353,16 @@ class ArloCam(Camera):
                         'entity_id': 'aarlo.' + self._unique_id
                     })
                 self._last_image_source_ = value
+
+            # Save image if asked to
+            if attr == LAST_IMAGE_DATA_KEY and self._save_updates_to != '':
+                filename = "{}/{}.jpg".format(self._save_updates_to,self._unique_id)
+                _LOGGER.debug("saving to {}".format(filename))
+                if not self.hass.config.is_allowed_path(filename):
+                    _LOGGER.error("Can't write %s, no access to path!", filename)
+                else:
+                    with open(filename, 'wb') as img_file:
+                        img_file.write(value)
 
             # Signal changes.
             self.async_schedule_update_ha_state()
