@@ -167,6 +167,7 @@ class PyArlo(object):
         self.info('pyaarlo starting')
         self._started = False
         self._refresh_devices()
+
         for device in self._devices:
             dname = device.get('deviceName')
             dtype = device.get('deviceType')
@@ -243,7 +244,11 @@ class PyArlo(object):
         return "<{0}: {1}>".format(self.__class__.__name__, self._cfg.name)
 
     def _refresh_devices(self):
-        self._devices = self._be.get(DEVICES_PATH + "?t={}".format(time_to_arlotime()))
+        url = DEVICES_PATH + "?t={}".format(time_to_arlotime())
+        self._devices = self._be.get(url)
+        if not self._devices:
+            self.warning("No devices returned from " + url)
+            self._devices = []
         self.vdebug("devices={}".format(pprint.pformat(self._devices)))
 
     def _refresh_camera_thumbnails(self, wait=False):
