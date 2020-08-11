@@ -216,7 +216,9 @@ class ArloBase(ArloDevice):
                                                                                             pprint.pformat(body)))
                         self._arlo.debug('Fetching device list (hoping this will fix arming/disarming)')
                         self._arlo.be.devices()
-                        self._arlo.bg.run(_set_mode_v2_cb, i=attempt + 1)
+                        self._arlo.bg.run(_set_mode_v2_cb, attempt=attempt + 1)
+                        return
+
                     self._arlo.error('Failed to set mode.')
                     self._arlo.debug('Giving up on setting mode! Session headers=\n{}'.format(
                         pprint.pformat(self._arlo.be.session.headers)))
