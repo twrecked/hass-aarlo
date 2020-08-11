@@ -316,19 +316,26 @@ class ArloChildDevice(ArloDevice):
         """Returns the base station controlling this device.
 
         Some devices - ArloBaby for example - are their own parents. If we
-        can't find a basestation we return the first one.
+        can't find a basestation, this returns the first one (if any exist).
         """
         # look for real parents
         for base in self._arlo.base_stations:
             if base.device_id == self.parent_id:
                 return base
+
         # some cameras don't have base stations... it's its own basestation...
         for base in self._arlo.base_stations:
             if base.device_id == self.device_id:
                 return base
-        # no idea!
-        return self._arlo.base_stations[0]
 
+        # no idea!
+        if len(self._arlo.base_stations) > 0:
+            return self._arlo.base_stations[0]
+
+        self._arlo.error("Could not find any base stations for device " + self._name)
+        return None
+
+        
     @property
     def battery_level(self):
         """Returns the current battery level.
@@ -375,6 +382,9 @@ class ArloChildDevice(ArloDevice):
 
     @property
     def is_unavailable(self):
+        if not self.base_station:
+            return True
+
         return self.base_station.is_unavailable or self._load(CONNECTION_KEY, 'unknown') == 'unavailable'
 
     @property

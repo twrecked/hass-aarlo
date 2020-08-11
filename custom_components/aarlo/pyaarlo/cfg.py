@@ -203,3 +203,7 @@ class ArloCfg(object):
     @property
     def stream_snapshot(self):
         return self._kw.get('stream_snapshot', False)
+
+    @property
+    def save_updates_to(self):
+        return self._kw.get('save_updates_to', '')

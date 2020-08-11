@@ -1,4 +1,8 @@
 aarlo/pyaarlo
+0.7.0.beta.2 Handle no basestations.
+        Print a traceback on background failure.
+        Automatically write image updates to file.
+        Fix arming retry.
 0.7.0.beta.1 Make snapshot method configurable.
 0.7.0.alpha.8 Support serial numbers as IDs
         Add switches to turn off doorbell chimes.
