@@ -250,8 +250,11 @@ class ArloBase(ArloDevice):
             resp = self._arlo.be.notify(base=self, body={"action": "get", "resource": "modes",
                                                          "publishResponse": False},
                                         wait_for="event")
-            props = resp.get('properties', {})
-            self._parse_modes(props.get('modes', []))
+            if resp is not None:
+                props = resp.get('properties', {})
+                self._parse_modes(props.get('modes', []))
+            else:
+                self._arlo.error("unable to read mode, try forcing v2");
         else:
             modes = self._arlo.be.get(DEFINITIONS_PATH + "?uniqueIds={}".format(self.unique_id))
             modes = modes.get(self.unique_id, {})
