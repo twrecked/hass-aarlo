@@ -8,7 +8,7 @@ from .constant import (
     ACTIVITY_STATE_KEY, AIR_QUALITY_KEY, AUDIO_ANALYTICS_KEY,
     AUDIO_DETECTED_KEY, AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, BATTERY_KEY,
     BRIGHTNESS_KEY, CAMERA_MEDIA_DELAY, CAPTURED_TODAY_KEY, CRY_DETECTION_KEY,
-    FLIP_KEY, FLOODLIGHT_BRIGHTNESS1_KEY,
+    CONNECTION_KEY, FLIP_KEY, FLOODLIGHT_BRIGHTNESS1_KEY,
     FLOODLIGHT_BRIGHTNESS2_KEY, FLOODLIGHT_KEY, HUMIDITY_KEY,
     IDLE_SNAPSHOT_PATH, LAMP_STATE_KEY, LAST_CAPTURE_KEY, LAST_IMAGE_DATA_KEY,
     LAST_IMAGE_KEY, LAST_IMAGE_SRC_KEY, LIGHT_BRIGHTNESS_KEY, LIGHT_MODE_KEY,
@@ -1175,4 +1175,10 @@ class ArloCamera(ArloChildDevice):
         if cap in (FLOODLIGHT_KEY,):
             if self.model_id.startswith('FB1001'):
                 return True
+        if cap in (CONNECTION_KEY,):
+            # These devices are their own base stations so don't re-add connection key.
+            if self.model_id.startswith(('ABC1000', 'FB1001A')):
+                return False;
+            if self.device_type in ('arloq', 'arloqs'):
+                return False
         return super().has_capability(cap)
