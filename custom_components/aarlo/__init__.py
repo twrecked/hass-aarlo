@@ -148,6 +148,7 @@ SERVICE_SIREN_ON = 'siren_on'
 SERVICE_SIRENS_ON = 'sirens_on'
 SERVICE_SIREN_OFF = 'siren_off'
 SERVICE_SIRENS_OFF = 'sirens_off'
+SERVICE_RESTART = 'restart_device'
 SERVICE_INJECT_RESPONSE = 'inject_response'
 SIREN_ON_SCHEMA = vol.Schema({
     vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
@@ -165,6 +166,9 @@ SIRENS_OFF_SCHEMA = vol.Schema({
 })
 INJECT_RESPONSE_SCHEMA = vol.Schema({
     vol.Required('filename'): cv.string,
+})
+RESTART_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
 })
 
 
@@ -286,6 +290,8 @@ def setup(hass, config):
                 await async_aarlo_siren_off(hass, call)
             if call.service == SERVICE_SIRENS_OFF:
                 await async_aarlo_sirens_off(hass, call)
+        if call.service == SERVICE_RESTART:
+            await async_aarlo_restart_device(hass, call)
         if call.service == SERVICE_INJECT_RESPONSE:
             await async_aarlo_inject_response(hass, call)
 
@@ -300,6 +306,9 @@ def setup(hass, config):
     )
     hass.services.async_register(
         COMPONENT_DOMAIN, SERVICE_SIRENS_OFF, async_aarlo_service, schema=SIRENS_OFF_SCHEMA,
+    )
+    hass.services.async_register(
+        COMPONENT_DOMAIN, SERVICE_RESTART, async_aarlo_service, schema=RESTART_SCHEMA,
     )
     if injection_service:
         hass.services.async_register(
@@ -370,6 +379,16 @@ async def async_aarlo_sirens_off(hass, _call):
         if device.has_capability(SIREN_STATE_KEY):
             device.siren_off()
             _LOGGER.info("{} siren off".format(device.unique_id))
+
+
+async def async_aarlo_restart_device(hass, call):
+    for entity_id in call.data['entity_id']:
+        try:
+            device = get_entity_from_domain(hass, [ALARM_DOMAIN], entity_id)
+            device.restart()
+            _LOGGER.info("{} restarted".format(entity_id))
+        except HomeAssistantError:
+            _LOGGER.info("{} device not found".format(entity_id))
 
 
 async def async_aarlo_inject_response(hass, call):
