@@ -103,6 +103,14 @@ class ArloCamera(ArloChildDevice):
             self._save_and_do_callbacks(LAST_CAPTURE_KEY, last_captured)
         self._do_callbacks(MEDIA_UPLOAD_KEY, True)
 
+        # new snapshot?
+        snapshot = self._arlo.ml.snapshot_for(self)
+        if snapshot is not None:
+            if self._snapshot_time is None or self._snapshot_time < snapshot.datetime:
+                self._arlo.debug('snapshot updated from media ' + self.name)
+                self._save(SNAPSHOT_KEY, snapshot.image_url)
+                self._arlo.bg.run_low(self._update_snapshot)
+
     # Media library has updated, reload todays events and thumbnail.
     def _update_media_and_thumbnail(self):
         self._arlo.debug('getting media image for ' + self.name)
@@ -613,6 +621,9 @@ class ArloCamera(ArloChildDevice):
             self._arlo.debug("idle snapshot")
             self._take_idle_snapshot()
 
+        for check in self._arlo.cfg.snapshot_checks:
+            self._arlo.debug("queueing snapshot check in {}".format(check))
+            self._arlo.bg.run_in(self._arlo.ml.queue_update, check, cb=self._update_media)
         self._arlo.debug("handle dodgy cameras")
         self._arlo.bg.run_in(self._stop_snapshot, self._arlo.cfg.snapshot_timeout)
 
