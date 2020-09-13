@@ -9,6 +9,10 @@ def utc_to_local(utc_dt):
     return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
 
 
+def the_epoch():
+    return utc_to_local(datetime.fromtimestamp(0,tz=timezone.utc))
+
+
 def arlotime_to_time(timestamp):
     """ Convert Arlo timestamp to Unix timestamp. """
     return int(timestamp / 1000)

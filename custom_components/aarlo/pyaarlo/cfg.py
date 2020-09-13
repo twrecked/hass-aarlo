@@ -98,7 +98,7 @@ class ArloCfg(object):
     def snapshot_checks(self):
         checks = self._kw.get('snapshot_checks', [])
         if not checks:
-            checks = [ 2, 5 ]
+            checks = [ 1, 5 ]
         return checks
 
     @property
