@@ -2,7 +2,7 @@ import pprint
 import time
 
 from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH, CONNECTION_KEY,
-                       MODE_ID_TO_NAME_KEY, MODE_KEY,
+                       MODE_ID_TO_NAME_KEY, MODE_KEY, RESTART_PATH,
                        MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY, MODE_UPDATE_INTERVAL,
                        SCHEDULE_KEY, SIREN_STATE_KEY, TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY)
 from .device import ArloDevice
@@ -318,6 +318,11 @@ class ArloBase(ArloDevice):
         }
         self._arlo.debug(str(body))
         self._arlo.be.notify(base=self, body=body)
+
+    def restart(self):
+        params = {'deviceId': self.device_id }
+        if self._arlo.be.post(RESTART_PATH, params=params, wait_for=None) is None:
+            self._arlo.debug('RESTART didnt send')
 
     def _ping_and_check_reply(self):
         body = {
