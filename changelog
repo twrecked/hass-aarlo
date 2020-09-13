@@ -1,4 +1,6 @@
 aarlo/pyaarlo
+0.7.0.beta.4 Support base reset
+        Better snapshot handling.
 0.7.0.beta.2 Handle no basestations.
         Print a traceback on background failure.
         Automatically write image updates to file.
