@@ -234,9 +234,9 @@ class ArloBase(ArloDevice):
         """
         now = time.monotonic()
         with self._lock:
-            if now < self._last_update + MODE_UPDATE_INTERVAL:
-                self._arlo.debug('skipping an update')
-                return
+            #  if now < self._last_update + MODE_UPDATE_INTERVAL:
+                #  self._arlo.debug('skipping an update')
+                #  return
             self._last_update = now
         data = self._arlo.be.get(AUTOMATION_PATH)
         for mode in data:
