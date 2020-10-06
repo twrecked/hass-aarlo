@@ -275,7 +275,7 @@ class PyArlo(object):
 
     def _refresh_bases(self, initial):
         for base in self._bases:
-            base.update_modes()
+            base.update_modes(initial)
             if initial:
                 base.update_mode()
             self._be.notify(base=base, body={"action": "get", "resource": "cameras", "publishResponse": False},
