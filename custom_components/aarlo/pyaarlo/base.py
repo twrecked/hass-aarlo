@@ -174,8 +174,18 @@ class ArloBase(ArloDevice):
 
         :param mode_name: mode to use, as returned by available_modes:
         """
+        # Need to change?
+        if self.mode == mode_name:
+            self._arlo.debug('no mode change needed')
+            return
+
         mode_id = self._name_to_id(mode_name)
         if mode_id:
+
+            # Need to change?
+            if self.mode == mode_id:
+                self._arlo.debug('no mode change needed (id)')
+                return
 
             # Schedule or mode? Manually set schedule key.
             if self._id_is_schedule(mode_id):
@@ -243,10 +253,13 @@ class ArloBase(ArloDevice):
             if mode.get('uniqueId', '') == self.unique_id:
                 self._set_mode_or_schedule(mode)
 
-    def update_modes(self):
+    def update_modes(self, initial=False):
         """Get and update the available modes for the base.
         """
         if self._v1_modes:
+            # Work around slow arlo connections.
+            if initial and self._arlo.cfg.synchronous_mode:
+                time.sleep(5)
             resp = self._arlo.be.notify(base=self, body={"action": "get", "resource": "modes",
                                                          "publishResponse": False},
                                         wait_for="event")
