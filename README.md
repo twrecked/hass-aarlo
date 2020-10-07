@@ -658,7 +658,7 @@ The following events can fire:
 |------------------------|------------------------------------------------------------|
 | aarlo_image_updated    | The image updated                                          |
 | aarlo_snapshot_updated | The image updated, and it was caused by a snapshot.        |
-| aarlo_image_updated    | The image updated, and it was caused by an Arlo recording. |
+| aarlo_capture_updated  | The image updated, and it was caused by an Arlo recording. |
 
 The following events are deprecated:
 
