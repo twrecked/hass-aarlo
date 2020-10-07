@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.0.beta.6 Fix mode update.
 0.7.0.beta.5 Fix mode update.
         Fix possible log in issue.
 0.7.0.beta.4 Support base reset

@@ -23,7 +23,7 @@ from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger('pyaarlo')
 
-__version__ = '0.7.0.beta.5'
+__version__ = '0.7.0.beta.6'
 
 
 class PyArlo(object):
@@ -276,8 +276,7 @@ class PyArlo(object):
     def _refresh_bases(self, initial):
         for base in self._bases:
             base.update_modes(initial)
-            if initial:
-                base.update_mode()
+            base.update_mode()
             self._be.notify(base=base, body={"action": "get", "resource": "cameras", "publishResponse": False},
                             wait_for="response")
             self._be.notify(base=base, body={"action": "get", "resource": "doorbells", "publishResponse": False},
