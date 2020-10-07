@@ -179,44 +179,46 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     async_add_entities(cameras)
 
-    # Component Services
-    async def async_camera_service(call):
+    # Component services
+    def service_callback(call):
         """Call aarlo service handler."""
         _LOGGER.info("{} service called".format(call.service))
         if call.service == SERVICE_REQUEST_SNAPSHOT:
-            await async_camera_snapshot_service(hass, call)
+            camera_snapshot_service(hass, call)
         if call.service == SERVICE_REQUEST_SNAPSHOT_TO_FILE:
-            await async_camera_snapshot_to_file_service(hass, call)
+            camera_snapshot_to_file_service(hass, call)
         if call.service == SERVICE_REQUEST_VIDEO_TO_FILE:
-            await async_camera_video_to_file_service(hass, call)
+            camera_video_to_file_service(hass, call)
         if call.service == SERVICE_STOP_ACTIVITY:
-            await async_camera_stop_activity_service(hass, call)
+            camera_stop_activity_service(hass, call)
         if call.service == SERVICE_RECORD_START:
-            await async_camera_start_recording_service(hass, call)
+            camera_start_recording_service(hass, call)
         if call.service == SERVICE_RECORD_STOP:
-            await async_camera_stop_recording_service(hass, call)
+            camera_stop_recording_service(hass, call)
+
+    async def async_service_callback(call):
+        await hass.async_add_executor_job(service_callback, call)
 
     if not hasattr(hass.data[COMPONENT_SERVICES], DOMAIN):
         _LOGGER.info("installing handlers")
         hass.data[COMPONENT_SERVICES][DOMAIN] = 'installed'
-
         hass.services.async_register(
-            COMPONENT_DOMAIN, SERVICE_REQUEST_SNAPSHOT, async_camera_service, schema=CAMERA_SERVICE_SCHEMA,
+            COMPONENT_DOMAIN, SERVICE_REQUEST_SNAPSHOT, async_service_callback, schema=CAMERA_SERVICE_SCHEMA,
         )
         hass.services.async_register(
-            COMPONENT_DOMAIN, SERVICE_REQUEST_SNAPSHOT_TO_FILE, async_camera_service, schema=CAMERA_SERVICE_SNAPSHOT,
+            COMPONENT_DOMAIN, SERVICE_REQUEST_SNAPSHOT_TO_FILE, async_service_callback, schema=CAMERA_SERVICE_SNAPSHOT,
         )
         hass.services.async_register(
-            COMPONENT_DOMAIN, SERVICE_REQUEST_VIDEO_TO_FILE, async_camera_service, schema=CAMERA_SERVICE_SNAPSHOT,
+            COMPONENT_DOMAIN, SERVICE_REQUEST_VIDEO_TO_FILE, async_service_callback, schema=CAMERA_SERVICE_SNAPSHOT,
         )
         hass.services.async_register(
-            COMPONENT_DOMAIN, SERVICE_STOP_ACTIVITY, async_camera_service, schema=CAMERA_SERVICE_SCHEMA,
+            COMPONENT_DOMAIN, SERVICE_STOP_ACTIVITY, async_service_callback, schema=CAMERA_SERVICE_SCHEMA,
         )
         hass.services.async_register(
-            COMPONENT_DOMAIN, SERVICE_RECORD_START, async_camera_service, schema=RECORD_START_SCHEMA,
+            COMPONENT_DOMAIN, SERVICE_RECORD_START, async_service_callback, schema=RECORD_START_SCHEMA,
         )
         hass.services.async_register(
-            COMPONENT_DOMAIN, SERVICE_RECORD_STOP, async_camera_service, schema=CAMERA_SERVICE_SCHEMA,
+            COMPONENT_DOMAIN, SERVICE_RECORD_STOP, async_service_callback, schema=CAMERA_SERVICE_SCHEMA,
         )
 
     # Deprecated Services.
@@ -900,12 +902,12 @@ async def aarlo_stop_recording_handler(camera, _service):
     camera.stop_recording()
 
 
-async def async_camera_snapshot_service(hass, call):
+def camera_snapshot_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             _LOGGER.info("{} snapshot".format(entity_id))
             camera = get_entity_from_domain(hass, DOMAIN, entity_id)
-            await camera.async_get_snapshot()
+            camera.get_snapshot()
             hass.bus.fire('aarlo_snapshot_ready', {
                 'entity_id': entity_id,
             })
@@ -913,7 +915,7 @@ async def async_camera_snapshot_service(hass, call):
             _LOGGER.warning("{} snapshot service failed".format(entity_id))
 
 
-async def async_camera_snapshot_to_file_service(hass, call):
+def camera_snapshot_to_file_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             camera = get_entity_from_domain(hass, DOMAIN, entity_id)
@@ -927,24 +929,22 @@ async def async_camera_snapshot_to_file_service(hass, call):
                 _LOGGER.error("Can't write %s, no access to path!", snapshot_file)
                 return
 
-            image = await camera.async_get_snapshot()
+            # Get and write snapshot
+            snapshot = camera.get_snapshot()
+            with open(snapshot_file, 'wb') as out_file:
+                out_file.write(snapshot)
 
-            def _write_image(to_file, image_data):
-                with open(to_file, 'wb') as img_file:
-                    img_file.write(image_data)
-
-            await hass.async_add_executor_job(_write_image, snapshot_file, image)
             hass.bus.fire('aarlo_snapshot_ready', {
                 'entity_id': entity_id,
                 'file': snapshot_file
             })
         except OSError as err:
-            _LOGGER.error("Can't write image to file: %s", err)
+            _LOGGER.error("Can't write snapshot to file: %s", err)
         except HomeAssistantError:
             _LOGGER.warning("{} snapshot to file service failed".format(entity_id))
 
 
-async def async_camera_video_to_file_service(hass, call):
+def camera_video_to_file_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             camera = get_entity_from_domain(hass, DOMAIN, entity_id)
@@ -958,13 +958,11 @@ async def async_camera_video_to_file_service(hass, call):
                 _LOGGER.error("Can't write %s, no access to path!", video_file)
                 return
 
-            image = await camera.async_get_video()
+            # Get and write video
+            video = camera.get_video()
+            with open(video_file, 'wb') as out_file:
+                out_file.write(video)
 
-            def _write_image(to_file, image_data):
-                with open(to_file, 'wb') as img_file:
-                    img_file.write(image_data)
-
-            await hass.async_add_executor_job(_write_image, video_file, image)
             hass.bus.fire('aarlo_video_ready', {
                 'entity_id': entity_id,
                 'file': video_file
@@ -976,7 +974,7 @@ async def async_camera_video_to_file_service(hass, call):
         _LOGGER.debug("{0} video to file finished".format(entity_id))
 
 
-async def async_camera_stop_activity_service(hass, call):
+def camera_stop_activity_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             _LOGGER.info("{} stop activity".format(entity_id))
@@ -985,38 +983,18 @@ async def async_camera_stop_activity_service(hass, call):
             _LOGGER.warning("{} stop activity service failed".format(entity_id))
 
 
-async def async_camera_siren_on_service(hass, call):
-    for entity_id in call.data['entity_id']:
-        try:
-            volume = call.data[ATTR_VOLUME]
-            duration = call.data[ATTR_DURATION]
-            _LOGGER.info("{} start siren(volume={}/duration={})".format(entity_id, volume, duration))
-            get_entity_from_domain(hass, DOMAIN, entity_id).siren_on(duration=duration, volume=volume)
-        except HomeAssistantError:
-            _LOGGER.warning("{} siren on service failed".format(entity_id))
-
-
-async def async_camera_siren_off_service(hass, call):
-    for entity_id in call.data['entity_id']:
-        try:
-            _LOGGER.info("{} stop siren".format(entity_id))
-            get_entity_from_domain(hass, DOMAIN, entity_id).siren_off()
-        except HomeAssistantError:
-            _LOGGER.warning("{} siren off service failed".format(entity_id))
-
-
-async def async_camera_start_recording_service(hass, call):
+def camera_start_recording_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             duration = call.data[ATTR_DURATION]
             _LOGGER.info("{} start recording(duration={})".format(entity_id, duration))
             camera = get_entity_from_domain(hass, DOMAIN, entity_id)
-            await camera.async_start_recording(duration=duration)
+            camera.start_recording(duration=duration)
         except HomeAssistantError:
             _LOGGER.warning("{} start recording service failed".format(entity_id))
 
 
-async def async_camera_stop_recording_service(hass, call):
+def camera_stop_recording_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             _LOGGER.info("{} stop recording".format(entity_id))
