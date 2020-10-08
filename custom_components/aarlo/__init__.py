@@ -277,47 +277,50 @@ def setup(hass, config):
             notification_id=NOTIFICATION_ID)
         return False
 
-    # Component Services
+    # Component services
     has_sirens = False
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability(SIREN_STATE_KEY):
             has_sirens = True
 
-    async def async_aarlo_service(call):
+    def service_callback(call):
         """Call aarlo service handler."""
         _LOGGER.info("{} service called".format(call.service))
         if has_sirens:
             if call.service == SERVICE_SIREN_ON:
-                await async_aarlo_siren_on(hass, call)
+                aarlo_siren_on(hass, call)
             if call.service == SERVICE_SIRENS_ON:
-                await async_aarlo_sirens_on(hass, call)
+                aarlo_sirens_on(hass, call)
             if call.service == SERVICE_SIREN_OFF:
-                await async_aarlo_siren_off(hass, call)
+                aarlo_siren_off(hass, call)
             if call.service == SERVICE_SIRENS_OFF:
-                await async_aarlo_sirens_off(hass, call)
+                aarlo_sirens_off(hass, call)
         if call.service == SERVICE_RESTART:
-            await async_aarlo_restart_device(hass, call)
+            aarlo_restart_device(hass, call)
         if call.service == SERVICE_INJECT_RESPONSE:
-            await async_aarlo_inject_response(hass, call)
+            aarlo_inject_response(hass, call)
+
+    async def async_service_callback(call):
+        await hass.async_add_executor_job(service_callback, call)
 
     hass.services.async_register(
-        COMPONENT_DOMAIN, SERVICE_SIREN_ON, async_aarlo_service, schema=SIREN_ON_SCHEMA,
+        COMPONENT_DOMAIN, SERVICE_SIREN_ON, async_service_callback, schema=SIREN_ON_SCHEMA,
     )
     hass.services.async_register(
-        COMPONENT_DOMAIN, SERVICE_SIRENS_ON, async_aarlo_service, schema=SIRENS_ON_SCHEMA,
+        COMPONENT_DOMAIN, SERVICE_SIRENS_ON, async_service_callback, schema=SIRENS_ON_SCHEMA,
     )
     hass.services.async_register(
-        COMPONENT_DOMAIN, SERVICE_SIREN_OFF, async_aarlo_service, schema=SIREN_OFF_SCHEMA,
+        COMPONENT_DOMAIN, SERVICE_SIREN_OFF, async_service_callback, schema=SIREN_OFF_SCHEMA,
     )
     hass.services.async_register(
-        COMPONENT_DOMAIN, SERVICE_SIRENS_OFF, async_aarlo_service, schema=SIRENS_OFF_SCHEMA,
+        COMPONENT_DOMAIN, SERVICE_SIRENS_OFF, async_service_callback, schema=SIRENS_OFF_SCHEMA,
     )
     hass.services.async_register(
-        COMPONENT_DOMAIN, SERVICE_RESTART, async_aarlo_service, schema=RESTART_SCHEMA,
+        COMPONENT_DOMAIN, SERVICE_RESTART, async_service_callback, schema=RESTART_SCHEMA,
     )
     if injection_service:
         hass.services.async_register(
-            COMPONENT_DOMAIN, SERVICE_INJECT_RESPONSE, async_aarlo_service, schema=INJECT_RESPONSE_SCHEMA,
+            COMPONENT_DOMAIN, SERVICE_INJECT_RESPONSE, async_service_callback, schema=INJECT_RESPONSE_SCHEMA,
         )
 
     return True
@@ -346,7 +349,7 @@ def get_entity_from_domain(hass, domains, entity_id):
     raise HomeAssistantError("{} not found in {}".format(entity_id, ",".join(domains)))
 
 
-async def async_aarlo_siren_on(hass, call):
+def aarlo_siren_on(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             volume = call.data['volume']
@@ -358,7 +361,7 @@ async def async_aarlo_siren_on(hass, call):
             _LOGGER.info("{} siren device not found".format(entity_id))
 
 
-async def async_aarlo_sirens_on(hass, call):
+def aarlo_sirens_on(hass, call):
     arlo = hass.data[COMPONENT_DATA]
     volume = call.data['volume']
     duration = call.data['duration']
@@ -368,7 +371,7 @@ async def async_aarlo_sirens_on(hass, call):
             _LOGGER.info("{} siren on {}/{}".format(device.unique_id, volume, duration))
 
 
-async def async_aarlo_siren_off(hass, call):
+def aarlo_siren_off(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             device = get_entity_from_domain(hass, [ALARM_DOMAIN, CAMERA_DOMAIN], entity_id)
@@ -378,7 +381,7 @@ async def async_aarlo_siren_off(hass, call):
             _LOGGER.info("{} siren not found".format(entity_id))
 
 
-async def async_aarlo_sirens_off(hass, _call):
+def aarlo_sirens_off(hass, _call):
     arlo = hass.data[COMPONENT_DATA]
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability(SIREN_STATE_KEY):
@@ -386,7 +389,7 @@ async def async_aarlo_sirens_off(hass, _call):
             _LOGGER.info("{} siren off".format(device.unique_id))
 
 
-async def async_aarlo_restart_device(hass, call):
+def aarlo_restart_device(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             device = get_entity_from_domain(hass, [ALARM_DOMAIN], entity_id)
@@ -396,7 +399,7 @@ async def async_aarlo_restart_device(hass, call):
             _LOGGER.info("{} device not found".format(entity_id))
 
 
-async def async_aarlo_inject_response(hass, call):
+def aarlo_inject_response(hass, call):
     patch_file = hass.config.config_dir + '/' + call.data['filename']
     with open(patch_file) as file:
         packet = json.load(file)

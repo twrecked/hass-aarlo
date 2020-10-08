@@ -128,19 +128,22 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     async_add_entities(base_stations, True)
 
-    # Component Services
-    async def async_alarm_service(call):
+    # Component services
+    def service_callback(call):
         """Call aarlo service handler."""
         _LOGGER.info("{} service called".format(call.service))
         if call.service == SERVICE_MODE:
-            await async_alarm_mode_service(hass, call)
+            alarm_mode_service(hass, call)
+
+    async def async_service_callback(call):
+        # pass off to background thread
+        await hass.async_add_executor_job(service_callback, call)
 
     if not hasattr(hass.data[COMPONENT_SERVICES], DOMAIN):
         _LOGGER.info("installing handlers")
         hass.data[COMPONENT_SERVICES][DOMAIN] = 'installed'
-
         hass.services.async_register(
-            COMPONENT_DOMAIN, SERVICE_MODE, async_alarm_service, schema=SERVICE_MODE_SCHEMA,
+            COMPONENT_DOMAIN, SERVICE_MODE, async_service_callback, schema=SERVICE_MODE_SCHEMA,
         )
 
     # Deprecated Services.
@@ -406,31 +409,11 @@ async def aarlo_siren_off_service_handler(base, _service):
     base.siren_off()
 
 
-async def async_alarm_mode_service(hass, call):
+def alarm_mode_service(hass, call):
     for entity_id in call.data['entity_id']:
         try:
             mode = call.data['mode']
             get_entity_from_domain(hass, DOMAIN, entity_id).set_mode_in_ha(mode)
             _LOGGER.info("{0} setting mode to {1}".format(entity_id, mode))
-        except HomeAssistantError:
-            _LOGGER.warning("{0} is not an aarlo alarm device".format(entity_id))
-
-
-async def async_alarm_siren_on_service(hass, call):
-    for entity_id in call.data['entity_id']:
-        try:
-            volume = call.data['volume']
-            duration = call.data['duration']
-            get_entity_from_domain(hass, DOMAIN, entity_id).siren_on(duration=duration, volume=volume)
-            _LOGGER.info("{0} siren on {1}/{2}".format(entity_id, volume, duration))
-        except HomeAssistantError:
-            _LOGGER.warning("{0} is not an aarlo alarm device".format(entity_id))
-
-
-async def async_alarm_siren_off_service(hass, call):
-    for entity_id in call.data['entity_id']:
-        try:
-            get_entity_from_domain(hass, DOMAIN, entity_id).siren_off()
-            _LOGGER.info("{0} siren off".format(entity_id))
         except HomeAssistantError:
             _LOGGER.warning("{0} is not an aarlo alarm device".format(entity_id))
