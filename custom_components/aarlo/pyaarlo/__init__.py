@@ -285,13 +285,13 @@ class PyArlo(object):
                             wait_for="response")
 
     def _fast_refresh(self):
-        self.debug('fast refresh')
+        self.vdebug('fast refresh')
         self._bg.run(self._st.save)
         self._ping_bases()
 
         # if day changes then reload recording library and camera counts
         today = datetime.date.today()
-        self.debug('day testing with {}!'.format(str(today)))
+        self.vdebug('day testing with {}!'.format(str(today)))
         if self._today != today:
             self.debug('day changed to {}!'.format(str(today)))
             self._today = today
@@ -299,7 +299,7 @@ class PyArlo(object):
             self._bg.run(self._refresh_camera_media, wait=False)
 
     def _slow_refresh(self):
-        self.debug('slow refresh')
+        self.vdebug('slow refresh')
         self._bg.run(self._refresh_bases, initial=False)
         self._bg.run(self._refresh_ambient_sensors)
 
