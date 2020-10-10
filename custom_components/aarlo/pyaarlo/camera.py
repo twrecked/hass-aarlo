@@ -160,11 +160,10 @@ class ArloCamera(ArloChildDevice):
             date = date.strftime(self._arlo.cfg.last_format)
             self._save_and_do_callbacks(LAST_IMAGE_SRC_KEY, 'snapshot/' + date)
             self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
+            self._stop_snapshot()
         else:
             self._arlo.vdebug('ignoring snapshot for ' + self.name)
 
-        # Clean up snapshot handler.
-        self._stop_snapshot()
 
     def _set_recent(self, timeo):
         with self._lock:
@@ -190,7 +189,11 @@ class ArloCamera(ArloChildDevice):
             self._dump_activities("_stop_snapshot")
             self._lock.notify_all()
 
-        self._stop_stream(stopping_for="snapshot")
+        # Stop based on how we were started.
+        if not self.is_taking_idle_snapshot:
+            self._stop_stream(stopping_for="snapshot")
+
+        # Signal stop.
         self._arlo.debug('snapshot finished, re-signal real state')
         self._save_and_do_callbacks(ACTIVITY_STATE_KEY, self._load(ACTIVITY_STATE_KEY, 'unknown'))
 
@@ -313,22 +316,25 @@ class ArloCamera(ArloChildDevice):
         # Camera is active. If we don't know about it then update our status.
         if activity == 'fullFrameSnapshot':
             with self._lock:
-                if not self.has_any_local_users:
-                    self._local_users.add("remote")
-                self._remote_users.add("snapshot")
+                if not self.has_user_request("snapshot"):
+                    self._remote_users.add("snapshot")
+                    #  if not self.has_any_local_users:
+                        #  self._local_users.add("remote")
                 self._dump_activities("_event::snap")
         if activity == 'alertStreamActive':
             with self._lock:
-                if not self.has_any_local_users:
-                    self._local_users.add("remote")
-                self._remote_users.add("recording")
+                if not self.has_user_request("recording"):
+                    self._remote_users.add("recording")
+                    if not self.has_any_local_users:
+                        self._local_users.add("remote")
                 self._lock.notify_all()
                 self._dump_activities("_event::record")
         if activity == 'userStreamActive':
             with self._lock:
-                if not self.has_any_local_users:
-                    self._local_users.add("remote")
-                self._remote_users.add("streaming")
+                if not self.has_user_request("streaming"):
+                    self._remote_users.add("streaming")
+                    if not self.has_any_local_users:
+                        self._local_users.add("remote")
                 self._lock.notify_all()
                 self._dump_activities("_event::stream")
 
@@ -733,11 +739,10 @@ class ArloCamera(ArloChildDevice):
         """
         if not self.is_on:
             return 'off'
-        if self.has_activity("snapshot"):
-            if self.has_activity("recording"):
+        if self.has_local_user("snapshot"):
+            if self.has_local_user("recording"):
                 return 'recording + snapshot'
-            if self.has_local_user("streaming") or \
-                    self.has_local_user("remote"):
+            if self.has_local_user("streaming"):
                 return 'streaming + snapshot'
             return 'taking snapshot'
         if self.has_activity("recording"):
