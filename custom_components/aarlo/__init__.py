@@ -68,7 +68,9 @@ CONF_LIBRARY_DAYS = 'library_days'
 CONF_AUTH_HOST = 'auth_host'
 CONF_SERIAL_IDS = 'serial_ids'
 CONF_STREAM_SNAPSHOT = 'stream_snapshot'
+CONF_STREAM_SNAPSHOT_STOP = 'stream_snapshot_stop'
 CONF_SAVE_UPDATES_TO = 'save_updates_to'
+CONF_USER_STREAM_DELAY = 'user_stream_delay'
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -101,7 +103,9 @@ DEFAULT_TFA_PASSWORD = 'unknown'
 DEFAULT_LIBRARY_DAYS = 30
 SERIAL_IDS = False
 STREAM_SNAPSHOT = False
+STREAM_SNAPSHOT_STOP = 0
 SAVE_UPDATES_TO = ''
+USER_STREAM_DELAY = 1
 
 CONFIG_SCHEMA = vol.Schema({
     COMPONENT_DOMAIN: vol.Schema({
@@ -140,7 +144,9 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_LIBRARY_DAYS, default=DEFAULT_LIBRARY_DAYS): cv.positive_int,
         vol.Optional(CONF_SERIAL_IDS, default=SERIAL_IDS): cv.boolean,
         vol.Optional(CONF_STREAM_SNAPSHOT, default=STREAM_SNAPSHOT): cv.boolean,
+        vol.Optional(CONF_STREAM_SNAPSHOT_STOP, default=STREAM_SNAPSHOT_STOP): cv.positive_int,
         vol.Optional(CONF_SAVE_UPDATES_TO, default=SAVE_UPDATES_TO): cv.string,
+        vol.Optional(CONF_USER_STREAM_DELAY, default=USER_STREAM_DELAY): cv.positive_int,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -214,9 +220,9 @@ def setup(hass, config):
     library_days = conf.get(CONF_LIBRARY_DAYS)
     serial_ids = conf.get(CONF_SERIAL_IDS)
     stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
+    stream_snapshot_stop = conf.get(CONF_STREAM_SNAPSHOT_STOP)
     save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
-
-    _LOGGER.info("retry={}".format(pprint.pformat(media_retry)))
+    user_stream_delay = conf.get(CONF_USER_STREAM_DELAY)
 
     # Fix up config
     if conf_dir == '':
@@ -254,8 +260,9 @@ def setup(hass, config):
                       tfa_host=tfa_host, tfa_username=tfa_username, tfa_password=tfa_password,
                       library_days=library_days,
                       serial_ids=serial_ids,
-                      stream_snapshot=stream_snapshot,
+                      stream_snapshot=stream_snapshot, stream_snapshot_stop=stream_snapshot_stop,
                       save_updates_to=save_updates_to,
+                      user_stream_delay=user_stream_delay,
                       wait_for_initial_setup=False,
                       verbose_debug=verbose_debug)
         if not arlo.is_connected:

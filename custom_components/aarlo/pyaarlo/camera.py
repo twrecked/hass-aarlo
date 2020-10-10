@@ -116,13 +116,13 @@ class ArloCamera(ArloChildDevice):
         # new snapshot?
         snapshot = self._arlo.ml.snapshot_for(self)
         if snapshot is not None:
-            self._arlo.debug('snapshot updated from media ' + self.name)
+            self._arlo.debug('snapshot updated for media ' + self.name)
             self._save(SNAPSHOT_KEY, snapshot.image_url)
             self._arlo.bg.run_low(self._update_snapshot)
 
         # new image?
         if last_image is not None:
-            self._arlo.debug('image updated from media ' + self.name)
+            self._arlo.debug('image updated for media ' + self.name)
             self._save(LAST_IMAGE_KEY, last_image)
             self._arlo.bg.run_low(self._update_image)
 
@@ -635,6 +635,9 @@ class ArloCamera(ArloChildDevice):
             if stream_snapshot:
                 self._arlo.debug("streaming/recording snapshot")
                 self._take_streaming_snapshot()
+                if self._arlo.cfg.stream_snapshot_stop > 0:
+                    self._arlo.debug("queing stream stop in {}".format(self._arlo.cfg.stream_snapshot_stop))
+                    self._arlo.bg.run_in(self._stop_stream, self._arlo.cfg.stream_snapshot_stop, stopping_for="snapshot")
             else:
                 self._arlo.debug("idle snapshot")
                 self._take_idle_snapshot()
@@ -642,7 +645,8 @@ class ArloCamera(ArloChildDevice):
         for check in self._arlo.cfg.snapshot_checks:
             self._arlo.debug("queueing snapshot check in {}".format(check))
             self._arlo.bg.run_in(self._arlo.ml.queue_update, check, cb=self._update_media)
-        self._arlo.debug("handle dodgy cameras")
+
+        self._arlo.vdebug("handle dodgy cameras")
         self._arlo.bg.run_in(self._stop_snapshot, self._arlo.cfg.snapshot_timeout)
 
     def get_snapshot(self, timeout=60):

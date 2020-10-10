@@ -97,6 +97,8 @@ class ArloCfg(object):
     @property
     def snapshot_checks(self):
         checks = self._kw.get('snapshot_checks', [])
+        if not checks:
+            return [ 1, 5 ]
         return checks
 
     @property
@@ -208,6 +210,10 @@ class ArloCfg(object):
     @property
     def stream_snapshot(self):
         return self._kw.get('stream_snapshot', False)
+
+    @property
+    def stream_snapshot_stop(self):
+        return self._kw.get('stream_snapshot_stop', 10)
 
     @property
     def save_updates_to(self):
