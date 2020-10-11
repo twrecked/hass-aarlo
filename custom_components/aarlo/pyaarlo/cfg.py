@@ -98,7 +98,7 @@ class ArloCfg(object):
     def snapshot_checks(self):
         checks = self._kw.get('snapshot_checks', [])
         if not checks:
-            checks = [ 1, 5 ]
+            return [ 1, 5 ]
         return checks
 
     @property
@@ -127,7 +127,7 @@ class ArloCfg(object):
 
     @property
     def snapshot_timeout(self):
-        return self._kw.get('snapshot_timeout', 45)
+        return self._kw.get('snapshot_timeout', 60)
 
     @property
     def verbose(self):
@@ -201,7 +201,7 @@ class ArloCfg(object):
 
     @property
     def user_stream_delay(self):
-        return self._kw.get('user_stream_delay', 2)
+        return self._kw.get('user_stream_delay', 1)
 
     @property
     def serial_ids(self):
@@ -210,6 +210,10 @@ class ArloCfg(object):
     @property
     def stream_snapshot(self):
         return self._kw.get('stream_snapshot', False)
+
+    @property
+    def stream_snapshot_stop(self):
+        return self._kw.get('stream_snapshot_stop', 10)
 
     @property
     def save_updates_to(self):

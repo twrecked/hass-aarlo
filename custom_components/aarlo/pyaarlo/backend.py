@@ -4,6 +4,7 @@ import re
 import threading
 import time
 import uuid
+import traceback
 
 import requests
 import requests.adapters
@@ -304,7 +305,8 @@ class ArloBackEnd(object):
             except AttributeError as e:
                 self._arlo.warning('forced close ' + str(e))
             except Exception as e:
-                self._arlo.warning('general exception ' + str(e))
+                #self._arlo.warning('general exception ' + str(e))
+                self._arlo.error('general-error={}\n{}'.format(type(e).__name__, traceback.format_exc()))
 
             # restart login...
             self._ev_stream = None
@@ -512,7 +514,7 @@ class ArloBackEnd(object):
     def _start_transaction(self, tid=None):
         if tid is None:
             tid = self.gen_trans_id()
-        self._arlo.debug("starting transaction-->{}".format(tid))
+        self._arlo.vdebug("starting transaction-->{}".format(tid))
         with self._lock:
             self._requests[tid] = None
         return tid
@@ -523,13 +525,13 @@ class ArloBackEnd(object):
         mnow = time.monotonic()
         mend = mnow + timeout
 
-        self._arlo.debug("finishing transaction-->{}".format(tid))
+        self._arlo.vdebug("finishing transaction-->{}".format(tid))
         with self._lock:
             while mnow < mend and self._requests[tid] is None:
                 self._lock.wait(mend - mnow)
                 mnow = time.monotonic()
             response = self._requests.pop(tid)
-        self._arlo.debug("finished transaction-->{}".format(tid))
+        self._arlo.vdebug("finished transaction-->{}".format(tid))
         return response
 
     @property
@@ -568,33 +570,33 @@ class ArloBackEnd(object):
             wait_for = "event" if self._arlo.cfg.synchronous_mode else "nothing"
 
         if wait_for == "event":
-            self._arlo.debug('notify+event running')
+            self._arlo.vdebug('notify+event running')
             tid = self._start_transaction()
             self._notify(base, body=body, trans_id=tid)
             return self._wait_for_transaction(tid, timeout)
             # return self._notify_and_get_event(base, body, timeout=timeout)
         elif wait_for == "response":
-            self._arlo.debug('notify+response running')
+            self._arlo.vdebug('notify+response running')
             return self._notify(base, body=body)
         else:
-            self._arlo.debug('notify+ sent')
+            self._arlo.vdebug('notify+ sent')
             self._arlo.bg.run(self._notify, base=base, body=body)
 
     def get(self, path, params=None, headers=None, stream=False, raw=False, timeout=None, host=None,
             wait_for="response"):
         if wait_for == "response":
-            self._arlo.debug('get+response running')
+            self._arlo.vdebug('get+response running')
             return self._request(path, 'GET', params, headers, stream, raw, timeout, host)
         else:
-            self._arlo.debug('get sent')
+            self._arlo.vdebug('get sent')
             self._arlo.bg.run(self._request, path, 'GET', params, headers, stream, raw, timeout, host)
 
     def put(self, path, params=None, headers=None, raw=False, timeout=None, wait_for="response"):
         if wait_for == "response":
-            self._arlo.debug('put+response running')
+            self._arlo.vdebug('put+response running')
             return self._request(path, 'PUT', params, headers, False, raw, timeout)
         else:
-            self._arlo.debug('put sent')
+            self._arlo.vdebug('put sent')
             self._arlo.bg.run(self._request, path, 'PUT', params, headers, False, raw, timeout)
 
     def post(self, path, params=None, headers=None, raw=False, timeout=None, wait_for="response"):
@@ -613,15 +615,15 @@ class ArloBackEnd(object):
             wait_for = "resource" if self._arlo.cfg.synchronous_mode else "response"
 
         if wait_for == "resource":
-            self._arlo.debug('notify+resource running')
+            self._arlo.vdebug('notify+resource running')
             tid = self._start_transaction(list(params.keys())[0])
             self._request(path, 'POST', params, headers, False, raw, timeout)
             return self._wait_for_transaction(tid, timeout)
         if wait_for == "response":
-            self._arlo.debug('post+response running')
+            self._arlo.vdebug('post+response running')
             return self._request(path, 'POST', params, headers, False, raw, timeout)
         else:
-            self._arlo.debug('post sent')
+            self._arlo.vdebug('post sent')
             self._arlo.bg.run(self._request, path, 'POST', params, headers, False, raw, timeout)
 
     def auth_post(self, path, params=None, headers=None, raw=False, timeout=None):
