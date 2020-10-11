@@ -1,13 +1,13 @@
 import base64
+import pprint
 import threading
 import time
 import zlib
-import pprint
 
 from .constant import (
     ACTIVITY_STATE_KEY, AIR_QUALITY_KEY, AUDIO_ANALYTICS_KEY,
     AUDIO_DETECTED_KEY, AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, BATTERY_KEY,
-    BRIGHTNESS_KEY, CAMERA_MEDIA_DELAY, CAPTURED_TODAY_KEY, CRY_DETECTION_KEY,
+    BRIGHTNESS_KEY, CAPTURED_TODAY_KEY, CRY_DETECTION_KEY,
     CONNECTION_KEY, FLIP_KEY, FLOODLIGHT_BRIGHTNESS1_KEY,
     FLOODLIGHT_BRIGHTNESS2_KEY, FLOODLIGHT_KEY, HUMIDITY_KEY,
     IDLE_SNAPSHOT_PATH, LAMP_STATE_KEY, LAST_CAPTURE_KEY, LAST_IMAGE_DATA_KEY,
@@ -84,12 +84,12 @@ class ArloCamera(ArloChildDevice):
         return points[-1]
 
     def _dump_activities(self, msg):
-        self._arlo.debug("{}::reqs='{}',local='{}',remote='{}'".format(msg, 
-                    pprint.pformat(self._user_requests),
-                    pprint.pformat(self._local_users),
-                    pprint.pformat(self._remote_users)))
+        self._arlo.debug("{}::reqs='{}',local='{}',remote='{}'".format(msg,
+                                                                       pprint.pformat(self._user_requests),
+                                                                       pprint.pformat(self._local_users),
+                                                                       pprint.pformat(self._remote_users)))
 
-    # Media library has updated, reload todays events.
+    # Media library has updated, reload today's events.
     def _update_media(self):
         self._arlo.debug('reloading cache for ' + self._name)
         count, videos = self._arlo.ml.videos_for(self)
@@ -164,7 +164,6 @@ class ArloCamera(ArloChildDevice):
         else:
             self._arlo.vdebug('ignoring snapshot for ' + self.name)
 
-
     def _set_recent(self, timeo):
         with self._lock:
             self._recent = True
@@ -210,7 +209,7 @@ class ArloCamera(ArloChildDevice):
 
     def _start_stream(self, starting_for):
         with self._lock:
-            # Already streaming. Update subactivity as needed.
+            # Already streaming. Update sub-activity as needed.
             if self.has_any_local_users:
                 self._local_users.add(starting_for)
                 self._dump_activities("_start_stream")
@@ -261,7 +260,7 @@ class ArloCamera(ArloChildDevice):
                 if value is not None:
                     self._save_and_do_callbacks(key, value)
 
-            # The last image thumnbail has changed. Queue an update.
+            # The last image thumbnail has changed. Queue an update.
             if LAST_IMAGE_KEY in event:
                 if not self.is_taking_snapshot:
                     self._arlo.debug("{} -> thumbnail changed".format(self.name))
@@ -319,7 +318,7 @@ class ArloCamera(ArloChildDevice):
                 if not self.has_user_request("snapshot"):
                     self._remote_users.add("snapshot")
                     #  if not self.has_any_local_users:
-                        #  self._local_users.add("remote")
+                    #  self._local_users.add("remote")
                 self._dump_activities("_event::snap")
         if activity == 'alertStreamActive':
             with self._lock:
@@ -562,7 +561,7 @@ class ArloCamera(ArloChildDevice):
         Reloads the videos library from Arlo. 
         """
         if wait is None:
-            wait = self._cfg.synchronous_mode
+            wait = self._arlo.cfg.synchronous_mode
         if wait:
             self._arlo.debug('doing media update')
             self._update_media()
@@ -579,7 +578,7 @@ class ArloCamera(ArloChildDevice):
         Updates the last image.
         """
         if wait is None:
-            wait = self._cfg.synchronous_mode
+            wait = self._arlo.cfg.synchronous_mode
         if wait:
             self._arlo.debug('doing image update')
             self._update_image()
@@ -637,7 +636,8 @@ class ArloCamera(ArloChildDevice):
                 self._take_streaming_snapshot()
                 if self._arlo.cfg.stream_snapshot_stop > 0:
                     self._arlo.debug("queing stream stop in {}".format(self._arlo.cfg.stream_snapshot_stop))
-                    self._arlo.bg.run_in(self._stop_stream, self._arlo.cfg.stream_snapshot_stop, stopping_for="snapshot")
+                    self._arlo.bg.run_in(self._stop_stream, self._arlo.cfg.stream_snapshot_stop,
+                                         stopping_for="snapshot")
             else:
                 self._arlo.debug("idle snapshot")
                 self._take_idle_snapshot()
@@ -673,16 +673,14 @@ class ArloCamera(ArloChildDevice):
 
         Snapshot can be started from anywhere.
         """
-        return self.has_user_request("snapshot") or \
-                self.has_remote_user("snapshot")
+        return self.has_user_request("snapshot") or self.has_remote_user("snapshot")
 
     @property
     def is_taking_idle_snapshot(self):
         """Returns `True` if camera is taking a non-streaming snapshot, `False`
         otherwise.
         """
-        return self.is_taking_snapshot and \
-                not self.has_any_local_users
+        return self.is_taking_snapshot and not self.has_any_local_users
 
     @property
     def is_recording(self):
@@ -690,8 +688,7 @@ class ArloCamera(ArloChildDevice):
 
         Recording can be started from anywhere.
         """
-        return self.has_user_request("recording") or \
-                self.has_remote_user("recording")
+        return self.has_user_request("recording") or self.has_remote_user("recording")
 
     @property
     def is_streaming(self):
@@ -699,8 +696,7 @@ class ArloCamera(ArloChildDevice):
 
         Stream has to be started locally.
         """
-        return self.has_user_request("streaming") or \
-                self.has_remote_user("streaming")
+        return self.has_user_request("streaming") or self.has_remote_user("streaming")
 
     def has_user_request(self, activity):
         return activity in self._user_requests
@@ -727,9 +723,7 @@ class ArloCamera(ArloChildDevice):
         """ Returns `True` is camera is performing a particular activity,
         `False` otherwise.
         """
-        return self.has_user_request(activity) or \
-                    self.has_local_user(activity) or \
-                    self.has_remote_user(activity)
+        return self.has_user_request(activity) or self.has_local_user(activity) or self.has_remote_user(activity)
 
     @property
     def was_recently_active(self):
@@ -1221,7 +1215,7 @@ class ArloCamera(ArloChildDevice):
             return True
         if cap in (AUDIO_DETECTED_KEY,):
             if self.model_id.startswith(
-                ('VMC4030', 'VMC4040', 'VMC5040', 'ABC1000', 'FB1001')):
+                    ('VMC4030', 'VMC4040', 'VMC5040', 'ABC1000', 'FB1001')):
                 return True
             if self.device_type.startswith('arloq'):
                 return True
@@ -1243,7 +1237,7 @@ class ArloCamera(ArloChildDevice):
         if cap in (CONNECTION_KEY,):
             # These devices are their own base stations so don't re-add connection key.
             if self.model_id.startswith(('ABC1000', 'FB1001A')):
-                return False;
+                return False
             if self.device_type in ('arloq', 'arloqs'):
                 return False
         return super().has_capability(cap)

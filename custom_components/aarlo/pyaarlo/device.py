@@ -335,7 +335,6 @@ class ArloChildDevice(ArloDevice):
         self._arlo.error("Could not find any base stations for device " + self._name)
         return None
 
-        
     @property
     def battery_level(self):
         """Returns the current battery level.

@@ -338,9 +338,9 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
     def state(self):
         """Return the state of the switch."""
         if self._state:
-          return 'on'
+            return 'on'
         else:
-          return 'off'
+            return 'off'
 
     def turn_on(self, **kwargs):
         _LOGGER.debug("Turning on silent mode for {}".format(self._name))
@@ -354,28 +354,29 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
         """Register callbacks."""
 
         @callback
-        def update_state(_device, attr, value):
+        def update_state(_device, _attr, value):
             active = value.get(SILENT_MODE_ACTIVE_KEY, None)
             block_call = value.get(SILENT_MODE_CALL_KEY, None)
 
             # If active isn't present -- we cannot assert any state.
             if active is None:
-              return
+                return
             # If active is False, OR if this object doesn't block calls, then
             # simply mirror that state.
             elif not active or not self._block_call:
-              self._state = active
+                self._state = active
             # If it falls through to here, then silent mode has moved to
             # active, and this object does block calls. If we do not have fresh
             # block_call information, we cannot assert any state.
             elif block_call is None:
-              return
+                return
             # Silent mode is active, this object does block calls and there is
             # block_call information -- use that state.
             else:
-              self._state = block_call
+                self._state = block_call
 
             self.async_schedule_update_ha_state()
+
         self._doorbell.add_attr_callback(SILENT_MODE_KEY, update_state)
 
 
@@ -384,9 +385,9 @@ class AarloSilentModeChimeSwitch(AarloSilentModeBaseSwitch):
 
     def __init__(self, doorbell):
         """Initialize the Aarlo silent mode switch device."""
-        super().__init__("{0} Silent Mode Chime".format( doorbell.name), 
-            "{0} Silent Mode Chime".format(doorbell.entity_id),
-            doorbell, block_call=False)
+        super().__init__("{0} Silent Mode Chime".format(doorbell.name),
+                         "{0} Silent Mode Chime".format(doorbell.entity_id),
+                         doorbell, block_call=False)
 
 
 class AarloSilentModeChimeCallSwitch(AarloSilentModeBaseSwitch):
@@ -395,5 +396,5 @@ class AarloSilentModeChimeCallSwitch(AarloSilentModeBaseSwitch):
     def __init__(self, doorbell):
         """Initialize the Aarlo silent mode switch device."""
         super().__init__("{0} Silent Mode Chime Call".format(doorbell.name),
-            "{0} Silent Mode Chime Call".format(doorbell.entity_id),
-            doorbell, block_call=True)
+                         "{0} Silent Mode Chime Call".format(doorbell.entity_id),
+                         doorbell, block_call=True)

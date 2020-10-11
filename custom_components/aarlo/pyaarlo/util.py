@@ -10,7 +10,7 @@ def utc_to_local(utc_dt):
 
 
 def the_epoch():
-    return utc_to_local(datetime.fromtimestamp(0,tz=timezone.utc))
+    return utc_to_local(datetime.fromtimestamp(0, tz=timezone.utc))
 
 
 def arlotime_to_time(timestamp):
@@ -20,7 +20,7 @@ def arlotime_to_time(timestamp):
 
 def arlotime_to_datetime(timestamp):
     """ Convert Arlo timestamp to Python datetime. """
-    return utc_to_local(datetime.fromtimestamp(int(timestamp / 1000),tz=timezone.utc))
+    return utc_to_local(datetime.fromtimestamp(int(timestamp / 1000), tz=timezone.utc))
 
 
 def arlotime_strftime(timestamp, date_format='%Y-%m-%dT%H:%M:%S'):

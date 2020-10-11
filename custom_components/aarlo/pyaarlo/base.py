@@ -3,8 +3,8 @@ import time
 
 from .constant import (AUTOMATION_PATH, DEFAULT_MODES, DEFINITIONS_PATH, CONNECTION_KEY,
                        MODE_ID_TO_NAME_KEY, MODE_KEY, RESTART_PATH,
-                       MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY, MODE_UPDATE_INTERVAL,
-                       SCHEDULE_KEY, SIREN_STATE_KEY, TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY)
+                       MODE_NAME_TO_ID_KEY, MODE_IS_SCHEDULE_KEY, SCHEDULE_KEY, SIREN_STATE_KEY, TEMPERATURE_KEY,
+                       HUMIDITY_KEY, AIR_QUALITY_KEY)
 from .device import ArloDevice
 from .util import time_to_arlotime
 
@@ -111,7 +111,7 @@ class ArloBase(ArloDevice):
                 self._save_and_do_callbacks(MODE_KEY, self._id_to_name(props['activeMode']))
             elif 'active' in props:
                 self._save_and_do_callbacks(MODE_KEY, self._id_to_name(props['active']))
-        
+
         # mode change?
         elif resource == 'activeAutomations':
             self._set_mode_or_schedule(event)
@@ -212,11 +212,10 @@ class ArloBase(ArloDevice):
                 # subsequent ones run in the background. In sync mode it the same. Sorry.
                 def _set_mode_v2_cb(attempt):
                     self._arlo.debug('v2 arming')
-                    params = {'activeAutomations':
-                              [{'deviceId': self.device_id,
-                                'timestamp': time_to_arlotime(),
-                                active: [mode_id],
-                                inactive: []}]}
+                    params = {'activeAutomations': [{'deviceId': self.device_id,
+                                                     'timestamp': time_to_arlotime(),
+                                                     active: [mode_id],
+                                                     inactive: []}]}
                     if attempt < 4:
                         body = self._arlo.be.post(AUTOMATION_PATH, params=params, raw=True, wait_for=None)
                         if body.get('success', False) is True or body.get('resource', '') == 'activeAutomations':
@@ -245,8 +244,8 @@ class ArloBase(ArloDevice):
         now = time.monotonic()
         with self._lock:
             #  if now < self._last_update + MODE_UPDATE_INTERVAL:
-                #  self._arlo.debug('skipping an update')
-                #  return
+            #  self._arlo.debug('skipping an update')
+            #  return
             self._last_update = now
         data = self._arlo.be.get(AUTOMATION_PATH)
         for mode in data:
@@ -267,7 +266,7 @@ class ArloBase(ArloDevice):
                 props = resp.get('properties', {})
                 self._parse_modes(props.get('modes', []))
             else:
-                self._arlo.error("unable to read mode, try forcing v2");
+                self._arlo.error("unable to read mode, try forcing v2")
         else:
             modes = self._arlo.be.get(DEFINITIONS_PATH + "?uniqueIds={}".format(self.unique_id))
             modes = modes.get(self.unique_id, {})
@@ -333,7 +332,7 @@ class ArloBase(ArloDevice):
         self._arlo.be.notify(base=self, body=body)
 
     def restart(self):
-        params = {'deviceId': self.device_id }
+        params = {'deviceId': self.device_id}
         if self._arlo.be.post(RESTART_PATH, params=params, wait_for=None) is None:
             self._arlo.debug('RESTART didnt send')
 

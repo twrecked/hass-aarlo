@@ -8,6 +8,7 @@ https://home-assistant.io/components/sensor.arlo/
 import logging
 import pprint
 
+import homeassistant.util.color as color_util
 from homeassistant.components.light import (ATTR_BRIGHTNESS,
                                             ATTR_COLOR_TEMP,
                                             ATTR_EFFECT,
@@ -21,7 +22,6 @@ from homeassistant.const import (ATTR_ATTRIBUTION,
                                  ATTR_BATTERY_CHARGING,
                                  ATTR_BATTERY_LEVEL)
 from homeassistant.core import callback
-import homeassistant.util.color as color_util
 from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND
 from .pyaarlo.constant import (
     BRIGHTNESS_KEY,

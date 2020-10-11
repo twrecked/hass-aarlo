@@ -66,18 +66,18 @@ class ArloDoorBell(ArloChildDevice):
         return super().has_capability(cap)
 
     def silent_mode(self, active, block_call):
-      self._arlo.be.notify(base=self.base_station,
-                           body={
-                               'action': 'set',
-                               'properties': {
-                                   SILENT_MODE_KEY: {
-                                      SILENT_MODE_ACTIVE_KEY: active,
-                                      SILENT_MODE_CALL_KEY: block_call,
-                                   },
-                               },
-                               'publishResponse': True,
-                               'resource': self.resource_id,
-                           })
+        self._arlo.be.notify(base=self.base_station,
+                             body={
+                                 'action': 'set',
+                                 'properties': {
+                                     SILENT_MODE_KEY: {
+                                         SILENT_MODE_ACTIVE_KEY: active,
+                                         SILENT_MODE_CALL_KEY: block_call,
+                                     },
+                                 },
+                                 'publishResponse': True,
+                                 'resource': self.resource_id,
+                             })
 
     def update_silent_mode(self):
         """Requests the latest silent mode settings.
