@@ -57,6 +57,7 @@ See [Services](#advanced-services) for more information.
    - [Custom Lovelace Card Configuration](#configuration-lovelace)
 - [Other](#other)
    - [Naming](#other-naming)
+   - [Snapshots](#other-snapshots)
    - [Best Practises and Known Limitations](#other-best)
    - [Debugging](#other-debugging)
    - [Hiding Sensitive Data](#other-sensitive)
