@@ -1,6 +1,6 @@
-import traceback
 import threading
 import time
+import traceback
 
 
 class ArloBackgroundWorker(threading.Thread):

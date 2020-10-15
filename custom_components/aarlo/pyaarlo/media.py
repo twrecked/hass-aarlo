@@ -122,7 +122,7 @@ class ArloMediaLibrary(object):
 
     def snapshot_for(self, camera):
         with self._lock:
-            return self._snapshots.get(camera.device_id,None)
+            return self._snapshots.get(camera.device_id, None)
 
     @property
     def videos(self):
@@ -281,6 +281,5 @@ class ArloSnapshot(ArloMediaObject):
         """Returns the URL of the video.
         """
         return self._attrs.get('presignedContentUrl', None)
-
 
 # vim:sw=4:ts=4:et:

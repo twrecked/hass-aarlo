@@ -4,9 +4,9 @@ This component provides support for Netgear Arlo IP cameras.
 For more details about this component, please refer to the documentation at
 https://home-assistant.io/components/arlo/
 """
-import os.path
-import logging
 import json
+import logging
+import os.path
 import pprint
 from datetime import timedelta
 from traceback import extract_stack
@@ -14,19 +14,18 @@ from traceback import extract_stack
 import voluptuous as vol
 from requests.exceptions import HTTPError, ConnectTimeout
 
+from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
+from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_USERNAME, CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_HOST)
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
-from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
-from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 from .pyaarlo.constant import SIREN_STATE_KEY, DEFAULT_HOST, DEFAULT_AUTH_HOST
 
 __version__ = '0.7.0.beta.6'
 
 _LOGGER = logging.getLogger(__name__)
-
 
 COMPONENT_DOMAIN = 'aarlo'
 COMPONENT_DATA = 'aarlo-data'
@@ -124,8 +123,8 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_REQ_TIMEOUT, default=REQ_TIMEOUT): cv.time_period,
         vol.Optional(CONF_STR_TIMEOUT, default=STR_TIMEOUT): cv.time_period,
         vol.Optional(CONF_NO_MEDIA_UP, default=NO_MEDIA_UP): cv.boolean,
-        vol.Optional(CONF_MEDIA_RETRY, default=list()): vol.All(cv.ensure_list,[cv.positive_int]),
-        vol.Optional(CONF_SNAPSHOT_CHECKS, default=list()): vol.All(cv.ensure_list,[cv.positive_int]),
+        vol.Optional(CONF_MEDIA_RETRY, default=list()): vol.All(cv.ensure_list, [cv.positive_int]),
+        vol.Optional(CONF_SNAPSHOT_CHECKS, default=list()): vol.All(cv.ensure_list, [cv.positive_int]),
         vol.Optional(CONF_USER_AGENT, default=USER_AGENT): cv.string,
         vol.Optional(CONF_MODE_API, default=MODE_API): cv.string,
         vol.Optional(CONF_DEVICE_REFRESH, default=DEVICE_REFRESH): cv.positive_int,
@@ -331,6 +330,7 @@ def setup(hass, config):
         )
 
     return True
+
 
 def is_homekit():
     for frame in reversed(extract_stack()):

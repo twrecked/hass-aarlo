@@ -91,14 +91,14 @@ class ArloCfg(object):
     def media_retry(self):
         retries = self._kw.get('media_retry', [])
         if not retries and self.no_media_upload:
-            retries = [ 0, 5, 10 ]
+            retries = [0, 5, 10]
         return retries
 
     @property
     def snapshot_checks(self):
         checks = self._kw.get('snapshot_checks', [])
         if not checks:
-            return [ 1, 5 ]
+            return [1, 5]
         return checks
 
     @property

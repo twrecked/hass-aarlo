@@ -1,5 +1,6 @@
 """Provide functionality to interact with vlc devices on the network."""
 import logging
+from abc import ABC
 
 from homeassistant.components.media_player import DEVICE_CLASS_SPEAKER, MediaPlayerEntity
 from homeassistant.components.media_player.const import (MEDIA_TYPE_MUSIC,
@@ -63,7 +64,7 @@ async def async_setup_platform(hass, _config, async_add_entities, _discovery_inf
     async_add_entities(players, True)
 
 
-class ArloMediaPlayer(MediaPlayerEntity):
+class ArloMediaPlayer(MediaPlayerEntity, ABC):
     """Representation of an arlo media player."""
 
     def __init__(self, name, device):

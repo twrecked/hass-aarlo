@@ -7,8 +7,9 @@ https://home-assistant.io/components/camera.arlo/
 import base64
 import logging
 
-import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+
+import homeassistant.helpers.config_validation as cv
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (ATTR_FILENAME,
                                              CAMERA_SERVICE_SCHEMA,
@@ -34,7 +35,6 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
-
 from . import COMPONENT_ATTRIBUTION, COMPONENT_DATA, COMPONENT_BRAND, COMPONENT_DOMAIN, COMPONENT_SERVICES, \
     get_entity_from_domain, is_homekit
 from .pyaarlo.constant import (ACTIVITY_STATE_KEY,
@@ -358,7 +358,7 @@ class ArloCam(Camera):
 
             # Save image if asked to
             if attr == LAST_IMAGE_DATA_KEY and self._save_updates_to != '':
-                filename = "{}/{}.jpg".format(self._save_updates_to,self._unique_id)
+                filename = "{}/{}.jpg".format(self._save_updates_to, self._unique_id)
                 _LOGGER.debug("saving to {}".format(filename))
                 if not self.hass.config.is_allowed_path(filename):
                     _LOGGER.error("Can't write %s, no access to path!", filename)

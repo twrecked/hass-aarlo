@@ -3,8 +3,8 @@ import pprint
 import re
 import threading
 import time
-import uuid
 import traceback
+import uuid
 
 import requests
 import requests.adapters
@@ -305,7 +305,7 @@ class ArloBackEnd(object):
             except AttributeError as e:
                 self._arlo.warning('forced close ' + str(e))
             except Exception as e:
-                #self._arlo.warning('general exception ' + str(e))
+                # self._arlo.warning('general exception ' + str(e))
                 self._arlo.error('general-error={}\n{}'.format(type(e).__name__, traceback.format_exc()))
 
             # restart login...
@@ -355,6 +355,7 @@ class ArloBackEnd(object):
 
         # Handle 1015 error
         attempt = 0
+        body = None
         while attempt < 3:
             attempt += 1
             self._arlo.debug('login attempt #{}'.format(attempt))
