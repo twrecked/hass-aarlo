@@ -510,6 +510,20 @@ class ArloCamera(ArloChildDevice):
         """
         return self._load(BRIGHTNESS_KEY, None)
 
+    @brightness.setter
+    def brightness(self, brightness):
+        """
+        NOTE: Brightness is between -2 and 2 in increments of 1 (-2, -1, 0, 1, 2).
+        Setting it to an invalid value has no effect.
+        """
+        body = {
+            'action': 'set',
+            'resource': self.resource_id,
+            'publishResponse': True,
+            'properties': {'brightness': brightness }
+        }
+        self._arlo.be.notify(base=self, body=body)
+
     @property
     def flip_state(self):
         """Returns `True` if the camera is flipped, `False` otherwise.

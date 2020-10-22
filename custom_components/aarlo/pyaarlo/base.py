@@ -217,9 +217,11 @@ class ArloBase(ArloDevice):
                                                      active: [mode_id],
                                                      inactive: []}]}
                     if attempt < 4:
-                        body = self._arlo.be.post(AUTOMATION_PATH, params=params, raw=True, wait_for=None)
-                        if body.get('success', False) is True or body.get('resource', '') == 'activeAutomations':
-                            return
+                        tid = "modes:{}".format(self.device_id)
+                        body = self._arlo.be.post(AUTOMATION_PATH, params=params, raw=True, tid=tid, wait_for=None)
+                        if body is not None:
+                            if body.get('success', False) is True or body.get('resource', '') == 'modes':
+                                return
                         self._arlo.warning(
                             'attempt {0}: error in response when setting mode=\n{1}'.format(attempt,
                                                                                             pprint.pformat(body)))
