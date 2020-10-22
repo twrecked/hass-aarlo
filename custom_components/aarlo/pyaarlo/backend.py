@@ -262,13 +262,20 @@ class ArloBackEnd(object):
             # is there a notify/post waiting for this response? If so, signal to waiting entity.
             tid = response.get('transId', None)
             resource = response.get('resource', None)
+            device_id = response.get('from', None)
             with self._lock:
                 if tid and tid in self._requests:
                     self._requests[tid] = response
                     self._lock.notify_all()
-                if resource and resource in self._requests:
-                    self._requests[resource] = response
-                    self._lock.notify_all()
+                if resource:
+                    if resource in self._requests:
+                        self._requests[resource] = response
+                        self._lock.notify_all()
+                    if device_id:
+                        resource = "{}:{}".format(resource,device_id)
+                        if resource in self._requests:
+                            self._requests[resource] = response
+                            self._lock.notify_all()
 
     def _ev_thread_main(self):
 
@@ -600,7 +607,7 @@ class ArloBackEnd(object):
             self._arlo.vdebug('put sent')
             self._arlo.bg.run(self._request, path, 'PUT', params, headers, False, raw, timeout)
 
-    def post(self, path, params=None, headers=None, raw=False, timeout=None, wait_for="response"):
+    def post(self, path, params=None, headers=None, raw=False, timeout=None, tid=None, wait_for="response"):
         """ Post a request to the Arlo servers.
 
         Posts are used to retrieve data from the Arlo servers. Mostly. They are also used to change
@@ -617,7 +624,9 @@ class ArloBackEnd(object):
 
         if wait_for == "resource":
             self._arlo.vdebug('notify+resource running')
-            tid = self._start_transaction(list(params.keys())[0])
+            if tid is None:
+                tid = list(params.keys())[0]
+            tid = self._start_transaction(tid)
             self._request(path, 'POST', params, headers, False, raw, timeout)
             return self._wait_for_transaction(tid, timeout)
         if wait_for == "response":
