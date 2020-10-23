@@ -217,7 +217,7 @@ class ArloBase(ArloDevice):
                                                      active: [mode_id],
                                                      inactive: []}]}
                     if attempt < 4:
-                        tid = "modes:{}".format(self.device_id)
+                        tid = "(modes:{}|activeAutomations)".format(self.device_id)
                         body = self._arlo.be.post(AUTOMATION_PATH, params=params, raw=True, tid=tid, wait_for=None)
                         if body is not None:
                             if body.get('success', False) is True or body.get('resource', '') == 'modes':
@@ -335,7 +335,8 @@ class ArloBase(ArloDevice):
 
     def restart(self):
         params = {'deviceId': self.device_id}
-        if self._arlo.be.post(RESTART_PATH, params=params, wait_for=None) is None:
+        tid = "diagnostics:{}".format(self.device_id)
+        if self._arlo.be.post(RESTART_PATH, params=params, tid=tid, wait_for=None) is None:
             self._arlo.debug('RESTART didnt send')
 
     def _ping_and_check_reply(self):
