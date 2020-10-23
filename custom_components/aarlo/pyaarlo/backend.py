@@ -264,18 +264,33 @@ class ArloBackEnd(object):
             resource = response.get('resource', None)
             device_id = response.get('from', None)
             with self._lock:
+                # Transaction ID
+                # Simple. We have a transaction ID, look for that. These are
+                # usually returned by notify requests.
                 if tid and tid in self._requests:
                     self._requests[tid] = response
                     self._lock.notify_all()
+
+                # Resource
+                # These are usually returned after POST requests. We trap these
+                # to make async calls sync.
                 if resource:
+                    # Historical. We are looking for a straight matching resource.
                     if resource in self._requests:
+                        self._arlo.vdebug("{} found by text!".format(resource))
                         self._requests[resource] = response
                         self._lock.notify_all()
-                    if device_id:
-                        resource = "{}:{}".format(resource,device_id)
-                        if resource in self._requests:
-                            self._requests[resource] = response
-                            self._lock.notify_all()
+                    else:
+                        # Complex. We are looking for a resource and-or
+                        # deviceid matching a regex.
+                        if device_id:
+                            resource = "{}:{}".format(resource,device_id)
+                            self._arlo.vdebug("{} bounded device!".format(resource))
+                        for request in self._requests:
+                            if re.match(request, resource):
+                                self._arlo.vdebug("{} found by regex {}!".format(resource,request))
+                                self._requests[request] = response
+                                self._lock.notify_all()
 
     def _ev_thread_main(self):
 
