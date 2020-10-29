@@ -1229,15 +1229,15 @@ class ArloCamera(ArloChildDevice):
             return True
         if cap in (AUDIO_DETECTED_KEY,):
             if self.model_id.startswith(
-                    ('VMC4030', 'VMC4040', 'VMC4041', 'VMC5040', 'ABC1000', 'FB1001')):
+                    ('VMC2030', 'VMC4030', 'VMC4040', 'VMC4041', 'VMC5040', 'ABC1000', 'FB1001')):
                 return True
             if self.device_type.startswith('arloq'):
                 return True
         if cap in (SIREN_STATE_KEY,):
-            if self.model_id.startswith(('VMC4040', 'VMC4041', 'VMC5040', 'FB1001')):
+            if self.model_id.startswith(('VMC2030', 'VMC4040', 'VMC4041', 'VMC5040', 'FB1001')):
                 return True
         if cap in (SPOTLIGHT_KEY,):
-            if self.model_id.startswith(('VMC4040', 'VMC4041', 'VMC5040')):
+            if self.model_id.startswith(('VMC2030', 'VMC4040', 'VMC4041', 'VMC5040')):
                 return True
         if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
             if self.model_id.startswith('ABC1000'):
@@ -1250,7 +1250,7 @@ class ArloCamera(ArloChildDevice):
                 return True
         if cap in (CONNECTION_KEY,):
             # These devices are their own base stations so don't re-add connection key.
-            if self.model_id.startswith(('ABC1000', 'FB1001', 'VMC4041')):
+            if self.model_id.startswith(('ABC1000', 'FB1001', 'VMC2030', 'VMC4041')):
                 return False
             if self.device_type in ('arloq', 'arloqs'):
                 return False
