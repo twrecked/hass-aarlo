@@ -188,13 +188,16 @@ class PyArlo(object):
                 or device.get("modelId") == "ABC1000"
                 or dtype == "arloq"
                 or dtype == "arloqs"
-                or device.get("modelId").startswith("FB1001A")
+            ):
+                self._bases.append(ArloBase(dname, self, device))
+            # Newer devices can connect directly to wifi and can be its own base station, 
+            # it can also be assigned to a real base station
+            if (
+                device.get("modelId").startswith("AVD1001")
+                or device.get("modelId").startswith("FB1001")
                 or device.get("modelId").startswith("VMC4041") 
                 or device.get("modelId").startswith("VMC2030")
             ):
-                self._bases.append(ArloBase(dname, self, device))
-            # video doorbell can be its own base station, it can also be assigned to a real base station
-            if device.get("modelId").startswith("AVD1001"):
                 parent_id = device.get("parentId", None)
                 if parent_id is None or parent_id == device.get("deviceId", None):
                     self._bases.append(ArloBase(dname, self, device))
