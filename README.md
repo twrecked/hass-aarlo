@@ -7,7 +7,7 @@ one-time code and then making an IMAP connection to your email provider and
 reading the code from the email Arlo sends.
 
 There is a **lot** that can go wrong with this - for starters, I've only tested
-it in English - but to get it working add the following configuration (with the
+it in English and German - but to get it working add the following configuration (with the
 correct values obviously) - to `aarlo:`
 
 ```yaml
@@ -16,6 +16,7 @@ correct values obviously) - to `aarlo:`
   tfa_password: roygbiv
 
 ```
+Please note, that even though Arlo only shows 2FA via SMS in the interface, aarlo will trigger sending an e-mail as alternate method.
 
 For gmail users, the following
 [help](https://support.google.com/accounts/answer/185833?hl=en) is useful.
