@@ -4,7 +4,6 @@ This component provides support for Netgear Arlo IP cameras.
 For more details about this component, please refer to the documentation at
 https://home-assistant.io/components/arlo/
 """
-import time
 import json
 import logging
 import os.path
