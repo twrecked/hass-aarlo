@@ -8,6 +8,7 @@ import json
 import logging
 import os.path
 import pprint
+import time
 from datetime import timedelta
 from traceback import extract_stack
 
@@ -31,6 +32,7 @@ __version__ = "0.7.0.beta.6"
 
 _LOGGER = logging.getLogger(__name__)
 
+DOMAIN = "aarlo"
 COMPONENT_DOMAIN = "aarlo"
 COMPONENT_DATA = "aarlo-data"
 COMPONENT_SERVICES = "aarlo-services"
@@ -315,6 +317,7 @@ async def async_setup(hass, config):
 
     return True
 
+
 def login(hass, conf):
 
     # Read config
@@ -356,8 +359,8 @@ def login(hass, conf):
     user_stream_delay = conf.get(CONF_USER_STREAM_DELAY)
 
     # Fix up config
-    if conf_dir == '':
-        conf_dir = hass.config.config_dir + '/.aarlo'
+    if conf_dir == "":
+        conf_dir = hass.config.config_dir + "/.aarlo"
 
     sleep = 15
     attempt = 1
@@ -420,16 +423,22 @@ def login(hass, conf):
                     title=NOTIFICATION_TITLE,
                     notification_id=NOTIFICATION_ID,
                 )
-            _LOGGER.error(f"unable to connect to Arlo: attempt={attempt},sleep={sleep},error={arlo.last_error}")
+            _LOGGER.error(
+                f"unable to connect to Arlo: attempt={attempt},sleep={sleep},error={arlo.last_error}"
+            )
 
         except (ConnectTimeout, HTTPError) as ex:
             if attempt == 1:
                 hass.components.persistent_notification.create(
-                    "Error: {}<br />You will need to restart hass after fixing.".format(ex),
+                    "Error: {}<br />You will need to restart hass after fixing.".format(
+                        ex
+                    ),
                     title=NOTIFICATION_TITLE,
                     notification_id=NOTIFICATION_ID,
                 )
-            _LOGGER.error(f"unable to connect to Arlo: attempt={attempt},sleep={sleep},error={str(ex)}")
+            _LOGGER.error(
+                f"unable to connect to Arlo: attempt={attempt},sleep={sleep},error={str(ex)}"
+            )
 
         # line up a retry
         attempt = attempt + 1
