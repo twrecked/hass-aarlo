@@ -8,6 +8,7 @@ import json
 import logging
 import os.path
 import pprint
+import time
 from datetime import timedelta
 from traceback import extract_stack
 
@@ -31,6 +32,7 @@ __version__ = "0.7.0.beta.6"
 
 _LOGGER = logging.getLogger(__name__)
 
+DOMAIN = "aarlo"
 COMPONENT_DOMAIN = "aarlo"
 COMPONENT_DATA = "aarlo-data"
 COMPONENT_SERVICES = "aarlo-services"
@@ -228,52 +230,12 @@ RESTART_SCHEMA = vol.Schema(
 )
 
 
-def setup(hass, config):
+async def async_setup(hass, config):
     """Set up an Arlo component."""
 
     # Read config
     conf = config[COMPONENT_DOMAIN]
-    username = conf.get(CONF_USERNAME)
-    password = conf.get(CONF_PASSWORD)
-    host = conf.get(CONF_HOST)
-    auth_host = conf.get(CONF_AUTH_HOST)
-    packet_dump = conf.get(CONF_PACKET_DUMP)
-    cache_videos = conf.get(CONF_CACHE_VIDEOS)
-    motion_time = conf.get(CONF_DB_MOTION_TIME).total_seconds()
-    ding_time = conf.get(CONF_DB_DING_TIME).total_seconds()
-    recent_time = conf.get(CONF_RECENT_TIME).total_seconds()
-    last_format = conf.get(CONF_LAST_FORMAT)
-    conf_dir = conf.get(CONF_CONF_DIR)
-    req_timeout = conf.get(CONF_REQ_TIMEOUT).total_seconds()
-    str_timeout = conf.get(CONF_STR_TIMEOUT).total_seconds()
-    no_media_up = conf.get(CONF_NO_MEDIA_UP)
-    media_retry = conf.get(CONF_MEDIA_RETRY)
-    snapshot_checks = conf.get(CONF_SNAPSHOT_CHECKS)
-    user_agent = conf.get(CONF_USER_AGENT)
-    mode_api = conf.get(CONF_MODE_API)
-    device_refresh = conf.get(CONF_DEVICE_REFRESH)
-    http_connections = conf.get(CONF_HTTP_CONNECTIONS)
-    http_max_size = conf.get(CONF_HTTP_MAX_SIZE)
-    reconnect_every = conf.get(CONF_RECONNECT_EVERY)
-    verbose_debug = conf.get(CONF_VERBOSE_DEBUG)
-    hide_deprecated_services = conf.get(CONF_HIDE_DEPRECATED_SERVICES)
     injection_service = conf.get(CONF_INJECTION_SERVICE)
-    snapshot_timeout = conf.get(CONF_SNAPSHOT_TIMEOUT).total_seconds()
-    tfa_source = conf.get(CONF_TFA_SOURCE)
-    tfa_type = conf.get(CONF_TFA_TYPE)
-    tfa_host = conf.get(CONF_TFA_HOST)
-    tfa_username = conf.get(CONF_TFA_USERNAME)
-    tfa_password = conf.get(CONF_TFA_PASSWORD)
-    library_days = conf.get(CONF_LIBRARY_DAYS)
-    serial_ids = conf.get(CONF_SERIAL_IDS)
-    stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
-    stream_snapshot_stop = conf.get(CONF_STREAM_SNAPSHOT_STOP)
-    save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
-    user_stream_delay = conf.get(CONF_USER_STREAM_DELAY)
-
-    # Fix up config
-    if conf_dir == "":
-        conf_dir = hass.config.config_dir + "/.aarlo"
 
     # Fix up streaming...
     patch_file = hass.config.config_dir + "/aarlo.patch"
@@ -281,70 +243,13 @@ def setup(hass, config):
         _LOGGER.error("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
         os.system("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
 
-    try:
-        from .pyaarlo import PyArlo
-
-        arlo = PyArlo(
-            username=username,
-            password=password,
-            cache_videos=cache_videos,
-            storage_dir=conf_dir,
-            dump=packet_dump,
-            host=host,
-            auth_host=auth_host,
-            db_motion_time=motion_time,
-            db_ding_time=ding_time,
-            request_timeout=req_timeout,
-            stream_timeout=str_timeout,
-            recent_time=recent_time,
-            last_format=last_format,
-            no_media_upload=no_media_up,
-            media_retry=media_retry,
-            snapshot_checks=snapshot_checks,
-            user_agent=user_agent,
-            mode_api=mode_api,
-            refresh_devices_every=device_refresh,
-            reconnect_every=reconnect_every,
-            http_connections=http_connections,
-            http_max_size=http_max_size,
-            hide_deprecated_services=hide_deprecated_services,
-            snapshot_timeout=snapshot_timeout,
-            tfa_source=tfa_source,
-            tfa_type=tfa_type,
-            tfa_host=tfa_host,
-            tfa_username=tfa_username,
-            tfa_password=tfa_password,
-            library_days=library_days,
-            serial_ids=serial_ids,
-            stream_snapshot=stream_snapshot,
-            stream_snapshot_stop=stream_snapshot_stop,
-            save_updates_to=save_updates_to,
-            user_stream_delay=user_stream_delay,
-            wait_for_initial_setup=False,
-            verbose_debug=verbose_debug,
-        )
-        if not arlo.is_connected:
-            _LOGGER.error("Unable to connect to Arlo: %s", arlo.last_error)
-            hass.components.persistent_notification.create(
-                "Error: {}<br />You will need to restart hass after fixing.".format(
-                    arlo.last_error
-                ),
-                title=NOTIFICATION_TITLE,
-                notification_id=NOTIFICATION_ID,
-            )
-            return False
-
-        hass.data[COMPONENT_DATA] = arlo
-        hass.data[COMPONENT_SERVICES] = {}
-
-    except (ConnectTimeout, HTTPError) as ex:
-        _LOGGER.error("Unable to connect to Netgear Arlo: %s", str(ex))
-        hass.components.persistent_notification.create(
-            "Error: {}<br />You will need to restart hass after fixing.".format(ex),
-            title=NOTIFICATION_TITLE,
-            notification_id=NOTIFICATION_ID,
-        )
+    # Login. We'll keep trying!!
+    arlo = await hass.async_add_executor_job(login, hass, conf)
+    if arlo is None:
         return False
+
+    hass.data[COMPONENT_DATA] = arlo
+    hass.data[COMPONENT_SERVICES] = {}
 
     # Component services
     has_sirens = False
@@ -411,6 +316,134 @@ def setup(hass, config):
         )
 
     return True
+
+
+def login(hass, conf):
+
+    # Read config
+    username = conf.get(CONF_USERNAME)
+    password = conf.get(CONF_PASSWORD)
+    host = conf.get(CONF_HOST)
+    auth_host = conf.get(CONF_AUTH_HOST)
+    packet_dump = conf.get(CONF_PACKET_DUMP)
+    cache_videos = conf.get(CONF_CACHE_VIDEOS)
+    motion_time = conf.get(CONF_DB_MOTION_TIME).total_seconds()
+    ding_time = conf.get(CONF_DB_DING_TIME).total_seconds()
+    recent_time = conf.get(CONF_RECENT_TIME).total_seconds()
+    last_format = conf.get(CONF_LAST_FORMAT)
+    conf_dir = conf.get(CONF_CONF_DIR)
+    req_timeout = conf.get(CONF_REQ_TIMEOUT).total_seconds()
+    str_timeout = conf.get(CONF_STR_TIMEOUT).total_seconds()
+    no_media_up = conf.get(CONF_NO_MEDIA_UP)
+    media_retry = conf.get(CONF_MEDIA_RETRY)
+    snapshot_checks = conf.get(CONF_SNAPSHOT_CHECKS)
+    user_agent = conf.get(CONF_USER_AGENT)
+    mode_api = conf.get(CONF_MODE_API)
+    device_refresh = conf.get(CONF_DEVICE_REFRESH)
+    http_connections = conf.get(CONF_HTTP_CONNECTIONS)
+    http_max_size = conf.get(CONF_HTTP_MAX_SIZE)
+    reconnect_every = conf.get(CONF_RECONNECT_EVERY)
+    verbose_debug = conf.get(CONF_VERBOSE_DEBUG)
+    hide_deprecated_services = conf.get(CONF_HIDE_DEPRECATED_SERVICES)
+    snapshot_timeout = conf.get(CONF_SNAPSHOT_TIMEOUT).total_seconds()
+    tfa_source = conf.get(CONF_TFA_SOURCE)
+    tfa_type = conf.get(CONF_TFA_TYPE)
+    tfa_host = conf.get(CONF_TFA_HOST)
+    tfa_username = conf.get(CONF_TFA_USERNAME)
+    tfa_password = conf.get(CONF_TFA_PASSWORD)
+    library_days = conf.get(CONF_LIBRARY_DAYS)
+    serial_ids = conf.get(CONF_SERIAL_IDS)
+    stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
+    stream_snapshot_stop = conf.get(CONF_STREAM_SNAPSHOT_STOP)
+    save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
+    user_stream_delay = conf.get(CONF_USER_STREAM_DELAY)
+
+    # Fix up config
+    if conf_dir == "":
+        conf_dir = hass.config.config_dir + "/.aarlo"
+
+    sleep = 15
+    attempt = 1
+    while True:
+
+        try:
+            from .pyaarlo import PyArlo
+
+            if attempt != 1:
+                _LOGGER.debug(f"login-attempt={attempt}")
+
+            arlo = PyArlo(
+                username=username,
+                password=password,
+                cache_videos=cache_videos,
+                storage_dir=conf_dir,
+                dump=packet_dump,
+                host=host,
+                auth_host=auth_host,
+                db_motion_time=motion_time,
+                db_ding_time=ding_time,
+                request_timeout=req_timeout,
+                stream_timeout=str_timeout,
+                recent_time=recent_time,
+                last_format=last_format,
+                no_media_upload=no_media_up,
+                media_retry=media_retry,
+                snapshot_checks=snapshot_checks,
+                user_agent=user_agent,
+                mode_api=mode_api,
+                refresh_devices_every=device_refresh,
+                reconnect_every=reconnect_every,
+                http_connections=http_connections,
+                http_max_size=http_max_size,
+                hide_deprecated_services=hide_deprecated_services,
+                snapshot_timeout=snapshot_timeout,
+                tfa_source=tfa_source,
+                tfa_type=tfa_type,
+                tfa_host=tfa_host,
+                tfa_username=tfa_username,
+                tfa_password=tfa_password,
+                library_days=library_days,
+                serial_ids=serial_ids,
+                stream_snapshot=stream_snapshot,
+                stream_snapshot_stop=stream_snapshot_stop,
+                save_updates_to=save_updates_to,
+                user_stream_delay=user_stream_delay,
+                wait_for_initial_setup=False,
+                verbose_debug=verbose_debug,
+            )
+
+            if arlo.is_connected:
+                return arlo
+
+            if attempt == 1:
+                hass.components.persistent_notification.create(
+                    "Error: {}<br />You will need to restart hass after fixing.".format(
+                        arlo.last_error
+                    ),
+                    title=NOTIFICATION_TITLE,
+                    notification_id=NOTIFICATION_ID,
+                )
+            _LOGGER.error(
+                f"unable to connect to Arlo: attempt={attempt},sleep={sleep},error={arlo.last_error}"
+            )
+
+        except (ConnectTimeout, HTTPError) as ex:
+            if attempt == 1:
+                hass.components.persistent_notification.create(
+                    "Error: {}<br />You will need to restart hass after fixing.".format(
+                        ex
+                    ),
+                    title=NOTIFICATION_TITLE,
+                    notification_id=NOTIFICATION_ID,
+                )
+            _LOGGER.error(
+                f"unable to connect to Arlo: attempt={attempt},sleep={sleep},error={str(ex)}"
+            )
+
+        # line up a retry
+        attempt = attempt + 1
+        time.sleep(sleep)
+        sleep = min(300, sleep * 2)
 
 
 def is_homekit():

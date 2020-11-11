@@ -190,12 +190,21 @@ class ArloBase(ArloDevice):
 
         :param mode_name: mode to use, as returned by available_modes:
         """
+        # Actually passed a mode?
+        mode_id = None
+        real_mode_name = self._id_to_name(mode_name)
+        if real_mode_name:
+            self._arlo.debug(f"passed an ID({mode_name}), converting it")
+            mode_id = mode_name
+            mode_name = real_mode_name
+
         # Need to change?
         if self.mode == mode_name:
             self._arlo.debug("no mode change needed")
             return
 
-        mode_id = self._name_to_id(mode_name)
+        if mode_id is None:
+            mode_id = self._name_to_id(mode_name)
         if mode_id:
 
             # Need to change?
