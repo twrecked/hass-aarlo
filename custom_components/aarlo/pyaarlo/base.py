@@ -194,7 +194,7 @@ class ArloBase(ArloDevice):
         mode_id = None
         real_mode_name = self._id_to_name(mode_name)
         if real_mode_name:
-            self._arlo.debug(f'passed an ID({mode_name}), converting it')
+            self._arlo.debug(f"passed an ID({mode_name}), converting it")
             mode_id = mode_name
             mode_name = real_mode_name
 

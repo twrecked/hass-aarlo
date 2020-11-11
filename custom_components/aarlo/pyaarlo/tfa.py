@@ -58,7 +58,9 @@ class Arlo2FAImap:
             if res.lower() != "ok":
                 self._arlo.debug("imap select failed")
                 return False
-            res, self._old_ids = self._imap.search(None, "FROM", "do_not_reply@arlo.com")
+            res, self._old_ids = self._imap.search(
+                None, "FROM", "do_not_reply@arlo.com"
+            )
             if res.lower() != "ok":
                 self._arlo.debug("imap search failed")
                 return False
