@@ -46,20 +46,24 @@ class Arlo2FAImap:
         if self._imap is not None:
             self.stop()
 
-        self._imap = imaplib.IMAP4_SSL(self._arlo.cfg.tfa_host)
-        res, status = self._imap.login(
-            self._arlo.cfg.tfa_username, self._arlo.cfg.tfa_password
-        )
-        if res.lower() != "ok":
-            self._arlo.debug("imap login failed")
-            return False
-        res, status = self._imap.select()
-        if res.lower() != "ok":
-            self._arlo.debug("imap select failed")
-            return False
-        res, self._old_ids = self._imap.search(None, "FROM", "do_not_reply@arlo.com")
-        if res.lower() != "ok":
-            self._arlo.debug("imap search failed")
+        try:
+            self._imap = imaplib.IMAP4_SSL(self._arlo.cfg.tfa_host)
+            res, status = self._imap.login(
+                self._arlo.cfg.tfa_username, self._arlo.cfg.tfa_password
+            )
+            if res.lower() != "ok":
+                self._arlo.debug("imap login failed")
+                return False
+            res, status = self._imap.select()
+            if res.lower() != "ok":
+                self._arlo.debug("imap select failed")
+                return False
+            res, self._old_ids = self._imap.search(None, "FROM", "do_not_reply@arlo.com")
+            if res.lower() != "ok":
+                self._arlo.debug("imap search failed")
+                return False
+        except Exception as e:
+            self._arlo.error(f"imap connection failed{str(e)}")
             return False
 
         self._new_ids = self._old_ids
