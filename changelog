@@ -1,4 +1,6 @@
 aarlo/pyaarlo
+0.7.0.beta.7 Make platform startup async
+        Fix mode change issue
 0.7.0.beta.6 Fix mode update.
 0.7.0.beta.5 Fix mode update.
         Fix possible log in issue.
