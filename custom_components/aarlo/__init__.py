@@ -517,7 +517,9 @@ def aarlo_sirens_off(hass, _call):
 def aarlo_restart_device(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
-            device = get_entity_from_domain(hass, [ALARM_DOMAIN], entity_id)
+            device = get_entity_from_domain(
+                hass, [ALARM_DOMAIN, CAMERA_DOMAIN], entity_id
+            )
             device.restart()
             _LOGGER.info("{} restarted".format(entity_id))
         except HomeAssistantError:
