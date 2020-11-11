@@ -4,6 +4,7 @@ This component provides support for Netgear Arlo IP cameras.
 For more details about this component, please refer to the documentation at
 https://home-assistant.io/components/arlo/
 """
+import time
 import json
 import logging
 import os.path
@@ -31,6 +32,7 @@ __version__ = "0.7.0.beta.6"
 
 _LOGGER = logging.getLogger(__name__)
 
+DOMAIN = "aarlo"
 COMPONENT_DOMAIN = "aarlo"
 COMPONENT_DATA = "aarlo-data"
 COMPONENT_SERVICES = "aarlo-services"
