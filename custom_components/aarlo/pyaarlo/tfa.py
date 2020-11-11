@@ -88,41 +88,47 @@ class Arlo2FAImap:
             if time.time() > (start + self._arlo.cfg.tfa_total_timeout):
                 return None
 
-            # grab new email ids
-            self._imap.check()
-            res, self._new_ids = self._imap.search(
-                None, "FROM", "do_not_reply@arlo.com"
-            )
-            self._arlo.debug("2fa-imap: new-ids={}".format(self._new_ids))
-            if self._new_ids == self._old_ids:
-                self._arlo.debug("2fa-imap: no change in emails")
-                continue
-
-            # new message...
-            old_ids = self._old_ids[0].split()
-            for msg_id in self._new_ids[0].split():
-
-                # seen it?
-                if msg_id in old_ids:
+            try:
+                # grab new email ids
+                self._imap.check()
+                res, self._new_ids = self._imap.search(
+                    None, "FROM", "do_not_reply@arlo.com"
+                )
+                self._arlo.debug("2fa-imap: new-ids={}".format(self._new_ids))
+                if self._new_ids == self._old_ids:
+                    self._arlo.debug("2fa-imap: no change in emails")
                     continue
 
-                # new message. look for HTML part and look code code in it
-                self._arlo.debug("2fa-imap: new-msg={}".format(msg_id))
-                res, msg = self._imap.fetch(msg_id, "(RFC822)")
-                for part in email.message_from_bytes(msg[0][1]).walk():
-                    if part.get_content_type() == "text/html":
-                        for line in part.get_payload().splitlines():
+                # new message...
+                old_ids = self._old_ids[0].split()
+                for msg_id in self._new_ids[0].split():
 
-                            # match code in email, this might need some work if the email changes
-                            code = re.match(r"^\W*(\d{6})\W*$", line)
-                            if code is not None:
-                                self._arlo.debug(
-                                    "2fa-imap: code={}".format(code.group(1))
-                                )
-                                return code.group(1)
+                    # seen it?
+                    if msg_id in old_ids:
+                        continue
 
-            # update old so we don't keep trying new
-            self._old_ids = self._new_ids
+                    # new message. look for HTML part and look code code in it
+                    self._arlo.debug("2fa-imap: new-msg={}".format(msg_id))
+                    res, msg = self._imap.fetch(msg_id, "(RFC822)")
+                    for part in email.message_from_bytes(msg[0][1]).walk():
+                        if part.get_content_type() == "text/html":
+                            for line in part.get_payload().splitlines():
+
+                                # match code in email, this might need some work if the email changes
+                                code = re.match(r"^\W*(\d{6})\W*$", line)
+                                if code is not None:
+                                    self._arlo.debug(
+                                        "2fa-imap: code={}".format(code.group(1))
+                                    )
+                                    return code.group(1)
+
+                # update old so we don't keep trying new
+                self._old_ids = self._new_ids
+
+            # problem parsing the message, force a fail
+            except Exception as e:
+                self._arlo.error(f"imap message read failed{str(e)}")
+                return None
 
         return None
 
