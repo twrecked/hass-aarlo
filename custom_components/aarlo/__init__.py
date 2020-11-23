@@ -417,7 +417,7 @@ def login(hass, conf):
 
             if attempt == 1:
                 hass.components.persistent_notification.create(
-                    "Error: {}<br />You will need to restart hass after fixing.".format(
+                    "Error: {}<br />If error persists you might need to change config and restart.".format(
                         arlo.last_error
                     ),
                     title=NOTIFICATION_TITLE,
@@ -430,7 +430,7 @@ def login(hass, conf):
         except (ConnectTimeout, HTTPError) as ex:
             if attempt == 1:
                 hass.components.persistent_notification.create(
-                    "Error: {}<br />You will need to restart hass after fixing.".format(
+                    "Error: {}<br />If error persists you might need to change config and restart.".format(
                         ex
                     ),
                     title=NOTIFICATION_TITLE,
