@@ -555,7 +555,7 @@ class ArloBackEnd(object):
                             tries += 1
                         else:
                             self._arlo.error("2fa finishAuth failed")
-                            return FALSE
+                            return False
                     else:
                         break
                             
