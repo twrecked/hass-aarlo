@@ -822,6 +822,20 @@ It's working well with my gmail account, see
 [here](https://support.google.com/mail/answer/185833?hl=en) for help setting up single app
 passwords.
 
+<a name="2fa-push"></a>
+#### PUSH
+
+For PUSH 2FA Arlo is use when account is set for 2FA to phone app.
+
+```yaml
+aarlo:
+  tfa_source: push
+  tfa_type: PUSH
+  tfa_reties: 5 # optional: default 5; attempts to check for push approved
+  tfa_delay: 5 # optional: default 5; seconds of delay between retries
+
+```
+
 <a name="2fa-rest-api"></a>
 #### Rest API
 
