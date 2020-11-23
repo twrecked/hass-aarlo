@@ -825,7 +825,7 @@ passwords.
 <a name="2fa-push"></a>
 #### PUSH
 
-For PUSH 2FA Arlo is use when account is set for 2FA to phone app.
+PUSH 2FA Arlo is used when account is set for 2FA to phone app.
 
 ```yaml
 aarlo:
