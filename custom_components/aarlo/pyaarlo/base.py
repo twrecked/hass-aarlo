@@ -275,7 +275,11 @@ class ArloBase(ArloDevice):
                             "Fetching device list (hoping this will fix arming/disarming)"
                         )
                         self._arlo.be.devices()
-                        self._arlo.bg.run(_set_mode_v2_cb, attempt=attempt + 1)
+                        if self._arlo.cfg.synchronous_mode:
+                            self._arlo.debug("trying again, but synchronous")
+                            _set_mode_v2_cb(attempt=attempt + 1)
+                        else:
+                            self._arlo.bg.run(_set_mode_v2_cb, attempt=attempt + 1)
                         return
 
                     self._arlo.error("Failed to set mode.")

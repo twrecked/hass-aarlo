@@ -648,10 +648,14 @@ class ArloBackEnd(object):
 
         self._arlo.vdebug("finishing transaction-->{}".format(tid))
         with self._lock:
-            while mnow < mend and self._requests[tid] is None:
-                self._lock.wait(mend - mnow)
-                mnow = time.monotonic()
-            response = self._requests.pop(tid)
+            try:
+                while mnow < mend and self._requests[tid] is None:
+                    self._lock.wait(mend - mnow)
+                    mnow = time.monotonic()
+                response = self._requests.pop(tid)
+            except KeyError as e:
+                self._arlo.debug("got a key error")
+                response = None
         self._arlo.vdebug("finished transaction-->{}".format(tid))
         return response
 
