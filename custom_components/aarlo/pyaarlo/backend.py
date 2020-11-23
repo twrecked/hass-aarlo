@@ -549,7 +549,7 @@ class ArloBackEnd(object):
                         headers,
                     )
                     if body is None:
-                        self._arlo.warning("2fa finishAuth - Authentication is not finished yet; tries {}".format(tries))
+                        self._arlo.warning("2fa finishAuth - tries {}".format(tries))
                         if(tries < self._arlo.cfg.tfa_retries):
                             time.sleep(self._arlo.cfg.tfa_delay)
                             tries += 1
