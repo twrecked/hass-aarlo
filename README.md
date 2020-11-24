@@ -21,7 +21,7 @@ Please note, that even though Arlo only shows 2FA via SMS in the interface, aarl
 For gmail users, the following
 [help](https://support.google.com/accounts/answer/185833?hl=en) is useful.
 
-Finally, if you haven't enabled 2FA you don't need to do this.
+Arlo made 2FA mandatory by End of November 2020, so you need to use this for the integration to work.
 
 
 ## Notice of Future Breaking Changes
@@ -318,6 +318,8 @@ The rest of the sensors appear per camera.
 * `humidity` The humidity in the room where the camera is, if supported.
 * `air_quality` The air quality in the room where the camera is, if supported.
 
+If you have an Arlo Smart plan the 'last_capture' sensor has the attribute 'object_type' containing what Arlo cloud service believes to have identified as a string ("Person", "Vehicle", "Animal", ...). You can use templating in HA to trigger or condition automations based on this or record the info using an additional template sensor.
+
 <a name="configuration-light"></a>
 ### Light Configuration
 
@@ -433,8 +435,6 @@ better.
 The component uses the Arlo webapi.
 * There is no documentation so the API has been reverse engineered using browser debug
   tools.
-* There is no support for smart features, you only get motion detection notifications, not
-  what caused the notification. (Although, you can pipe a snapshot into deepstack...)
 * Streaming times out after 30 minutes.
 * The webapi doesn't seem like it was really designed for permanent connections so the
   system will sometimes appear to lock up. Various work arounds are in the code and can be
@@ -801,7 +801,7 @@ And and `play_direct: true` to your camera Lovelace `aarlo-glance` cards.
 <a name="2fa"></a>
 ## 2FA
 
-Aarlo supports 2 factor authentication.
+Aarlo supports 2 factor authentication and contains some measures to trigger a resend of the 2FA token number should it not work the first time. Aarlo will also continue to try to login in the background.
 
 <a name="2fa-automatic"></a>
 #### IMAP
