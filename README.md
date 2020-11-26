@@ -73,7 +73,7 @@ See [Services](#advanced-services) for more information.
    - [Direct Streaming](#advanced-direct-streaming)
 - [2 Factor Authentication](#2fa)
    - [IMAP](#2fa-automatic)
-   - [REST API](#sfa-rest-api)
+   - [REST API](#2fa-rest-api)
 - [To Do](#to-do)
 
 
@@ -133,12 +133,14 @@ Many thanks to:
 <a name="installation"></a>
 ## Installation
 
+**You only need to use one of these installation mechanisms. I recommend HACS.** 
+
 <a name="installation-hacs"></a>
 #### HACS
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
-Aarlo is part of the default HACS store. If you're not interested in development
-branches this is the easiest way to install.
+_Aarlo is part of the default HACS store. If you're not interested in development
+branches this is the easiest way to install._
 
 <a name="installation-manually"></a>
 #### Manually
