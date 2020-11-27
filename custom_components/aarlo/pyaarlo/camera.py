@@ -841,7 +841,7 @@ class ArloCamera(ArloChildDevice):
             return "taking snapshot"
         if self.has_activity("recording"):
             return "recording"
-        if self.has_local_user("streaming"):
+        if self.has_activity("streaming"):
             return "streaming"
         if self.was_recently_active:
             return "recently active"
