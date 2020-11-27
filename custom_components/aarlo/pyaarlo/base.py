@@ -34,7 +34,7 @@ class ArloBase(ArloDevice):
         return self._load([MODE_ID_TO_NAME_KEY, mode_id], None)
 
     def _id_is_schedule(self, mode_id):
-        return self._load([MODE_IS_SCHEDULE_KEY, mode_id], False)
+        return self._load([MODE_IS_SCHEDULE_KEY, mode_id.lower()], False)
 
     def _name_to_id(self, mode_name):
         return self._load([MODE_NAME_TO_ID_KEY, mode_name.lower()], None)
