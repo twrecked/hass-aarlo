@@ -23,8 +23,8 @@ from .constant import (
     SUBSCRIBE_PATH,
     TFA_CONSOLE_SOURCE,
     TFA_IMAP_SOURCE,
-    TFA_REST_API_SOURCE,
     TFA_PUSH_SOURCE,
+    TFA_REST_API_SOURCE,
     TRANSID_PREFIX,
 )
 from .sseclient import SSEClient
@@ -498,14 +498,16 @@ class ArloBackEnd(object):
                 self._arlo.error("2fa no suitable secondary choice available")
                 return False
 
-            if(tfa != TFA_PUSH_SOURCE):
+            if tfa != TFA_PUSH_SOURCE:
                 # snapshot 2fa before sending in request
                 if not tfa.start():
                     self._arlo.error("2fa startup failed")
                     return False
 
                 # start authentication with email
-                self._arlo.debug("starting auth with {}".format(self._arlo.cfg.tfa_type))
+                self._arlo.debug(
+                    "starting auth with {}".format(self._arlo.cfg.tfa_type)
+                )
                 body = self.auth_post(AUTH_START_PATH, {"factorId": factor_id}, headers)
                 if body is None:
                     self._arlo.error("2fa startAuth failed")
@@ -533,7 +535,9 @@ class ArloBackEnd(object):
                     return False
             else:
                 # start authentication
-                self._arlo.debug("starting auth with {}".format(self._arlo.cfg.tfa_type))
+                self._arlo.debug(
+                    "starting auth with {}".format(self._arlo.cfg.tfa_type)
+                )
                 body = self.auth_post(AUTH_START_PATH, {"factorId": factor_id}, headers)
                 if body is None:
                     self._arlo.error("2fa startAuth failed")
@@ -550,7 +554,7 @@ class ArloBackEnd(object):
                     )
                     if body is None:
                         self._arlo.warning("2fa finishAuth - tries {}".format(tries))
-                        if(tries < self._arlo.cfg.tfa_retries):
+                        if tries < self._arlo.cfg.tfa_retries:
                             time.sleep(self._arlo.cfg.tfa_delay)
                             tries += 1
                         else:
@@ -558,7 +562,7 @@ class ArloBackEnd(object):
                             return False
                     else:
                         break
-                            
+
             # save new login information
             self._update_auth_info(body)
 
