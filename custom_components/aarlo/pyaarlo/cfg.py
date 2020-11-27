@@ -4,8 +4,8 @@ from .constant import (
     PRELOAD_DAYS,
     TFA_CONSOLE_SOURCE,
     TFA_DEFAULT_HOST,
-    TFA_EMAIL_TYPE,
     TFA_DELAY,
+    TFA_EMAIL_TYPE,
     TFA_RETRIES,
 )
 
@@ -150,7 +150,7 @@ class ArloCfg(object):
     @property
     def tfa_delay(self):
         return self._kw.get("tfa_delay", TFA_DELAY)
-        
+
     @property
     def tfa_retries(self):
         return self._kw.get("tfa_retries", TFA_RETRIES)
