@@ -1095,8 +1095,8 @@ def camera_start_recording_service(hass, call):
             _LOGGER.info("{} start recording(duration={})".format(entity_id, duration))
             camera = get_entity_from_domain(hass, DOMAIN, entity_id)
             camera.start_recording(duration=duration)
-        except HomeAssistantError:
-            _LOGGER.warning("{} start recording service failed".format(entity_id))
+        except HomeAssistantError as e:
+            _LOGGER.warning(f"{entity_id} start recording service failed - {str(e)}")
 
 
 def camera_stop_recording_service(hass, call):
@@ -1104,5 +1104,5 @@ def camera_stop_recording_service(hass, call):
         try:
             _LOGGER.info("{} stop recording".format(entity_id))
             get_entity_from_domain(hass, DOMAIN, entity_id).stop_recording()
-        except HomeAssistantError:
-            _LOGGER.warning("{} stop recording service failed".format(entity_id))
+        except HomeAssistantError as e:
+            _LOGGER.warning(f"{entity_id} stop recording service failed - {str(e)}")
