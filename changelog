@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.0.2: Made mode refresh optional.
 0.7.0: Added PUSH support for authentication.
         Fixed missing stream state.
 0.7.0.beta.7 Make platform startup async
