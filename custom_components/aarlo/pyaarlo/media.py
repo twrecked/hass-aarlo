@@ -92,6 +92,10 @@ class ArloMediaLibrary(object):
         data = self._arlo.be.post(
             LIBRARY_PATH, {"dateFrom": date_from, "dateTo": date_to}
         )
+        if data is None:
+            self._arlo.warning("error loading the image library")
+            return
+
         videos = []
         keys = []
         snapshots = {}
