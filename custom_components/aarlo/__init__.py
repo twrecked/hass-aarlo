@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.0"
+__version__ = "0.7.0.2"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,6 +57,7 @@ CONF_SNAPSHOT_CHECKS = "snapshot_checks"
 CONF_USER_AGENT = "user_agent"
 CONF_MODE_API = "mode_api"
 CONF_DEVICE_REFRESH = "refresh_devices_every"
+CONF_MODE_REFRESH = "refresh_modes_every"
 CONF_HTTP_CONNECTIONS = "http_connections"
 CONF_HTTP_MAX_SIZE = "http_max_size"
 CONF_RECONNECT_EVERY = "reconnect_every"
@@ -93,6 +94,7 @@ SNAPSHOT_CHECKS = None
 USER_AGENT = "apple"
 MODE_API = "auto"
 DEVICE_REFRESH = 0
+MODE_REFRESH = 0
 HTTP_CONNECTIONS = 5
 HTTP_MAX_SIZE = 10
 RECONNECT_EVERY = 0
@@ -143,6 +145,9 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_MODE_API, default=MODE_API): cv.string,
                 vol.Optional(
                     CONF_DEVICE_REFRESH, default=DEVICE_REFRESH
+                ): cv.positive_int,
+                vol.Optional(
+                    CONF_MODE_REFRESH, default=MODE_REFRESH
                 ): cv.positive_int,
                 vol.Optional(
                     CONF_HTTP_CONNECTIONS, default=HTTP_CONNECTIONS
@@ -340,6 +345,7 @@ def login(hass, conf):
     user_agent = conf.get(CONF_USER_AGENT)
     mode_api = conf.get(CONF_MODE_API)
     device_refresh = conf.get(CONF_DEVICE_REFRESH)
+    mode_refresh = conf.get(CONF_MODE_REFRESH)
     http_connections = conf.get(CONF_HTTP_CONNECTIONS)
     http_max_size = conf.get(CONF_HTTP_MAX_SIZE)
     reconnect_every = conf.get(CONF_RECONNECT_EVERY)
@@ -392,6 +398,7 @@ def login(hass, conf):
                 user_agent=user_agent,
                 mode_api=mode_api,
                 refresh_devices_every=device_refresh,
+                refresh_modes_every=mode_refresh,
                 reconnect_every=reconnect_every,
                 http_connections=http_connections,
                 http_max_size=http_max_size,

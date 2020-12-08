@@ -116,6 +116,10 @@ class ArloCfg(object):
         return self._kw.get("refresh_devices_every", 0) * 60 * 60
 
     @property
+    def refresh_modes_every(self):
+        return self._kw.get("refresh_modes_every", 0) * 60
+
+    @property
     def http_connections(self):
         return self._kw.get("http_connections", 20)
 
