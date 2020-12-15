@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.0.4: Handle broken modes fetch.
 0.7.0.3: Handle broken library fetch.
 0.7.0.2: Made mode refresh optional.
 0.7.0: Added PUSH support for authentication.
