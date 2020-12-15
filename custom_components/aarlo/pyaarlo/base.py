@@ -335,9 +335,12 @@ class ArloBase(ArloDevice):
             modes = self._arlo.be.get(
                 DEFINITIONS_PATH + "?uniqueIds={}".format(self.unique_id)
             )
-            modes = modes.get(self.unique_id, {})
-            self._parse_modes(modes.get("modes", []))
-            self._parse_schedules(modes.get("schedules", []))
+            if modes is not None:
+                modes = modes.get(self.unique_id, {})
+                self._parse_modes(modes.get("modes", []))
+                self._parse_schedules(modes.get("schedules", []))
+            else:
+                self._arlo.error("failed to read modes (v2)")
 
     @property
     def schedule(self):

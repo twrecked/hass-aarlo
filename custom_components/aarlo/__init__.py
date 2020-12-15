@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.0.2"
+__version__ = "0.7.0.4"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -420,6 +420,7 @@ def login(hass, conf):
             )
 
             if arlo.is_connected:
+                _LOGGER.debug(f"login succeeded, attempt={attempt}")
                 return arlo
 
             if attempt == 1:
