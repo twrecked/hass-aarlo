@@ -31,7 +31,7 @@ from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger("pyaarlo")
 
-__version__ = "0.7.0.4"
+__version__ = "0.7.0.5"
 
 
 class PyArlo(object):
@@ -334,9 +334,7 @@ class PyArlo(object):
         if self._cfg.refresh_modes_every != 0:
             now = time.monotonic()
             self.vdebug(
-                "mode reload check {} {}".format(
-                    str(now), str(self._refresh_modes_at)
-                )
+                "mode reload check {} {}".format(str(now), str(self._refresh_modes_at))
             )
             if now > self._refresh_modes_at:
                 self.debug("mode reload needed")

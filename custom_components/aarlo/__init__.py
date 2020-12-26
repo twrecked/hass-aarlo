@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.0.4"
+__version__ = "0.7.0.5"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -146,9 +146,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_DEVICE_REFRESH, default=DEVICE_REFRESH
                 ): cv.positive_int,
-                vol.Optional(
-                    CONF_MODE_REFRESH, default=MODE_REFRESH
-                ): cv.positive_int,
+                vol.Optional(CONF_MODE_REFRESH, default=MODE_REFRESH): cv.positive_int,
                 vol.Optional(
                     CONF_HTTP_CONNECTIONS, default=HTTP_CONNECTIONS
                 ): cv.positive_int,
