@@ -35,6 +35,14 @@ from .constant import (
     MEDIA_UPLOAD_KEY,
     MEDIA_UPLOAD_KEYS,
     MIRROR_KEY,
+    MODEL_BABY,
+    MODEL_ESSENTIAL,
+    MODEL_PRO_2,
+    MODEL_PRO_3,
+    MODEL_PRO_3_FLOODLIGHT,
+    MODEL_PRO_4,
+    MODEL_ULTRA,
+    MODEL_WIREFREE_VIDEO_DOORBELL,
     MOTION_DETECTED_KEY,
     MOTION_SENS_KEY,
     NIGHTLIGHT_KEY,
@@ -656,7 +664,7 @@ class ArloCamera(ArloChildDevice):
 
         Queues a job that requests the info from Arlo.
         """
-        if self.model_id == "ABC1000":
+        if self.model_id == MODEL_BABY:
             self._arlo.be.notify(
                 base=self.base_station,
                 body={
@@ -1282,13 +1290,13 @@ class ArloCamera(ArloChildDevice):
         if cap in (AUDIO_DETECTED_KEY,):
             if self.model_id.startswith(
                 (
-                    "VMC2030",
-                    "VMC4030",
-                    "VMC4040",
-                    "VMC4041",
-                    "VMC5040",
-                    "ABC1000",
-                    "FB1001",
+                    MODEL_ESSENTIAL,
+                    MODEL_PRO_2,
+                    MODEL_PRO_3,
+                    MODEL_PRO_3_FLOODLIGHT,
+                    MODEL_PRO_4,
+                    MODEL_ULTRA,
+                    MODEL_BABY,
                 )
             ):
                 return True
@@ -1296,24 +1304,39 @@ class ArloCamera(ArloChildDevice):
                 return True
         if cap in (SIREN_STATE_KEY,):
             if self.model_id.startswith(
-                ("VMC2030", "VMC4040", "VMC4041", "VMC5040", "FB1001")
+                (
+                    MODEL_ESSENTIAL,
+                    MODEL_PRO_3,
+                    MODEL_PRO_3_FLOODLIGHT,
+                    MODEL_PRO_4,
+                    MODEL_ULTRA,
+                    MODEL_WIREFREE_VIDEO_DOORBELL,
+                )
             ):
                 return True
         if cap in (SPOTLIGHT_KEY,):
-            if self.model_id.startswith(("VMC2030", "VMC4040", "VMC4041", "VMC5040")):
+            if self.model_id.startswith((MODEL_ESSENTIAL, MODEL_PRO_3, MODEL_PRO_4, MODEL_ULTRA)):
                 return True
         if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
-            if self.model_id.startswith("ABC1000"):
+            if self.model_id.startswith(MODEL_BABY):
                 return True
         if cap in (MEDIA_PLAYER_KEY, NIGHTLIGHT_KEY, CRY_DETECTION_KEY):
-            if self.model_id.startswith("ABC1000"):
+            if self.model_id.startswith(MODEL_BABY):
                 return True
         if cap in (FLOODLIGHT_KEY,):
-            if self.model_id.startswith("FB1001"):
+            if self.model_id.startswith(MODEL_PRO_3_FLOODLIGHT):
                 return True
         if cap in (CONNECTION_KEY,):
             # These devices are their own base stations so don't re-add connection key.
-            if self.model_id.startswith(("ABC1000", "FB1001A", "VMC2030", "VMC4041")):
+            if self.model_id.startswith(
+                (
+                    MODEL_BABY,
+                    MODEL_PRO_3_FLOODLIGHT,
+                    MODEL_PRO_4
+                    MODEL_ESSENTIAL,
+                    MODEL_WIREFREE_VIDEO_DOORBELL,
+                )
+            ):
                 return False
             if self.device_type in ("arloq", "arloqs"):
                 return False
