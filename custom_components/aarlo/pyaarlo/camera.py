@@ -1332,7 +1332,7 @@ class ArloCamera(ArloChildDevice):
                 (
                     MODEL_BABY,
                     MODEL_PRO_3_FLOODLIGHT,
-                    MODEL_PRO_4
+                    MODEL_PRO_4,
                     MODEL_ESSENTIAL,
                     MODEL_WIREFREE_VIDEO_DOORBELL,
                 )
