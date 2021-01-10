@@ -217,3 +217,16 @@ BLANK_IMAGE = (
 # DEFAULT_MODES = [ { u'id':u'mode0',u'type':u'disarmed' }, { u'id':u'mode1',u'type':u'armed' } ]
 DEFAULT_MODES = {"disarmed": "mode0", "armed": "mode1"}
 DEFAULT_RESOURCES = {"modes", "siren", "doorbells", "lights", "cameras", "devices"}
+
+# MODEL PREFIXES
+MODEL_HD = "VMC3030"
+MODEL_PRO_2 = "VMC4030"
+MODEL_PRO_3 = "VMC4040"
+MODEL_PRO_4 = "VMC4041"
+MODEL_PRO_3_FLOODLIGHT = "FB1001"
+MODEL_ULTRA = "VMC5040"
+MODEL_BABY = "ABC1000"
+MODEL_ESSENTIAL = "VMC2030"
+
+MODEL_WIRED_VIDEO_DOORBELL = "AVD1001"
+MODEL_WIREFREE_VIDEO_DOORBELL = "AVD2001"
