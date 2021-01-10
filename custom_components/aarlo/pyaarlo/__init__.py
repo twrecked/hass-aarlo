@@ -17,6 +17,11 @@ from .constant import (
     FAST_REFRESH_INTERVAL,
     INITIAL_REFRESH_DELAY,
     MEDIA_LIBRARY_DELAY,
+    MODEL_ESSENTIAL,
+    MODEL_PRO_3_FLOODLIGHT,
+    MODEL_PRO_4,
+    MODEL_WIRED_VIDEO_DOORBELL,
+    MODEL_WIREFREE_VIDEO_DOORBELL,
     REFRESH_CAMERA_DELAY,
     SLOW_REFRESH_INTERVAL,
     TOTAL_BELLS_KEY,
@@ -196,10 +201,11 @@ class PyArlo(object):
             # Newer devices can connect directly to wifi and can be its own base station,
             # it can also be assigned to a real base station
             if (
-                device.get("modelId").startswith("AVD1001")
-                or device.get("modelId").startswith("FB1001")
-                or device.get("modelId").startswith("VMC4041")
-                or device.get("modelId").startswith("VMC2030")
+                device.get("modelId").startswith(MODEL_WIRED_VIDEO_DOORBELL)
+                or device.get("modelId").startswith(MODEL_PRO_3_FLOODLIGHT)
+                or device.get("modelId").startswith(MODEL_PRO_4)
+                or device.get("modelId").startswith(MODEL_ESSENTIAL)
+                or device.get("modelId").startswith(MODEL_WIREFREE_VIDEO_DOORBELL)
             ):
                 parent_id = device.get("parentId", None)
                 if parent_id is None or parent_id == device.get("deviceId", None):
@@ -210,7 +216,8 @@ class PyArlo(object):
                 dtype == "camera"
                 or dtype == "arloq"
                 or dtype == "arloqs"
-                or device.get("modelId").startswith("AVD1001")
+                or device.get("modelId").startswith(MODEL_WIRED_VIDEO_DOORBELL)
+                or device.get("modelId").startswith(MODEL_WIREFREE_VIDEO_DOORBELL)
             ):
                 self._cameras.append(ArloCamera(dname, self, device))
             if dtype == "doorbell":
