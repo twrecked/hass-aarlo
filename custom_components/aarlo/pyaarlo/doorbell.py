@@ -72,7 +72,10 @@ class ArloDoorBell(ArloChildDevice):
                 return True
         if cap in (CONNECTION_KEY,):
             # If video door bell is its own base station then don't provide connectivity here.
-            if self.model_id.startswith(MODEL_WIRED_VIDEO_DOORBELL) and self.parent_id == self.device_id:
+            if (
+                self.model_id.startswith(MODEL_WIRED_VIDEO_DOORBELL)
+                and self.parent_id == self.device_id
+            ):
                 return False
         return super().has_capability(cap)
 

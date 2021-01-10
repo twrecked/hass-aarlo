@@ -1315,7 +1315,9 @@ class ArloCamera(ArloChildDevice):
             ):
                 return True
         if cap in (SPOTLIGHT_KEY,):
-            if self.model_id.startswith((MODEL_ESSENTIAL, MODEL_PRO_3, MODEL_PRO_4, MODEL_ULTRA)):
+            if self.model_id.startswith(
+                (MODEL_ESSENTIAL, MODEL_PRO_3, MODEL_PRO_4, MODEL_ULTRA)
+            ):
                 return True
         if cap in (TEMPERATURE_KEY, HUMIDITY_KEY, AIR_QUALITY_KEY):
             if self.model_id.startswith(MODEL_BABY):
