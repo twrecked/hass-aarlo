@@ -13,6 +13,8 @@ from .constant import (
     MODE_KEY,
     MODE_NAME_TO_ID_KEY,
     MODEL_BABY,
+    MODEL_ESSENTIAL,
+    PING_CAPABILITY,
     RESTART_PATH,
     SCHEDULE_KEY,
     SIREN_STATE_KEY,
@@ -440,5 +442,10 @@ class ArloBase(ArloDevice):
                 return True
         if cap in (SIREN_STATE_KEY,):
             if self.model_id.startswith(("VMB400", "VMB450")):
+                return True
+        if cap in (PING_CAPABILITY,):
+            if self.model_id.startswith(MODEL_ESSENTIAL):
+                return False
+            else:
                 return True
         return super().has_capability(cap)
