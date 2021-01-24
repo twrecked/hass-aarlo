@@ -13,7 +13,6 @@ from .constant import (
     MODE_KEY,
     MODE_NAME_TO_ID_KEY,
     MODEL_BABY,
-    MODEL_ESSENTIAL,
     PING_CAPABILITY,
     RESTART_PATH,
     SCHEDULE_KEY,
@@ -444,7 +443,8 @@ class ArloBase(ArloDevice):
             if self.model_id.startswith(("VMB400", "VMB450")):
                 return True
         if cap in (PING_CAPABILITY,):
-            if self.model_id.startswith(MODEL_ESSENTIAL):
+            # Battery powered wifi devices that act as their own base station don't get pinged.
+            if self.is_own_parent and self.using_wifi and not self.is_corded:
                 return False
             else:
                 return True

@@ -147,7 +147,7 @@ class ArloLight(LightEntity):
             for name, value in (
                 (ATTR_BATTERY_LEVEL, self._light.battery_level),
                 (ATTR_BATTERY_TECH, self._light.battery_tech),
-                (ATTR_BATTERY_CHARGING, self._light.charging),
+                (ATTR_BATTERY_CHARGING, self._light.is_charging),
                 (ATTR_CHARGER_TYPE, self._light.charger_type),
                 (BRIGHTNESS_KEY, self._brightness),
             )
