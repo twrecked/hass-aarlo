@@ -307,7 +307,7 @@ class PyArlo(object):
                 self.vdebug(f"ping to {base.device_id}")
                 base.ping()
             else:
-                self.vdebug(f"NO ping to {base.device_id}")
+                self.debug(f"NO ping to {base.device_id}")
 
     def _refresh_bases(self, initial):
         for base in self._bases:

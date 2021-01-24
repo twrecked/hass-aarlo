@@ -286,8 +286,7 @@ class ArloDevice(object):
 
     @property
     def has_batteries(self):
-        """Returns `True` if device has batteries installed, `False` otherwise.
-        """
+        """Returns `True` if device has batteries installed, `False` otherwise."""
         return self.battery_tech != "None"
 
     @property
@@ -307,8 +306,7 @@ class ArloDevice(object):
 
     @property
     def is_charger_only(self):
-        """Returns `True` if the cahrger is plugged in with no batteries, `False` otherwise.
-        """
+        """Returns `True` if the cahrger is plugged in with no batteries, `False` otherwise."""
         return self.battery_tech == "None" and self.is_charging
 
     @property
@@ -326,7 +324,7 @@ class ArloDevice(object):
 
         This means connecting directly to your home wifi, not connecting to and Arlo basestation.
         """
-        return self._attrs.get(CONNECTIVITY_KEY, {}).get('type', '').lower() == "wifi"
+        return self._attrs.get(CONNECTIVITY_KEY, {}).get("type", "").lower() == "wifi"
 
     @property
     def signal_strength(self):
