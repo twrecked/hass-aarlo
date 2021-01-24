@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.0.6: Stop battery drain on any battery based base station.
 0.7.0.5: Fix CameraMJpeg issues.
 0.7.0.4: Handle broken modes fetch.
 0.7.0.3: Handle broken library fetch.

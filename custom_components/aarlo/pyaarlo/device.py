@@ -389,7 +389,7 @@ class ArloChildDevice(ArloDevice):
             if base.device_id == self.parent_id:
                 return base
 
-        # some cameras don't have base stations... it's its own basestation...
+        # some cameras don't have base stations... it's its own base station...
         for base in self._arlo.base_stations:
             if base.device_id == self.device_id:
                 return base

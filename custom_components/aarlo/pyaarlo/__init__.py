@@ -37,7 +37,7 @@ from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger("pyaarlo")
 
-__version__ = "0.7.0.5"
+__version__ = "0.7.0.6"
 
 
 class PyArlo(object):
@@ -304,10 +304,9 @@ class PyArlo(object):
     def _ping_bases(self):
         for base in self._bases:
             if base.has_capability(PING_CAPABILITY):
-                self.vdebug(f"ping to {base.device_id}")
                 base.ping()
             else:
-                self.debug(f"NO ping to {base.device_id}")
+                self.vdebug(f"NO ping to {base.device_id}")
 
     def _refresh_bases(self, initial):
         for base in self._bases:
