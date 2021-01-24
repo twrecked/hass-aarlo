@@ -22,6 +22,7 @@ from .constant import (
     MODEL_PRO_4,
     MODEL_WIRED_VIDEO_DOORBELL,
     MODEL_WIREFREE_VIDEO_DOORBELL,
+    PING_CAPABILITY,
     REFRESH_CAMERA_DELAY,
     SLOW_REFRESH_INTERVAL,
     TOTAL_BELLS_KEY,
@@ -302,7 +303,11 @@ class PyArlo(object):
 
     def _ping_bases(self):
         for base in self._bases:
-            base.ping()
+            if base.has_capability(PING_CAPABILITY):
+                self.vdebug(f"ping to {base.device_id}")
+                base.ping()
+            else:
+                self.debug(f"NO ping to {base.device_id}")
 
     def _refresh_bases(self, initial):
         for base in self._bases:

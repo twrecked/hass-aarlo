@@ -71,6 +71,7 @@ MIRROR_KEY = "mirror"
 MOTION_DETECTED_KEY = "motionDetected"
 MOTION_ENABLED_KEY = "motionSetupModeEnabled"
 MOTION_SENS_KEY = "motionSetupModeSensitivity"
+PING_CAPABILITY = "pingCapability"
 POWER_SAVE_KEY = "powerSaveMode"
 PRIVACY_KEY = "privacyActive"
 LIGHT_BRIGHTNESS_KEY = "lightBrightness"
@@ -156,6 +157,7 @@ RESOURCE_UPDATE_KEYS = [
 RECENT_ACTIVITY_KEYS = [AUDIO_DETECTED_KEY, MOTION_DETECTED_KEY]
 
 # device keys
+CONNECTIVITY_KEY = "connectivity"
 DEVICE_ID_KEY = "deviceId"
 DEVICE_NAME_KEY = "deviceName"
 DEVICE_TYPE_KEY = "deviceType"
