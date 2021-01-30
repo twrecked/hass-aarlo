@@ -6,9 +6,9 @@ This release contains beta 2FA support. It works by requesting an email with the
 one-time code and then making an IMAP connection to your email provider and
 reading the code from the email Arlo sends.
 
-There is a **lot** that can go wrong with this - for starters, I've only tested
-it in English and German - but to get it working add the following configuration (with the
-correct values obviously) - to `aarlo:`
+There is a **lot** that can go wrong with this - for starters, I've only
+tested it in English and German - but to get it working add the following
+configuration (with the correct values obviously) - to `aarlo:`
 
 ```yaml
   tfa_host: imap.gmail.com
@@ -16,12 +16,14 @@ correct values obviously) - to `aarlo:`
   tfa_password: roygbiv
 
 ```
-Please note, that even though Arlo only shows 2FA via SMS in the interface, aarlo will trigger sending an e-mail as alternate method.
+Please note, that even though Arlo only shows 2FA via SMS in the interface,
+aarlo will trigger sending an e-mail as alternate method.
 
 For gmail users, the following
 [help](https://support.google.com/accounts/answer/185833?hl=en) is useful.
 
-Arlo made 2FA mandatory by End of November 2020, so you need to use this for the integration to work.
+Arlo made 2FA mandatory by End of November 2020, so you need to use this for
+the integration to work.
 
 
 ## Notice of Future Breaking Changes
@@ -431,6 +433,26 @@ better.
   systems fail to send `mediaUploadNotifications`.
 * `snapshot_timeout`; a positive integer, default 60. How long to give the
   snapshot to appear before stopping everything.
+
+
+This is a summary of possible sizes:
+
+| camera | user_agent | stream_snapshot | worked    | size      |
+|--------|------------|-----------------|-----------|-----------|
+| street | linux      | yes             | yes       | 640x352   |
+| street | linux      | no              | sometimes |           |
+| front  | linux      | yes             | yes       | 1920x1072 |
+| front  | linux      | no              | yes       |           |
+| street | apple      | yes             | no*       |           |
+| street | apple      | no              | sometimes | 1280x720  |
+| front  | apple      | yes             | yes       |           |
+| front  | apple      | no              | yes       | 1920x1072 |
+
+_*And I know up until about 2 weeks ago this row was working._
+
+_street_ is an original Arlo (VMC3030)
+_front_ is an Arlo Pro (VMC4030P)
+
 
 <a name="other-best"></a>
 ### Best Practises and Known Limitations

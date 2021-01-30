@@ -444,8 +444,9 @@ class ArloBase(ArloDevice):
                 return True
         if cap in (PING_CAPABILITY,):
             # Battery powered wifi devices that act as their own base station don't get pinged.
+            if self.model_id.startswith(MODEL_BABY):
+                return True
             if self.is_own_parent and self.using_wifi and not self.is_corded:
                 return False
-            else:
-                return True
+            return True
         return super().has_capability(cap)
