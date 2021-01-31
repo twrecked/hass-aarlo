@@ -57,7 +57,7 @@ from .pyaarlo.constant import (
     LAST_IMAGE_DATA_KEY,
     LAST_IMAGE_KEY,
     LAST_IMAGE_SRC_KEY,
-    MEDIA_UPLOAD_KEYS,
+    MEDIA_UPLOAD_KEY,
     PRIVACY_KEY,
     RECENT_ACTIVITY_KEY,
     SIREN_STATE_KEY,
@@ -418,7 +418,7 @@ class ArloCam(Camera):
         self._camera.add_attr_callback(LAST_IMAGE_KEY, update_state)
         self._camera.add_attr_callback(LAST_IMAGE_SRC_KEY, update_state)
         self._camera.add_attr_callback(LAST_IMAGE_DATA_KEY, update_state)
-        self._camera.add_attr_callback(MEDIA_UPLOAD_KEYS, update_state)
+        self._camera.add_attr_callback(MEDIA_UPLOAD_KEY, update_state)
         self._camera.add_attr_callback(PRIVACY_KEY, update_state)
         self._camera.add_attr_callback(RECENT_ACTIVITY_KEY, update_state)
 
