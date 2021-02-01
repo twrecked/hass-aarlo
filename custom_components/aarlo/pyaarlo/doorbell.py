@@ -33,17 +33,8 @@ class ArloDoorBell(ArloChildDevice):
 
         # create fake motion/button press event...
         if resource == self.resource_id:
-            cons = event.get("properties", {}).get(CONNECTION_KEY, False)
-            butp = event.get("properties", {}).get(BUTTON_PRESSED_KEY, False)
 
-            # acts = event.get('properties',{}).get('activityState',False)
-            if cons and cons == "available":
-                self._save_and_do_callbacks(MOTION_DETECTED_KEY, True)
-                with self._lock:
-                    self._arlo.bg.cancel(self._motion_time_job)
-                    self._motion_time_job = self._arlo.bg.run_in(
-                        self._motion_stopped, self._arlo.cfg.db_motion_time
-                    )
+            butp = event.get("properties", {}).get(BUTTON_PRESSED_KEY, False)
             if butp:
                 self._save_and_do_callbacks(BUTTON_PRESSED_KEY, True)
                 with self._lock:
