@@ -27,6 +27,7 @@ from .constant import (
     LAST_IMAGE_DATA_KEY,
     LAST_IMAGE_KEY,
     LAST_IMAGE_SRC_KEY,
+    LAST_RECORDING_KEY,
     LIGHT_BRIGHTNESS_KEY,
     LIGHT_MODE_KEY,
     MEDIA_COUNT_KEY,
@@ -316,7 +317,8 @@ class ArloCamera(ArloChildDevice):
                 if value is not None:
                     self._save_and_do_callbacks(key, value)
 
-            # The last image thumbnail has changed. Queue an update.
+            # The last image thumbnail has changed. Queue an image or snapshot
+            # update to download the image and process it.
             if LAST_IMAGE_KEY in event:
                 if not self.is_taking_snapshot:
                     self._arlo.debug("{} -> thumbnail changed".format(self.name))
@@ -328,18 +330,24 @@ class ArloCamera(ArloChildDevice):
                     self._save(SNAPSHOT_KEY, event.get(LAST_IMAGE_KEY, ""))
                     self._arlo.bg.run_low(self._update_snapshot)
 
-            # Recording has stopped so a new video is available. Queue and
+            # Recording has stopped so a new video is available. Queue an
+            # media update, this could later trigger a snapshot or image
             # update.
             if event.get(RECORDING_STOPPED_KEY, False):
                 self._arlo.debug("{} -> recording stopped".format(self.name))
                 self._arlo.ml.queue_update(self._update_media)
 
-            # A snapshot is ready. Queue an update.
+            # Examine the URL passed; snapshots contain `/snapshots/` and
+            # recordings contain `recordings`. For snapshot, save URL and queue
+            # up an event to download and process it. We do nothing with the
+            # recording for now, it will come in via a media update.
             value = event.get(STREAM_SNAPSHOT_KEY, "")
             if "/snapshots/" in value:
-                self._arlo.debug("{} -> snapshot ready".format(self.name))
+                self._arlo.debug("{} -> snapshot1 ready".format(self.name))
                 self._save(SNAPSHOT_KEY, value)
                 self._arlo.bg.run_low(self._update_snapshot)
+            if "/recordings/" in value:
+                self._arlo.debug("{} -> new recording ready".format(self.name))
 
             # Something just happened.
             self._set_recent(self._arlo.cfg.recent_time)
@@ -403,7 +411,7 @@ class ArloCamera(ArloChildDevice):
                 "presignedFullFrameSnapshotUrl", None
             )
             if value is not None:
-                self._arlo.debug("{} -> snapshot ready".format(self.name))
+                self._arlo.debug("{} -> snapshot2 ready".format(self.name))
                 self._save(SNAPSHOT_KEY, value)
                 self._arlo.bg.run_low(self._update_snapshot)
 
