@@ -47,7 +47,7 @@ class ArloMediaLibrary(object):
             # snapshots, use first found
             if video.get("reason", "") == "snapshot":
                 if camera.device_id not in snapshots:
-                    self._arlo.debug("adding snapshot for {}".format(camera.name))
+                    self._arlo.debug(f"adding snapshot for {camera.name}")
                     snapshots[camera.device_id] = ArloSnapshot(
                         video, camera, self._arlo
                     )
@@ -59,9 +59,9 @@ class ArloMediaLibrary(object):
                     camera.device_id, arlotime_strftime(video.get("utcCreatedDate"))
                 )
                 if key in keys:
-                    self._arlo.vdebug("skipping {0}, already present".format(key))
+                    self._arlo.vdebug(f"skipping {key} for {camera.name}")
                     continue
-                self._arlo.debug("adding {0}".format(key))
+                self._arlo.debug(f"adding {key} for {camera.name}")
                 videos.append(ArloVideo(video, camera, self._arlo))
                 keys.append(key)
 
@@ -114,7 +114,7 @@ class ArloMediaLibrary(object):
             # snapshots, use first found
             if video.get("reason", "") == "snapshot":
                 if camera.device_id not in snapshots:
-                    self._arlo.debug("adding snapshot for {}".format(camera.name))
+                    self._arlo.debug(f"adding snapshot for {camera.name}")
                     snapshots[camera.device_id] = ArloSnapshot(
                         video, camera, self._arlo
                     )
@@ -126,7 +126,7 @@ class ArloMediaLibrary(object):
                     video.get("deviceId"),
                     arlotime_strftime(video.get("utcCreatedDate")),
                 )
-                self._arlo.vdebug("adding {0}".format(key))
+                self._arlo.vdebug(f"adding {key} for {camera.name}")
                 videos.append(ArloVideo(video, camera, self._arlo))
                 keys.append(key)
                 continue
