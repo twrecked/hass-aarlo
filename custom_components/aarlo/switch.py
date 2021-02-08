@@ -378,7 +378,7 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
 
     def turn_off(self, **kwargs):
         _LOGGER.debug("Turning off silent mode for {}".format(self._name))
-        self._doorbell.silent_mode(active=False, block_call=self._block_call)
+        self._doorbell.silent_mode(active=False, block_call=False)
 
     async def async_added_to_hass(self):
         """Register callbacks."""
