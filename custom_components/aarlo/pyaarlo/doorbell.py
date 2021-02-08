@@ -109,8 +109,8 @@ class ArloDoorBell(ArloChildDevice):
 
     @property
     def chimes_are_silenced(self):
-        return self._load(SILENT_MODE_KEY).get(SILENT_MODE_ACTIVE_KEY, True)
+        return self._load(SILENT_MODE_KEY).get(SILENT_MODE_ACTIVE_KEY, False)
 
     @property
     def calls_are_silenced(self):
-        return self._load(SILENT_MODE_KEY).get(SILENT_MODE_CALL_KEY, True)
+        return self._load(SILENT_MODE_KEY).get(SILENT_MODE_CALL_KEY, False)

@@ -93,7 +93,8 @@ class ArloBinarySensor(BinarySensorEntity):
         @callback
         def update_state(_device, attr, value):
             _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value)[:80])
-            self._state = self.map_value(attr, value)
+            if self._attr == attr:
+                self._state = self.map_value(attr, value)
             self.async_schedule_update_ha_state()
 
         if self._attr is not None:
