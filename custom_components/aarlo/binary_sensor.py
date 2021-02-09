@@ -122,9 +122,9 @@ class ArloBinarySensor(BinarySensorEntity):
             "friendly_name": self._name,
             "camera_name": self._device.name,
         }
-        if self._sensor_type == 'ding':
-            attrs['chimes_silenced'] = self._device.chimes_are_silenced
-            attrs['calls_silenced'] = self._device.calls_are_silenced
+        if self._sensor_type == "ding":
+            attrs["chimes_silenced"] = self._device.chimes_are_silenced
+            attrs["calls_silenced"] = self._device.calls_are_silenced
         return attrs
 
     @property
