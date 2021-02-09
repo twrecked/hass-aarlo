@@ -85,12 +85,14 @@ class ArloDoorBell(ArloChildDevice):
                 "publishResponse": True,
                 "resource": self.resource_id,
             },
-            wait_for="response"
+            wait_for="response",
         )
         # Not none means a 200 so we assume it works until told otherwise.
         if response is not None:
             self._arlo.bg.run(
-                self._save_and_do_callbacks, attr=SILENT_MODE_KEY, value=properties[SILENT_MODE_KEY]
+                self._save_and_do_callbacks,
+                attr=SILENT_MODE_KEY,
+                value=properties[SILENT_MODE_KEY],
             )
 
     def update_silent_mode(self):
