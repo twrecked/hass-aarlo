@@ -19,6 +19,7 @@ class ArloDoorBell(ArloChildDevice):
         self._motion_time_job = None
         self._ding_time_job = None
         self._has_motion_detect = False
+        self._chimes = {}
 
     def _motion_stopped(self):
         self._save_and_do_callbacks(MOTION_DETECTED_KEY, False)
