@@ -9,6 +9,7 @@ from .constant import (
     SILENT_MODE_ACTIVE_KEY,
     SILENT_MODE_CALL_KEY,
     SILENT_MODE_KEY,
+    TRADITIONAL_CHIME_KEY,
 )
 from .device import ArloChildDevice
 
@@ -20,6 +21,7 @@ class ArloDoorBell(ArloChildDevice):
         self._ding_time_job = None
         self._has_motion_detect = False
         self._chimes = {}
+        self._traditional = False
 
     def _motion_stopped(self):
         self._save_and_do_callbacks(MOTION_DETECTED_KEY, False)
@@ -71,6 +73,8 @@ class ArloDoorBell(ArloChildDevice):
             # Save out chimes
             if CHIMES_KEY in props:
                 self._chimes = props[CHIMES_KEY]
+            if TRADITIONAL_CHIME_KEY in props:
+                self._traditional = True
 
             # Pass silent mode notifications so we can track them in the "ding"
             # entity.
@@ -116,12 +120,22 @@ class ArloDoorBell(ArloChildDevice):
         )
 
     def _build_chimes(self, on_or_off):
-        chimes = {"traditional": on_or_off}
+        chimes = {}
+        if self._traditional:
+            chimes = {"traditional": on_or_off}
         for chime in self._chimes:
             chimes[chime] = on_or_off
         return chimes
 
-    def _silence(self, silence_settings):
+    def _silence(self, active, calls, chimes):
+
+        # Build settings
+        silence_settings = {
+            SILENT_MODE_ACTIVE_KEY: active,
+            SILENT_MODE_CALL_KEY: calls,
+        }
+        if chimes:
+            silence_settings[CHIMES_KEY] = chimes
 
         # Build request
         properties = {SILENT_MODE_KEY: silence_settings}
@@ -148,39 +162,16 @@ class ArloDoorBell(ArloChildDevice):
             )
 
     def silence_off(self):
-        self._silence(
-            {
-                SILENT_MODE_ACTIVE_KEY: False,
-                SILENT_MODE_CALL_KEY: False,
-            }
-        )
+        self._silence(False, False, {})
 
     def silence_on(self):
-        self._silence(
-            {
-                SILENT_MODE_ACTIVE_KEY: True,
-                SILENT_MODE_CALL_KEY: True,
-                CHIMES_KEY: self._build_chimes(True),
-            }
-        )
+        self._silence(True, True, self._build_chimes(True))
 
     def silence_chimes(self):
-        self._silence(
-            {
-                SILENT_MODE_ACTIVE_KEY: True,
-                SILENT_MODE_CALL_KEY: False,
-                CHIMES_KEY: self._build_chimes(True),
-            }
-        )
+        self._silence(True, False, self._build_chimes(True))
 
     def silence_calls(self):
-        self._silence(
-            {
-                SILENT_MODE_ACTIVE_KEY: True,
-                SILENT_MODE_CALL_KEY: True,
-                CHIMES_KEY: self._build_chimes(False),
-            }
-        )
+        self._silence(True, True, self._build_chimes(False))
 
     @property
     def is_silenced(self):
