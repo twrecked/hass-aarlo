@@ -9,7 +9,6 @@ from .constant import (
     SILENT_MODE_ACTIVE_KEY,
     SILENT_MODE_CALL_KEY,
     SILENT_MODE_KEY,
-    TRADITIONAL_CHIME_KEY,
 )
 from .device import ArloChildDevice
 
@@ -21,7 +20,6 @@ class ArloDoorBell(ArloChildDevice):
         self._ding_time_job = None
         self._has_motion_detect = False
         self._chimes = {}
-        self._traditional = False
 
     def _motion_stopped(self):
         self._save_and_do_callbacks(MOTION_DETECTED_KEY, False)
@@ -73,8 +71,6 @@ class ArloDoorBell(ArloChildDevice):
             # Save out chimes
             if CHIMES_KEY in props:
                 self._chimes = props[CHIMES_KEY]
-            if TRADITIONAL_CHIME_KEY in props:
-                self._traditional = True
 
             # Pass silent mode notifications so we can track them in the "ding"
             # entity.
@@ -120,9 +116,7 @@ class ArloDoorBell(ArloChildDevice):
         )
 
     def _build_chimes(self, on_or_off):
-        chimes = {}
-        if self._traditional:
-            chimes = {"traditional": on_or_off}
+        chimes = {"traditional": on_or_off}
         for chime in self._chimes:
             chimes[chime] = on_or_off
         return chimes
