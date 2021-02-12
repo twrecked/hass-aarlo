@@ -45,6 +45,10 @@ class SSEClient(object):
         # The 'Accept' header is not required, but explicit > implicit
         self.requests_kwargs["headers"]["Accept"] = "text/event-stream"
 
+        # Remove these.
+        self.requests_kwargs["headers"]["Content-Type"] = None
+        self.requests_kwargs["headers"]["host"] = None
+
         # Keep data here as it streams in
         self.buf = u""
 
