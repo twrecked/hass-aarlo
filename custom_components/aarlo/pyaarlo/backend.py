@@ -599,14 +599,18 @@ class ArloBackEnd(object):
         # set agent before starting
         if self._arlo.cfg.user_agent == "apple":
             self._user_agent = (
-                "Mozilla/5.0 (iPhone; CPU iPhone OS 11_1_2 like Mac OS X) "
-                "AppleWebKit/604.3.5 (KHTML, like Gecko) Mobile/15B202 NETGEAR/v1 "
-                "(iOS Vuezone)"
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 13_1_3 like Mac OS X) "
+                "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.1 Mobile/15E148 Safari/604.1"
+            )
+        elif self._arlo.cfg.user_agent == "mac":
+            self._user_agent = (
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) "
+                "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15"
             )
         else:
             self._user_agent = (
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/72.0.3626.81 Safari/537.36"
+                "Mozilla/5.0 (X11; Linux x86_64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36"
             )
 
         # set up session
@@ -634,10 +638,14 @@ class ArloBackEnd(object):
         # update sessions headers
         headers = {
             "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
             "Auth-Version": "2",
-            "schemaVersion": "1",
+            "Cache-Control": 'no-cache',
+            "SchemaVersion": "1",
             "Host": re.sub("https?://", "", self._arlo.cfg.host),
             "Content-Type": "application/json; charset=utf-8;",
+            "Origin": self._arlo.cfg.host,
+            "Pragma": "no-cache",
             "Referer": self._arlo.cfg.host,
             "User-Agent": self._user_agent,
             "Authorization": self._token,
@@ -686,7 +694,7 @@ class ArloBackEnd(object):
                     self._lock.wait(mend - mnow)
                     mnow = time.monotonic()
                 response = self._requests.pop(tid)
-            except KeyError as e:
+            except KeyError as _e:
                 self._arlo.debug("got a key error")
                 response = None
         self._arlo.vdebug("finished transaction-->{}".format(tid))
