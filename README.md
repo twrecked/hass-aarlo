@@ -60,6 +60,7 @@ See [Services](#advanced-services) for more information.
    - [Custom Lovelace Card Configuration](#configuration-lovelace)
 - [Other](#other)
    - [Naming](#other-naming)
+   - [Saving Media](#other-saving-media)
    - [Snapshots](#other-snapshots)
    - [Best Practises and Known Limitations](#other-best)
    - [Debugging](#other-debugging)
@@ -403,6 +404,42 @@ Entity ID naming follows this pattern
 For example, a camera called "Front Door" will have an entity id of
 `camera.aarlo_front_door`.
 
+<a name="other-saving-media"></a>
+### Saving Media
+If you use the `save_media_to` parameter to specify a file naming scheme
+`aarlo` will use that to save all media - videos and snapshots - locally. You
+can use the following substitutions:
+
+- `Y`; the year of the recording, include century
+- `m`; the month of the year as a number (range 01 to 12)
+- `d`; the day of the month as a number (range 01 to 31)
+- `H`; the hour of the day (range 00 to 23)
+- `M`; the minute of the hour (range 00 to 59)
+- `S`; the seconds of the minute (range 00 to 59)
+- `F`; a short cut for `Y-m-d`
+- `T`; a short cut for `H:M:S`
+- `t`; a short cut for `H-M-S`
+- `s`; the number of seconds since the epoch
+
+You specify the substitution by prefixing it with a `$` in the format string.
+You can optionally use curly brackets to remove any ambiguity. For example,
+the following configuration will save all media under `/config/media`
+organised by serial number then date. The code will add the correct file
+extension.
+
+```yaml
+  save_media_to: "/config/media/${SN}/${Y}/${m}/${d}/${T}"
+```
+
+The first time you configure `save_media_to` the system can take several
+minutes to download all the currently available media. The download is
+throttled to not overload Home Assistant or Arlo. Once the initial download is
+completed updates should happen a lot faster.
+
+The code doesn't provide any management of the downloads, it will keep
+downloading them until your device is full. It also doesn't provide a NAS
+interface, you need to mount the NAS device and point `save_media_to` at it.
+
 <a name="other-snapshots"></a>
 ### Snapshots
 Snapshots can be tricky.
@@ -652,6 +689,7 @@ granular control:
 | `media_retry`              | list(ints)  | list(time_outs)              | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.)                                                                                                                |
 | `mode_api`                 | string      | `auto`                       | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device                                                        |
 | `save_updates_to`          | string      | ''                           | A directory to automatically save updated camera images to. Has format `$save_updates_to/$unique_id.jpg`                                                                                                                                 |
+| `save_media_to`            | string      | ''                           | A string describing where to save new media files. This include both video and snapshots. See the "Save Media" section.                                                                                                                  |
 | `verbose_debug`            | boolean     | `False`                      | Turn on extra debug. This extra information is usually not needed!                                                                                                                                                                       |
 | `hide_deprecated_services` | boolean     | `False`                      | If `True` only show services on the `aarlo` domain.                                                                                                                                                                                      |
 | `library_days`             | integer     | `30` (days)                  | Change the number of days of video the component downloads from Arlo.                                                                                                                                                                    |
