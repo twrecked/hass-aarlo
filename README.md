@@ -410,6 +410,8 @@ If you use the `save_media_to` parameter to specify a file naming scheme
 `aarlo` will use that to save all media - videos and snapshots - locally. You
 can use the following substitutions:
 
+- `SN`; the device serial number
+- `N`; the device name
 - `Y`; the year of the recording, include century
 - `m`; the month of the year as a number (range 01 to 12)
 - `d`; the day of the month as a number (range 01 to 31)
