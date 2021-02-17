@@ -35,13 +35,26 @@ class ArloMediaDownloader(threading.Thread):
         T = f"{H}:{M}:{S}"
         t = f"{H}-{M}-{S}"
         s = str(int(when.timestamp())).zfill(10)
-        return Template(self._save_format).substitute(
-            SN=media.camera.device_id, N=media.camera.name,
-            Y=Y, m=m, d=d, H=H, M=M, S=S, F=F, T=T, t=t, s=s
-        ) + f".{media.extension}"
+        return (
+            Template(self._save_format).substitute(
+                SN=media.camera.device_id,
+                N=media.camera.name,
+                Y=Y,
+                m=m,
+                d=d,
+                H=H,
+                M=M,
+                S=S,
+                F=F,
+                T=T,
+                t=t,
+                s=s,
+            )
+            + f".{media.extension}"
+        )
 
     def _download(self, media):
-        """ Download a single piece of media.
+        """Download a single piece of media.
 
         :param media: ArloMediaObject to download
         :return: 1 if a file was downloaded, 0 if the file present and skipped or -1 if an error occured
@@ -59,7 +72,9 @@ class ArloMediaDownloader(threading.Thread):
                 os.rename(save_file_tmp, save_file)
                 return 1
             else:
-                self._arlo.vdebug(f"skipping dowload for {media.camera.name} --> {save_file}")
+                self._arlo.vdebug(
+                    f"skipping dowload for {media.camera.name} --> {save_file}"
+                )
                 return 0
         except OSError as _e:
             self._arlo.error(f"failed to dowload: {save_file}")
@@ -401,5 +416,6 @@ class ArloSnapshot(ArloMediaObject):
     def image_url(self):
         """Returns the URL of the video."""
         return self._attrs.get("presignedContentUrl", None)
+
 
 # vim:sw=4:ts=4:et:
