@@ -640,7 +640,7 @@ class ArloBackEnd(object):
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
             "Auth-Version": "2",
-            "Cache-Control": 'no-cache',
+            "Cache-Control": "no-cache",
             "SchemaVersion": "1",
             "Host": re.sub("https?://", "", self._arlo.cfg.host),
             "Content-Type": "application/json; charset=utf-8;",
