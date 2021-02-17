@@ -1,4 +1,7 @@
 aarlo/pyaarlo
+0.7.1.beta.1 Add media download.
+
+0.7.0.18: Update user agent and request headers.
 0.7.0.6: Stop battery drain on any battery based base station.
 0.7.0.5: Fix CameraMJpeg issues.
 0.7.0.4: Handle broken modes fetch.

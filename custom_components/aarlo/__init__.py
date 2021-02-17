@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.0.6"
+__version__ = "0.7.1.beta.1"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -77,6 +77,7 @@ CONF_STREAM_SNAPSHOT = "stream_snapshot"
 CONF_STREAM_SNAPSHOT_STOP = "stream_snapshot_stop"
 CONF_SAVE_UPDATES_TO = "save_updates_to"
 CONF_USER_STREAM_DELAY = "user_stream_delay"
+CONF_SAVE_MEDIA_TO = "save_media_to"
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -113,6 +114,7 @@ STREAM_SNAPSHOT = False
 STREAM_SNAPSHOT_STOP = 0
 SAVE_UPDATES_TO = ""
 USER_STREAM_DELAY = 1
+SAVE_MEDIA_TO = ""
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -187,6 +189,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_USER_STREAM_DELAY, default=USER_STREAM_DELAY
                 ): cv.positive_int,
+                vol.Optional(CONF_SAVE_MEDIA_TO, default=SAVE_MEDIA_TO): cv.string,
             }
         ),
     },
@@ -360,6 +363,7 @@ def login(hass, conf):
     stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
     stream_snapshot_stop = conf.get(CONF_STREAM_SNAPSHOT_STOP)
     save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
+    save_media_to = conf.get(CONF_SAVE_MEDIA_TO)
     user_stream_delay = conf.get(CONF_USER_STREAM_DELAY)
 
     # Fix up config
@@ -413,6 +417,7 @@ def login(hass, conf):
                 stream_snapshot_stop=stream_snapshot_stop,
                 save_updates_to=save_updates_to,
                 user_stream_delay=user_stream_delay,
+                save_media_to=save_media_to,
                 wait_for_initial_setup=False,
                 verbose_debug=verbose_debug,
             )

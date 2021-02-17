@@ -232,3 +232,7 @@ class ArloCfg(object):
     @property
     def save_updates_to(self):
         return self._kw.get("save_updates_to", "")
+
+    @property
+    def save_media_to(self):
+        return self._kw.get("save_media_to", "")
