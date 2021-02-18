@@ -35,23 +35,27 @@ class ArloMediaDownloader(threading.Thread):
         T = f"{H}:{M}:{S}"
         t = f"{H}-{M}-{S}"
         s = str(int(when.timestamp())).zfill(10)
-        return (
-            Template(self._save_format).substitute(
-                SN=media.camera.device_id,
-                N=media.camera.name,
-                Y=Y,
-                m=m,
-                d=d,
-                H=H,
-                M=M,
-                S=S,
-                F=F,
-                T=T,
-                t=t,
-                s=s,
+        try:
+            return (
+                Template(self._save_format).substitute(
+                    SN=media.camera.device_id,
+                    N=media.camera.name,
+                    Y=Y,
+                    m=m,
+                    d=d,
+                    H=H,
+                    M=M,
+                    S=S,
+                    F=F,
+                    T=T,
+                    t=t,
+                    s=s,
+                )
+                + f".{media.extension}"
             )
-            + f".{media.extension}"
-        )
+        except KeyError as _e:
+            self._arlo.error(f"format error: {self._save_format}")
+            return None
 
     def _download(self, media):
         """Download a single piece of media.
@@ -61,6 +65,8 @@ class ArloMediaDownloader(threading.Thread):
         """
         # Calculate name.
         save_file = self._output_name(media)
+        if save_file is None:
+            return -1
         try:
             # See if it exists.
             os.makedirs(os.path.dirname(save_file), exist_ok=True)
