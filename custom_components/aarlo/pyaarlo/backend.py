@@ -599,6 +599,12 @@ class ArloBackEnd(object):
         # set agent before starting
         if self._arlo.cfg.user_agent == "apple":
             self._user_agent = (
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 11_1_2 like Mac OS X) "
+                "AppleWebKit/604.3.5 (KHTML, like Gecko) Mobile/15B202 NETGEAR/v1 "
+                "(iOS Vuezone)"
+            )
+        elif self._arlo.cfg.user_agent == "new":
+            self._user_agent = (
                 "Mozilla/5.0 (iPhone; CPU iPhone OS 13_1_3 like Mac OS X) "
                 "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.1 Mobile/15E148 Safari/604.1"
             )
