@@ -18,6 +18,7 @@ from .constant import (
     INITIAL_REFRESH_DELAY,
     MEDIA_LIBRARY_DELAY,
     MODEL_ESSENTIAL,
+    MODEL_ESSENTIAL_INDOOR,
     MODEL_PRO_3_FLOODLIGHT,
     MODEL_PRO_4,
     MODEL_WIRED_VIDEO_DOORBELL,
@@ -206,6 +207,7 @@ class PyArlo(object):
                 or device.get("modelId").startswith(MODEL_PRO_3_FLOODLIGHT)
                 or device.get("modelId").startswith(MODEL_PRO_4)
                 or device.get("modelId").startswith(MODEL_ESSENTIAL)
+                or device.get("modelId").startswith(MODEL_ESSENTIAL_INDOOR)
                 or device.get("modelId").startswith(MODEL_WIREFREE_VIDEO_DOORBELL)
             ):
                 parent_id = device.get("parentId", None)
