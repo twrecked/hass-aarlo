@@ -12,23 +12,19 @@ import voluptuous as vol
 from haffmpeg.camera import CameraMjpeg
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (
+    Camera,
     ATTR_FILENAME,
     CAMERA_SERVICE_SCHEMA,
     CAMERA_SERVICE_SNAPSHOT,
+    CONF_DURATION,
+    CONF_LOOKBACK,
     DOMAIN,
+    SERVICE_RECORD,
     STATE_IDLE,
     STATE_RECORDING,
     STATE_STREAMING,
-    Camera,
 )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
-from homeassistant.components.stream.const import (
-    CONF_DURATION,
-    CONF_LOOKBACK,
-    CONF_STREAM_SOURCE,
-)
-from homeassistant.components.stream.const import DOMAIN as DOMAIN_STREAM
-from homeassistant.components.stream.const import SERVICE_RECORD
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     ATTR_BATTERY_LEVEL,
@@ -589,7 +585,7 @@ class ArloCam(Camera):
         self._motion_status = False
         self.set_base_station_mode(ARLO_MODE_DISARMED)
 
-    def _attach_hidden_stream(self, source, duration):
+    def _attach_hidden_stream(self, duration):
         _LOGGER.info(
             "{} attaching hidden stream for duration {}".format(
                 self._unique_id, duration
@@ -599,12 +595,12 @@ class ArloCam(Camera):
         video_path = "/tmp/aarlo-hidden-{}.mp4".format(self._unique_id)
 
         data = {
-            CONF_STREAM_SOURCE: source,
+            "entity_id": "camera.aarlo_" + self._unique_id,
             CONF_FILENAME: video_path,
             CONF_DURATION: duration,
             CONF_LOOKBACK: 0,
         }
-        self.hass.services.call(DOMAIN_STREAM, SERVICE_RECORD, data, blocking=True)
+        self.hass.services.call(DOMAIN, SERVICE_RECORD, data, blocking=True)
 
         _LOGGER.debug("waiting on stream connect")
         return self._camera.wait_for_user_stream()
@@ -666,10 +662,10 @@ class ArloCam(Camera):
         return await self.hass.async_add_executor_job(self.siren_off)
 
     def start_recording(self, duration=30):
-        source = self._camera.start_recording_stream()
-        if source is not None:
-            self._attach_hidden_stream(source, duration + 10)
-            self._camera.start_recording(duration=duration)
+        active = self._attach_hidden_stream(duration + 10)
+        if active:
+            source = self._camera.start_recording_stream()
+            self._camera.start_recording(duration=(duration))
             return source
         _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
         return None
