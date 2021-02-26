@@ -526,14 +526,19 @@ class ArloCam(Camera):
         return COMPONENT_BRAND
 
     async def stream_source(self):
-        """Return the source of the stream."""
-        if is_homekit():
-            return self._camera.get_stream()
-        else:
-            return await self.hass.async_add_executor_job(self._camera.get_stream)
+        """Return the source of the stream.
 
-    async def async_stream_source(self):
-        return await self.hass.async_add_executor_job(self._camera.get_stream)
+        Note, this is only used by `camera/stream` websocket so we force the `User-Agent`
+        to the original Arlo one. This means we get a `rtsps` stream back which the stream
+        component can handle.
+        """
+        if is_homekit():
+            return self._camera.get_stream(user_agent="arlo")
+        else:
+            return await self.hass.async_add_executor_job(self._camera.get_stream,user_agent="arlo")
+
+    async def async_stream_source(self, user_agent=None):
+        return await self.hass.async_add_executor_job(self._camera.get_stream, user_agent)
 
     def camera_image(self):
         """Return a still image response from the camera."""
@@ -662,11 +667,13 @@ class ArloCam(Camera):
         return await self.hass.async_add_executor_job(self.siren_off)
 
     def start_recording(self, duration=30):
-        active = self._attach_hidden_stream(duration + 10)
-        if active:
-            source = self._camera.start_recording_stream()
-            self._camera.start_recording(duration=(duration))
-            return source
+        source = self._camera.start_recording_stream(user_agent="arlo")
+        if source:
+            active = self._attach_hidden_stream(duration + 10)
+            if active:
+                # source = self._camera.start_recording_stream()
+                self._camera.start_recording(duration=duration)
+                return source
         _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
         return None
 
@@ -756,7 +763,9 @@ async def websocket_stream_url(hass, connection, msg):
         camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
         _LOGGER.debug("stream_url for " + str(camera.unique_id))
 
-        stream = await camera.async_stream_source()
+        # start stream and force user agent to linux, this will return a `mpeg dash`
+        # stream we can use directly from the Lovelace card
+        stream = await camera.async_stream_source(user_agent='linux')
         connection.send_message(
             websocket_api.result_message(msg["id"], {"url": stream})
         )

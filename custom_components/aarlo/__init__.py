@@ -92,7 +92,7 @@ STR_TIMEOUT = timedelta(seconds=0)
 NO_MEDIA_UP = False
 MEDIA_RETRY = None
 SNAPSHOT_CHECKS = None
-USER_AGENT = "apple"
+USER_AGENT = "arlo"
 MODE_API = "auto"
 DEVICE_REFRESH = 0
 MODE_REFRESH = 0

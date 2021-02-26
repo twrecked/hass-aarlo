@@ -259,7 +259,7 @@ class ArloCamera(ArloChildDevice):
             },
         )
 
-    def _start_stream(self, starting_for):
+    def _start_stream(self, starting_for, user_agent=None):
         with self._lock:
             # Already streaming. Update sub-activity as needed.
             if self.has_any_local_users:
@@ -286,8 +286,15 @@ class ArloCamera(ArloChildDevice):
             "to": self.parent_id,
             "transId": self._arlo.be.gen_trans_id(),
         }
+
+        headers = {
+            "xcloudId": self.xcloud_id
+        }
+        if user_agent is not None:
+            headers["User-Agent"] = self._arlo.be.user_agent(user_agent)
+
         self._stream_url = self._arlo.be.post(
-            STREAM_START_PATH, body, headers={"xcloudId": self.xcloud_id}
+            STREAM_START_PATH, body, headers=headers
         )
         if self._stream_url is not None:
             self._stream_url = self._stream_url["url"].replace("rtsp://", "rtsps://")
@@ -863,29 +870,29 @@ class ArloCamera(ArloChildDevice):
             return "recently active"
         return super().state
 
-    def get_stream(self):
+    def get_stream(self, user_agent=None):
         """Start a stream and return the URL for it.
 
         Code does nothing with the url, it's up to you to pass the url to something.
 
         The stream will stop if nothing connects to it within 30 seconds.
         """
-        return self._start_stream("streaming")
+        return self._start_stream("streaming", user_agent)
 
-    def start_stream(self):
+    def start_stream(self, user_agent=None):
         """Start a stream and return the URL for it.
 
         Code does nothing with the url, it's up to you to pass the url to something.
 
         The stream will stop if nothing connects to it within 30 seconds.
         """
-        return self._start_stream("streaming")
+        return self._start_stream("streaming", user_agent)
 
-    def start_snapshot_stream(self):
-        return self._start_stream("snapshot")
+    def start_snapshot_stream(self, user_agent=None):
+        return self._start_stream("snapshot", user_agent)
 
-    def start_recording_stream(self):
-        return self._start_stream("recording")
+    def start_recording_stream(self, user_agent=None):
+        return self._start_stream("recording", user_agent)
 
     def stop_stream(self):
         self._stop_stream("streaming")
