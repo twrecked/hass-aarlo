@@ -1,5 +1,6 @@
 aarlo/pyaarlo
-0.7.1.beta.1 Add media download.
+0.7.1b3 Fixed for 2021.3
+0.7.1b1 Add media download.
 
 0.7.0.18: Update user agent and request headers.
 0.7.0.6: Stop battery drain on any battery based base station.

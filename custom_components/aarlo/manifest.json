@@ -5,5 +5,5 @@
   "dependencies": ["ffmpeg"],
   "codeowners": ["@twrecked"],
   "requirements": [],
-  "version": "0.7.1b2"
+  "version": "0.7.1b3"
 }
