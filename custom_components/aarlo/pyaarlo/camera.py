@@ -287,15 +287,11 @@ class ArloCamera(ArloChildDevice):
             "transId": self._arlo.be.gen_trans_id(),
         }
 
-        headers = {
-            "xcloudId": self.xcloud_id
-        }
+        headers = {"xcloudId": self.xcloud_id}
         if user_agent is not None:
             headers["User-Agent"] = self._arlo.be.user_agent(user_agent)
 
-        self._stream_url = self._arlo.be.post(
-            STREAM_START_PATH, body, headers=headers
-        )
+        self._stream_url = self._arlo.be.post(STREAM_START_PATH, body, headers=headers)
         if self._stream_url is not None:
             self._stream_url = self._stream_url["url"].replace("rtsp://", "rtsps://")
             self._arlo.debug("url={}".format(self._stream_url))

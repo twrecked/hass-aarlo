@@ -856,7 +856,7 @@ class ArloBackEnd(object):
         return self.get(DEVICES_PATH + "?t={}".format(time_to_arlotime()))
 
     def user_agent(self, agent):
-        """ Map `agent` to a real user agent.
+        """Map `agent` to a real user agent.
 
         User provides a default user agent they want for most interactions but it can be overridden
         for stream operations.

@@ -12,7 +12,6 @@ import voluptuous as vol
 from haffmpeg.camera import CameraMjpeg
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (
-    Camera,
     ATTR_FILENAME,
     CAMERA_SERVICE_SCHEMA,
     CAMERA_SERVICE_SNAPSHOT,
@@ -23,6 +22,7 @@ from homeassistant.components.camera import (
     STATE_IDLE,
     STATE_RECORDING,
     STATE_STREAMING,
+    Camera,
 )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
 from homeassistant.const import (
@@ -454,7 +454,7 @@ class ArloCam(Camera):
                 _LOGGER.debug(f"problem with stream close for {self._name}")
 
     def clear_stream(self):
-        """ Clear out inactive stream.
+        """Clear out inactive stream.
 
         Arlo stream changes frequently so we trap that and clear down the stream device.
         """
@@ -550,10 +550,14 @@ class ArloCam(Camera):
         if is_homekit():
             return self._camera.get_stream("arlo")
         else:
-            return await self.hass.async_add_executor_job(self._camera.get_stream, "arlo")
+            return await self.hass.async_add_executor_job(
+                self._camera.get_stream, "arlo"
+            )
 
     async def async_stream_source(self, user_agent=None):
-        return await self.hass.async_add_executor_job(self._camera.get_stream, user_agent)
+        return await self.hass.async_add_executor_job(
+            self._camera.get_stream, user_agent
+        )
 
     def camera_image(self):
         """Return a still image response from the camera."""
@@ -780,7 +784,7 @@ async def websocket_stream_url(hass, connection, msg):
 
         # start stream and force user agent to linux, this will return a `mpeg dash`
         # stream we can use directly from the Lovelace card
-        stream = await camera.async_stream_source(user_agent='linux')
+        stream = await camera.async_stream_source(user_agent="linux")
         connection.send_message(
             websocket_api.result_message(msg["id"], {"url": stream})
         )
