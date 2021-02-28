@@ -360,14 +360,18 @@ class ArloCam(Camera):
             if attr == ACTIVITY_STATE_KEY or attr == CONNECTION_KEY:
                 if value == "thermalShutdownCold":
                     self._state = "Offline, Too Cold"
+                    self.clear_stream()
                 elif value == "userStreamActive":
                     self._state = STATE_STREAMING
                 elif value == "alertStreamActive":
                     self._state = STATE_RECORDING
                 elif value == "unavailable":
                     self._state = "Unavailable"
+                    self.clear_stream()
                 else:
                     self._state = STATE_IDLE
+                    self.clear_stream()
+
             if attr == RECENT_ACTIVITY_KEY:
                 self._recent = value
 
@@ -448,6 +452,17 @@ class ArloCam(Camera):
                 await stream.close()
             except:
                 _LOGGER.debug(f"problem with stream close for {self._name}")
+
+    def clear_stream(self):
+        """ Clear out inactive stream.
+
+        Arlo stream changes frequently so we trap that and clear down the stream device.
+        """
+        if hasattr(self, "stream"):
+            if self.stream:
+                _LOGGER.debug("clearing out stream variable")
+                self.stream.stop()
+                self.stream = None
 
     @property
     def unique_id(self):
@@ -533,9 +548,9 @@ class ArloCam(Camera):
         component can handle.
         """
         if is_homekit():
-            return self._camera.get_stream(user_agent="arlo")
+            return self._camera.get_stream("arlo")
         else:
-            return await self.hass.async_add_executor_job(self._camera.get_stream,user_agent="arlo")
+            return await self.hass.async_add_executor_job(self._camera.get_stream, "arlo")
 
     async def async_stream_source(self, user_agent=None):
         return await self.hass.async_add_executor_job(self._camera.get_stream, user_agent)
