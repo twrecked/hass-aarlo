@@ -105,7 +105,7 @@ class ArloCfg(object):
 
     @property
     def user_agent(self):
-        return self._kw.get("user_agent", "apple")
+        return self._kw.get("user_agent", "arlo")
 
     @property
     def mode_api(self):

@@ -111,7 +111,7 @@ class PyArlo(object):
     * **no_media_upload** - Force a media upload after camera activity.
       Normally not needed but some systems fail to push media uploads. Default 'False'.
     * **user_agent** - Set what 'user-agent' string is passed in request headers. It affects what video stream type is
-      returned. Default is `apple`.
+      returned. Default is `arlo`.
     * **mode_api** - Which api to use to set the base station modes. Default is `auto` which choose an API
       based on camera model. Can also be `v1` and `v2`.
     * **http_connections** - HTTP connection pool size. Default is `20`, set to `None` to default provided
