@@ -61,7 +61,9 @@ See [Services](#advanced-services) for more information.
 - [Other](#other)
    - [Naming](#other-naming)
    - [Saving Media](#other-saving-media)
+   - [Streaming](#other-streaming)
    - [Snapshots](#other-snapshots)
+   - [User Agents](#other-user-agents)
    - [Best Practises and Known Limitations](#other-best)
    - [Debugging](#other-debugging)
    - [Hiding Sensitive Data](#other-sensitive)
@@ -72,8 +74,6 @@ See [Services](#advanced-services) for more information.
    - [Services](#advanced-services)
    - [Web Sockets](#advanced-websockets)
    - [Automation Examples](#advanced-automations)
-   - [Streaming](#advanced-streaming)
-   - [Direct Streaming](#advanced-direct-streaming)
 - [2 Factor Authentication](#2fa)
    - [IMAP](#2fa-automatic)
    - [REST API](#2fa-rest-api)
@@ -442,6 +442,60 @@ The code doesn't provide any management of the downloads, it will keep
 downloading them until your device is full. It also doesn't provide a NAS
 interface, you need to mount the NAS device and point `save_media_to` at it.
 
+<a name="other-streaming"></a>
+### Streaming
+
+You need to use the custom `aarlo-glance card. And you need to do one or both
+of these:
+- add `stream` to the `image_click` options of the card
+- add `stream` to the `image_top` or `image_bottom` options of the card
+
+Streaming works with Home Assistant and, for most people, will just work.
+But there are still some things to be wary of.
+
+#### Direct Streaming
+
+Arlo recently upgraded their streaming servers to support `mpeg-dash`. You can
+stream this directly to your browser without going through your Home Assistant
+install.
+
+One of the biggest advantages of direct streaming was audio support but that
+has been added to non-direct streaming in recent Home Assistant releases.
+Direct streaming still offloads the conversion from your Home Assistant server
+and reduces the bandwidth usage of your home network, this is especially true
+if streaming from out side of your home network.
+
+You can not stream directly to Apple devices, they don't support `mpeg-dash`.
+
+Internally the code will use non-direct streaming as needed. For example, to
+save recording into the Arlo library of longer that 30 seconds the code must
+open a stream to the Arlo servers, it can only do this in non-direct mode
+because the stream component doesn't support `mpeg-dash`.
+
+To use it on your `aarlo-glance` card you need to add `direct` to the
+`image_view` options of the card. You can mix direct and non-direct cards on
+the UI.
+
+#### Virtual Env
+
+To get streaming working in `virtualenv` you still need to make sure a couple
+of libraries are installed. For `ubuntu` the following works:
+
+```
+source your-env/bin/activate
+sudo apt install libavformat-dev
+sudo apt install libavdevice-dev
+pip install av==6.1.2
+```
+
+#### Further Help
+
+If you are still having issues please read these 3 posts:
+   * https://github.com/twrecked/hass-aarlo/issues/55
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
+   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
+
+
 <a name="other-snapshots"></a>
 ### Snapshots
 Snapshots can be tricky.
@@ -492,6 +546,37 @@ _*And I know up until about 2 weeks ago this row was working._
 _street_ is an original Arlo (VMC3030)
 _front_ is an Arlo Pro (VMC4030P)
 
+<a name="other-user-agents"></a>
+### User Agents
+
+The following user agents are available:
+- `arlo`; the original `netgear` use agent, this is the default and
+  will get `rtsps` streams from the Arlo servers.
+- `linux`; a newer `Chrome` user agent, this will get `mpeg-dash` streams from
+  the Arlo servers.
+- `apple`, `ipad`, `iphone`, `mac`, `firefox`; these simulate these devices or
+  browsers and, for now, these return `mpeg_dash` streams.
+
+As you can see, the user agent you supply to Arlo determines what streaming
+format is used. I used to think that the agent you used to login had to be the
+same as the agent you use to start a stream. After some testing I find this is
+not the case.
+
+What this means is `aarlo` can select the best user agent for the task.
+
+- The `camera.record` service will use `arlo` agent so Home Assistant can save
+  the stream as `mp4`.
+- The `camera.play_stream` service will use `arlo` agent so Home Assistant can
+  convert the stream to `hls`.
+- The `arlo_stream_url` web service will use the `linux` agent to return a URL
+  to an `mpeg-dash` stream.
+
+Those `camera.play_stream` and `arlo_stream_url` changes are important, they
+allow the `aarlo-glance` Lovelace card to choose direct or non-direct streams
+irregardless of the default user agent provided.
+
+The default user agent is used in all other cases. This means, for example,
+the one you set if picked for snapshot operations.
 
 <a name="other-best"></a>
 ### Best Practises and Known Limitations
@@ -696,7 +781,7 @@ granular control:
 | `hide_deprecated_services` | boolean     | `False`                      | If `True` only show services on the `aarlo` domain.                                                                                                                                                                                      |
 | `library_days`             | integer     | `30` (days)                  | Change the number of days of video the component downloads from Arlo.                                                                                                                                                                    |
 | `injection_service`        | boolean     | `False`                      | If `True` enable the packet injection service.                                                                                                                                                                                           |
-| `user_agent`               | string      | `apple`                      | Tells the system which user agent to pass to Arlo. Setting to `linux enable mpeg-dash streaming which means streams can be viewed directly in the web browser without going through Home Assistant.                                      |
+| `user_agent`               | string      | `arlo`                       | Tells the system which user agent to pass to Arlo.                                                                                                                                                                                       |
 | `stream_snapshot`          | boolean     | `False`                      | If `True` will always try to start a stream before taking a snapshot. If `False` will take and idle or streaming snapshot depending on the camera state.                                                                                 |
 | `stream_snapshot_stop`     | integer     | `10` (seconds)               | How long to wait before stopping the snapshot stream, 0 means let Arlo do it.                                                                                                                                                            |
 | `snapshot_checks`          | list(ints)  | 1 and 5 (seconds)            | Force Aarlo to check for a snapshot before `mediaUploadNotification` appears.                                                                                                                                                            |
@@ -828,40 +913,6 @@ The component provides the following extra web sockets:
       entity_id: camera.aarlo_garage
     service: camera.aarlo_start_recording
 ```
-
-<a name="advanced-streaming"></a>
-### Streaming
-
-Streaming now works "out of the box" for HassOS and Docker installs. To get streaming
-working in `virtualenv` you still need to make sure a couple of libraries are installed.
-For `ubuntu` the following works:
-```
-source your-env/bin/activate
-sudo apt install libavformat-dev
-sudo apt install libavdevice-dev
-pip install av==6.1.2
-```
-
-Set `image_click` to `play` on the aarlo glance card.
-
-If you are still having issues please read these 3 posts:
-   * https://github.com/twrecked/hass-aarlo/issues/55
-   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/293
-   * https://community.home-assistant.io/t/arlo-replacement-pyarlo-module/93511/431?u=sherrell
-
-<a name="advanced-direct-streaming"></a>
-### Direct Streaming
-
-Arlo recently upgraded their streaming servers to support `mpeg-dash`. You can
-stream this directly to your browser without using HassOS to convert it. To
-try this set `user_agent` to `linux`:
-
-```yaml
-aarlo:
-  user_agent: linux
-```
-
-And and `play_direct: true` to your camera Lovelace `aarlo-glance` cards.
 
 <a name="2fa"></a>
 ## 2FA

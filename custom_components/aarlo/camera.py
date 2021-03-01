@@ -747,6 +747,7 @@ async def websocket_library(hass, connection, msg):
                     "created_at_pretty": v.created_at_pretty(
                         camera.last_capture_date_format
                     ),
+                    "duration": v.media_duration_seconds,
                     "url": v.video_url,
                     "url_type": v.content_type,
                     "thumbnail": v.thumbnail_url,
