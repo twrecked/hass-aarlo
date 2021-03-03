@@ -9,6 +9,7 @@ from .constant import (
     SILENT_MODE_ACTIVE_KEY,
     SILENT_MODE_CALL_KEY,
     SILENT_MODE_KEY,
+    SIREN_STATE_KEY,
 )
 from .device import ArloChildDevice
 
@@ -99,6 +100,8 @@ class ArloDoorBell(ArloChildDevice):
                 and self.parent_id == self.device_id
             ):
                 return False
+        if cap in (SIREN_STATE_KEY,):
+            return True
         return super().has_capability(cap)
 
     def update_silent_mode(self):
@@ -181,3 +184,47 @@ class ArloDoorBell(ArloChildDevice):
             if on_or_off is True:
                 return True
         return False
+
+
+    @property
+    def _siren_resource_id(self):
+        return "siren/{}".format(self.device_id)
+
+    @property
+    def siren_state(self):
+        return self._load(SIREN_STATE_KEY, "off")
+
+    def siren_on(self, duration=300, volume=8):
+        """Turn camera siren on.
+
+        Does nothing if camera doesn't support sirens.
+
+        :param duration: how long, in seconds, to sound for
+        :param volume: how long, from 1 to 8, to sound
+        """
+        body = {
+            "action": "set",
+            "resource": self._siren_resource_id,
+            "publishResponse": True,
+            "properties": {
+                "sirenState": "on",
+                "duration": int(duration),
+                "volume": int(volume),
+                "pattern": "alarm",
+            },
+        }
+        self._arlo.be.notify(base=self, body=body)
+
+    def siren_off(self):
+        """Turn camera siren off.
+
+        Does nothing if camera doesn't support sirens.
+        """
+        body = {
+            "action": "set",
+            "resource": self._siren_resource_id,
+            "publishResponse": True,
+            "properties": {"sirenState": "off"},
+        }
+        self._arlo.be.notify(base=self, body=body)
+
