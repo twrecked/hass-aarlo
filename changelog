@@ -1,6 +1,9 @@
 aarlo/pyaarlo
-0.7.1b3 Fixed for 2021.3
-0.7.1b1 Add media download.
+0.7.1b6: Add new event handling
+0.7.1b5: Don't rely on camera reporting back idle status
+0.7.1b4: Smart user agents.
+0.7.1b3: Fixed for 2021.3
+0.7.1b1: Add media download.
 
 0.7.0.18: Update user agent and request headers.
 0.7.0.6: Stop battery drain on any battery based base station.
