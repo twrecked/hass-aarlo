@@ -233,6 +233,8 @@ alarm_control_panel:
 
 * `away_mode_name` Arlo mode to use when setting alarm to `Armed Away`. Default value is
   `armed` which maps to Arlo's default `Armed` mode.
+* `disarmed_mode_name` Arlo mode to use when setting alarm to `Disarmed`. Default value is
+  `disarmed` which maps to Arlo's default `Disarmed` mode.
 * `home_mode_name` Arlo mode to use when setting alarm to `Armed Home`. Default value
   `home`.
 * `night_mode_name` Arlo mode to use when setting alarm to `Armed Night`. Default value
