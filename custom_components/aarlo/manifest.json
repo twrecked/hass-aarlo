@@ -2,8 +2,9 @@
   "domain": "aarlo",
   "name": "Arlo Camera Support",
   "documentation": "https://github.com/twrecked/hass-aarlo/blob/master/README.md",
+  "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
   "dependencies": ["ffmpeg"],
   "codeowners": ["@twrecked"],
   "requirements": [],
-  "version": "0.7.1b3"
+  "version": "0.7.1b6"
 }

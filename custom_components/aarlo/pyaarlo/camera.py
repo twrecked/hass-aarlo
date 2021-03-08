@@ -247,19 +247,20 @@ class ArloCamera(ArloChildDevice):
             ACTIVITY_STATE_KEY, self._load(ACTIVITY_STATE_KEY, "unknown")
         )
 
+    def _queue_media_updates(self):
+        for retry in self._arlo.cfg.media_retry:
+            self._arlo.debug("queueing update in {}".format(retry))
+            self._arlo.bg.run_in(
+                self._arlo.ml.queue_update, retry, cb=self._update_media
+            )
+
     def _mark_as_idle(self):
         """Camera has moved to idle.
         Either we did this or backend did this.
         """
         if self.has_any_local_users:
             self._arlo.debug("got a stream/recording stop")
-            for retry in self._arlo.cfg.media_retry:
-                self._arlo.debug("queueing update in {}".format(retry))
-                self._arlo.bg.run_in(
-                    self._arlo.ml.queue_update, retry, cb=self._update_media
-                )
-
-            # Something just happened.
+            self._queue_media_updates()
             self._set_recent(self._arlo.cfg.recent_time)
 
         # Remove streaming from state
@@ -425,6 +426,16 @@ class ArloCamera(ArloChildDevice):
                 self._save(SNAPSHOT_KEY, value)
                 self._arlo.bg.run_low(self._update_snapshot)
 
+        # Non subscription...
+        if event.get("action", "") == "lastImageSnapshotAvailable":
+            value = event.get("properties", {}).get(
+                "presignedLastImageUrl", None
+            )
+            if value is not None:
+                self._arlo.debug("{} -> snapshot3 ready".format(self.name))
+                self._save(SNAPSHOT_KEY, value)
+                self._arlo.bg.run_low(self._update_snapshot)
+
         # Ambient sensors update, decode and push changes.
         if resource.endswith("/ambientSensors/history"):
             data = self._decode_sensor_data(event.get("properties", {}))
@@ -441,6 +452,11 @@ class ArloCamera(ArloChildDevice):
             if key in RECENT_ACTIVITY_KEYS:
                 self._arlo.debug("recent activity key")
                 self._set_recent(self._arlo.cfg.recent_time)
+
+        # Local record stopped, try and trip and update.
+        if properties.get("localRecordingActive", True) is False:
+            self._arlo.debug("local recording stopped, updating media")
+            self._queue_media_updates()
 
         # Night light status.
         nightlight = properties.get(NIGHTLIGHT_KEY, None)
@@ -1301,7 +1317,7 @@ class ArloCamera(ArloChildDevice):
         )
 
     def has_capability(self, cap):
-        if cap in (BATTERY_KEY):
+        if cap in (BATTERY_KEY,):
             if self.model_id.startswith(MODEL_ESSENTIAL_INDOOR):
                 return False
             else:
