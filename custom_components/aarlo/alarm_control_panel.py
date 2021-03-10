@@ -237,6 +237,10 @@ class ArloBaseStation(AlarmControlPanelEntity):
         self._base.add_attr_callback(MODE_KEY, update_state)
 
     @property
+    def should_poll(self):
+        return False
+
+    @property
     def state(self):
         """Return the state of the device."""
         if self._trigger_till is not None:

@@ -100,6 +100,10 @@ class ArloLight(LightEntity):
         self._light.add_attr_callback(BRIGHTNESS_KEY, update_state)
 
     @property
+    def should_poll(self):
+        return False
+
+    @property
     def unique_id(self):
         """Return a unique ID."""
         return self._unique_id
