@@ -131,6 +131,10 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
         return self._name
 
     @property
+    def should_poll(self):
+        return False
+
+    @property
     def unique_id(self):
         """Return a unique ID."""
         return self._unique_id
