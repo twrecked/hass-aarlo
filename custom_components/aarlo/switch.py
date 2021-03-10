@@ -117,6 +117,10 @@ class AarloSwitch(SwitchEntity):
         return self._icon
 
     @property
+    def should_poll(self):
+        return False
+
+    @property
     def unique_id(self):
         """Return a unique ID."""
         return self._unique_id
@@ -203,7 +207,6 @@ class AarloSirenBaseSwitch(AarloSwitch):
 
     def do_off(self):
         _LOGGER.debug("implement do off")
-
 
 class AarloSirenSwitch(AarloSirenBaseSwitch):
     """Representation of an Aarlo switch."""
