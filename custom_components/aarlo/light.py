@@ -67,7 +67,7 @@ async def async_setup_platform(hass, _config, async_add_entities, _discovery_inf
         if camera.has_capability(SPOTLIGHT_KEY):
             lights.append(ArloSpotlight(camera))
 
-    async_add_entities(lights, True)
+    async_add_entities(lights)
 
 
 class ArloLight(LightEntity):

@@ -97,7 +97,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
                 devices.append(AarloSilentModeChimeSwitch(doorbell))
                 devices.append(AarloSilentModeCallSwitch(doorbell))
 
-    async_add_entities(devices, True)
+    async_add_entities(devices)
 
 
 class AarloSwitch(SwitchEntity):

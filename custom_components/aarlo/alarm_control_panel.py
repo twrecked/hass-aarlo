@@ -149,7 +149,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         if base_station.has_capability(SIREN_STATE_KEY):
             base_stations_with_sirens = True
 
-    async_add_entities(base_stations, True)
+    async_add_entities(base_stations)
 
     # Component services
     def service_callback(call):
