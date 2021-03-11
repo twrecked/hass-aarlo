@@ -406,6 +406,13 @@ Entity ID naming follows this pattern
 For example, a camera called "Front Door" will have an entity id of
 `camera.aarlo_front_door`.
 
+For full compabilty `aarlo` will decode unicode characters. This means a 
+camera called `Haustür` will be called `component-type.aarlo_haustur`.
+
+If you do not want this behaviour - and be warned, this may cause problems 
+using certain HA services - add `no_unicode_squash: True` to your configuration.
+
+
 <a name="other-saving-media"></a>
 ### Saving Media
 If you use the `save_media_to` parameter to specify a file naming scheme

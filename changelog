@@ -1,5 +1,6 @@
 aarlo/pyaarlo
 0.7.1b7: Stop HA polling us.
+        Remove unicode characters from entity ids
 0.7.1b6: Add new event handling
         Allow custimisable disarmed mode
 0.7.1b5: Don't rely on camera reporting back idle status
