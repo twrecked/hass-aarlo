@@ -80,7 +80,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
                 if light.has_capability(SENSOR_TYPES[sensor_type][3]):
                     sensors.append(ArloSensor(arlo, light, sensor_type))
 
-    async_add_entities(sensors, True)
+    async_add_entities(sensors)
 
 
 class ArloSensor(Entity):

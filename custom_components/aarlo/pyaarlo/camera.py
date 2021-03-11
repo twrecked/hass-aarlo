@@ -281,7 +281,7 @@ class ArloCamera(ArloChildDevice):
                 "publishResponse": True,
                 "resource": self.resource_id,
             },
-            wait_for="response"
+            wait_for="response",
         )
         if response is not None:
             self._mark_as_idle()
@@ -428,9 +428,7 @@ class ArloCamera(ArloChildDevice):
 
         # Non subscription...
         if event.get("action", "") == "lastImageSnapshotAvailable":
-            value = event.get("properties", {}).get(
-                "presignedLastImageUrl", None
-            )
+            value = event.get("properties", {}).get("presignedLastImageUrl", None)
             if value is not None:
                 self._arlo.debug("{} -> snapshot3 ready".format(self.name))
                 self._save(SNAPSHOT_KEY, value)
