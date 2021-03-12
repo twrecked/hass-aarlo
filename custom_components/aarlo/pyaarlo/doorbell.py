@@ -101,7 +101,12 @@ class ArloDoorBell(ArloChildDevice):
             ):
                 return False
         if cap in (SIREN_STATE_KEY,):
-            return True
+            if self.model_id.startswith(
+                (
+                    MODEL_WIRED_VIDEO_DOORBELL,
+                )
+            ):
+                return True
         return super().has_capability(cap)
 
     def update_silent_mode(self):
