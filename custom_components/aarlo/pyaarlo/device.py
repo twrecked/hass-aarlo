@@ -1,4 +1,5 @@
 import threading
+
 from unidecode import unidecode
 
 from .constant import (

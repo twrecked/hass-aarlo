@@ -74,6 +74,9 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     for camera in arlo.cameras:
         if camera.has_capability(SIREN_STATE_KEY):
             adevices.append(camera)
+    for doorbell in arlo.doorbells:
+        if doorbell.has_capability(SIREN_STATE_KEY):
+            adevices.append(doorbell)
 
     # Create individual switches if asked for
     if config.get(CONF_SIRENS) is True:

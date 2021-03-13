@@ -192,7 +192,9 @@ CONFIG_SCHEMA = vol.Schema(
                     CONF_USER_STREAM_DELAY, default=USER_STREAM_DELAY
                 ): cv.positive_int,
                 vol.Optional(CONF_SAVE_MEDIA_TO, default=SAVE_MEDIA_TO): cv.string,
-                vol.Optional(CONF_NO_UNICODE_SQUASH, default=NO_UNICODE_SQUASH): cv.boolean,
+                vol.Optional(
+                    CONF_NO_UNICODE_SQUASH, default=NO_UNICODE_SQUASH
+                ): cv.boolean,
             }
         ),
     },
