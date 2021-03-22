@@ -702,7 +702,17 @@ aarlo:
 ### Hiding Sensitive Data
 
 If you paste any debug logs into github it's a good idea to encrypt them before uploading
-them. You can do this using the [pyaarlo](https://github.com/twrecked/pyaarlo) component.
+them. You can do this one of two ways.
+
+#### Online
+
+You can encrypt your output on this
+[webpage](https://pyaarlo-tfa.appspot.com/). The page doesn't forward the
+output to me so you will have to copy and paste it into a bug report.
+
+#### Pyaarlo
+
+You can do this using the [pyaarlo](https://github.com/twrecked/pyaarlo) component.
 The easiest way to install it is in a virtual environment. The following steps will
 install Pyaarlo.
 

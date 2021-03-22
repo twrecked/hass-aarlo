@@ -239,4 +239,4 @@ class ArloCfg(object):
 
     @property
     def no_unicode_squash(self):
-        return self._kw.get("no_unicode_squash", False)
+        return self._kw.get("no_unicode_squash", True)
