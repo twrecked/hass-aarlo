@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.1b9: Add cloudscraper support.
 0.7.1b7: Stop HA polling us.
         Allow removal of unicode characters from entity ids
         Siren on wired doorbell.
