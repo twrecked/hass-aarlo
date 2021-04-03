@@ -5,6 +5,6 @@
   "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
   "dependencies": ["ffmpeg"],
   "codeowners": ["@twrecked"],
-  "requirements": ["unidecode"],
-  "version": "0.7.1b7"
+  "requirements": ["unidecode","cloudscraper"],
+  "version": "0.7.1b9"
 }

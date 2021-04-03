@@ -6,6 +6,7 @@ import time
 import traceback
 import uuid
 
+import cloudscraper
 import requests
 import requests.adapters
 
@@ -600,20 +601,20 @@ class ArloBackEnd(object):
         self._user_agent = self.user_agent(self._arlo.cfg.user_agent)
 
         # set up session
-        self._session = requests.Session()
-        if self._arlo.cfg.http_connections != 0 and self._arlo.cfg.http_max_size != 0:
-            self._arlo.debug(
-                "custom connections {}:{}".format(
-                    self._arlo.cfg.http_connections, self._arlo.cfg.http_max_size
-                )
-            )
-            self._session.mount(
-                "https://",
-                requests.adapters.HTTPAdapter(
-                    pool_connections=self._arlo.cfg.http_connections,
-                    pool_maxsize=self._arlo.cfg.http_max_size,
-                ),
-            )
+        self._session = cloudscraper.create_scraper()
+        #  if self._arlo.cfg.http_connections != 0 and self._arlo.cfg.http_max_size != 0:
+        #  self._arlo.debug(
+        #  "custom connections {}:{}".format(
+        #  self._arlo.cfg.http_connections, self._arlo.cfg.http_max_size
+        #  )
+        #  )
+        #  self._session.mount(
+        #  "https://",
+        #  requests.adapters.HTTPAdapter(
+        #  pool_connections=self._arlo.cfg.http_connections,
+        #  pool_maxsize=self._arlo.cfg.http_max_size,
+        #  ),
+        #  )
 
         if not self._auth():
             return False
