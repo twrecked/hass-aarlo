@@ -311,7 +311,7 @@ class ArloDevice(object):
     @property
     def is_charger_only(self):
         """Returns `True` if the cahrger is plugged in with no batteries, `False` otherwise."""
-        return self.battery_tech == "None" and self.is_charging
+        return self.battery_tech == "None" and self.has_charger
 
     @property
     def is_corded(self):
