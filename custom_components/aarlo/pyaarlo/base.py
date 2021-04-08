@@ -268,6 +268,7 @@ class ArloBase(ArloDevice):
                             if (
                                 body.get("success", False) is True
                                 or body.get("resource", "") == "modes"
+                                or body.get("resource", "") == "activeAutomations"
                             ):
                                 return
                         self._arlo.warning(

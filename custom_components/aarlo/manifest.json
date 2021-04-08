@@ -6,5 +6,5 @@
   "dependencies": ["ffmpeg"],
   "codeowners": ["@twrecked"],
   "requirements": ["unidecode","cloudscraper"],
-  "version": "0.7.1b10"
+  "version": "0.7.1b11"
 }

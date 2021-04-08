@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.1b11: Added new automation return value.
 0.7.1b10: Fix plugged icon.
 0.7.1b9: Add cloudscraper support.
 0.7.1b7: Stop HA polling us.
