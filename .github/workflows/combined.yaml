@@ -24,7 +24,6 @@ jobs:
         name: HACS validation
         with:
           category: "integration"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: KTibow/ha-blueprint@stable
         name: CI
         with:

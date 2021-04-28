@@ -451,7 +451,11 @@ class ArloBase(ArloDevice):
             if self.is_own_parent and self.using_wifi and not self.is_corded:
                 return False
             # Wire free video doorbell acting as base station
-            if self.is_own_parent and self.model_id.startswith(MODEL_WIREFREE_VIDEO_DOORBELL) and not self.is_corded:
+            if (
+                self.is_own_parent
+                and self.model_id.startswith(MODEL_WIREFREE_VIDEO_DOORBELL)
+                and not self.is_corded
+            ):
                 return False
             return True
         return super().has_capability(cap)

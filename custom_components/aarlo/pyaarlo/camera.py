@@ -641,12 +641,12 @@ class ArloCamera(ArloChildDevice):
 
     @property
     def unseen_videos(self):
-        """Returns the camera unseen video count. """
+        """Returns the camera unseen video count."""
         return self._load(MEDIA_COUNT_KEY, 0)
 
     @property
     def captured_today(self):
-        """Returns the number of videos captured today. """
+        """Returns the number of videos captured today."""
         return self._load(CAPTURED_TODAY_KEY, 0)
 
     @property

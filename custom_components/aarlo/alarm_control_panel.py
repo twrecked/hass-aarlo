@@ -360,7 +360,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
         return mode
 
     def set_mode_in_ha(self, mode):
-        """ convert Home Assistant state to Arlo mode."""
+        """convert Home Assistant state to Arlo mode."""
         lmode = mode.lower()
         if lmode == self._disarmed_mode_name:
             if self._trigger_till is not None:

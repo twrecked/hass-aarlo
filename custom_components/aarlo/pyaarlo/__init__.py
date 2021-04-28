@@ -287,12 +287,12 @@ class PyArlo(object):
         self.vdebug("devices={}".format(pprint.pformat(self._devices)))
 
     def _refresh_camera_thumbnails(self, wait=False):
-        """Request latest camera thumbnails, called at start up. """
+        """Request latest camera thumbnails, called at start up."""
         for camera in self._cameras:
             camera.update_last_image(wait)
 
     def _refresh_camera_media(self, wait=False):
-        """Rebuild cameras media library, called at start up or when day changes. """
+        """Rebuild cameras media library, called at start up or when day changes."""
         for camera in self._cameras:
             camera.update_media(wait)
 
@@ -399,7 +399,7 @@ class PyArlo(object):
             self._lock.notify_all()
 
     def stop(self):
-        """Stop connection to Arlo and logout. """
+        """Stop connection to Arlo and logout."""
         self._st.save()
         self._be.logout()
 

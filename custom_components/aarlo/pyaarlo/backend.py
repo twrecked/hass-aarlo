@@ -419,7 +419,7 @@ class ArloBackEnd(object):
         return True
 
     def _get_tfa(self):
-        """ Return the 2FA type we're using. """
+        """Return the 2FA type we're using."""
         tfa_type = self._arlo.cfg.tfa_source
         if tfa_type == TFA_CONSOLE_SOURCE:
             return Arlo2FAConsole(self._arlo)
