@@ -4,6 +4,7 @@ from .constant import (
     CHIMES_KEY,
     CONNECTION_KEY,
     MODEL_WIRED_VIDEO_DOORBELL,
+    MODEL_WIREFREE_VIDEO_DOORBELL,
     MOTION_DETECTED_KEY,
     SIGNAL_STR_KEY,
     SILENT_MODE_ACTIVE_KEY,
@@ -86,22 +87,27 @@ class ArloDoorBell(ArloChildDevice):
     def resource_type(self):
         return "doorbells"
 
+    @property
+    def is_video_doorbell(self):
+        return self.model_id.startswith(MODEL_WIRED_VIDEO_DOORBELL) or self.model_id.startswith(
+            MODEL_WIREFREE_VIDEO_DOORBELL)
+
     def has_capability(self, cap):
         if cap in (BUTTON_PRESSED_KEY, SILENT_MODE_KEY):
             return True
         if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY):
             # video doorbell provides these as a camera type
-            if not self.model_id.startswith(MODEL_WIRED_VIDEO_DOORBELL):
+            if not self.is_video_doorbell:
                 return True
         if cap in (CONNECTION_KEY,):
             # If video door bell is its own base station then don't provide connectivity here.
             if (
-                self.model_id.startswith(MODEL_WIRED_VIDEO_DOORBELL)
+                self.is_video_doorbell
                 and self.parent_id == self.device_id
             ):
                 return False
         if cap in (SIREN_STATE_KEY,):
-            if self.model_id.startswith((MODEL_WIRED_VIDEO_DOORBELL,)):
+            if self.is_video_doorbell:
                 return True
         return super().has_capability(cap)
 
