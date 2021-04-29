@@ -13,8 +13,6 @@ from haffmpeg.camera import CameraMjpeg
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (
     ATTR_FILENAME,
-    CAMERA_SERVICE_SCHEMA,
-    CAMERA_SERVICE_SNAPSHOT,
     CONF_DURATION,
     CONF_LOOKBACK,
     DOMAIN,
@@ -93,6 +91,17 @@ POWERSAVE_MODE_MAPPING = {1: "best_battery_life", 2: "optimized", 3: "best_video
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_FFMPEG_ARGUMENTS): cv.string,
+    }
+)
+
+CAMERA_SERVICE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids
+    }
+)
+CAMERA_SERVICE_SNAPSHOT = CAMERA_SERVICE_SCHEMA.extend(
+    {
+        vol.Required(ATTR_FILENAME): cv.template
     }
 )
 
