@@ -149,12 +149,6 @@ CONFIG_SCHEMA = vol.Schema(
                 ): cv.positive_int,
                 vol.Optional(CONF_MODE_REFRESH, default=MODE_REFRESH): cv.positive_int,
                 vol.Optional(
-                    CONF_HTTP_CONNECTIONS, default=HTTP_CONNECTIONS
-                ): cv.positive_int,
-                vol.Optional(
-                    CONF_HTTP_MAX_SIZE, default=HTTP_MAX_SIZE
-                ): cv.positive_int,
-                vol.Optional(
                     CONF_RECONNECT_EVERY, default=RECONNECT_EVERY
                 ): cv.positive_int,
                 vol.Optional(CONF_VERBOSE_DEBUG, default=VERBOSE_DEBUG): cv.boolean,
