@@ -13,9 +13,6 @@ from datetime import timedelta
 from traceback import extract_stack
 
 import voluptuous as vol
-from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
-from requests.exceptions import ConnectTimeout, HTTPError
-
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.const import (
@@ -27,6 +24,8 @@ from homeassistant.const import (
 )
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
+from requests.exceptions import ConnectTimeout, HTTPError
 
 __version__ = "0.7.1b14"
 
