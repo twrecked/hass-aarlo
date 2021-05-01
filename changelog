@@ -1,3 +1,8 @@
+aarlo
+0.8.0a1: Initial 0.8 release
+  Remove deprecated service calls
+  Remove pyaarlo code
+
 aarlo/pyaarlo
 0.7.1b14: Fix for Home Assistant beta.
 0.7.1b13: Fix wirefree doorbell duplicate entries.

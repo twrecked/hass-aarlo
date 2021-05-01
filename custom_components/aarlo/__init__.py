@@ -28,7 +28,7 @@ from homeassistant.const import (
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 
-__version__ = "0.7.1b14"
+__version__ = "0.8.0a1"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,8 +59,6 @@ CONF_USER_AGENT = "user_agent"
 CONF_MODE_API = "mode_api"
 CONF_DEVICE_REFRESH = "refresh_devices_every"
 CONF_MODE_REFRESH = "refresh_modes_every"
-CONF_HTTP_CONNECTIONS = "http_connections"
-CONF_HTTP_MAX_SIZE = "http_max_size"
 CONF_RECONNECT_EVERY = "reconnect_every"
 CONF_VERBOSE_DEBUG = "verbose_debug"
 CONF_INJECTION_SERVICE = "injection_service"
@@ -353,8 +351,6 @@ def login(hass, conf):
     mode_api = conf.get(CONF_MODE_API)
     device_refresh = conf.get(CONF_DEVICE_REFRESH)
     mode_refresh = conf.get(CONF_MODE_REFRESH)
-    http_connections = conf.get(CONF_HTTP_CONNECTIONS)
-    http_max_size = conf.get(CONF_HTTP_MAX_SIZE)
     reconnect_every = conf.get(CONF_RECONNECT_EVERY)
     verbose_debug = conf.get(CONF_VERBOSE_DEBUG)
     snapshot_timeout = conf.get(CONF_SNAPSHOT_TIMEOUT).total_seconds()
@@ -408,8 +404,6 @@ def login(hass, conf):
                 refresh_devices_every=device_refresh,
                 refresh_modes_every=mode_refresh,
                 reconnect_every=reconnect_every,
-                http_connections=http_connections,
-                http_max_size=http_max_size,
                 snapshot_timeout=snapshot_timeout,
                 tfa_source=tfa_source,
                 tfa_type=tfa_type,

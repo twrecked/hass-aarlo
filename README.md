@@ -1,46 +1,13 @@
 # hass-aarlo
 
-## 2FA Support
 
-This release contains beta 2FA support. It works by requesting an email with the
-one-time code and then making an IMAP connection to your email provider and
-reading the code from the email Arlo sends.
+## Breaking Changes in 0.8
 
-There is a **lot** that can go wrong with this - for starters, I've only
-tested it in English and German - but to get it working add the following
-configuration (with the correct values obviously) - to `aarlo:`
-
-```yaml
-  tfa_host: imap.gmail.com
-  tfa_username: your.email.account@gmail.com
-  tfa_password: roygbiv
-
-```
-Please note, that even though Arlo only shows 2FA via SMS in the interface,
-aarlo will trigger sending an e-mail as alternate method.
-
-For gmail users, the following
-[help](https://support.google.com/accounts/answer/185833?hl=en) is useful.
-
-Arlo made 2FA mandatory by End of November 2020, so you need to use this for
-the integration to work.
-
-
-## Notice of Future Breaking Changes
-
-### The custom services are moving into the `aarlo` domain.
-
-This release moves all the component services in the `aarlo` domain. This is
-their correct location and allows Home Assistant to use the component's
-`services.yaml` file to provide help with the services.
-
-To allow you to transition and test your scripts the old, incorrectly located,
-services will remain for a while. My plan is to remove them in a few months. If
-you move all your code over to the new services you can add the
-`hide_deprecated_services` option to your configuration to hide these old
-services.
-
-See [Services](#advanced-services) for more information.
+The following options have been removed:
+- `hide_deprecated_services`; all component services are no in the `aarlo` 
+  domain.
+- `http_connections`; no longer used after `cloudscraper` was needed
+- `http_max_size`; no longer used after `cloudscraper` was needed
 
 
 ## Table of Contents
@@ -76,7 +43,7 @@ See [Services](#advanced-services) for more information.
    - [Automation Examples](#advanced-automations)
 - [2 Factor Authentication](#2fa)
    - [IMAP](#2fa-automatic)
-   - [REST API](#2fa-rest-api)
+   - [PUSH](#2fa-push)
 - [To Do](#to-do)
 
 
@@ -325,7 +292,11 @@ The rest of the sensors appear per camera.
 * `humidity` The humidity in the room where the camera is, if supported.
 * `air_quality` The air quality in the room where the camera is, if supported.
 
-If you have an Arlo Smart plan the 'last_capture' sensor has the attribute 'object_type' containing what Arlo cloud service believes to have identified as a string ("Person", "Vehicle", "Animal", ...). You can use templating in HA to trigger or condition automations based on this or record the info using an additional template sensor.
+If you have an Arlo Smart plan the 'last_capture' sensor has the attribute
+'object_type' containing what Arlo cloud service believes to have identified
+as a string ("Person", "Vehicle", "Animal", ...). You can use templating in HA
+to trigger or condition automations based on this or record the info using an
+additional template sensor.
 
 <a name="configuration-light"></a>
 ### Light Configuration
@@ -779,9 +750,7 @@ granular control:
 | `db_ding_time`             | integer     | `60` (s)                     | Duration of doorbell press. (Arlo doorbell only indicates doorbell was pressed, not that it was released)                                                                                                                                |
 | `recent_time`              | integer     | `600` (s)                    | Used to hold the cameras in a recent activity state after a recording or streaming event. (Streaming & recording can be over in a few seconds, without this the camera will revert to idle, possibly looking like nothing has happened.) |
 | `last_format`              | strftime    | `'%m-%d %H:%M'`              | Display format of last captured time                                                                                                                                                                                                     |
-| `http_connections`         | integer     | `5`                          | Adjust the number http connections pools to cache                                                                                                                                                                                        |
 | `serial_ids`               | boolean     | False                        | Use device IDS for the entity names.  **BE CAREFUL, WILL RENAME ALL YOUR ENTITIES**                                                                                                                                                      |
-| `http_max_size`            | integer     | `10`                         | Adjust the maximum number connects to save in the pool                                                                                                                                                                                   |
 | `request_timeout`          | time period | `60`                         | Timeout for requests sent to Arlo server. 0 means no timeout.                                                                                                                                                                            |
 | `stream_timeout`           | time period | `0`                          | Timeout for inactivity on the Arlo event stream. 0 means no timeout. Used to help with Arlo components becoming unresponsive.                                                                                                            |
 | `reconnect_every`          | integer     | `0` (minutes)                | If not 0 then force a logout every `reconect_entry` time period. Used to help with Arlo components becoming unresponsive.                                                                                                                |
@@ -797,7 +766,6 @@ granular control:
 | `save_updates_to`          | string      | ''                           | A directory to automatically save updated camera images to. Has format `$save_updates_to/$unique_id.jpg`                                                                                                                                 |
 | `save_media_to`            | string      | ''                           | A string describing where to save new media files. This include both video and snapshots. See the "Save Media" section.                                                                                                                  |
 | `verbose_debug`            | boolean     | `False`                      | Turn on extra debug. This extra information is usually not needed!                                                                                                                                                                       |
-| `hide_deprecated_services` | boolean     | `False`                      | If `True` only show services on the `aarlo` domain.                                                                                                                                                                                      |
 | `library_days`             | integer     | `30` (days)                  | Change the number of days of video the component downloads from Arlo.                                                                                                                                                                    |
 | `injection_service`        | boolean     | `False`                      | If `True` enable the packet injection service.                                                                                                                                                                                           |
 | `user_agent`               | string      | `arlo`                       | Tells the system which user agent to pass to Arlo.                                                                                                                                                                                       |
@@ -936,13 +904,15 @@ The component provides the following extra web sockets:
 <a name="2fa"></a>
 ## 2FA
 
-Aarlo supports 2 factor authentication and contains some measures to trigger a resend of the 2FA token number should it not work the first time. Aarlo will also continue to try to login in the background.
+Aarlo supports 2 factor authentication and contains some measures to trigger a
+resend of the 2FA token number should it not work the first time. Aarlo will
+also continue to try to login in the background.
 
 <a name="2fa-automatic"></a>
 #### IMAP
 
-For IMAP 2FA Arlo needs to access and your email account form where it reads the token
-Arlo sent.
+For IMAP 2FA Arlo needs to access and your email account form where it reads
+the token Arlo sent.
 
 ```yaml
 aarlo:
@@ -968,120 +938,7 @@ aarlo:
   tfa_type: PUSH
   tfa_reties: 5 # optional: default 5; attempts to check for push approved
   tfa_delay: 5 # optional: default 5; seconds of delay between retries
-
 ```
-
-<a name="2fa-rest-api"></a>
-#### Rest API
-
-This mechanism allows you to use any suitably configured/programmed website. When you
-start authenticating Arlo makes a `clear` request and repeated `look-up` requests to a
-website to retrieve your TFA code. The format of these requests and their reponses are
-well defined but the host Arlo uses is configurable.
-
-```yaml
-aarlo:
-  tfa_source: rest-api
-  tfa_type: SMS
-  tfa_host: custom-host
-  tfa_username: test@test.com
-  tfa_password: 1234567890
-```
-
-* Pyaarlo will clear the current code with this HTTP GET request:
-```http request
-https://custom-host/clear?email=test@test.com&token=1234567890
-```
-
-* And the server will respond with this on success:
-```json
-{ "meta": { "code": 200 },
-  "data": { "success": true, "email": "test@test.com" } }
-```
-
-* Aarlo will look up the current code with this HTTP GET request:
-```http request
-https://custom-host/get?email=test@test.com&token=1234567890
-```
-
-* And the server will respond with this on success:
-```json
-{ "meta": { "code": 200 },
-  "data": { "success": true, "email": "test@test.com", "code": "123456", "timestamp": "123445666" } }
-```
-
-* Failures always have `code` value of anything other than 200.
-```json
-{ "meta": { "code": 400 },
-  "data": { "success": false, "error": "permission denied" }}
-```
-
-Aarlo doesn't care how you get the codes into the system only that they are there. Feel
-free to roll your own server or...
-
-##### Using My Server
-
-I have a website running at https://pyaarlo-tfa.appspot.com that can provide this service.
-It's provided as-is, it's running as a Google app so it should be pretty reliable and the
-only information I have access to is your email address, access token for my website and
-whatever your last code was. (_Note:_ if you're not planning on using email forwarding the
-`email` value isn't strictly enforced, a unique ID is sufficient.)
-
-_If you don't trust me and my server - and I won't be offended - you can get the source
-from [here](https://github.com/twrecked/pyaarlo-tfa-helper) and set up your own._
-
-To use the REST API with my website do the following:
-
-* Register with my website. You only need to do this once and I'm sorry for the crappy
-  interface. Go to [registration page](https://pyaarlo-tfa.appspot.com/register) and enter
-  your email address (or unique ID). The website will reply with a json document
-  containing your _token_, keep this _token_ and use it in all REST API interactions.
-```json
-{"email":"testing@testing.com",
- "fwd-to":"pyaarlo@thewardrobe.ca",
- "success":true,
- "token":"4f529ea4dd20ca65e102e743e7f18914bcf8e596b909c02d"}
-```
-
-* To add a code send the following HTTP GET request:
-```http request
-https://custom-host/add?email=test@test.com&token=4f529ea4dd20ca65e102e743e7f18914bcf8e596b909c02d&code=123456
-```
-
-You can replace `code` with `msg` and the server will try and parse the code out value of
-`msg`, use it for picking apart SMS messages.
-
-##### Using IFTTT
-
-You have your server set up or are using mine, one way to send codes is to use
-[IFTTT](https://ifttt.com/) to forward SMS messages to the server. I have an Android phone
-so use the `New SMS received from phone number` trigger and match to the Arlo number
-sending me SMS codes. (I couldn't get the match message to work, maybe somebody else will
-have better luck.)
-
-I pair this with `Make a web request` action to forward the SMS code into my server, I use
-the following recipe. Modify the email and token as necessary.
-```
-URL: https://pyaarlo-tfa.appspot.com/add?email=test@test.com&token=4f529ea4dd20ca65e102e743e7f18914bcf8e596b909c02d&msg={{Text}}
-Method: GET
-Content Type: text/plain
-```
-
-Make sure to configure Aarlo to request a token over SMS with `tfa_type='SMS`. Now, when
-you login in, Arlo will send an SMS to your phone, the IFTTT app will forward this to the
-server and Aarlo will read it from the server.
-
-##### Using EMAIL
-
-If you run your own `postfix` server you can use [this
-script](https://github.com/twrecked/pyaarlo-tfa-helper/blob/master/postfix/pyaarlo-fwd.in)
-to set up an email forwarding alias. Use an alias like this:
-```text
-pyaarlo:  "|/home/test/bin/pyaarlo-fwd"
-```
-
-Make sure to configure Aarlo to request a token over EMAIL with `tfa_type='EMAIL`. Then
-set up your email service to forward Arlo code message to your email forwarding alias.
 
 
 <a name="to-do"></a>
