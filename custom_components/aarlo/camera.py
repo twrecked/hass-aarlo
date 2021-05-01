@@ -33,17 +33,6 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
-
-from . import (
-    COMPONENT_ATTRIBUTION,
-    COMPONENT_BRAND,
-    COMPONENT_CONFIG,
-    COMPONENT_DATA,
-    COMPONENT_DOMAIN,
-    COMPONENT_SERVICES,
-    get_entity_from_domain,
-    is_homekit,
-)
 from pyaarlo.constant import (
     ACTIVITY_STATE_KEY,
     CHARGER_KEY,
@@ -56,6 +45,17 @@ from pyaarlo.constant import (
     PRIVACY_KEY,
     RECENT_ACTIVITY_KEY,
     SIREN_STATE_KEY,
+)
+
+from . import (
+    COMPONENT_ATTRIBUTION,
+    COMPONENT_BRAND,
+    COMPONENT_CONFIG,
+    COMPONENT_DATA,
+    COMPONENT_DOMAIN,
+    COMPONENT_SERVICES,
+    get_entity_from_domain,
+    is_homekit,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -95,15 +95,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     }
 )
 
-CAMERA_SERVICE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids
-    }
-)
+CAMERA_SERVICE_SCHEMA = vol.Schema({vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids})
 CAMERA_SERVICE_SNAPSHOT = CAMERA_SERVICE_SCHEMA.extend(
-    {
-        vol.Required(ATTR_FILENAME): cv.template
-    }
+    {vol.Required(ATTR_FILENAME): cv.template}
 )
 
 SERVICE_REQUEST_SNAPSHOT = "camera_request_snapshot"

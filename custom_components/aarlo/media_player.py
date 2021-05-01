@@ -24,9 +24,9 @@ from homeassistant.const import (
     STATE_PLAYING,
 )
 from homeassistant.core import callback
+from pyaarlo.constant import MEDIA_PLAYER_KEY
 
 from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
-from pyaarlo.constant import MEDIA_PLAYER_KEY
 
 _LOGGER = logging.getLogger(__name__)
 

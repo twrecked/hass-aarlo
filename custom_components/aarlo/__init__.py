@@ -24,9 +24,8 @@ from homeassistant.const import (
 )
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
-from requests.exceptions import ConnectTimeout, HTTPError
-
 from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
+from requests.exceptions import ConnectTimeout, HTTPError
 
 __version__ = "0.7.1b14"
 
@@ -339,7 +338,6 @@ async def async_setup(hass, config):
 
 
 def login(hass, conf):
-
     # Read config
     username = conf.get(CONF_USERNAME)
     password = conf.get(CONF_PASSWORD)
@@ -591,4 +589,3 @@ class ArloCfg(object):
     @property
     def stream_snapshot(self):
         return self._kw.get("stream_snapshot", False)
-

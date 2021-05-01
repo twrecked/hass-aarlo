@@ -40,6 +40,7 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_point_in_time
+from pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
 
 from . import (
     COMPONENT_ATTRIBUTION,
@@ -50,7 +51,6 @@ from . import (
     COMPONENT_SERVICES,
     get_entity_from_domain,
 )
-from pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
