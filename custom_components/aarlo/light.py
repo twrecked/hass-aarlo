@@ -8,17 +8,6 @@ https://home-assistant.io/components/sensor.arlo/
 import logging
 import pprint
 
-from pyaarlo.constant import (
-    BRIGHTNESS_KEY,
-    FLOODLIGHT_KEY,
-    LAMP_STATE_KEY,
-    LIGHT_BRIGHTNESS_KEY,
-    LIGHT_MODE_KEY,
-    NIGHTLIGHT_KEY,
-    SPOTLIGHT_BRIGHTNESS_KEY,
-    SPOTLIGHT_KEY,
-)
-
 import homeassistant.util.color as color_util
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -37,6 +26,17 @@ from homeassistant.const import (
     ATTR_BATTERY_LEVEL,
 )
 from homeassistant.core import callback
+from pyaarlo.constant import (
+    BRIGHTNESS_KEY,
+    FLOODLIGHT_KEY,
+    LAMP_STATE_KEY,
+    LIGHT_BRIGHTNESS_KEY,
+    LIGHT_MODE_KEY,
+    NIGHTLIGHT_KEY,
+    SPOTLIGHT_BRIGHTNESS_KEY,
+    SPOTLIGHT_KEY,
+)
+
 from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
 
 _LOGGER = logging.getLogger(__name__)

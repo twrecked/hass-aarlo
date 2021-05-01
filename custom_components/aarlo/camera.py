@@ -7,22 +7,8 @@ https://home-assistant.io/components/camera.arlo/
 import base64
 import logging
 
-import voluptuous as vol
-from pyaarlo.constant import (
-    ACTIVITY_STATE_KEY,
-    CHARGER_KEY,
-    CHARGING_KEY,
-    CONNECTION_KEY,
-    LAST_IMAGE_DATA_KEY,
-    LAST_IMAGE_KEY,
-    LAST_IMAGE_SRC_KEY,
-    MEDIA_UPLOAD_KEY,
-    PRIVACY_KEY,
-    RECENT_ACTIVITY_KEY,
-    SIREN_STATE_KEY,
-)
-
 import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from haffmpeg.camera import CameraMjpeg
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (
@@ -47,6 +33,20 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
+from pyaarlo.constant import (
+    ACTIVITY_STATE_KEY,
+    CHARGER_KEY,
+    CHARGING_KEY,
+    CONNECTION_KEY,
+    LAST_IMAGE_DATA_KEY,
+    LAST_IMAGE_KEY,
+    LAST_IMAGE_SRC_KEY,
+    MEDIA_UPLOAD_KEY,
+    PRIVACY_KEY,
+    RECENT_ACTIVITY_KEY,
+    SIREN_STATE_KEY,
+)
+
 from . import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
@@ -95,15 +95,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     }
 )
 
-CAMERA_SERVICE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids
-    }
-)
+CAMERA_SERVICE_SCHEMA = vol.Schema({vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids})
 CAMERA_SERVICE_SNAPSHOT = CAMERA_SERVICE_SCHEMA.extend(
-    {
-        vol.Required(ATTR_FILENAME): cv.template
-    }
+    {vol.Required(ATTR_FILENAME): cv.template}
 )
 
 SERVICE_REQUEST_SNAPSHOT = "camera_request_snapshot"
@@ -352,8 +346,8 @@ class ArloCam(Camera):
             # Trigger snapshot/capture/image updated events
             if attr == LAST_IMAGE_SRC_KEY:
                 if (
-                        self._last_image_source_ is not None
-                        and self._last_image_source_ != value
+                    self._last_image_source_ is not None
+                    and self._last_image_source_ != value
                 ):
                     if value.startswith("snapshot/"):
                         _LOGGER.debug("{0} snapshot updated".format(self._unique_id))
