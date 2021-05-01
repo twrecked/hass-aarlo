@@ -28,7 +28,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 
 from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
-from .pyaarlo.constant import (
+from pyaarlo.constant import (
     BRIGHTNESS_KEY,
     FLOODLIGHT_KEY,
     LAMP_STATE_KEY,

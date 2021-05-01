@@ -44,12 +44,13 @@ from homeassistant.helpers.event import track_point_in_time
 from . import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
+    COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
     get_entity_from_domain,
 )
-from .pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
+from pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -173,7 +174,8 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         )
 
     # Deprecated Services.
-    if not arlo.cfg.hide_deprecated_services:
+    arlo_cfg = hass.data[COMPONENT_CONFIG]
+    if not arlo_cfg.hide_deprecated_services:
         component = hass.data[DOMAIN]
         component.async_register_entity_service(
             OLD_SERVICE_MODE, SERVICE_MODE_SCHEMA, aarlo_mode_service_handler

@@ -26,7 +26,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from requests.exceptions import ConnectTimeout, HTTPError
 
-from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
+from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
 __version__ = "0.7.1b14"
 
@@ -36,6 +36,7 @@ DOMAIN = "aarlo"
 COMPONENT_DOMAIN = "aarlo"
 COMPONENT_DATA = "aarlo-data"
 COMPONENT_SERVICES = "aarlo-services"
+COMPONENT_CONFIG = "aarlo-config"
 COMPONENT_ATTRIBUTION = "Data provided by my.arlo.com"
 COMPONENT_BRAND = "Netgear Arlo"
 
@@ -247,6 +248,9 @@ async def async_setup(hass, config):
     # Read config
     conf = config[COMPONENT_DOMAIN]
     injection_service = conf.get(CONF_INJECTION_SERVICE)
+    hide_deprecated_services = conf.get(CONF_HIDE_DEPRECATED_SERVICES)
+    save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
+    stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
 
     # Fix up streaming...
     patch_file = hass.config.config_dir + "/aarlo.patch"
@@ -261,6 +265,11 @@ async def async_setup(hass, config):
 
     hass.data[COMPONENT_DATA] = arlo
     hass.data[COMPONENT_SERVICES] = {}
+    hass.data[COMPONENT_CONFIG] = ArloCfg(
+        hide_deprecated_services=hide_deprecated_services,
+        save_updates_to=save_updates_to,
+        stream_snapshot=stream_snapshot,
+    )
 
     # Component services
     has_sirens = False
@@ -381,7 +390,7 @@ def login(hass, conf):
     while True:
 
         try:
-            from .pyaarlo import PyArlo
+            from pyaarlo import PyArlo
 
             if attempt != 1:
                 _LOGGER.debug(f"login-attempt={attempt}")
@@ -552,3 +561,34 @@ def aarlo_inject_response(hass, call):
     if packet is not None:
         _LOGGER.debug("injecting->{}".format(pprint.pformat(packet)))
         hass.data[COMPONENT_DATA].inject_response(packet)
+
+
+class ArloCfg(object):
+    """Helper class to get at Arlo configuration options.
+
+    I got sick of adding in variables each time the config changed so I moved it all here. Config
+    is passed in a kwarg and parsed out by the property methods.
+
+    """
+
+    def __init__(self, **kwargs):
+        """The constructor.
+
+        Args:
+            kwargs (kwargs): Configuration options.
+
+        """
+        self._kw = kwargs
+
+    @property
+    def hide_deprecated_services(self):
+        return self._kw.get("hide_deprecated_services", False)
+
+    @property
+    def save_updates_to(self):
+        return self._kw.get("save_updates_to", "")
+
+    @property
+    def stream_snapshot(self):
+        return self._kw.get("stream_snapshot", False)
+

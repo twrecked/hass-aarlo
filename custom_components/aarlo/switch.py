@@ -17,7 +17,7 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_point_in_time
 
 from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
-from .pyaarlo.constant import ACTIVITY_STATE_KEY, SILENT_MODE_KEY, SIREN_STATE_KEY
+from pyaarlo.constant import ACTIVITY_STATE_KEY, SILENT_MODE_KEY, SIREN_STATE_KEY
 
 _LOGGER = logging.getLogger(__name__)
 

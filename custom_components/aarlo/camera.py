@@ -37,13 +37,14 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from . import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
+    COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
     get_entity_from_domain,
     is_homekit,
 )
-from .pyaarlo.constant import (
+from pyaarlo.constant import (
     ACTIVITY_STATE_KEY,
     CHARGER_KEY,
     CHARGING_KEY,
@@ -201,11 +202,12 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
 async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP Camera."""
     arlo = hass.data[COMPONENT_DATA]
+    arlo_cfg = hass.data[COMPONENT_CONFIG]
 
     cameras = []
     cameras_with_siren = False
     for camera in arlo.cameras:
-        cameras.append(ArloCam(camera, config, arlo, hass))
+        cameras.append(ArloCam(camera, config, arlo, arlo_cfg, hass))
         if camera.has_capability(SIREN_STATE_KEY):
             cameras_with_siren = True
 
@@ -272,7 +274,8 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         )
 
     # Deprecated Services.
-    if not arlo.cfg.hide_deprecated_services:
+    arlo_cfg = hass.data[COMPONENT_CONFIG]
+    if not arlo_cfg.hide_deprecated_services:
         component = hass.data[DOMAIN]
         component.async_register_entity_service(
             OLD_SERVICE_REQUEST_SNAPSHOT,
@@ -342,7 +345,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
-    def __init__(self, camera, config, arlo, hass):
+    def __init__(self, camera, config, arlo, arlo_cfg, hass):
         """Initialize an Arlo camera."""
         super().__init__()
         self._name = camera.name
@@ -352,8 +355,8 @@ class ArloCam(Camera):
         self._recent = False
         self._last_image_source_ = None
         self._motion_status = False
-        self._stream_snapshot = arlo.cfg.stream_snapshot
-        self._save_updates_to = arlo.cfg.save_updates_to
+        self._stream_snapshot = arlo_cfg.stream_snapshot
+        self._save_updates_to = arlo_cfg.save_updates_to
         self._ffmpeg = hass.data[DATA_FFMPEG]
         self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info("ArloCam: %s created", self._name)
