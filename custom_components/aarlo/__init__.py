@@ -13,9 +13,6 @@ from datetime import timedelta
 from traceback import extract_stack
 
 import voluptuous as vol
-from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
-from requests.exceptions import ConnectTimeout, HTTPError
-
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.const import (
@@ -27,6 +24,8 @@ from homeassistant.const import (
 )
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
+from requests.exceptions import ConnectTimeout, HTTPError
 
 __version__ = "0.8.0a1"
 
@@ -148,12 +147,6 @@ CONFIG_SCHEMA = vol.Schema(
                     CONF_DEVICE_REFRESH, default=DEVICE_REFRESH
                 ): cv.positive_int,
                 vol.Optional(CONF_MODE_REFRESH, default=MODE_REFRESH): cv.positive_int,
-                vol.Optional(
-                    CONF_HTTP_CONNECTIONS, default=HTTP_CONNECTIONS
-                ): cv.positive_int,
-                vol.Optional(
-                    CONF_HTTP_MAX_SIZE, default=HTTP_MAX_SIZE
-                ): cv.positive_int,
                 vol.Optional(
                     CONF_RECONNECT_EVERY, default=RECONNECT_EVERY
                 ): cv.positive_int,

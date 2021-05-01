@@ -9,11 +9,9 @@ import re
 import time
 from datetime import timedelta
 
-import voluptuous as vol
-from pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
-
 import homeassistant.helpers.config_validation as cv
 import homeassistant.util.dt as dt_util
+import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.alarm_control_panel import (
     DOMAIN,
@@ -42,6 +40,8 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_point_in_time
+from pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
+
 from . import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
@@ -236,10 +236,10 @@ class ArloBaseStation(AlarmControlPanelEntity):
     def supported_features(self) -> int:
         """Return the list of supported features."""
         return (
-                SUPPORT_ALARM_ARM_HOME
-                | SUPPORT_ALARM_ARM_AWAY
-                | SUPPORT_ALARM_ARM_NIGHT
-                | SUPPORT_ALARM_TRIGGER
+            SUPPORT_ALARM_ARM_HOME
+            | SUPPORT_ALARM_ARM_AWAY
+            | SUPPORT_ALARM_ARM_NIGHT
+            | SUPPORT_ALARM_TRIGGER
         )
 
     @property

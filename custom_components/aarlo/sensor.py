@@ -6,7 +6,19 @@ https://home-assistant.io/components/sensor.arlo/
 """
 import logging
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+from homeassistant.const import (
+    ATTR_ATTRIBUTION,
+    CONF_MONITORED_CONDITIONS,
+    DEVICE_CLASS_HUMIDITY,
+    DEVICE_CLASS_TEMPERATURE,
+    TEMP_CELSIUS,
+)
+from homeassistant.core import callback
+from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
+from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.icon import icon_for_battery_level
 from pyaarlo.constant import (
     AIR_QUALITY_KEY,
     BATTERY_KEY,
@@ -19,18 +31,6 @@ from pyaarlo.constant import (
     TOTAL_CAMERAS_KEY,
 )
 
-import homeassistant.helpers.config_validation as cv
-from homeassistant.const import (
-    ATTR_ATTRIBUTION,
-    CONF_MONITORED_CONDITIONS,
-    DEVICE_CLASS_HUMIDITY,
-    DEVICE_CLASS_TEMPERATURE,
-    TEMP_CELSIUS,
-)
-from homeassistant.core import callback
-from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
-from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.icon import icon_for_battery_level
 from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -99,8 +99,8 @@ class ArloSensor(Entity):
             self._name = "{0} {1}".format(sensor_details[0], device.name)
             self._unique_id = (
                 "{0}_{1}".format(sensor_details[0], device.entity_id)
-                    .lower()
-                    .replace(" ", "_")
+                .lower()
+                .replace(" ", "_")
             )
             self._device = device
 
