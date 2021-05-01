@@ -7,8 +7,22 @@ https://home-assistant.io/components/camera.arlo/
 import base64
 import logging
 
-import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+from pyaarlo.constant import (
+    ACTIVITY_STATE_KEY,
+    CHARGER_KEY,
+    CHARGING_KEY,
+    CONNECTION_KEY,
+    LAST_IMAGE_DATA_KEY,
+    LAST_IMAGE_KEY,
+    LAST_IMAGE_SRC_KEY,
+    MEDIA_UPLOAD_KEY,
+    PRIVACY_KEY,
+    RECENT_ACTIVITY_KEY,
+    SIREN_STATE_KEY,
+)
+
+import homeassistant.helpers.config_validation as cv
 from haffmpeg.camera import CameraMjpeg
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (
@@ -33,7 +47,6 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
-
 from . import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
@@ -43,19 +56,6 @@ from . import (
     COMPONENT_SERVICES,
     get_entity_from_domain,
     is_homekit,
-)
-from pyaarlo.constant import (
-    ACTIVITY_STATE_KEY,
-    CHARGER_KEY,
-    CHARGING_KEY,
-    CONNECTION_KEY,
-    LAST_IMAGE_DATA_KEY,
-    LAST_IMAGE_KEY,
-    LAST_IMAGE_SRC_KEY,
-    MEDIA_UPLOAD_KEY,
-    PRIVACY_KEY,
-    RECENT_ACTIVITY_KEY,
-    SIREN_STATE_KEY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -390,8 +390,8 @@ class ArloCam(Camera):
             # Trigger snapshot/capture/image updated events
             if attr == LAST_IMAGE_SRC_KEY:
                 if (
-                    self._last_image_source_ is not None
-                    and self._last_image_source_ != value
+                        self._last_image_source_ is not None
+                        and self._last_image_source_ != value
                 ):
                     if value.startswith("snapshot/"):
                         _LOGGER.debug("{0} snapshot updated".format(self._unique_id))

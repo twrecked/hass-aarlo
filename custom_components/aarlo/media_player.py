@@ -2,6 +2,8 @@
 import logging
 from abc import ABC
 
+from pyaarlo.constant import MEDIA_PLAYER_KEY
+
 from homeassistant.components.media_player import (
     DEVICE_CLASS_SPEAKER,
     MediaPlayerEntity,
@@ -24,21 +26,19 @@ from homeassistant.const import (
     STATE_PLAYING,
 )
 from homeassistant.core import callback
-
 from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
-from pyaarlo.constant import MEDIA_PLAYER_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
 SUPPORT_ARLO = (
-    SUPPORT_PAUSE
-    | SUPPORT_PLAY_MEDIA
-    | SUPPORT_PLAY
-    | SUPPORT_PREVIOUS_TRACK
-    | SUPPORT_NEXT_TRACK
-    | SUPPORT_SHUFFLE_SET
-    | SUPPORT_VOLUME_MUTE
-    | SUPPORT_VOLUME_SET
+        SUPPORT_PAUSE
+        | SUPPORT_PLAY_MEDIA
+        | SUPPORT_PLAY
+        | SUPPORT_PREVIOUS_TRACK
+        | SUPPORT_NEXT_TRACK
+        | SUPPORT_SHUFFLE_SET
+        | SUPPORT_VOLUME_MUTE
+        | SUPPORT_VOLUME_SET
 )
 
 """ Unsupported features:

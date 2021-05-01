@@ -6,14 +6,7 @@ https://home-assistant.io/components/sensor.arlo/
 """
 import logging
 
-import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.const import ATTR_ATTRIBUTION, CONF_MONITORED_CONDITIONS
-from homeassistant.core import callback
-from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
-
-from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
 from pyaarlo.constant import (
     AUDIO_DETECTED_KEY,
     BUTTON_PRESSED_KEY,
@@ -22,6 +15,13 @@ from pyaarlo.constant import (
     MOTION_DETECTED_KEY,
     SILENT_MODE_KEY,
 )
+
+import homeassistant.helpers.config_validation as cv
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.const import ATTR_ATTRIBUTION, CONF_MONITORED_CONDITIONS
+from homeassistant.core import callback
+from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
+from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
