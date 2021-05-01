@@ -273,44 +273,6 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             schema=CAMERA_SERVICE_SCHEMA,
         )
 
-    # Deprecated Services.
-    arlo_cfg = hass.data[COMPONENT_CONFIG]
-    if not arlo_cfg.hide_deprecated_services:
-        component = hass.data[DOMAIN]
-        component.async_register_entity_service(
-            OLD_SERVICE_REQUEST_SNAPSHOT,
-            CAMERA_SERVICE_SCHEMA,
-            aarlo_snapshot_service_handler,
-        )
-        component.async_register_entity_service(
-            OLD_SERVICE_REQUEST_SNAPSHOT_TO_FILE,
-            CAMERA_SERVICE_SNAPSHOT,
-            aarlo_snapshot_to_file_service_handler,
-        )
-        component.async_register_entity_service(
-            OLD_SERVICE_REQUEST_VIDEO_TO_FILE,
-            CAMERA_SERVICE_SNAPSHOT,
-            aarlo_video_to_file_service_handler,
-        )
-        component.async_register_entity_service(
-            OLD_SERVICE_STOP_ACTIVITY,
-            CAMERA_SERVICE_SCHEMA,
-            aarlo_stop_activity_handler,
-        )
-        if cameras_with_siren:
-            component.async_register_entity_service(
-                OLD_SERVICE_SIREN_ON, SIREN_ON_SCHEMA, aarlo_siren_on_service_handler
-            )
-            component.async_register_entity_service(
-                OLD_SERVICE_SIREN_OFF, SIREN_OFF_SCHEMA, aarlo_siren_off_service_handler
-            )
-        component.async_register_entity_service(
-            OLD_SERVICE_RECORD_START, RECORD_START_SCHEMA, aarlo_start_recording_handler
-        )
-        component.async_register_entity_service(
-            OLD_SERVICE_RECORD_STOP, CAMERA_SERVICE_SCHEMA, aarlo_stop_recording_handler
-        )
-
     # Websockets
     hass.components.websocket_api.async_register_command(
         WS_TYPE_VIDEO_URL, websocket_video_url, SCHEMA_WS_VIDEO_URL

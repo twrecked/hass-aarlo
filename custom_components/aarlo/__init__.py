@@ -63,7 +63,6 @@ CONF_HTTP_CONNECTIONS = "http_connections"
 CONF_HTTP_MAX_SIZE = "http_max_size"
 CONF_RECONNECT_EVERY = "reconnect_every"
 CONF_VERBOSE_DEBUG = "verbose_debug"
-CONF_HIDE_DEPRECATED_SERVICES = "hide_deprecated_services"
 CONF_INJECTION_SERVICE = "injection_service"
 CONF_SNAPSHOT_TIMEOUT = "snapshot_timeout"
 CONF_TFA_SOURCE = "tfa_source"
@@ -102,7 +101,6 @@ HTTP_CONNECTIONS = 5
 HTTP_MAX_SIZE = 10
 RECONNECT_EVERY = 0
 VERBOSE_DEBUG = False
-HIDE_DEPRECATED_SERVICES = False
 DEFAULT_INJECTION_SERVICE = False
 SNAPSHOT_TIMEOUT = timedelta(seconds=45)
 DEFAULT_TFA_SOURCE = "imap"
@@ -162,9 +160,6 @@ CONFIG_SCHEMA = vol.Schema(
                     CONF_RECONNECT_EVERY, default=RECONNECT_EVERY
                 ): cv.positive_int,
                 vol.Optional(CONF_VERBOSE_DEBUG, default=VERBOSE_DEBUG): cv.boolean,
-                vol.Optional(
-                    CONF_HIDE_DEPRECATED_SERVICES, default=HIDE_DEPRECATED_SERVICES
-                ): cv.boolean,
                 vol.Optional(
                     CONF_INJECTION_SERVICE, default=DEFAULT_INJECTION_SERVICE
                 ): cv.boolean,
@@ -248,7 +243,6 @@ async def async_setup(hass, config):
     # Read config
     conf = config[COMPONENT_DOMAIN]
     injection_service = conf.get(CONF_INJECTION_SERVICE)
-    hide_deprecated_services = conf.get(CONF_HIDE_DEPRECATED_SERVICES)
     save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
     stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
 
@@ -266,7 +260,6 @@ async def async_setup(hass, config):
     hass.data[COMPONENT_DATA] = arlo
     hass.data[COMPONENT_SERVICES] = {}
     hass.data[COMPONENT_CONFIG] = ArloCfg(
-        hide_deprecated_services=hide_deprecated_services,
         save_updates_to=save_updates_to,
         stream_snapshot=stream_snapshot,
     )
@@ -364,7 +357,6 @@ def login(hass, conf):
     http_max_size = conf.get(CONF_HTTP_MAX_SIZE)
     reconnect_every = conf.get(CONF_RECONNECT_EVERY)
     verbose_debug = conf.get(CONF_VERBOSE_DEBUG)
-    hide_deprecated_services = conf.get(CONF_HIDE_DEPRECATED_SERVICES)
     snapshot_timeout = conf.get(CONF_SNAPSHOT_TIMEOUT).total_seconds()
     tfa_source = conf.get(CONF_TFA_SOURCE)
     tfa_type = conf.get(CONF_TFA_TYPE)
@@ -418,7 +410,6 @@ def login(hass, conf):
                 reconnect_every=reconnect_every,
                 http_connections=http_connections,
                 http_max_size=http_max_size,
-                hide_deprecated_services=hide_deprecated_services,
                 snapshot_timeout=snapshot_timeout,
                 tfa_source=tfa_source,
                 tfa_type=tfa_type,
@@ -578,10 +569,6 @@ class ArloCfg(object):
 
         """
         self._kw = kwargs
-
-    @property
-    def hide_deprecated_services(self):
-        return self._kw.get("hide_deprecated_services", False)
 
     @property
     def save_updates_to(self):
