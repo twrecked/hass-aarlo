@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.1: Remove double connected doorbell entity.
 0.7.1b15: Allow quoted printable in tfa email from Arlo.
 0.7.1b14: Fix for Home Assistant beta.
 0.7.1b13: Fix wirefree doorbell duplicate entries.

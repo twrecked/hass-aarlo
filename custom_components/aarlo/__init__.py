@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.1b15"
+__version__ = "0.7.1"
 
 _LOGGER = logging.getLogger(__name__)
 
