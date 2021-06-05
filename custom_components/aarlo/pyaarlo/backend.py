@@ -5,6 +5,7 @@ import threading
 import time
 import traceback
 import uuid
+import pickle
 
 import cloudscraper
 import requests
@@ -20,6 +21,8 @@ from .constant import (
     DEVICES_PATH,
     LOGOUT_PATH,
     NOTIFY_PATH,
+    ORIGIN_HOST,
+    REFERER_HOST,
     SESSION_PATH,
     SUBSCRIBE_PATH,
     TFA_CONSOLE_SOURCE,
@@ -30,7 +33,7 @@ from .constant import (
 )
 from .sseclient import SSEClient
 from .tfa import Arlo2FAConsole, Arlo2FAImap, Arlo2FARestAPI
-from .util import now_strftime, time_to_arlotime, to_b64
+from .util import now_strftime, time_to_arlotime, to_b64, days_until
 
 
 # include token and session details
@@ -47,10 +50,7 @@ class ArloBackEnd(object):
         self._callbacks = {}
         self._resource_types = DEFAULT_RESOURCES
 
-        self._token = None
-        self._user_id = None
-        self._web_id = None
-        self._sub_id = None
+        self._load_session()
 
         self._ev_stream = None
 
@@ -68,6 +68,43 @@ class ArloBackEnd(object):
         if self._arlo.cfg.reconnect_every != 0:
             self._arlo.debug("automatically reconnecting")
             self._arlo.bg.run_every(self.logout, self._arlo.cfg.reconnect_every)
+
+    def _load_session(self):
+        self._user_id = None
+        self._web_id = None
+        self._sub_id = None
+        self._token = None
+        self._expires_in = 0
+        if not self._arlo.cfg.save_session:
+            return
+        try:
+            with open(self._arlo.cfg.session_file, "rb") as dump:
+                session_info = pickle.load(dump)
+                self._user_id = session_info["user_id"]
+                self._web_id = session_info["web_id"]
+                self._sub_id = session_info["sub_id"]
+                self._token = session_info['token']
+                self._expires_in = session_info['expires_in']
+                self._arlo.debug(f"load:session_info={session_info}")
+        except Exception:
+            self._arlo.debug("session file not read")
+
+    def _save_session(self):
+        if not self._arlo.cfg.save_session:
+            return
+        try:
+            with open(self._arlo.cfg.session_file, "wb") as dump:
+                session_info = {
+                    "user_id": self._user_id,
+                    "web_id": self._web_id,
+                    "sub_id": self._sub_id,
+                    "token": self._token,
+                    "expires_in": self._expires_in,
+                }
+                pickle.dump(session_info, dump)
+                self._arlo.debug(f"save:session_info={session_info}")
+        except Exception as e:
+            self._arlo.warning("session file not written" + str(e))
 
     def _request(
         self,
@@ -272,13 +309,16 @@ class ArloBackEnd(object):
 
             # stopped?
             if event is None:
-                with self._lock:
-                    self._ev_connected_ = False
-                    self._lock.notify_all()
+                self._arlo.debug("reopening: no event")
                 break
 
             # dig out response, print out verbose debug
-            response = json.loads(event.data)
+            try:
+                response = json.loads(event.data)
+            except json.decoder.JSONDecodeError as e:
+                self._arlo.debug("reopening: json error " + str(e))
+                break
+
             if self._dump_file is not None:
                 with open(self._dump_file, "a") as dump:
                     time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
@@ -293,10 +333,6 @@ class ArloBackEnd(object):
 
             # logged out? signal exited
             if response.get("action") == "logout":
-                with self._lock:
-                    self._ev_connected_ = False
-                    self._requests = {}
-                    self._lock.notify_all()
                 self._arlo.warning("logged out? did you log in from elsewhere?")
                 break
 
@@ -397,6 +433,12 @@ class ArloBackEnd(object):
                     )
                 )
 
+            # clear down and signal out
+            with self._lock:
+                self._ev_connected_ = False
+                self._requests = {}
+                self._lock.notify_all()
+
             # restart login...
             self._ev_stream = None
             self._logged_in = False
@@ -436,14 +478,16 @@ class ArloBackEnd(object):
         self._user_id = body["userId"]
         self._web_id = self._user_id + "_web"
         self._sub_id = "subscriptions/" + self._web_id
+        self._expires_in = body["expiresIn"]
 
     def _auth(self):
         headers = {
-            "Auth-Version": "2",
             "Accept": "application/json, text/plain, */*",
-            "Referer": self._arlo.cfg.host,
-            "User-Agent": self._user_agent,
+            "Accept-Language": "en-US,en;q=0.9",
+            "Origin": ORIGIN_HOST,
+            "Referer": REFERER_HOST,
             "Source": "arloCamWeb",
+            "User-Agent": self._user_agent,
         }
 
         # Handle 1015 error
@@ -571,12 +615,13 @@ class ArloBackEnd(object):
 
     def _validate(self):
         headers = {
-            "Auth-Version": "2",
             "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US,en;q=0.9",
             "Authorization": self._token64,
-            "Referer": self._arlo.cfg.host,
+            "Origin": ORIGIN_HOST,
+            "Referer": REFERER_HOST,
             "User-Agent": self._user_agent,
-            "Source": "arloCamWeb",
+            "Source": "arloCamWeb"
         }
 
         # Validate it!
@@ -600,46 +645,43 @@ class ArloBackEnd(object):
         # pickup user configured user agent
         self._user_agent = self.user_agent(self._arlo.cfg.user_agent)
 
-        # set up session
-        self._session = cloudscraper.create_scraper()
-        #  if self._arlo.cfg.http_connections != 0 and self._arlo.cfg.http_max_size != 0:
-        #  self._arlo.debug(
-        #  "custom connections {}:{}".format(
-        #  self._arlo.cfg.http_connections, self._arlo.cfg.http_max_size
-        #  )
-        #  )
-        #  self._session.mount(
-        #  "https://",
-        #  requests.adapters.HTTPAdapter(
-        #  pool_connections=self._arlo.cfg.http_connections,
-        #  pool_maxsize=self._arlo.cfg.http_max_size,
-        #  ),
-        #  )
+        # If token looks invalid we'll try the whole process.
+        get_new_session = days_until(self._expires_in) < 2
+        if get_new_session:
+            self._session = cloudscraper.create_scraper()
+            self._arlo.debug("oldish session, getting a new one")
+            if not self._auth():
+                return False
+            if not self._validate():
+                return False
+            self._save_session()
 
-        if not self._auth():
-            return False
-
-        if not self._validate():
-            return False
+        else:
+            self._session = requests.session()
+            self._arlo.debug("newish sessions, re-using")
 
         # update sessions headers
         headers = {
-            "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
+            "Accept": "application/json",
+            "Accept-Language": "en-US,en;q=0.9",
             "Auth-Version": "2",
-            "Cache-Control": "no-cache",
-            "SchemaVersion": "1",
-            "Host": re.sub("https?://", "", self._arlo.cfg.host),
-            "Content-Type": "application/json; charset=utf-8;",
-            "Origin": self._arlo.cfg.host,
-            "Pragma": "no-cache",
-            "Referer": self._arlo.cfg.host,
-            "User-Agent": self._user_agent,
             "Authorization": self._token,
+            "Content-Type": "application/json; charset=utf-8;",
+            "Origin": ORIGIN_HOST,
+            "Pragma": "no-cache",
+            "Referer": REFERER_HOST,
+            "Source": "arloCamWeb",
+            "User-Agent": self._user_agent,
         }
         self._session.headers.update(headers)
 
+        # Grab a session. Needed for new session and used to check existing
+        # session. (May not really be needed for existing but will fail faster.)
         if not self._v2_session():
+            if not get_new_session:
+                self._expires_in = 0
+                self._token = None
+                return self._login()
             return False
         return True
 
