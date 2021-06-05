@@ -1,4 +1,7 @@
-DEFAULT_HOST = "https://my.arlo.com"
+DEFAULT_HOST = "https://myapi.arlo.com"
+
+ORIGIN_HOST = "https://my.arlo.com"
+REFERER_HOST = "https://my.arlo.com/"
 
 DEVICES_PATH = "/hmsweb/users/devices"
 DEFINITIONS_PATH = "/hmsweb/users/automation/definitions"

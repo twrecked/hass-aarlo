@@ -79,6 +79,7 @@ CONF_SAVE_UPDATES_TO = "save_updates_to"
 CONF_USER_STREAM_DELAY = "user_stream_delay"
 CONF_SAVE_MEDIA_TO = "save_media_to"
 CONF_NO_UNICODE_SQUASH = "no_unicode_squash"
+CONF_SAVE_SESSION = "save_session"
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -117,6 +118,7 @@ SAVE_UPDATES_TO = ""
 USER_STREAM_DELAY = 1
 SAVE_MEDIA_TO = ""
 NO_UNICODE_SQUASH = True
+SAVE_SESSION = True
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -195,6 +197,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_NO_UNICODE_SQUASH, default=NO_UNICODE_SQUASH
                 ): cv.boolean,
+                vol.Optional(CONF_SAVE_SESSION, default=SAVE_SESSION): cv.boolean,
             }
         ),
     },
@@ -371,6 +374,7 @@ def login(hass, conf):
     save_media_to = conf.get(CONF_SAVE_MEDIA_TO)
     user_stream_delay = conf.get(CONF_USER_STREAM_DELAY)
     no_unicode_squash = conf.get(CONF_NO_UNICODE_SQUASH)
+    save_session = conf.get(CONF_SAVE_SESSION)
 
     # Fix up config
     if conf_dir == "":
@@ -425,6 +429,7 @@ def login(hass, conf):
                 user_stream_delay=user_stream_delay,
                 no_unicode_squash=no_unicode_squash,
                 save_media_to=save_media_to,
+                save_session=save_session,
                 wait_for_initial_setup=False,
                 verbose_debug=verbose_debug,
             )

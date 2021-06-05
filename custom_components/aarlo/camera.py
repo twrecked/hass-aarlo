@@ -94,15 +94,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     }
 )
 
-CAMERA_SERVICE_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids
-    }
-)
+CAMERA_SERVICE_SCHEMA = vol.Schema({vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids})
 CAMERA_SERVICE_SNAPSHOT = CAMERA_SERVICE_SCHEMA.extend(
-    {
-        vol.Required(ATTR_FILENAME): cv.template
-    }
+    {vol.Required(ATTR_FILENAME): cv.template}
 )
 
 SERVICE_REQUEST_SNAPSHOT = "camera_request_snapshot"

@@ -40,6 +40,14 @@ def now_strftime(date_format="%Y-%m-%dT%H:%M:%S"):
     return datetime.now().strftime(date_format)
 
 
+def days_until(when):
+    now = datetime.now()
+    when = datetime.utcfromtimestamp(when)
+    if when <= now:
+        return 0
+    return (when - now).days
+
+
 def httptime_to_datetime(http_timestamp):
     """Convert HTTP timestamp to Python datetime."""
     return utc_to_local(datetime.strptime(http_timestamp, "%a, %d %b %Y %H:%M:%S GMT"))

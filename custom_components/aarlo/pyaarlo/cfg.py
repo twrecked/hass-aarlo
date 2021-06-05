@@ -31,7 +31,7 @@ class ArloCfg(object):
 
     @property
     def storage_dir(self):
-        return self._kw.get("storage_dir", "/config/.aarlo")
+        return self._kw.get("storage_dir", "/tmp/.aarlo")
 
     @property
     def name(self):
@@ -198,6 +198,15 @@ class ArloCfg(object):
         if self.save_state:
             return self.storage_dir + "/" + self.name + ".pickle"
         return None
+
+    @property
+    def session_file(self):
+        return self.storage_dir + "/session.pickle"
+        return None
+
+    @property
+    def save_session(self):
+        return self._kw.get("save_session", True)
 
     @property
     def dump_file(self):
