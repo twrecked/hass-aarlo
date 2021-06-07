@@ -1,11 +1,11 @@
 import json
+import pickle
 import pprint
 import re
 import threading
 import time
 import traceback
 import uuid
-import pickle
 
 import cloudscraper
 import requests
@@ -33,7 +33,7 @@ from .constant import (
 )
 from .sseclient import SSEClient
 from .tfa import Arlo2FAConsole, Arlo2FAImap, Arlo2FARestAPI
-from .util import now_strftime, time_to_arlotime, to_b64, days_until
+from .util import days_until, now_strftime, time_to_arlotime, to_b64
 
 
 # include token and session details
@@ -83,8 +83,8 @@ class ArloBackEnd(object):
                 self._user_id = session_info["user_id"]
                 self._web_id = session_info["web_id"]
                 self._sub_id = session_info["sub_id"]
-                self._token = session_info['token']
-                self._expires_in = session_info['expires_in']
+                self._token = session_info["token"]
+                self._expires_in = session_info["expires_in"]
                 self._arlo.debug(f"load:session_info={session_info}")
         except Exception:
             self._arlo.debug("session file not read")
@@ -621,7 +621,7 @@ class ArloBackEnd(object):
             "Origin": ORIGIN_HOST,
             "Referer": REFERER_HOST,
             "User-Agent": self._user_agent,
-            "Source": "arloCamWeb"
+            "Source": "arloCamWeb",
         }
 
         # Validate it!

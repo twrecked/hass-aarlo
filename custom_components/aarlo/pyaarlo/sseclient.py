@@ -13,7 +13,7 @@ import warnings
 
 import requests
 
-__version__ = '0.0.27'
+__version__ = "0.0.27"
 
 # Technically, we should support streams that mix line endings.  This regex,
 # however, assumes that a system will provide consistent line endings.
@@ -59,7 +59,7 @@ class SSEClient(object):
         self.requests_kwargs["headers"]["host"] = None
 
         # Keep data here as it streams in
-        self.buf = u""
+        self.buf = ""
 
         self._connect()
 
@@ -75,7 +75,7 @@ class SSEClient(object):
         self.resp = requester.get(self.url, stream=True, **self.requests_kwargs)
         self.resp_iterator = self.iter_content()
         encoding = self.resp.encoding or self.resp.apparent_encoding
-        self.decoder = codecs.getincrementaldecoder(encoding)(errors='replace')
+        self.decoder = codecs.getincrementaldecoder(encoding)(errors="replace")
 
         # TODO: Ensure we're handling redirects.  Might also stick the 'origin'
         # attribute on Events like the Javascript spec requires.
@@ -84,10 +84,12 @@ class SSEClient(object):
     def iter_content(self):
         def generate():
             while True:
-                if hasattr(self.resp.raw, '_fp') and \
-                        hasattr(self.resp.raw._fp, 'fp') and \
-                        hasattr(self.resp.raw._fp.fp, 'read1') and \
-                        not self.resp.raw.chunked:
+                if (
+                    hasattr(self.resp.raw, "_fp")
+                    and hasattr(self.resp.raw._fp, "fp")
+                    and hasattr(self.resp.raw._fp.fp, "read1")
+                    and not self.resp.raw.chunked
+                ):
                     chunk = self.resp.raw._fp.fp.read1(self.chunk_size)
                 else:
                     # _fp is not available or we are using chunked encoding

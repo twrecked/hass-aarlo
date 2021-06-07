@@ -197,9 +197,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_NO_UNICODE_SQUASH, default=NO_UNICODE_SQUASH
                 ): cv.boolean,
-                vol.Optional(
-                    CONF_SAVE_SESSION, default=SAVE_SESSION
-                ): cv.boolean,
+                vol.Optional(CONF_SAVE_SESSION, default=SAVE_SESSION): cv.boolean,
             }
         ),
     },
