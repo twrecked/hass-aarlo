@@ -940,7 +940,7 @@ PUSH 2FA Arlo is used when account is set for 2FA to phone app.
 aarlo:
   tfa_source: push
   tfa_type: PUSH
-  tfa_reties: 5 # optional: default 5; attempts to check for push approved
+  tfa_retries: 5 # optional: default 5; attempts to check for push approved
   tfa_delay: 5 # optional: default 5; seconds of delay between retries
 ```
 
