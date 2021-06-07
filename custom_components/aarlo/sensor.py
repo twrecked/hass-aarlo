@@ -19,9 +19,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
-
-from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
-from .pyaarlo.constant import (
+from pyaarlo.constant import (
     AIR_QUALITY_KEY,
     BATTERY_KEY,
     CAPTURED_TODAY_KEY,
@@ -32,6 +30,8 @@ from .pyaarlo.constant import (
     TEMPERATURE_KEY,
     TOTAL_CAMERAS_KEY,
 )
+
+from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 

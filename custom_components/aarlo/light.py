@@ -26,9 +26,7 @@ from homeassistant.const import (
     ATTR_BATTERY_LEVEL,
 )
 from homeassistant.core import callback
-
-from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
-from .pyaarlo.constant import (
+from pyaarlo.constant import (
     BRIGHTNESS_KEY,
     FLOODLIGHT_KEY,
     LAMP_STATE_KEY,
@@ -38,6 +36,8 @@ from .pyaarlo.constant import (
     SPOTLIGHT_BRIGHTNESS_KEY,
     SPOTLIGHT_KEY,
 )
+
+from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
 
 _LOGGER = logging.getLogger(__name__)
 
