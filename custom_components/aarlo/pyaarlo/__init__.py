@@ -148,7 +148,8 @@ class PyArlo(object):
         # Create storage/scratch directory.
         if self._cfg.save_state or self._cfg.dump or self._cfg.save_session:
             try:
-                os.mkdir(self._cfg.storage_dir)
+                if not os.path.exists(self._cfg.storage_dir):
+                    os.mkdir(self._cfg.storage_dir)
             except Exception:
                 self.warning(f"Problem creating {self._cfg.storage_dir}")
 
