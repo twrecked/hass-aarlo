@@ -4,10 +4,14 @@
 ## Breaking Changes in 0.8
 
 The following options have been removed:
-- `hide_deprecated_services`; all component services are no in the `aarlo` 
+- `hide_deprecated_services`; all component services are now in the `aarlo` 
   domain.
 - `http_connections`; no longer used after `cloudscraper` was needed
 - `http_max_size`; no longer used after `cloudscraper` was needed
+
+The code will retry authorization tokens for as long as they are valid. This 
+means a reduction in authentication attempts and 2FA requests. If this 
+does not work for you add`save_session: False` to your configuration.
 
 
 ## Table of Contents
