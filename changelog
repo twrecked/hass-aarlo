@@ -1,4 +1,5 @@
 aarlo
+0.8.0a2: Add save authentication configuration.
 0.8.0a1: Initial 0.8 release
   Remove deprecated service calls
   Remove pyaarlo code
