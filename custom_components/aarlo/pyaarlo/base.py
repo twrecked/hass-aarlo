@@ -14,6 +14,7 @@ from .constant import (
     MODE_NAME_TO_ID_KEY,
     MODEL_BABY,
     MODEL_WIREFREE_VIDEO_DOORBELL,
+    MODEL_GO,
     PING_CAPABILITY,
     RESTART_PATH,
     SCHEDULE_KEY,
@@ -152,6 +153,7 @@ class ArloBase(ArloDevice):
             return False
         if (
             self.model_id == MODEL_BABY
+            or self.model_id == MODEL_GO
             or self.device_type == "arloq"
             or self.device_type == "arloqs"
         ):
@@ -442,7 +444,10 @@ class ArloBase(ArloDevice):
             if self.model_id.startswith(MODEL_BABY):
                 return True
         if cap in (SIREN_STATE_KEY,):
-            if self.model_id.startswith(("VMB400", "VMB450")):
+            if (
+                self.model_id.startswith(("VMB400", "VMB450"))
+                or self.model_id == MODEL_GO
+            ):
                 return True
         if cap in (PING_CAPABILITY,):
             # Battery powered wifi devices that act as their own base station don't get pinged.

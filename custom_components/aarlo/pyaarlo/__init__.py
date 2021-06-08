@@ -23,6 +23,7 @@ from .constant import (
     MODEL_PRO_4,
     MODEL_WIRED_VIDEO_DOORBELL,
     MODEL_WIREFREE_VIDEO_DOORBELL,
+    MODEL_GO,
     PING_CAPABILITY,
     REFRESH_CAMERA_DELAY,
     SLOW_REFRESH_INTERVAL,
@@ -198,6 +199,7 @@ class PyArlo(object):
             if (
                 dtype == "basestation"
                 or device.get("modelId") == "ABC1000"
+                or device.get("modelId").startswith(MODEL_GO)
                 or dtype == "arloq"
                 or dtype == "arloqs"
             ):
@@ -221,6 +223,7 @@ class PyArlo(object):
                 dtype == "camera"
                 or dtype == "arloq"
                 or dtype == "arloqs"
+                or device.get("modelId").startswith(MODEL_GO)
                 or device.get("modelId").startswith(MODEL_WIRED_VIDEO_DOORBELL)
                 or device.get("modelId").startswith(MODEL_WIREFREE_VIDEO_DOORBELL)
             ):
