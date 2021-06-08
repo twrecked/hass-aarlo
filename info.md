@@ -7,44 +7,30 @@ Please visit the
 [Readme](https://github.com/twrecked/hass-aarlo/blob/master/README.md) for more
 details.
 
-## 2FA Support
+{% if prerelease %}
 
-This release contains beta 2FA support. It works by requesting an email with the
-one-time code and then making an IMAP connection to your email provider and
-reading the code from the email Arlo sends.
+## NB!: This is an Alpha version!
 
-There is a **lot** that can go wrong with this - for starters, I've only tested
-it in English - but to get it working add the following configuration (with the
-correct values obviously) - to `aarlo:`
+## New Features in 0.8
 
-```yaml
-  tfa_host: 'imap.gmail.com'
-  tfa_username: 'your.email.account@gmail.com'
-  tfa_password: 'roygbiv'
+### Split Out Pyaarlo
+The code now uses `pyaalo` by installing it via `pip` rather than maintaining 
+its own version.
 
-```
+### Authentication Caching
+The code will retry authorization tokens for as long as they are valid. This 
+means a reduction in authentication attempts and 2FA requests. If this 
+does not work for you send me some logs and add`save_session: False` to your 
+configuration.
 
-For gmail users, the following
-[help](https://support.google.com/accounts/answer/185833?hl=en) is useful.
+## Breaking Changes in 0.8
+The following options have been removed:
+- `hide_deprecated_services`; all component services are now in the `aarlo` 
+  domain.
+- `http_connections`; no longer used after `cloudscraper` was needed
+- `http_max_size`; no longer used after `cloudscraper` was needed
 
-Finally, if you haven't enabled 2FA you don't need to do this.
-
-## Notice of Future Breaking Changes
-
-### The custom services are moving into the `aarlo` domain.
-
-This release moves all the component services in the `aarlo` domain. This is
-their correct location and allows Home Assistant to use the component's
-`services.yaml` file to provide help with the services.
-
-To allow you to transition and test your scripts the old, incorrectly located,
-services will remain for a while. My plan is to remove them in a few months. If
-you move all your code over to the new services you can add the
-`hide_deprecated_services` option to your configuration to hide these old
-services.
-
-See [Services](#advanced-services) for more information.
-
+{% endif %}
 
 ## Features
 
