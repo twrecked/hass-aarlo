@@ -670,7 +670,7 @@ class ArloBackEnd(object):
             "Origin": ORIGIN_HOST,
             "Pragma": "no-cache",
             "Referer": REFERER_HOST,
-            "Source": "arloCamWeb",
+            "SchemaVersion": "1",
             "User-Agent": self._user_agent,
         }
         self._session.headers.update(headers)
