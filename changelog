@@ -1,4 +1,7 @@
 aarlo/pyaarlo
+0.7.1.1: Add GO camera support.
+         Add video_url to last_capture sensor.
+         Cache authentication token.
 0.7.1: Remove double connected doorbell entity.
 0.7.1b15: Allow quoted printable in tfa email from Arlo.
 0.7.1b14: Fix for Home Assistant beta.
