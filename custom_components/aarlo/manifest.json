@@ -6,6 +6,6 @@
   "dependencies": ["ffmpeg"],
   "codeowners": ["@twrecked"],
   "requirements": ["unidecode","cloudscraper>=1.2.58"],
-  "version": "0.7.1.1",
+  "version": "0.7.1.2",
   "iot_class": "cloud_push"
 }
