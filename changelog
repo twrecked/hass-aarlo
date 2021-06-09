@@ -1,5 +1,5 @@
 aarlo/pyaarlo
-0.7.1.1: Fix headers after tidy up.
+0.7.1.2: Fix headers after tidy up.
 0.7.1.1: Add GO camera support.
          Add video_url to last_capture sensor.
          Cache authentication token.
