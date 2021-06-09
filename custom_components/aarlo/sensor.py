@@ -178,6 +178,7 @@ class ArloSensor(Entity):
                 attrs["object_type"] = video.object_type
                 attrs["object_region"] = video.object_region
                 attrs["thumbnail_url"] = video.thumbnail_url
+                attrs["video_url"] = video.video_url
             else:
                 attrs["object_type"] = None
 
