@@ -173,12 +173,12 @@ class ArloSensor(Entity):
         }
 
         if self._sensor_type == "last_capture":
-            video = self._device.last_video
+            video = self._device.last_video_url
             if video is not None:
-                attrs["object_type"] = video.object_type
-                attrs["object_region"] = video.object_region
-                attrs["thumbnail_url"] = video.thumbnail_url
-                attrs["video_url"] = video.video_url
+                attrs["video_url"] = video
+                attrs["thumbnail_url"] = self._device.last_video_thumbnail_url
+                attrs["object_type"] = self._device.last_video_object_type
+                attrs["object_region"] = self._device.last_video_object_region
             else:
                 attrs["object_type"] = None
 
