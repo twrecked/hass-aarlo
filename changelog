@@ -1,6 +1,7 @@
 aarlo
 0.8.0a3: Add video_url to last_capture sensor.
   Use new "last video values" interface
+  Tidy up the default values.
 0.8.0a2: Add save authentication configuration.
 0.8.0a1: Initial 0.8 release
   Remove deprecated service calls

@@ -83,20 +83,18 @@ PACKET_DUMP = False
 CACHE_VIDEOS = False
 DB_MOTION_TIME = timedelta(seconds=30)
 DB_DING_TIME = timedelta(seconds=10)
-RECENT_TIME = timedelta(minutes=10)
+RECENT_TIME = timedelta(minutes=60)
 LAST_FORMAT = "%m-%d %H:%M"
 CONF_DIR = ""
-REQ_TIMEOUT = timedelta(seconds=60)
-STR_TIMEOUT = timedelta(seconds=0)
+REQ_TIMEOUT = timedelta(seconds=15)
+STR_TIMEOUT = timedelta(seconds=120)
 NO_MEDIA_UP = False
-MEDIA_RETRY = None
+MEDIA_RETRY = [5, 15, 25]
 SNAPSHOT_CHECKS = None
 USER_AGENT = "arlo"
 MODE_API = "auto"
-DEVICE_REFRESH = 0
+DEVICE_REFRESH = 2
 MODE_REFRESH = 0
-HTTP_CONNECTIONS = 5
-HTTP_MAX_SIZE = 10
 RECONNECT_EVERY = 0
 VERBOSE_DEBUG = False
 DEFAULT_INJECTION_SERVICE = False
@@ -106,7 +104,7 @@ DEFAULT_TFA_TYPE = "email"
 DEFAULT_TFA_HOST = "unknown.imap.com"
 DEFAULT_TFA_USERNAME = "unknown@unknown.com"
 DEFAULT_TFA_PASSWORD = "unknown"
-DEFAULT_LIBRARY_DAYS = 30
+DEFAULT_LIBRARY_DAYS = 27
 SERIAL_IDS = False
 STREAM_SNAPSHOT = False
 STREAM_SNAPSHOT_STOP = 0
@@ -137,7 +135,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_REQ_TIMEOUT, default=REQ_TIMEOUT): cv.time_period,
                 vol.Optional(CONF_STR_TIMEOUT, default=STR_TIMEOUT): cv.time_period,
                 vol.Optional(CONF_NO_MEDIA_UP, default=NO_MEDIA_UP): cv.boolean,
-                vol.Optional(CONF_MEDIA_RETRY, default=list()): vol.All(
+                vol.Optional(CONF_MEDIA_RETRY, default=MEDIA_RETRY): vol.All(
                     cv.ensure_list, [cv.positive_int]
                 ),
                 vol.Optional(CONF_SNAPSHOT_CHECKS, default=list()): vol.All(
