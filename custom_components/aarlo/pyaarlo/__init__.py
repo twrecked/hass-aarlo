@@ -341,6 +341,7 @@ class PyArlo(object):
     def _refresh_modes(self):
         self.vdebug("refresh modes")
         for base in self._bases:
+            base.update_modes()
             base.update_mode()
 
     def _fast_refresh(self):
