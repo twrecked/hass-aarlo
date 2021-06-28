@@ -12,6 +12,7 @@ from .constant import (
     MODE_IS_SCHEDULE_KEY,
     MODE_KEY,
     MODE_NAME_TO_ID_KEY,
+    MODE_UPDATE_INTERVAL,
     MODEL_BABY,
     MODEL_GO,
     MODEL_WIREFREE_VIDEO_DOORBELL,
@@ -61,6 +62,7 @@ class ArloBase(ArloDevice):
     def schedule_to_modes(self):
         if self._schedules is None:
             return []
+
         now = time.localtime()
         day = day_of_week[now.tm_wday]
         minute = (now.tm_hour * 60) + now.tm_min
@@ -76,7 +78,9 @@ class ArloBase(ArloDevice):
                         if modes:
                             self._arlo.debug("schdule={}".format(modes[0]))
                             return modes
-        return []
+
+        # If nothing in schedule we are disarmed.
+        return ['mode0']
 
     def _parse_schedules(self, schedules):
         self._schedules = schedules
@@ -107,6 +111,8 @@ class ArloBase(ArloDevice):
         # try to parse that out
         mode_ids = event.get("activeModes", [])
         if not mode_ids and schedule_ids:
+            self._arlo.debug(self.name + " mode change (via schedule) ")
+            self._arlo.vdebug(self.name + " schedules: " + pprint.pformat(self._schedules))
             mode_ids = self.schedule_to_modes()
         if mode_ids:
             self._arlo.debug(self.name + " mode change " + mode_ids[0])
@@ -130,6 +136,21 @@ class ArloBase(ArloDevice):
                 )
             elif "active" in props:
                 self._save_and_do_callbacks(MODE_KEY, self._id_to_name(props["active"]))
+
+        # Base station mode change.
+        # These come in per device and can arrive multiple times per state
+        # change. We limit the updates to once per MODE_UPDATE_INTERVAL
+        # seconds. Arlo doesn't send a "schedule changed" notification so we
+        # re-fetch that information before testing the mode.
+        elif resource == "states":
+            now = time.monotonic()
+            with self._lock:
+                if now < self._last_update + MODE_UPDATE_INTERVAL:
+                    return
+                self._last_update = now
+            self._arlo.debug("state change")
+            self.update_modes()
+            self.update_mode()
 
         # mode change?
         elif resource == "activeAutomations":

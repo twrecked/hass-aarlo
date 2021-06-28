@@ -231,6 +231,12 @@ class ArloBackEnd(object):
                 if device_id != "resource":
                     responses.append((device_id, resource, response[device_id]))
 
+        # Mode update response
+        elif "states" in response:
+            device_id = response.get("from", None)
+            if device_id is not None:
+                responses.append((device_id, "states", response["states"]))
+
         # These are individual device responses. Find device ID and forward
         # response.
         # Packet number #?.
@@ -294,7 +300,7 @@ class ArloBackEnd(object):
                 if "all" in self._callbacks:
                     cbs.extend(self._callbacks["all"])
             for cb in cbs:
-                cb(resource, response)
+                self._arlo.bg.run(cb, resource=resource, event=response)
 
     def _ev_loop(self, stream):
 
