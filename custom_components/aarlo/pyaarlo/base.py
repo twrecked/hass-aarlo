@@ -14,7 +14,9 @@ from .constant import (
     MODE_NAME_TO_ID_KEY,
     MODE_UPDATE_INTERVAL,
     MODEL_BABY,
+    MODEL_ESSENTIAL,
     MODEL_GO,
+    MODEL_PRO_4,
     MODEL_WIREFREE_VIDEO_DOORBELL,
     PING_CAPABILITY,
     RESTART_PATH,
@@ -479,7 +481,7 @@ class ArloBase(ArloDevice):
             # Wire free video doorbell acting as base station
             if (
                 self.is_own_parent
-                and self.model_id.startswith(MODEL_WIREFREE_VIDEO_DOORBELL)
+                and self.model_id.startswith((MODEL_WIREFREE_VIDEO_DOORBELL, MODEL_ESSENTIAL, MODEL_PRO_4))
                 and not self.is_corded
             ):
                 return False
