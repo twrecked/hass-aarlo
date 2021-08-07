@@ -83,6 +83,8 @@ ATTR_VOLUME = "volume"
 ATTR_LAST_THUMBNAIL = "last_thumbnail"
 ATTR_DURATION = "duration"
 ATTR_TIME_ZONE = "time_zone"
+ATTR_WIFI = "wifi"
+ATTR_CORDED = "corded"
 
 CONF_FFMPEG_ARGUMENTS = "ffmpeg_arguments"
 
@@ -519,6 +521,8 @@ class ArloCam(Camera):
                 (ATTR_LAST_THUMBNAIL, self.last_thumbnail_url),
                 (ATTR_LAST_VIDEO, self.last_video_url),
                 (ATTR_TIME_ZONE, self._camera.timezone),
+                (ATTR_WIFI, self._camera.using_wifi),
+                (ATTR_CORDED, self._camera.is_corded),
             )
             if value is not None
         }

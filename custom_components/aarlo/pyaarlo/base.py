@@ -14,7 +14,9 @@ from .constant import (
     MODE_NAME_TO_ID_KEY,
     MODE_UPDATE_INTERVAL,
     MODEL_BABY,
+    MODEL_ESSENTIAL,
     MODEL_GO,
+    MODEL_PRO_4,
     MODEL_WIREFREE_VIDEO_DOORBELL,
     PING_CAPABILITY,
     RESTART_PATH,
@@ -80,7 +82,7 @@ class ArloBase(ArloDevice):
                             return modes
 
         # If nothing in schedule we are disarmed.
-        return ['mode0']
+        return ["mode0"]
 
     def _parse_schedules(self, schedules):
         self._schedules = schedules
@@ -112,7 +114,9 @@ class ArloBase(ArloDevice):
         mode_ids = event.get("activeModes", [])
         if not mode_ids and schedule_ids:
             self._arlo.debug(self.name + " mode change (via schedule) ")
-            self._arlo.vdebug(self.name + " schedules: " + pprint.pformat(self._schedules))
+            self._arlo.vdebug(
+                self.name + " schedules: " + pprint.pformat(self._schedules)
+            )
             mode_ids = self.schedule_to_modes()
         if mode_ids:
             self._arlo.debug(self.name + " mode change " + mode_ids[0])
@@ -479,7 +483,9 @@ class ArloBase(ArloDevice):
             # Wire free video doorbell acting as base station
             if (
                 self.is_own_parent
-                and self.model_id.startswith(MODEL_WIREFREE_VIDEO_DOORBELL)
+                and self.model_id.startswith(
+                    (MODEL_WIREFREE_VIDEO_DOORBELL, MODEL_ESSENTIAL, MODEL_PRO_4)
+                )
                 and not self.is_corded
             ):
                 return False
