@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.1.4: Reduced ping commands
 0.7.1.3: Better schedule handling.
          Run event handlers in the background thread.
 0.7.1.2: Fix headers after tidy up.
