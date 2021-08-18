@@ -622,6 +622,9 @@ with your Home Assistant account and make sure the camera names are correct.
 You can change the brightness on the light but not while it's turned on. You need to turn
 it off and back on again for the change to take. This is how the web interface does it.
 
+You might see `CloudFlareChallengeError`s. There is a strange interaction
+between Python's networking and the Cloud Flare servers. I'm working on it.
+
 <a name="other-debugging"></a>
 ### Debugging
 If you run into problems there please provide the following in the bug report to help
@@ -955,7 +958,16 @@ aarlo:
 
 It's working well with my gmail account, see
 [here](https://support.google.com/mail/answer/185833?hl=en) for help setting up single app
-passwords.
+passwords. If needed, you can specify a port by appending it to the host.
+
+```yaml
+aarlo:
+  tfa_source: imap
+  tfa_type: email
+  tfa_host: imap.host.com:1234
+  tfa_username: your-user-name
+  tfa_password: your-imap-password
+```
 
 <a name="2fa-push"></a>
 #### PUSH
