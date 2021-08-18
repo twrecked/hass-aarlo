@@ -169,7 +169,16 @@ class ArloCfg(object):
 
     @property
     def tfa_host(self):
-        return self._kw.get("tfa_host", TFA_DEFAULT_HOST)
+        h = self._kw.get("tfa_host", TFA_DEFAULT_HOST).split(":")
+        return h[0]
+
+    @property
+    def tfa_port(self):
+        h = self._kw.get("tfa_host", TFA_DEFAULT_HOST).split(":")
+        if len(h) == 1:
+            return 993
+        else:
+            return h[1]
 
     @property
     def tfa_username(self):

@@ -47,7 +47,9 @@ class Arlo2FAImap:
             self.stop()
 
         try:
-            self._imap = imaplib.IMAP4_SSL(self._arlo.cfg.tfa_host)
+            self._imap = imaplib.IMAP4_SSL(
+                self._arlo.cfg.tfa_host, port=self._arlo.cfg.tfa_port
+            )
             res, status = self._imap.login(
                 self._arlo.cfg.tfa_username, self._arlo.cfg.tfa_password
             )
