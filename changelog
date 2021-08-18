@@ -1,4 +1,18 @@
 aarlo
+0.8.0a4: Bumped pyaarlo version.
+  Add port support to IMAP. [pyaarlo]
+  Don't get resources for Essential cameras. [pyaarlo]
+  Don't ping Pro 3 floodlight. [pyaarlo]
+  Don't ping Essential and Pro 4 cameras. [pyaarlo]
+  Stop when asked to. [pyaarlo]
+  Fixed schedule handling. [pyaarlo]
+  Handle events in the background thread. [pyaarlo]
+  Update token to map to email address [pyaarlo]
+  Save last video details [pyaarlo]
+  Don't signal unless information has really changed [pyaarlo]
+  Add GO camera support. [pyaarlo]
+  Fixed header issue. [pyaarlo]
+  Add video_url to last_capture sensor. [pyaarlo]
 0.8.0a3: Add video_url to last_capture sensor.
   Use new "last video values" interface
   Tidy up the default values.

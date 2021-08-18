@@ -5,13 +5,14 @@
 
 ### Split Out Pyaarlo
 The code now uses `pyaalo` by installing it via `pip` rather than maintaining 
-its own version.
+its own version. If you run into a problem check the `pyaarlo` `README` file,
+it may have a fix not mentioned here.
 
 ### Authentication Caching
 The code will retry authorization tokens for as long as they are valid. This 
 means a reduction in authentication attempts and 2FA requests. If this 
-does not work for you send me some logs and add`save_session: False` to your 
-configuration.
+does not work for you send me some logs and add restart with
+`save_session: False` to your configuration.
 
 ### Saner Defaults
 You will now have less to configure...
@@ -939,7 +940,16 @@ aarlo:
 
 It's working well with my gmail account, see
 [here](https://support.google.com/mail/answer/185833?hl=en) for help setting up single app
-passwords.
+passwords. If needed, you can specify a port by appending it to the host.
+
+```yaml
+aarlo:
+  tfa_source: imap
+  tfa_type: email
+  tfa_host: imap.host.com:1234
+  tfa_username: your-user-name
+  tfa_password: your-imap-password
+```
 
 <a name="2fa-push"></a>
 #### PUSH
