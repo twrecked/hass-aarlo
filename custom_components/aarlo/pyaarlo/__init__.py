@@ -26,6 +26,7 @@ from .constant import (
     MODEL_WIREFREE_VIDEO_DOORBELL,
     PING_CAPABILITY,
     REFRESH_CAMERA_DELAY,
+    RESOURCE_CAPABILITY,
     SLOW_REFRESH_INTERVAL,
     TOTAL_BELLS_KEY,
     TOTAL_CAMERAS_KEY,
@@ -318,25 +319,28 @@ class PyArlo(object):
     def _refresh_bases(self, initial):
         for base in self._bases:
             base.update_modes(initial)
-            self._be.notify(
-                base=base,
-                body={"action": "get", "resource": "cameras", "publishResponse": False},
-                wait_for="response",
-            )
-            self._be.notify(
-                base=base,
-                body={
-                    "action": "get",
-                    "resource": "doorbells",
-                    "publishResponse": False,
-                },
-                wait_for="response",
-            )
-            self._be.notify(
-                base=base,
-                body={"action": "get", "resource": "lights", "publishResponse": False},
-                wait_for="response",
-            )
+            if base.has_capability(RESOURCE_CAPABILITY):
+                self._be.notify(
+                    base=base,
+                    body={"action": "get", "resource": "cameras", "publishResponse": False},
+                    wait_for="response",
+                )
+                self._be.notify(
+                    base=base,
+                    body={
+                        "action": "get",
+                        "resource": "doorbells",
+                        "publishResponse": False,
+                    },
+                    wait_for="response",
+                )
+                self._be.notify(
+                    base=base,
+                    body={"action": "get", "resource": "lights", "publishResponse": False},
+                    wait_for="response",
+                )
+            else:
+                self.vdebug(f"NO resource for {base.device_id}")
 
     def _refresh_modes(self):
         self.vdebug("refresh modes")
