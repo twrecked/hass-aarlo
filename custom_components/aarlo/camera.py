@@ -4,6 +4,8 @@ Support for Netgear Arlo IP cameras.
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/camera.arlo/
 """
+from __future__ import annotations
+
 import base64
 import logging
 
@@ -566,7 +568,9 @@ class ArloCam(Camera):
             self._camera.get_stream, user_agent
         )
 
-    def camera_image(self):
+    def camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
         """Return a still image response from the camera."""
         return self._camera.last_image_from_cache
 
