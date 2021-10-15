@@ -46,10 +46,12 @@ The following options have been removed:
    - [Streaming](#other-streaming)
    - [Snapshots](#other-snapshots)
    - [User Agents](#other-user-agents)
-   - [Best Practises and Known Limitations](#other-best)
    - [Debugging](#other-debugging)
    - [Hiding Sensitive Data](#other-sensitive)
    - [Adding Devices](#other-adding)
+- [It's Not Working!](#notworking)
+   - [Cloud Flare](#notworking-cloudflare)
+   - [Best Practises and Known Limitations](#notworking-best)
 - [Advanced Use](#advanced)
    - [All Parameters](#advanced-parameters)
    - [Camera Statuses](#advanced-statuses)
@@ -573,41 +575,6 @@ irregardless of the default user agent provided.
 The default user agent is used in all other cases. This means, for example,
 the one you set if picked for snapshot operations.
 
-<a name="other-best"></a>
-### Best Practises and Known Limitations
-The component uses the Arlo webapi.
-* There is no documentation so the API has been reverse engineered using browser debug
-  tools.
-* Streaming times out after 30 minutes.
-* The webapi doesn't seem like it was really designed for permanent connections so the
-  system will sometimes appear to lock up. Various work arounds are in the code and can be
-  configured at the `arlo` component level. See next paragraph.
-
-If you do find the component locks up after a while (I've seen reports of hours, days or
-weeks), you can add the following to the main configuration. Start from the top and work
-down:
-* `refresh_devices_every`, tell Aarlo to request the device list every so often. This will
-  sometimes prevent the back end from aging you out. The value is in hours and a good
-  starting point is 3.
-* `stream_timeout`, tell Aarlo to close and reopen the event stream after a certain period
-  of inactivity. Aarlo will send keep alive every minute so a good starting point is 180
-  seconds.
-* `reconnect_every`, tell Aarlo to logout and back in every so often. This establishes a
-  new session at the risk of losing an event notification. The value is minutes and a good
-  starting point is 90.
-* `request_timeout`, the amount of time to allow for a http request to work. A good
-  starting point is 120 seconds.
-
-Unify your alarm mode names across all your base stations. There is no way to specify
-different mode names for each device.
-
-Alro will allow shared accounts to give cameras their own name. If you find cameras
-appearing with unexpected names (or not appearing at all), log into the Arlo web interface
-with your Home Assistant account and make sure the camera names are correct.
-
-You can change the brightness on the light but not while it's turned on. You need to turn
-it off and back on again for the change to take. This is how the web interface does it.
-
 <a name="other-debugging"></a>
 ### Debugging
 If you run into problems there please provide the following in the bug report to help
@@ -739,7 +706,7 @@ $ source pyaarlo/bin/activate
 (pyaarlo) $ pyaarlo --help
 ```
 
-When you're finished with pyaarlo deactive the virtualenv.
+When you're finished with pyaarlo deactivate the virtualenv.
 ```bash
 (pyaarlo) $ deactivate
 $
@@ -750,6 +717,72 @@ $
 ### Adding Devices
 
 *Coming soon...*
+
+
+<a name="notworking"></a>
+## It's Not Working
+
+<a name="notworking-cloudflare"></a>
+### Cloud Flare
+Arlo recently added Cloud Flare anti-bot protection to the Arlo website. This
+service doesn't work well with the Python Requests package. If you see the
+following errors you are running into Cloud Flare issues.
+
+```
+2021-06-03 13:28:32 WARNING (SyncWorker_4) [pyaarlo] request-error=CloudflareChallengeError
+```
+
+There are a couple of things you can try:
+* Change your `user_agent` and restart HA. You can even try setting the
+  `user_agent` to `random` if things get desperate.
+* Modify `/etc/hosts` to point to a specific Arlo web server. You can try
+  adding the following and changing which entry you comment out.
+  
+```  
+#104.18.30.98 ocapi-app.arlo.com
+#104.18.31.98 ocapi-app.arlo.com
+```
+
+The good news, `aarlo` will now cache the authentication token so once you've
+logged in you should be not need to be bothered by Cloud Flare for 2 weeks.
+
+This problem affects me and I'm constantly trying to refine the code.
+
+<a name="notworking-best"></a>
+### Best Practises and Known Limitations
+The component uses the Arlo webapi.
+* There is no documentation so the API has been reverse engineered using browser debug
+  tools.
+* Streaming times out after 30 minutes.
+* The webapi doesn't seem like it was really designed for permanent connections so the
+  system will sometimes appear to lock up. Various workarounds are in the code and can be
+  configured at the `arlo` component level. See next paragraph.
+
+If you do find the component locks up after a while (I've seen reports of hours, days or
+weeks), you can add the following to the main configuration. Start from the top and work
+down:
+* `refresh_devices_every`, tell Aarlo to request the device list every so often. This will
+  sometimes prevent the back end from aging you out. The value is in hours and a good
+  starting point is 3.
+* `stream_timeout`, tell Aarlo to close and reopen the event stream after a certain period
+  of inactivity. Aarlo will send keep alive every minute so a good starting point is 180
+  seconds.
+* `reconnect_every`, tell Aarlo to logout and back in every so often. This establishes a
+  new session at the risk of losing an event notification. The value is minutes and a good
+  starting point is 90.
+* `request_timeout`, the amount of time to allow for a http request to work. A good
+  starting point is 120 seconds.
+
+Unify your alarm mode names across all your base stations. There is no way to specify
+different mode names for each device.
+
+Arlo will allow shared accounts to give cameras their own name. If you find cameras
+appearing with unexpected names (or not appearing at all), log into the Arlo web interface
+with your Home Assistant account and make sure the camera names are correct.
+
+You can change the brightness on the light but not while it's turned on. You need to turn
+it off and back on again for the change to take. This is how the web interface does it.
+
 
 <a name="advanced"></a>
 ## Advanced Use
