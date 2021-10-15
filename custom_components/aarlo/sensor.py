@@ -11,6 +11,7 @@ import voluptuous as vol
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     CONF_MONITORED_CONDITIONS,
+    DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_HUMIDITY,
     DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
@@ -158,6 +159,8 @@ class ArloSensor(Entity):
             return DEVICE_CLASS_TEMPERATURE
         if self._sensor_type == "humidity":
             return DEVICE_CLASS_HUMIDITY
+        if self._sensor_type == "battery_level":
+            return DEVICE_CLASS_BATTERY
         return None
 
     @property
