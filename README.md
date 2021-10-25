@@ -269,7 +269,7 @@ Items on the `monitored_conditions` can be one or more of the following:
 * `sound` fires when a camera detects a sound.
 * `ding` fires when a doorbell is pressed.
 * `cry` fires when crying is detected (ArloBaby only)
-* `connectivty` is true when Arlo a device is connected
+* `connectivity` is true when Arlo a device is connected
 
 The Arlo backend sends the notifications on the event stream so they are (almost) real
 time.
