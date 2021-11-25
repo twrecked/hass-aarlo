@@ -2,8 +2,9 @@ DEFAULT_HOST = "https://myapi.arlo.com"
 
 ORIGIN_HOST = "https://my.arlo.com"
 REFERER_HOST = "https://my.arlo.com/"
+MQTT_HOST = "mqtt-cluster.arloxcld.com"
 
-DEVICES_PATH = "/hmsweb/users/devices"
+DEVICES_PATH = "/hmsweb/v2/users/devices"
 DEFINITIONS_PATH = "/hmsweb/users/automation/definitions"
 AUTOMATION_PATH = "/hmsweb/users/devices/automation/active"
 LIBRARY_PATH = "/hmsweb/users/library"
@@ -20,6 +21,7 @@ RESTART_PATH = "/hmsweb/users/devices/restart"
 STREAM_SNAPSHOT_PATH = "/hmsweb/users/devices/takeSnapshot"
 STREAM_START_PATH = "/hmsweb/users/devices/startStream"
 IDLE_SNAPSHOT_PATH = "/hmsweb/users/devices/fullFrameSnapshot"
+MQTT_PATH = "/mqtt"
 TRANSID_PREFIX = "web"
 
 DEFAULT_AUTH_HOST = "https://ocapi-app.arlo.com"
