@@ -98,10 +98,7 @@ class ArloCfg(object):
 
     @property
     def snapshot_checks(self):
-        checks = self._kw.get("snapshot_checks", [])
-        if not checks:
-            return [1, 5]
-        return checks
+        return self._kw.get("snapshot_checks", [])
 
     @property
     def user_agent(self):

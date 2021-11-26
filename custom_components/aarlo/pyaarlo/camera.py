@@ -187,33 +187,35 @@ class ArloCamera(ArloChildDevice):
 
         # Always make this the latest thumbnail image.
         if self._snapshot_time < date:
-            self._arlo.debug("updating image for " + self.name)
             self._snapshot_time = date
             date = date.strftime(self._arlo.cfg.last_format)
+            self._arlo.debug(f"updating image for {self.name} ({date})")
             self._save_and_do_callbacks(LAST_IMAGE_SRC_KEY, "capture/" + date)
             self._save_and_do_callbacks(LAST_CAPTURE_KEY, date)
             self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
         else:
-            self._arlo.vdebug("ignoring image for " + self.name)
+            date = date.strftime(self._arlo.cfg.last_format)
+            self._arlo.vdebug(f"ignoring image for {self.name} ({date})")
 
     # Update the last snapshot
-    def _update_snapshot(self):
+    def _update_snapshot(self, ignore_date=False):
         # Get image and date, if fails ignore.
-        img, date = http_get_img(self._load(SNAPSHOT_KEY, None))
+        img, date = http_get_img(self._load(SNAPSHOT_KEY, None), ignore_date)
         if img is None:
             self._arlo.debug("failed to load snapshot for " + self.name)
             return
 
         # Always make this the latest snapshot image.
         if self._snapshot_time < date:
-            self._arlo.debug("updating snapshot for " + self.name)
             self._snapshot_time = date
             date = date.strftime(self._arlo.cfg.last_format)
+            self._arlo.debug(f"updating snapshot for {self.name} ({date})")
             self._save_and_do_callbacks(LAST_IMAGE_SRC_KEY, "snapshot/" + date)
             self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
             self._stop_snapshot()
         else:
-            self._arlo.vdebug("ignoring snapshot for " + self.name)
+            date = date.strftime(self._arlo.cfg.last_format)
+            self._arlo.vdebug(f"ignoring snapshot for {self.name} ({date})")
 
     def _set_recent(self, timeo):
         with self._lock:
@@ -360,7 +362,7 @@ class ArloCamera(ArloChildDevice):
                         "{} -> snapshot(thumbnail) ready".format(self.name)
                     )
                     self._save(SNAPSHOT_KEY, event.get(LAST_IMAGE_KEY, ""))
-                    self._arlo.bg.run_low(self._update_snapshot)
+                    self._arlo.bg.run_low(self._update_snapshot, ignore_date=True)
 
             # Recording has stopped so a new video is available. Queue an
             # media update, this could later trigger a snapshot or image

@@ -300,83 +300,63 @@ class ArloBackEnd(object):
             for cb in cbs:
                 self._arlo.bg.run(cb, resource=resource, event=response)
 
-    def _ev_loop(self, stream):
+    def _ev_response(self, response):
 
-        # say we're starting
+        # Debugging.
         if self._dump_file is not None:
             with open(self._dump_file, "a") as dump:
                 time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
-                dump.write("{}: {}\n".format(time_stamp, "ev_loop start"))
-
-        # for event in stream.events():
-        for event in stream:
-
-            # stopped?
-            if event is None:
-                self._arlo.debug("reopening: no event")
-                break
-
-            # dig out response, print out verbose debug
-            try:
-                response = json.loads(event.data)
-            except json.decoder.JSONDecodeError as e:
-                self._arlo.debug("reopening: json error " + str(e))
-                break
-
-            if self._dump_file is not None:
-                with open(self._dump_file, "a") as dump:
-                    time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
-                    dump.write(
-                        "{}: {}\n".format(
-                            time_stamp, pprint.pformat(response, indent=2)
-                        )
+                dump.write(
+                    "{}: {}\n".format(
+                        time_stamp, pprint.pformat(response, indent=2)
                     )
-            self._arlo.vdebug(
-                "packet-in=\n{}".format(pprint.pformat(response, indent=2))
-            )
+                )
+        self._arlo.vdebug(
+            "packet-in=\n{}".format(pprint.pformat(response, indent=2))
+        )
 
-            # logged out? signal exited
-            if response.get("action") == "logout":
-                self._arlo.warning("logged out? did you log in from elsewhere?")
-                break
+        # Logged out? MQTT will log back in until stopped.
+        if response.get("action") == "logout":
+            self._arlo.warning("logged out? did you log in from elsewhere?")
+            return
 
-            # Run the dispatcher to set internal state and run callbacks.
-            self._ev_dispatcher(response)
+        # Run the dispatcher to set internal state and run callbacks.
+        self._ev_dispatcher(response)
 
-            # is there a notify/post waiting for this response? If so, signal to waiting entity.
-            tid = response.get("transId", None)
-            resource = response.get("resource", None)
-            device_id = response.get("from", None)
-            with self._lock:
-                # Transaction ID
-                # Simple. We have a transaction ID, look for that. These are
-                # usually returned by notify requests.
-                if tid and tid in self._requests:
-                    self._requests[tid] = response
+        # is there a notify/post waiting for this response? If so, signal to waiting entity.
+        tid = response.get("transId", None)
+        resource = response.get("resource", None)
+        device_id = response.get("from", None)
+        with self._lock:
+            # Transaction ID
+            # Simple. We have a transaction ID, look for that. These are
+            # usually returned by notify requests.
+            if tid and tid in self._requests:
+                self._requests[tid] = response
+                self._lock.notify_all()
+
+            # Resource
+            # These are usually returned after POST requests. We trap these
+            # to make async calls sync.
+            if resource:
+                # Historical. We are looking for a straight matching resource.
+                if resource in self._requests:
+                    self._arlo.vdebug("{} found by text!".format(resource))
+                    self._requests[resource] = response
                     self._lock.notify_all()
-
-                # Resource
-                # These are usually returned after POST requests. We trap these
-                # to make async calls sync.
-                if resource:
-                    # Historical. We are looking for a straight matching resource.
-                    if resource in self._requests:
-                        self._arlo.vdebug("{} found by text!".format(resource))
-                        self._requests[resource] = response
-                        self._lock.notify_all()
-                    else:
-                        # Complex. We are looking for a resource and-or
-                        # deviceid matching a regex.
-                        if device_id:
-                            resource = "{}:{}".format(resource, device_id)
-                            self._arlo.vdebug("{} bounded device!".format(resource))
-                        for request in self._requests:
-                            if re.match(request, resource):
-                                self._arlo.vdebug(
-                                    "{} found by regex {}!".format(resource, request)
-                                )
-                                self._requests[request] = response
-                                self._lock.notify_all()
+                else:
+                    # Complex. We are looking for a resource and-or
+                    # deviceid matching a regex.
+                    if device_id:
+                        resource = "{}:{}".format(resource, device_id)
+                        self._arlo.vdebug("{} bounded device!".format(resource))
+                    for request in self._requests:
+                        if re.match(request, resource):
+                            self._arlo.vdebug(
+                                "{} found by regex {}!".format(resource, request)
+                            )
+                            self._requests[request] = response
+                            self._lock.notify_all()
 
     def mqtt_subscribe(self):
         # Make sure we are listening to library events and individual base
@@ -411,12 +391,17 @@ class ArloBackEnd(object):
     def mqtt_on_message(self, _client, _userdata, msg):
         self._arlo.debug(f"mqtt: topic={msg.topic}")
         response = json.loads(msg.payload.decode("utf-8"))
-        self._arlo.vdebug(f"mqtt: payload=\n{pprint.pformat(response)}")
-        self._ev_dispatcher(response)
+        self._ev_response(response)
 
     def _ev_thread_main(self):
 
         while not self._stopThread:
+
+            # Say we're starting
+            if self._dump_file is not None:
+                with open(self._dump_file, "a") as dump:
+                    time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
+                    dump.write("{}: {}\n".format(time_stamp, "ev_loop start"))
 
             # login again if not first iteration, this will also create a new session
             while not self._logged_in:
