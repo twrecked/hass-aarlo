@@ -22,9 +22,9 @@ from .constant import (
     AUTH_VALIDATE_PATH,
     DEFAULT_RESOURCES,
     DEVICES_PATH,
+    LOGOUT_PATH,
     MQTT_HOST,
     MQTT_PATH,
-    LOGOUT_PATH,
     NOTIFY_PATH,
     ORIGIN_HOST,
     REFERER_HOST,
@@ -418,11 +418,15 @@ class ArloBackEnd(object):
                 }
 
                 # Build a new client_id per login. The last 10 numbers seem to need to be random.
-                self._ev_client_id = f"user_{self._user_id}_" + "".join(str(randint(0, 9)) for _ in range(10))
+                self._ev_client_id = f"user_{self._user_id}_" + "".join(
+                    str(randint(0, 9)) for _ in range(10)
+                )
                 self._arlo.debug(f"mqtt: client_id={self._ev_client_id}")
 
                 # Create and setup the MQTT client.
-                self._ev_client = mqtt.Client(client_id=self._ev_client_id, transport="websockets")
+                self._ev_client = mqtt.Client(
+                    client_id=self._ev_client_id, transport="websockets"
+                )
                 self._ev_client.on_log = self.mqtt_on_log
                 self._ev_client.on_connect = self.mqtt_on_connect
                 self._ev_client.on_message = self.mqtt_on_message

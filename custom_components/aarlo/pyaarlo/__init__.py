@@ -325,7 +325,11 @@ class PyArlo(object):
             if base.has_capability(RESOURCE_CAPABILITY):
                 self._be.notify(
                     base=base,
-                    body={"action": "get", "resource": "cameras", "publishResponse": False},
+                    body={
+                        "action": "get",
+                        "resource": "cameras",
+                        "publishResponse": False,
+                    },
                     wait_for="response",
                 )
                 self._be.notify(
@@ -339,7 +343,11 @@ class PyArlo(object):
                 )
                 self._be.notify(
                     base=base,
-                    body={"action": "get", "resource": "lights", "publishResponse": False},
+                    body={
+                        "action": "get",
+                        "resource": "lights",
+                        "publishResponse": False,
+                    },
                     wait_for="response",
                 )
             else:
