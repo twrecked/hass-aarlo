@@ -448,7 +448,7 @@ class ArloBackEnd(object):
 
             # Restart login... This may not be completely necessary.
             self._client = None
-            self._ev_connected_ = False
+            self._ev_connected = False
             self._logged_in = False
 
     def start_monitoring(self):
