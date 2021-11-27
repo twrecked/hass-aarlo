@@ -307,13 +307,9 @@ class ArloBackEnd(object):
             with open(self._dump_file, "a") as dump:
                 time_stamp = now_strftime("%Y-%m-%d %H:%M:%S.%f")
                 dump.write(
-                    "{}: {}\n".format(
-                        time_stamp, pprint.pformat(response, indent=2)
-                    )
+                    "{}: {}\n".format(time_stamp, pprint.pformat(response, indent=2))
                 )
-        self._arlo.vdebug(
-            "packet-in=\n{}".format(pprint.pformat(response, indent=2))
-        )
+        self._arlo.vdebug("packet-in=\n{}".format(pprint.pformat(response, indent=2)))
 
         # Logged out? MQTT will log back in until stopped.
         if response.get("action") == "logout":
@@ -361,13 +357,15 @@ class ArloBackEnd(object):
     def mqtt_subscribe(self):
         # Make sure we are listening to library events and individual base
         # station events. This seems sufficient for now.
-        self._ev_client.subscribe([
-            (f"u/{self._user_id}/in/userSession/connect", 0),
-            (f"u/{self._user_id}/in/userSession/disconnect", 0),
-            (f"u/{self._user_id}/in/library/add", 0),
-            (f"u/{self._user_id}/in/library/update", 0),
-            (f"u/{self._user_id}/in/library/remove", 0)
-        ])
+        self._ev_client.subscribe(
+            [
+                (f"u/{self._user_id}/in/userSession/connect", 0),
+                (f"u/{self._user_id}/in/userSession/disconnect", 0),
+                (f"u/{self._user_id}/in/library/add", 0),
+                (f"u/{self._user_id}/in/library/update", 0),
+                (f"u/{self._user_id}/in/library/remove", 0),
+            ]
+        )
 
         topics = []
         for device in self._arlo.devices:
