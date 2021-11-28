@@ -21,7 +21,7 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
 
-from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
+from .const import DOMAIN, COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
 from .pyaarlo.constant import (
     AIR_QUALITY_KEY,
     BATTERY_KEY,
@@ -186,3 +186,14 @@ class ArloSensor(Entity):
                 attrs["object_type"] = None
 
         return attrs
+
+    @property
+    def device_info(self):
+        """Return the related device info to group entities"""
+        return {
+            "identifiers": {
+                (DOMAIN, self._device.device_id)
+            },
+            "name": self._name,
+            "manufacturer": COMPONENT_BRAND,
+        }
