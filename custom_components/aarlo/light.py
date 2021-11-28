@@ -27,7 +27,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 
-from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
+from .const import DOMAIN, COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
 from .pyaarlo.constant import (
     BRIGHTNESS_KEY,
     FLOODLIGHT_KEY,
@@ -163,6 +163,17 @@ class ArloLight(LightEntity):
         attrs["friendly_name"] = self._name
 
         return attrs
+
+    @property
+    def device_info(self):
+        """Return the related device info to group entities"""
+        return {
+            "identifiers": {
+                (DOMAIN, self._unique_id)
+            },
+            "name": self._name,
+            "manufacturer": COMPONENT_BRAND,
+        }
 
 
 class ArloNightLight(ArloLight):
