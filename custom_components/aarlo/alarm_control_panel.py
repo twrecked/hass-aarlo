@@ -355,6 +355,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
             "model": self._base.model_id,
+            "id": self._base.device_id,
         }
 
     def _get_state_from_ha(self, mode):

@@ -173,6 +173,7 @@ class ArloLight(LightEntity):
             },
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
+            "id": self._unique_id,
         }
 
 

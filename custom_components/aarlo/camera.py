@@ -549,6 +549,7 @@ class ArloCam(Camera):
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
             "model": self._camera.model_id,
+            "id": self._camera.device_id,
         }
 
     @property

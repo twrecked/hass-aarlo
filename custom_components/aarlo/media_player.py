@@ -201,6 +201,7 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
             },
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
+            "id": self._unique_id,
         }
 
     @property

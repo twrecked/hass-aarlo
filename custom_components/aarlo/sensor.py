@@ -196,4 +196,5 @@ class ArloSensor(Entity):
             },
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
+            "id": self._device.device_id,
         }

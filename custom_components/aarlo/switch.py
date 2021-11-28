@@ -171,6 +171,7 @@ class AarloSwitch(SwitchEntity):
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
             "model": self._device.model_id,
+            "id": self._device.device_id,
         }
 
 
