@@ -1,4 +1,6 @@
 aarlo/pyaarlo
+0.7.2b0: Use mqtt backend for events
+
 0.7.1.8: Added battery device class
          Stop polling certain devices.
 0.7.1.7: Added width/height to camera_image method

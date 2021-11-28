@@ -91,18 +91,21 @@ def http_get(url, filename=None):
     return True
 
 
-def http_get_img(url):
+def http_get_img(url, ignore_date=False):
     """Download HTTP image data."""
 
     ret = _http_get(url)
     if ret is None:
-        return None, datetime.now()
+        return None, datetime.now().astimezone()
 
-    date = ret.headers.get("Last-Modified", None)
-    if date is not None:
-        date = httptime_to_datetime(date)
-    else:
-        date = datetime.now()
+    date = None
+    if not ignore_date:
+        date = ret.headers.get("Last-Modified", None)
+        if date is not None:
+            date = httptime_to_datetime(date)
+    if date is None:
+        date = datetime.now().astimezone()
+
     return ret.content, date
 
 

@@ -5,7 +5,7 @@
   "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
   "dependencies": ["ffmpeg"],
   "codeowners": ["@twrecked"],
-  "requirements": ["unidecode","cloudscraper>=1.2.58"],
-  "version": "0.7.1.8",
+  "requirements": ["unidecode","cloudscraper>=1.2.58", "paho-mqtt"],
+  "version": "0.7.2b0",
   "iot_class": "cloud_push"
 }
