@@ -36,15 +36,15 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 
-from . import (
+from .const import (
+    DOMAIN,
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
-    get_entity_from_domain,
-    is_homekit,
 )
+from . import get_entity_from_domain, is_homekit
 from .pyaarlo.constant import (
     ACTIVITY_STATE_KEY,
     CHARGER_KEY,
@@ -538,6 +538,18 @@ class ArloCam(Camera):
         attrs["siren"] = self._camera.has_capability(SIREN_STATE_KEY)
 
         return attrs
+
+    @property
+    def device_info(self):
+        """Return the related device info to group entities"""
+        return {
+            "identifiers": {
+                (DOMAIN, self._camera.device_id)
+            },
+            "name": self._name,
+            "manufacturer": COMPONENT_BRAND,
+            "model": self._camera.model_id,
+        }
 
     @property
     def model(self):
