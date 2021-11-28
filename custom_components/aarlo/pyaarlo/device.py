@@ -44,9 +44,15 @@ class ArloDevice(object):
         # Activities. Used by camera for now but made available to all.
         self._activities = {}
 
-        # Build initial values... attrs is device state
+        # Build initial values. These can be at the top level or in the
+        # properties dictionary.
         for key in DEVICE_KEYS:
             value = attrs.get(key, None)
+            if value is not None:
+                self._save(key, value)
+        props = attrs.get("properties", {})
+        for key in RESOURCE_KEYS + RESOURCE_UPDATE_KEYS:
+            value = props.get(key, None)
             if value is not None:
                 self._save(key, value)
 
