@@ -293,6 +293,26 @@ class PyArlo(object):
             self.warning("No devices returned from " + url)
             self._devices = []
         self.vdebug("devices={}".format(pprint.pformat(self._devices)))
+        
+        # Newer devices include information in this response. Be sure to update it.
+        for device in self._devices:
+            device_id = device.get("deviceId", None)
+            props = device.get("properties", None)
+            if device_id is None or props is None:
+                continue
+            self.debug(f"updating {device_id} from device refresh")
+            base = self.lookup_base_station_by_id(device_id)
+            if base is not None:
+                base.update_resources(props)
+            camera = self.lookup_camera_by_id(device_id)
+            if camera is not None:
+                camera.update_resources(props)
+            doorbell = self.lookup_doorbell_by_id(device_id)
+            if doorbell is not None:
+                doorbell.update_resources(props)
+            light = self.lookup_light_by_id(device_id)
+            if light is not None:
+                light.update_resources(props)
 
     def _refresh_camera_thumbnails(self, wait=False):
         """Request latest camera thumbnails, called at start up."""
@@ -562,6 +582,54 @@ class PyArlo(object):
         doorbell = list(filter(lambda cam: cam.name == name, self.doorbells))
         if doorbell:
             return doorbell[0]
+        return None
+
+    def lookup_light_by_id(self, device_id):
+        """Return the light referenced by `device_id`.
+
+        :param device_id: The light device to look for
+        :return: A light object or 'None' on failure.
+        :rtype: ArloDoorBell
+        """
+        light = list(filter(lambda cam: cam.device_id == device_id, self.lights))
+        if light:
+            return light[0]
+        return None
+
+    def lookup_light_by_name(self, name):
+        """Return the light called `name`.
+
+        :param name: The light name to look for
+        :return: A light object or 'None' on failure.
+        :rtype: ArloDoorBell
+        """
+        light = list(filter(lambda cam: cam.name == name, self.lights))
+        if light:
+            return light[0]
+        return None
+
+    def lookup_base_station_by_id(self, device_id):
+        """Return the base_station referenced by `device_id`.
+
+        :param device_id: The base_station device to look for
+        :return: A base_station object or 'None' on failure.
+        :rtype: ArloDoorBell
+        """
+        base_station = list(filter(lambda cam: cam.device_id == device_id, self.base_stations))
+        if base_station:
+            return base_station[0]
+        return None
+
+    def lookup_base_station_by_name(self, name):
+        """Return the base_station called `name`.
+
+        :param name: The base_station name to look for
+        :return: A base_station object or 'None' on failure.
+        :rtype: ArloDoorBell
+        """
+        base_station = list(filter(lambda cam: cam.name == name, self.base_stations))
+        if base_station:
+            return base_station[0]
         return None
 
     def inject_response(self, response):
