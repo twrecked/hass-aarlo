@@ -42,14 +42,15 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_point_in_time
 from pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
 
-from . import (
+from . import get_entity_from_domain
+from .const import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
     COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
-    get_entity_from_domain,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -325,6 +326,17 @@ class ArloBaseStation(AlarmControlPanelEntity):
             "friendly_name": self._name,
             "on_schedule": self._base.on_schedule,
             "siren": self._base.has_capability(SIREN_STATE_KEY),
+        }
+
+    @property
+    def device_info(self):
+        """Return the related device info to group entities"""
+        return {
+            "identifiers": {(DOMAIN, self._base.device_id)},
+            "name": self._name,
+            "manufacturer": COMPONENT_BRAND,
+            "model": self._base.model_id,
+            "id": self._base.device_id,
         }
 
     def _get_state_from_ha(self, mode):

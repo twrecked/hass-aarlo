@@ -32,7 +32,13 @@ from pyaarlo.constant import (
     TOTAL_CAMERAS_KEY,
 )
 
-from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
+from .const import (
+    COMPONENT_ATTRIBUTION,
+    COMPONENT_BRAND,
+    COMPONENT_DATA,
+    COMPONENT_DOMAIN,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -186,3 +192,13 @@ class ArloSensor(Entity):
                 attrs["object_type"] = None
 
         return attrs
+
+    @property
+    def device_info(self):
+        """Return the related device info to group entities"""
+        return {
+            "identifiers": {(DOMAIN, self._device.device_id)},
+            "name": self._name,
+            "manufacturer": COMPONENT_BRAND,
+            "id": self._device.device_id,
+        }
