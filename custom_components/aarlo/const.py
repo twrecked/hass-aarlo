@@ -1,5 +1,7 @@
 """Constants for the Aarlo component."""
 
+
+
 DOMAIN = "aarlo"
 COMPONENT_DOMAIN = "aarlo"
 COMPONENT_DATA = "aarlo-data"
