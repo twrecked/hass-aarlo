@@ -50,14 +50,16 @@ class ArloDevice(object):
             value = attrs.get(key, None)
             if value is not None:
                 self._save(key, value)
-        props = attrs.get("properties", {})
+        self.update_resources(attrs.get("properties", {}))
+
+        # add a listener
+        self._arlo.be.add_listener(self, self._event_handler)
+
+    def update_resources(self, props):
         for key in RESOURCE_KEYS + RESOURCE_UPDATE_KEYS:
             value = props.get(key, None)
             if value is not None:
                 self._save(key, value)
-
-        # add a listener
-        self._arlo.be.add_listener(self, self._event_handler)
 
     def __repr__(self):
         # Representation string of object.
@@ -77,14 +79,7 @@ class ArloDevice(object):
 
         # Find properties. Event either contains a item called properties or it
         # is the whole thing.
-        props = event.get("properties", event)
-
-        # Save out new values.
-        for key in props:
-            if key in RESOURCE_KEYS or key in RESOURCE_UPDATE_KEYS:
-                value = props.get(key, None)
-                if value is not None:
-                    self._save_and_do_callbacks(key, value)
+        self.update_resources(event.get("properties", event))
 
     def _do_callbacks(self, attr, value):
         cbs = []
