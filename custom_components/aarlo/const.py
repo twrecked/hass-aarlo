@@ -1,6 +1,6 @@
 """Constants for the Aarlo component."""
 
-
+from datetime import timedelta
 
 DOMAIN = "aarlo"
 COMPONENT_DOMAIN = "aarlo"
