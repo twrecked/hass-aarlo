@@ -2,6 +2,8 @@
     "config": {
         "step": {
             "user": {
+                "title": "Setup Arlo Camera Support",
+                "description": "Provide requisite information below",
                 "tfa_username": "TFA Username",
                 "tfa_password": "TFA Password",
                 "tfa_host": "TFA Host"
