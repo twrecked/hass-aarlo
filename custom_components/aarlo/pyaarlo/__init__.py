@@ -293,7 +293,7 @@ class PyArlo(object):
             self.warning("No devices returned from " + url)
             self._devices = []
         self.vdebug("devices={}".format(pprint.pformat(self._devices)))
-        
+
         # Newer devices include information in this response. Be sure to update it.
         for device in self._devices:
             device_id = device.get("deviceId", None)
@@ -615,7 +615,9 @@ class PyArlo(object):
         :return: A base_station object or 'None' on failure.
         :rtype: ArloDoorBell
         """
-        base_station = list(filter(lambda cam: cam.device_id == device_id, self.base_stations))
+        base_station = list(
+            filter(lambda cam: cam.device_id == device_id, self.base_stations)
+        )
         if base_station:
             return base_station[0]
         return None
