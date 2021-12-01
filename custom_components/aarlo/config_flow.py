@@ -29,12 +29,12 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, info: dict = None):
         """Handle user initiated flow."""
-        user_input = info or {}
         errors = {}
 
-        if user_input is not None:
+        if info is not None:
+            # TODO need to add error handling for blank fields / bad data
             # process the information
-            return self.async_create_entry(data=user_input)
+            return self.async_create_entry(title="arlo devices",data=info)
 
         data_schema = {
             vol.Required(CONF_USERNAME, default=self.email): str,
