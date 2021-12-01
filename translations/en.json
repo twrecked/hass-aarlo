@@ -1,11 +1,11 @@
 {
-	"config": {
-		"step": {
-			"user": {
-				"tfa_username": "TFA Username",
+    "config": {
+        "step": {
+            "user": {
+                "tfa_username": "TFA Username",
                 "tfa_password": "TFA Password",
-				"tfa_host": "TFA Host"
-			}
-		}
-	}
+                "tfa_host": "TFA Host"
+            }
+        }
+    }
 }
