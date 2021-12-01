@@ -26,7 +26,6 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
         self.tfaUsername = None
         self.tfaPassword = None
         self.tfaHost = None
-        self.shouldProcess = False
 
     async def async_step_user(self, info: dict = None):
         """Handle user initiated flow."""
@@ -35,7 +34,7 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             # process the information
-            self.shouldProcess = True
+            return self.async_create_entry(data=user_input)
 
         data_schema = {
             vol.Required(CONF_USERNAME, default=self.email): str,
