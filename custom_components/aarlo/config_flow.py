@@ -4,6 +4,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigFlow
 from .const import DOMAIN
 
+
 class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
     """Aarlo config flow."""
 
@@ -13,11 +14,16 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
         """Initialize the config flow."""
         self.email = None
         self.password = None
+        self.shouldProcess = False
 
-    async def async_step_user(self, user_input: dict = None):
+    async def async_step_user(self, info: dict = None):
         """Handle user initiated flow."""
-        user_input = user_input or {}
+        user_input = info or {}
         errors = {}
+
+        if user_input is not None:
+            # process the information
+            self.shouldProcess = True
 
         data_schema = {
             vol.Required("Username"): str,
