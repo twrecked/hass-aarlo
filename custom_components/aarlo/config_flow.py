@@ -34,7 +34,10 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
         if info is not None:
             # TODO need to add error handling for blank fields / bad data
             # process the information
-            return self.async_create_entry(title="arlo devices", data=info)
+            if not self.email or not self.password or not self.tfaUsername or not self.tfaPassword or not self.tfaHost:
+                errors["base"] = "missing_field"
+            else:
+                return self.async_create_entry(title=f"Arlo - ${self.email}", data=info)
 
         data_schema = {
             vol.Required(CONF_USERNAME, default=self.email): str,
