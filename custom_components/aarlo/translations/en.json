@@ -1,5 +1,8 @@
 {
   "config": {
+    "error": {
+      "missing_field": "Please fill in all fields."
+    },
     "step": {
       "user": {
         "data": {
