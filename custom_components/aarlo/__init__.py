@@ -26,6 +26,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 from requests.exceptions import ConnectTimeout, HTTPError
+
 from .const import *
 
 __version__ = "0.8.0a6"

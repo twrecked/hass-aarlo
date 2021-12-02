@@ -49,16 +49,16 @@ from pyaarlo.constant import (
     SIREN_STATE_KEY,
 )
 
+from . import get_entity_from_domain, is_homekit
 from .const import (
-    DOMAIN,
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
     COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
+    DOMAIN,
 )
-from . import get_entity_from_domain, is_homekit
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -504,9 +504,7 @@ class ArloCam(Camera):
     def device_info(self):
         """Return the related device info to group entities"""
         return {
-            "identifiers": {
-                (DOMAIN, self._camera.device_id)
-            },
+            "identifiers": {(DOMAIN, self._camera.device_id)},
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
             "model": self._camera.model_id,

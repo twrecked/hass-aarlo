@@ -37,7 +37,7 @@ from pyaarlo.constant import (
     SPOTLIGHT_KEY,
 )
 
-from .const import DOMAIN, COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
+from .const import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -168,9 +168,7 @@ class ArloLight(LightEntity):
     def device_info(self):
         """Return the related device info to group entities"""
         return {
-            "identifiers": {
-                (DOMAIN, self._unique_id)
-            },
+            "identifiers": {(DOMAIN, self._unique_id)},
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
             "id": self._unique_id,
