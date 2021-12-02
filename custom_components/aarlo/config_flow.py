@@ -21,7 +21,7 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
 
     def __init__(self):
         """Initialize the config flow."""
-        self.email = None
+        self.username = None
         self.password = None
         self.tfaUsername = None
         self.tfaPassword = None
@@ -34,13 +34,13 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
         if info is not None:
             # TODO need to add error handling for blank fields / bad data
             # process the information
-            if not self.email or not self.password or not self.tfaUsername or not self.tfaPassword or not self.tfaHost:
+            if not info[CONF_USERNAME] or not info[CONF_PASSWORD]:
                 errors["base"] = "missing_field"
             else:
                 return self.async_create_entry(title=f"Arlo - ${self.email}", data=info)
 
         data_schema = {
-            vol.Required(CONF_USERNAME, default=self.email): str,
+            vol.Required(CONF_USERNAME, default=self.username): str,
             vol.Required(CONF_PASSWORD, default=self.password): str,
             vol.Required(CONF_TFA_USERNAME, default=self.tfaUsername): str,
             vol.Required(CONF_TFA_PASSWORD, default=self.tfaPassword): str,
