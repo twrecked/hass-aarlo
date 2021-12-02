@@ -4,11 +4,13 @@
             "user": {
                 "title": "Setup Arlo Camera Support",
                 "description": "Provide requisite information below",
-                "username": "[%key:common::config_flow::data::username%]",
+                "data": {
+                    "username": "[%key:common::config_flow::data::username%]",
                 "password": "[%key:common::config_flow::data::password%]",
                 "tfa_username": "TFA Username",
                 "tfa_password": "TFA Password",
                 "tfa_host": "TFA Host"
+                }
             }
         }
     }
