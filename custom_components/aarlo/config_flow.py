@@ -34,8 +34,10 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
         if info is not None:
             # TODO need to add error handling for blank fields / bad data
             # process the information
-            if not info[CONF_USERNAME] or not info[CONF_PASSWORD]:
+            if not info[CONF_USERNAME] or not info[CONF_PASSWORD] or not info[CONF_TFA_USERNAME] or not info[CONF_TFA_PASSWORD] or not info[CONF_TFA_HOST]:
                 errors["base"] = "missing_field"
+            elif "imap" not in info[CONF_TFA_HOST]:
+                errors["base"] = "tfa_no_imap"
             else:
                 return self.async_create_entry(title=f"Arlo - ${self.email}", data=info)
 

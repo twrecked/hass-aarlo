@@ -1,7 +1,8 @@
 {
   "config": {
     "error": {
-      "missing_field": "Please fill in all fields."
+      "missing_field": "Please fill in all fields.",
+      "tfa_no_imap": "A valid TFA HOST should include imap"
     },
     "step": {
       "user": {
