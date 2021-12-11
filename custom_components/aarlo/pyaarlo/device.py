@@ -77,11 +77,7 @@ class ArloDevice(object):
 
         # Find properties. Event either contains a item called properties or it
         # is the whole thing.
-        props = event.get("properties", event)
-        for key in RESOURCE_KEYS + RESOURCE_UPDATE_KEYS:
-            value = props.get(key, None)
-            if value is not None:
-                self._save_and_do_callbacks(key, value)
+        self.update_resources(event.get("properties", event))
 
     def _do_callbacks(self, attr, value):
         cbs = []
