@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.2b4: Read properties for devices in device refresh
 0.7.2b2: Read properties for devices in device refresh.
 0.7.2b1: Read properties for devices in initial setup.
 0.7.2b0: Use mqtt backend for events
