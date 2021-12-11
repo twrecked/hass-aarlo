@@ -1,0 +1,21 @@
+{
+  "config": {
+    "error": {
+      "missing_field": "Please fill in all fields.",
+      "tfa_no_imap": "A valid TFA HOST should include `imap`"
+    },
+    "step": {
+      "user": {
+        "title": "Setup Arlo Camera Support",
+        "description": "Provide requisite information below",
+        "data": {
+          "username": "Username",
+          "password": "Password",
+          "tfa_username": "TFA Username",
+          "tfa_password": "TFA Password",
+          "tfa_host": "TFA Host"
+        }
+      }
+    }
+  }
+}
