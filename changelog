@@ -1,4 +1,8 @@
 aarlo
+0.8.0a7: Bumped pyaarlo version.
+  Use Mqtt backend [pyaarlo]
+  Added support for devices (NickM-27)
+  Fix device attribute error messages.
 0.8.0a6: Added battery device class
 0.8.0a5: Add width/height to camera_image
 0.8.0a4: Bumped pyaarlo version.

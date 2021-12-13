@@ -28,7 +28,7 @@ from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 from requests.exceptions import ConnectTimeout, HTTPError
 from .const import *
 
-__version__ = "0.8.0a6"
+__version__ = "0.8.0a7"
 
 _LOGGER = logging.getLogger(__name__)
 
