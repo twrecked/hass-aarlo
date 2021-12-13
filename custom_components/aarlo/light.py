@@ -143,7 +143,7 @@ class ArloLight(LightEntity):
         return self._brightness
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
 
         attrs = {
@@ -366,10 +366,10 @@ class ArloFloodLight(ArloLight):
         return SUPPORT_BRIGHTNESS
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
 
-        super_attrs = super().device_state_attributes
+        super_attrs = super().extra_state_attributes
         flood_attrs = {
             name: value
             for name, value in (
