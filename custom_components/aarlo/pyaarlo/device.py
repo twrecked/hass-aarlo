@@ -13,6 +13,7 @@ from .constant import (
     RESOURCE_KEYS,
     RESOURCE_UPDATE_KEYS,
     SIGNAL_STR_KEY,
+    TIMEZONE_KEY,
     XCLOUD_ID_KEY,
 )
 
@@ -167,7 +168,10 @@ class ArloDevice(object):
     @property
     def timezone(self):
         """Returns the timezone."""
-        return self._attrs.get("properties", {}).get("olsonTimeZone", None)
+        time_zone = self._load(TIMEZONE_KEY, None)
+        if time_zone is None:
+            return self._attrs.get("properties", {}).get("olsonTimeZone", None)
+        return time_zone
 
     @property
     def user_id(self):
@@ -383,6 +387,18 @@ class ArloChildDevice(ArloDevice):
         if self._parent_id is not None:
             return self._parent_id
         return self.device_id
+
+    @property
+    def timezone(self):
+        """Returns the timezone.
+
+        Tries to be clever. If it doesn't have a timezone it will try its
+        basestation.
+        """
+        time_zone = super().timezone
+        if time_zone is None:
+            return self.base_station.timezone
+        return time_zone
 
     @property
     def base_station(self):
