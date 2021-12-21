@@ -9,7 +9,6 @@ import logging
 import os.path
 import pprint
 import time
-from datetime import timedelta
 from traceback import extract_stack
 
 import voluptuous as vol
@@ -102,6 +101,7 @@ CONFIG_SCHEMA = vol.Schema(
                     CONF_NO_UNICODE_SQUASH, default=NO_UNICODE_SQUASH
                 ): cv.boolean,
                 vol.Optional(CONF_SAVE_SESSION, default=SAVE_SESSION): cv.boolean,
+                vol.Optional(CONF_BACKEND, default=DEFAULT_BACKEND): cv.string,
             }
         ),
     },
@@ -281,6 +281,7 @@ def login(hass, conf):
     user_stream_delay = conf.get(CONF_USER_STREAM_DELAY)
     no_unicode_squash = conf.get(CONF_NO_UNICODE_SQUASH)
     save_session = conf.get(CONF_SAVE_SESSION)
+    backend = conf.get(CONF_BACKEND)
 
     # Fix up config
     if conf_dir == "":
@@ -333,6 +334,7 @@ def login(hass, conf):
                 no_unicode_squash=no_unicode_squash,
                 save_media_to=save_media_to,
                 save_session=save_session,
+                backend=backend,
                 wait_for_initial_setup=False,
                 verbose_debug=verbose_debug,
             )

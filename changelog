@@ -1,6 +1,7 @@
 aarlo
 0.8.0a7: Bumped pyaarlo version.
-  Use Mqtt backend [pyaarlo]
+  Use Mqtt or SSE backend
+  Support Mqtt backend [pyaarlo]
   Added support for devices (NickM-27)
   Fix device attribute error messages.
 0.8.0a6: Added battery device class
