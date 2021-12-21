@@ -208,7 +208,6 @@ class ArloCfg(object):
     @property
     def session_file(self):
         return self.storage_dir + "/session.pickle"
-        return None
 
     @property
     def save_session(self):
@@ -255,3 +254,7 @@ class ArloCfg(object):
     @property
     def no_unicode_squash(self):
         return self._kw.get("no_unicode_squash", True)
+
+    @property
+    def use_mqtt(self):
+        return self._kw.get("backend", "mqtt") == "mqtt"
