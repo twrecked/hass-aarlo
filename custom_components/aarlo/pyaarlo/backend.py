@@ -157,15 +157,15 @@ class ArloBackEnd(object):
             self._arlo.warning("request-error={}".format(type(e).__name__))
             return None
 
-        self._arlo.vdebug("request-end={}".format(r.status_code))
-        if r.status_code != 200:
-            return None
-
         try:
             body = r.json()
             self._arlo.vdebug("request-body=\n{}".format(pprint.pformat(body)))
         except Exception as e:
             self._arlo.warning("body-error={}".format(type(e).__name__))
+            return None
+
+        self._arlo.vdebug("request-end={}".format(r.status_code))
+        if r.status_code != 200:
             return None
 
         if raw:
