@@ -472,8 +472,13 @@ class ArloBackEnd(object):
             )
 
     def _sse_reconnected(self):
-        self._arlo.debug("Fetching device list after ev-reconnect")
+        self._arlo.debug("fetching device list after ev-reconnect")
         self.devices()
+
+    def _sse_reconnect(self):
+        self._arlo.debug("trying to reconnect")
+        if self._event_client is not None:
+            self._event_client.stop()
 
     def _sse_main(self):
 
@@ -557,10 +562,11 @@ class ArloBackEnd(object):
                 self._lock.wait(1)
                 count += 1
 
-        # start logout daemon
-        if self._arlo.cfg.reconnect_every != 0:
-            self._arlo.debug("automatically reconnecting")
-            self._arlo.bg.run_every(self.logout, self._arlo.cfg.reconnect_every)
+        # start logout daemon for sse clients
+        if not self._use_mqtt:
+            if self._arlo.cfg.reconnect_every != 0:
+                self._arlo.debug("automatically reconnecting")
+                self._arlo.bg.run_every(self._sse_reconnect, self._arlo.cfg.reconnect_every)
         self._arlo.debug("stream up")
         return True
 
@@ -841,7 +847,10 @@ class ArloBackEnd(object):
         self._arlo.debug("trying to logout")
         self._event_stop_loop()
         if self._event_client is not None:
-            self._event_client.disconnect()
+            if self._use_mqtt:
+                self._event_client.disconnect()
+            else:
+                self._event_client.stop()
         self.put(LOGOUT_PATH)
 
     def notify(self, base, body, timeout=None, wait_for=None):

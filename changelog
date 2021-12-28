@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.2b7: Allow sse backend to be used (fix reconnect).
 0.7.2b6: Allow sse backend to be used.
          Fix missing time zones
 0.7.2b5: Fix warning message about device attributes.
