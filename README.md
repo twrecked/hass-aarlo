@@ -40,27 +40,31 @@ The following options have been removed:
    - [Switch Configuration](#configuration-switch)
    - [Media Player Configuration](#configuration-media)
    - [Custom Lovelace Card Configuration](#configuration-lovelace)
+- [2-Factor Authentication](#2fa)
+   - [IMAP](#2fa-automatic)
+   - [PUSH](#2fa-push)
 - [Other](#other)
    - [Naming](#other-naming)
    - [Saving Media](#other-saving-media)
    - [Streaming](#other-streaming)
    - [Snapshots](#other-snapshots)
    - [User Agents](#other-user-agents)
-   - [Debugging](#other-debugging)
-   - [Hiding Sensitive Data](#other-sensitive)
    - [Adding Devices](#other-adding)
+   - [Best Practises and Known Limitations](#other-best)
 - [It's Not Working!](#notworking)
    - [Cloud Flare](#notworking-cloudflare)
-   - [Best Practises and Known Limitations](#notworking-best)
+   - [Missing Events](#notworking-missing-events)
+   - [Missing/Incorrect Values](#notworking-missing-values)
+   - [Enabling and Examining Logs](#notworking-debug)
+   - [Bug Reports](#notworking-bug-reports)
+     - [Hiding Sensitive Data](#notworking-sensitive)
+   - [Reverse Engineering](#notworking-browser)
 - [Advanced Use](#advanced)
    - [All Parameters](#advanced-parameters)
    - [Camera Statuses](#advanced-statuses)
    - [Services](#advanced-services)
    - [Web Sockets](#advanced-websockets)
    - [Automation Examples](#advanced-automations)
-- [2 Factor Authentication](#2fa)
-   - [IMAP](#2fa-automatic)
-   - [PUSH](#2fa-push)
 - [To Do](#to-do)
 
 
@@ -78,7 +82,7 @@ as replacement with minimal configuration changes.
 Aarlo also provides a custom [Lovelace
 Card](https://github.com/twrecked/lovelace-hass-aarlo), which overlays a
 camera's last snapshot with its current status and allows access to the cameras
-recording library and live streaming.
+recording library and live-streaming.
 
 <a name="introduction-features"></a>
 #### Features
@@ -96,7 +100,7 @@ Aarlo provides:
 #### Notes
 This document assumes you are familiar with Home Assistant setup and configuration.
 
-Wherever you see `/config` in this documenent it refers to your Home Assistant
+Wherever you see `/config` in this document it refers to your Home Assistant
 configuration directory. For example, for my installation it's `/home/steve/ha`
 which is mapped to `/config` by my docker container.
 
@@ -135,7 +139,7 @@ Copy the `aarlo` directory into your `/config/custom_components` directory.
 
 <a name="installation-from-script"></a>
 #### From Script
-Run the install script. Run it once to make sure the operations look sane and run it a
+Run the installation script. Run it once to make sure the operations look sane and run it a
 second time with the `go` paramater to do the actual work. If you update just rerun the
 script, it will overwrite all installed files.
 
@@ -163,7 +167,7 @@ _If you are replacing the original Arlo component you don't need to do this step
 
 Aarlo needs a dedicated Aarlo login. If you try to reuse an existing login - for example,
 the login from the Arlo app on your phone - the app and this component will constantly
-fight to login.
+fight to log in.
 
 When you have created the Aarlo login, from your original Arlo account grant access to any
 devices you want to share and give the Aarlo user admin access.
@@ -228,7 +232,7 @@ alarm_control_panel:
 
 Arlo does not have a built in `home` or `night` mode. If you need them create a custom
 mode in Arlo and `home_mode_name` and `night_mode_name` to map to them. You don't need to
-map all modes - I don't use `night_mode`. Names are case insensitive. Using duplicate
+map all modes - I don't use `night_mode`. Names are case-insensitive. Using duplicate
 names will cause problems, for example, mapping both `away` and `night` mode to `armed`
 will work when setting the mode from Home Assistant but might not show the correct mode if
 you change it in the Arlo app.
@@ -304,7 +308,7 @@ The rest of the sensors appear per camera.
 * `recent_activity` Is `on` if activity was recently seen on the camera.
 * `captured_today` The number of events captured by the camera today.
 * `battery_level` The percentage of battery remaining.
-* `signal_strength` The WiFi signal strength of the camera.
+* `signal_strength` The Wi-Fi signal strength of the camera.
 * `temperature` The temperature in the room where the camera is, if supported.
 * `humidity` The humidity in the room where the camera is, if supported.
 * `air_quality` The air quality in the room where the camera is, if supported.
@@ -348,7 +352,7 @@ switch:
     siren_duration: 10
 ```
 
-* `siren` If `True`, will create a switch for each siren device that allows your to turn
+* `siren` If `True`, will create a switch for each siren device that allows you to turn
   it on or off.
 * `all_sirens` If `True`, will create a switch for all the siren devices that allows you
   to turn them all on and off.
@@ -383,6 +387,85 @@ interface camera view.
 *This piece is optional, `aarlo` will work with the standard Lovelace cards.*
 
 
+<a name="2fa"></a>
+## 2FA
+
+`aarlo` supports 2-factor authentication.
+
+To check if you need to enable 2FA, log in to Arlo using your Home Assistant
+account and see if it sends you a verification code. If it does, you will need
+to provide a mechanism to get this code, choose one of the following:
+
+<a name="2fa-automatic"></a>
+### IMAP
+
+For IMAP 2FA Arlo needs to access and your email account form where it reads
+the token Arlo sent.
+
+```yaml
+aarlo:
+  tfa_source: imap
+  tfa_type: email
+  tfa_host: imap.host.com
+  tfa_username: your-user-name
+  tfa_password: your-imap-password
+```
+
+If needed, you can specify a port by appending it to the host.
+
+```yaml
+aarlo:
+  tfa_source: imap
+  tfa_type: email
+  tfa_host: imap.host.com:1234
+  tfa_username: your-user-name
+  tfa_password: your-imap-password
+```
+
+#### Application Passwords
+
+  For `GMail`, `Yahoo` (and other web based email client) you can't log in
+  with your usual password, you will have to create an application specific
+  password. Explaining why this is necessary is out of the scope of this
+  document so see the following pages.
+
+  - [Gmail App Password](https://support.google.com/mail/answer/185833?hl=en)
+  - [Yahoo App Password](https://help.yahoo.com/kb/SLN15241.html)
+
+  If you find you can't log in to your IMAP account check the application
+  password requirement.
+  
+  Once you have created the application password use it in the 2FA
+  configuration.
+
+
+For `GMail` the set-up would look like this:
+
+```yaml
+aarlo:
+  ..other config..
+  tfa_source: imap
+  tfa_type: email
+  tfa_host: imap.gmail.com
+  tfa_username: !secret gmail_username
+  tfa_password: !secret gmail_app_password
+```
+
+
+<a name="2fa-push"></a>
+### PUSH
+
+PUSH 2FA Arlo is used when account is set for 2FA to phone app.
+
+```yaml
+aarlo:
+  tfa_source: push
+  tfa_type: PUSH
+  tfa_retries: 5 # optional: default 5; attempts to check for push approved
+  tfa_delay: 5 # optional: default 5; seconds of delay between retries
+```
+
+
 <a name="other"></a>
 ## Other
 
@@ -415,15 +498,15 @@ can use the following substitutions:
 - `H`; the hour of the day (range 00 to 23)
 - `M`; the minute of the hour (range 00 to 59)
 - `S`; the seconds of the minute (range 00 to 59)
-- `F`; a short cut for `Y-m-d`
-- `T`; a short cut for `H:M:S`
-- `t`; a short cut for `H-M-S`
+- `F`; a shortcut for `Y-m-d`
+- `T`; a shortcut for `H:M:S`
+- `t`; a shortcut for `H-M-S`
 - `s`; the number of seconds since the epoch
 
 You specify the substitution by prefixing it with a `$` in the format string.
 You can optionally use curly brackets to remove any ambiguity. For example,
 the following configuration will save all media under `/config/media`
-organised by serial number then date. The code will add the correct file
+organised by serial number and then by date. The code will add the correct file
 extension.
 
 ```yaml
@@ -460,12 +543,12 @@ One of the biggest advantages of direct streaming was audio support but that
 has been added to non-direct streaming in recent Home Assistant releases.
 Direct streaming still offloads the conversion from your Home Assistant server
 and reduces the bandwidth usage of your home network, this is especially true
-if streaming from out side of your home network.
+if streaming from outside your home network.
 
 You can not stream directly to Apple devices, they don't support `mpeg-dash`.
 
 Internally the code will use non-direct streaming as needed. For example, to
-save recording into the Arlo library of longer that 30 seconds the code must
+save recording into the Arlo library of longer than 30 seconds the code must
 open a stream to the Arlo servers, it can only do this in non-direct mode
 because the stream component doesn't support `mpeg-dash`.
 
@@ -500,7 +583,7 @@ Snapshots can be tricky.
 The initial implementation would issue a `fullFrameSnapshot` request and Arlo
 would return a snapshot. The problem was it wasn't very consistent, I have 2
 identical cameras where snapshot will work on one and not the other. Arlo uses
-the this implementation to allow you to position the camera and I've seen it
+this implementation to allow you to position the camera and I've seen it
 not work on their web interface and app.
 
 The next implementation would start a stream and issues a snapshot command -
@@ -555,7 +638,7 @@ The following user agents are available:
   browsers and, for now, these return `mpeg_dash` streams.
 
 As you can see, the user agent you supply to Arlo determines what streaming
-format is used. I used to think that the agent you used to login had to be the
+format is used. I used to think that the agent you used to log in had to be the
 same as the agent you use to start a stream. After some testing I find this is
 not the case.
 
@@ -570,147 +653,45 @@ What this means is `aarlo` can select the best user agent for the task.
 
 Those `camera.play_stream` and `arlo_stream_url` changes are important, they
 allow the `aarlo-glance` Lovelace card to choose direct or non-direct streams
-irregardless of the default user agent provided.
+regardless of the default user agent provided.
 
 The default user agent is used in all other cases. This means, for example,
 the one you set if picked for snapshot operations.
 
-<a name="other-debugging"></a>
-### Debugging
-If you run into problems there please provide the following in the bug report to help
-debugging.
-* Version of software running.
-* Make of cameras and base stations you have.
+<a name="other-best"></a>
+### Best Practises and Known Limitations
+The component uses the Arlo webapi.
+* There is no documentation so the API has been reverse engineered using browser debug
+  tools.
+* Streaming times out after 30 minutes.
+* The webapi doesn't seem like it was really designed for permanent connections so the
+  system will sometimes appear to lock up. Various workarounds are in the code and can be
+  configured at the `arlo` component level. See next paragraph.
 
-I might also ask you to turn on component logging and event logging. The follow paragraphs
-show you how, it's safe to leave these running if you fancy pokeing around and trying to
-find out what it going wrong.
+If you do find the component locks up after a while (I've seen reports of hours, days or
+weeks), you can add the following to the main configuration. Start from the top and work
+down:
+* `refresh_devices_every`, tell Aarlo to request the device list every so often. This will
+  sometimes prevent the back end from aging you out. The value is in hours and a good
+  starting point is 3.
+* `stream_timeout`, tell Aarlo to close and reopen the event stream after a certain period
+  of inactivity. Aarlo will send keep alive every minute so a good starting point is 180
+  seconds.
+* `reconnect_every`, tell Aarlo to logout and back in every so often. This establishes a
+  new session at the risk of losing an event notification. The value is minutes and a good
+  starting point is 90.
+* `request_timeout`, the amount of time to allow for a http request to work. A good
+  starting point is 120 seconds.
 
-* Component logging. You can turn this on by adding the following to your
-  `configuration.yaml` file.
-```yaml
-logger:
-  default: info
-  logs:
-    custom_components.aarlo: debug
-    custom_components.aarlo.alarm_control_panel: debug
-    custom_components.aarlo.binary_sensor: debug
-    custom_components.aarlo.camera: debug
-    custom_components.aarlo.light: debug
-    custom_components.aarlo.media_player: debug
-    custom_components.aarlo.sensor: debug
-    custom_components.aarlo.switch: debug
-    pyaarlo: debug
-```
+Unify your alarm mode names across all your base stations. There is no way to specify
+different mode names for each device.
 
-	If, for example, you suspect the problem is just with your lights you can remove
-	unneeded debug:
-```yaml
-logger:
-  default: info
-  logs:
-    custom_components.aarlo: debug
-    custom_components.aarlo.light: debug
-    pyaarlo: debug
-```
+Arlo will allow shared accounts to give cameras their own name. If you find cameras
+appearing with unexpected names (or not appearing at all), log into the Arlo web interface
+with your Home Assistant account and make sure the camera names are correct.
 
-	Home assistant logs everything to `/config/home-assistant.log`, a typical piece of
-	debug from Aarlo looks like this.
-```
-2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] fast refresh
-2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] day testing with 2020-01-21!
-2020-01-21 11:44:50 DEBUG (ArloEventStream) [pyaarlo] async ping response subscriptions/XXXXXX-XXX-XXXXXXX_web
-```
-	If you fancy diving in, and please do, searching for exceptions and any reference to
-	`traceBack` is a good place to start.
-
-
-* Event logging. You can look at what events Arlo is sending you by turning on event
-  stream dumping. Add the following to your `configuration.yaml` file and Aarlo will dump
-  events into `/config/.aarlo/packets.dump`:
-```yaml
-aarlo:
-    # current config here
-    packet_dump: True
-```
-
-   This file will built up from a constant trickle of packets from Arlo. The following
-   exerpt shows a login confirmation and a subscription check response.
-```
-{'status': 'connected'}
-{ 'action': 'is',
-    'from': 'XXXXXXXXXXXXX',
-    'resource': 'subscriptions/XXXXXX-XXX-XXXXXXX_web',
-    'to': 'XXXXXX-XXX-XXXXXXX_web',
-    'transId': 'web!38a29262-1ce0-4c4d-8f75-fafec2c34332'}
-```
-
-	Another example, if Arlo detects motion you will see a packet with the following field
-	in it:
-```
-'properties': {'motionDetected': True},
-```
-
-<a name="other-sensitive"></a>
-### Hiding Sensitive Data
-
-If you paste any debug logs into github it's a good idea to encrypt them before uploading
-them. You can do this one of two ways.
-
-#### Online
-
-You can encrypt your output on this
-[webpage](https://pyaarlo-tfa.appspot.com/). The page doesn't forward the
-output to me so you will have to copy and paste it into a bug report.
-
-#### Pyaarlo
-
-You can do this using the [pyaarlo](https://github.com/twrecked/pyaarlo) component.
-The easiest way to install it is in a virtual environment. The following steps will
-install Pyaarlo.
-
-```bash
-$ virtualenv -p /usr/bin/python3.6 pyaarlo
-$ source pyaarlo/bin/activate
-(pyaarlo) $ pip install git+https://github.com/twrecked/pyaarlo
-(pyaarlo) $ pyaarlo --help
-```
-
-To encrypt your logs save the output to a file and do the following:
-
-```bash
-(pyaarlo)$ cat your-log-file | pyaarlo encrypt
-```
-
-The output will look like this - only longer! Paste everything, including the BEGIN and
-END lines into your bug report.
-
-```
------BEGIN PYAARLO DUMP-----
-gAN9cQAoWAEAAABucQFCAAEAAJJ7SWmo+vX28ycatrCV2s1o0wiIo3SPVOaRkHBf6xVup2D/cdZI
-nvim30f/oTNwkuspbwYTwOzXHZJygnsi/9vX4+5g65te+bJczzVl6hoBM+2uaNfFi63iL0blMv32
-zwTZHPj7TxwcJbdOGuP+A+yqEpxPbIsI/8nUP9CLvE01cxje+a7swgUdidoPTAAPSjjteGWl/h+V
-DMX8UcDPtN+fdYOyEVlVOoFPQC4u/xXjN0qusfW0yNqpKHzD82Vkz0Igc5USXCRsbAs1YNgnZgXt
-KWwDrH5v31jNd6zppaF5EtgfnyDsUohzqYy0bciXfD0HAQS/6sbT+sSaRf39q7pxAlgBAAAAb3ED
-QyDC4o3xjAKAA4pGGxzZ7zyUP7nU6QgiqDD1aYi7C6SzcnEEdS4=
------END PYAARLO DUMP-----
-```
-
-#### Notes
-Data isn't anonymised internally... I will be adding that functionality.
-
-You don't need to keep re-installing pyaarlo, just re-activate the virtualenv.
-```bash
-$ cd where-you-where-before
-$ source pyaarlo/bin/activate
-(pyaarlo) $ pyaarlo --help
-```
-
-When you're finished with pyaarlo deactivate the virtualenv.
-```bash
-(pyaarlo) $ deactivate
-$
-```
+You can change the brightness on the light but not while it's turned on. You need to turn
+it off and back on again for the change to take. This is how the web interface does it.
 
 
 <a name="other-adding"></a>
@@ -746,43 +727,206 @@ There are a couple of things you can try:
 The good news, `aarlo` will now cache the authentication token so once you've
 logged in you should be not need to be bothered by Cloud Flare for 2 weeks.
 
-This problem affects me and I'm constantly trying to refine the code.
+This problem affects me, and I'm constantly trying to refine the code.
 
-<a name="notworking-best"></a>
-### Best Practises and Known Limitations
-The component uses the Arlo webapi.
-* There is no documentation so the API has been reverse engineered using browser debug
-  tools.
-* Streaming times out after 30 minutes.
-* The webapi doesn't seem like it was really designed for permanent connections so the
-  system will sometimes appear to lock up. Various workarounds are in the code and can be
-  configured at the `arlo` component level. See next paragraph.
+<a name="notworking-missing-events"></a>
+### Missing Events
+Arlo is in the middle of (or seems to be in the middle of) changing their
+back end event system. The original system used a `Server Side Event` socket
+but they now support a `MQTT` broker system. The problem `aarlo` can't
+currently automatically determine which to use.
 
-If you do find the component locks up after a while (I've seen reports of hours, days or
-weeks), you can add the following to the main configuration. Start from the top and work
-down:
-* `refresh_devices_every`, tell Aarlo to request the device list every so often. This will
-  sometimes prevent the back end from aging you out. The value is in hours and a good
-  starting point is 3.
-* `stream_timeout`, tell Aarlo to close and reopen the event stream after a certain period
-  of inactivity. Aarlo will send keep alive every minute so a good starting point is 180
-  seconds.
-* `reconnect_every`, tell Aarlo to logout and back in every so often. This establishes a
-  new session at the risk of losing an event notification. The value is minutes and a good
-  starting point is 90.
-* `request_timeout`, the amount of time to allow for a http request to work. A good
-  starting point is 120 seconds.
+By default, the system will use the `MQTT` back end. If aren't seeing the
+events you expect to see then try changing to the `Server Side Event` back
+end. Add this to your configuration and restart the system.
 
-Unify your alarm mode names across all your base stations. There is no way to specify
-different mode names for each device.
+```yaml
+aarlo:
+  ..your current config..
+  backend: sse
+```
 
-Arlo will allow shared accounts to give cameras their own name. If you find cameras
-appearing with unexpected names (or not appearing at all), log into the Arlo web interface
-with your Home Assistant account and make sure the camera names are correct.
+If that doesn't help then you will need to turn on
+[logging](#notworking-debug) and examine the output.
 
-You can change the brightness on the light but not while it's turned on. You need to turn
-it off and back on again for the change to take. This is how the web interface does it.
+Once you have the logs look for the event you are missing at around the time
+you are expecting it. The events are usually helpfully named, i.e.
+`motionDetected` for motion events, `batteryLevel` for battery levels.
 
+
+<a name="notworking-missing-values"></a>
+### Missing/Incorrect Values
+See [Missing Events](#notworking-missing-events), they share a lot of the same
+issues.
+
+And make sure you have `admin enabled` for your secondary account. Arlo won't
+update some values for admin accounts.
+
+
+<a name="notworking-debug"></a>
+### Enabling and Examining Logs
+I might also ask you to turn on component logging and event logging. The
+follow paragraphs show you how, it's safe to leave these running if you fancy
+poking around and trying to find out what is going wrong.
+
+* Component logging. You can turn this on by adding the following to your
+  `configuration.yaml` file.
+```yaml
+logger:
+  default: info
+  logs:
+    ..any current logs you have enabled..
+    custom_components.aarlo: debug
+    custom_components.aarlo.alarm_control_panel: debug
+    custom_components.aarlo.binary_sensor: debug
+    custom_components.aarlo.camera: debug
+    custom_components.aarlo.light: debug
+    custom_components.aarlo.media_player: debug
+    custom_components.aarlo.sensor: debug
+    custom_components.aarlo.switch: debug
+    pyaarlo: debug
+```
+
+	If, for example, you suspect the problem is just with your lights you can remove
+	unneeded debug:
+```yaml
+logger:
+  default: info
+  logs:
+    custom_components.aarlo: debug
+    custom_components.aarlo.light: debug
+    pyaarlo: debug
+```
+
+	Home assistant logs everything to `/config/home-assistant.log`, a typical piece of
+	debug from Aarlo looks like this.
+```
+2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] fast refresh
+2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] day testing with 2020-01-21!
+2020-01-21 11:44:50 DEBUG (ArloEventStream) [pyaarlo] async ping response subscriptions/XXXXXX-XXX-XXXXXXX_web
+```
+
+  Once you have the logs look for the event you are missing at around the time
+  you are expecting it. The events are usually helpfully named, i.e.
+  `motionDetected` for motion events, `batteryLevel` for battery levels. You
+  can look `RESOURCE_KEYS` and `RESOURCE_UPDATE_KEYS` in
+  [constant.py](https://github.com/twrecked/pyaarlo/blob/master/pyaarlo/constant.py)
+  for a list of recognised event types.
+  
+  If you can't see the entries you expect then look for any `traceBack` happening
+  in an `aarlo` component. This will indicate a program crash and can usually
+  be the reason for missing events.
+  
+  If you still can't see the events your expecting then open a bug report and include
+  the logs.
+
+* Event logging. You can look at what events Arlo is sending you by turning on event
+  stream dumping. Add the following to your `configuration.yaml` file and Aarlo will dump
+  events into `/config/.aarlo/packets.dump`:
+```yaml
+aarlo:
+    # current config here
+    packet_dump: True
+```
+
+ This file will be built up from a constant trickle of packets from Arlo. The following
+ excerpt shows a login confirmation and a subscription check response.
+```
+{'status': 'connected'}
+{ 'action': 'is',
+    'from': 'XXXXXXXXXXXXX',
+    'resource': 'subscriptions/XXXXXX-XXX-XXXXXXX_web',
+    'to': 'XXXXXX-XXX-XXXXXXX_web',
+    'transId': 'web!38a29262-1ce0-4c4d-8f75-fafec2c34332'}
+```
+
+	Another example, if Arlo detects motion you will see a packet with the following field
+	in it:
+```
+'properties': {'motionDetected': True},
+```
+
+  This information will normally be present in the component logging, if it's
+  missing from there that could indicate an issue.
+
+
+<a name="notworking-bug-reports"></a>
+### Bug Reports
+If you run into problems there please provide the following in the bug report to help
+debugging.
+* Version of software running.
+* Make of cameras and base stations you have.
+* What you were doing or expecting
+* Include debug logs if available.
+
+<a name="notworking-sensitive"></a>
+#### Hiding Sensitive Data
+
+If you paste any debug logs into GitHub it's a good idea to encrypt them before uploading
+them. You can do this one of two ways.
+
+##### Online
+
+You can encrypt your output on this
+[webpage](https://pyaarlo-tfa.appspot.com/). 
+
+**This page doesn't forward the output to me, so you will have to copy and
+paste it into a bug report.**
+
+##### Pyaarlo
+
+You can do this using the [pyaarlo](https://github.com/twrecked/pyaarlo) component.
+The easiest way to install it is in a virtual environment. The following steps will
+install Pyaarlo.
+
+```bash
+$ virtualenv -p /usr/bin/python3.6 pyaarlo
+$ source pyaarlo/bin/activate
+(pyaarlo) $ pip install git+https://github.com/twrecked/pyaarlo
+(pyaarlo) $ pyaarlo --help
+```
+
+To encrypt your logs save the output to a file and do the following:
+
+```bash
+(pyaarlo)$ cat your-log-file | pyaarlo encrypt
+```
+
+The output will look like this - only longer! Paste everything, including the `BEGIN` and
+`END` lines into your bug report.
+
+```
+-----BEGIN PYAARLO DUMP-----
+gAN9cQAoWAEAAABucQFCAAEAAJJ7SWmo+vX28ycatrCV2s1o0wiIo3SPVOaRkHBf6xVup2D/cdZI
+nvim30f/oTNwkuspbwYTwOzXHZJygnsi/9vX4+5g65te+bJczzVl6hoBM+2uaNfFi63iL0blMv32
+zwTZHPj7TxwcJbdOGuP+A+yqEpxPbIsI/8nUP9CLvE01cxje+a7swgUdidoPTAAPSjjteGWl/h+V
+DMX8UcDPtN+fdYOyEVlVOoFPQC4u/xXjN0qusfW0yNqpKHzD82Vkz0Igc5USXCRsbAs1YNgnZgXt
+KWwDrH5v31jNd6zppaF5EtgfnyDsUohzqYy0bciXfD0HAQS/6sbT+sSaRf39q7pxAlgBAAAAb3ED
+QyDC4o3xjAKAA4pGGxzZ7zyUP7nU6QgiqDD1aYi7C6SzcnEEdS4=
+-----END PYAARLO DUMP-----
+```
+
+#### Notes
+Data isn't anonymised internally... I will be adding that functionality.
+
+You don't need to keep re-installing pyaarlo, just re-activate the virtualenv.
+```bash
+$ cd where-you-where-before
+$ source pyaarlo/bin/activate
+(pyaarlo) $ pyaarlo --help
+```
+
+When you're finished with pyaarlo deactivate the virtualenv.
+```bash
+(pyaarlo) $ deactivate
+$
+```
+
+
+<a name="notworking-browser"></a>
+### Reverse Engineering
+
+Coming soon...
 
 <a name="advanced"></a>
 ## Advanced Use
@@ -861,7 +1005,7 @@ directory. This is because we have to keep a stream to Arlo open to prevent them
 from stopping the recording after 30 seconds. And we write this stream to the
 /tmp directory.
 
-For `restart_device` you need to login with the main account.
+For `restart_device` you need to log in with the main account.
 
 These services are deprecated and will be going away. By moving services under the aarlo
 domain it allows Home Assistant to use the `services.yaml` descriptions.
@@ -948,54 +1092,6 @@ The component provides the following extra web sockets:
       duration: 300
       entity_id: camera.aarlo_garage
     service: camera.aarlo_start_recording
-```
-
-<a name="2fa"></a>
-## 2FA
-
-Aarlo supports 2 factor authentication and contains some measures to trigger a
-resend of the 2FA token number should it not work the first time. Aarlo will
-also continue to try to login in the background.
-
-<a name="2fa-automatic"></a>
-#### IMAP
-
-For IMAP 2FA Arlo needs to access and your email account form where it reads
-the token Arlo sent.
-
-```yaml
-aarlo:
-  tfa_source: imap
-  tfa_type: email
-  tfa_host: imap.host.com
-  tfa_username: your-user-name
-  tfa_password: your-imap-password
-```
-
-It's working well with my gmail account, see
-[here](https://support.google.com/mail/answer/185833?hl=en) for help setting up single app
-passwords. If needed, you can specify a port by appending it to the host.
-
-```yaml
-aarlo:
-  tfa_source: imap
-  tfa_type: email
-  tfa_host: imap.host.com:1234
-  tfa_username: your-user-name
-  tfa_password: your-imap-password
-```
-
-<a name="2fa-push"></a>
-#### PUSH
-
-PUSH 2FA Arlo is used when account is set for 2FA to phone app.
-
-```yaml
-aarlo:
-  tfa_source: push
-  tfa_type: PUSH
-  tfa_retries: 5 # optional: default 5; attempts to check for push approved
-  tfa_delay: 5 # optional: default 5; seconds of delay between retries
 ```
 
 
