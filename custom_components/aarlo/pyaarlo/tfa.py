@@ -111,7 +111,7 @@ class Arlo2FAImap:
 
                     # new message. look for HTML part and look code code in it
                     self._arlo.debug("2fa-imap: new-msg={}".format(msg_id))
-                    res, msg = self._imap.fetch(msg_id, "(RFC822)")
+                    res, msg = self._imap.fetch(msg_id, "(BODY[])")
                     for part in email.message_from_bytes(msg[0][1]).walk():
                         if part.get_content_type() == "text/html":
                             for line in part.get_payload(decode=True).splitlines():
