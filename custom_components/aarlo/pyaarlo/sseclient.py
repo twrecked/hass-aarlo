@@ -50,7 +50,7 @@ class SSEClient(object):
         self.requests_kwargs["headers"]["host"] = None
 
         # Keep data here as it streams in
-        self.buf = u""
+        self.buf = ""
 
         self._connect()
 

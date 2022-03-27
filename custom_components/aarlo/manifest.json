@@ -6,6 +6,6 @@
   "dependencies": ["ffmpeg"],
   "codeowners": ["@twrecked"],
   "requirements": ["unidecode","cloudscraper>=1.2.58", "paho-mqtt"],
-  "version": "0.7.2b7",
+  "version": "0.7.2b8",
   "iot_class": "cloud_push"
 }
