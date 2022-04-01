@@ -13,8 +13,8 @@ import homeassistant.helpers.config_validation as cv
 import homeassistant.util.dt as dt_util
 import voluptuous as vol
 from homeassistant.components import websocket_api
+from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 from homeassistant.components.alarm_control_panel import (
-    DOMAIN,
     FORMAT_NUMBER,
     FORMAT_TEXT,
     AlarmControlPanelEntity,
@@ -444,7 +444,7 @@ def alarm_mode_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             mode = call.data["mode"]
-            get_entity_from_domain(hass, DOMAIN, entity_id).set_mode_in_ha(mode)
+            get_entity_from_domain(hass, ALARM_DOMAIN, entity_id).set_mode_in_ha(mode)
             _LOGGER.info("{0} setting mode to {1}".format(entity_id, mode))
         except HomeAssistantError:
             _LOGGER.warning("{0} is not an aarlo alarm device".format(entity_id))
