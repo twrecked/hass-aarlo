@@ -566,7 +566,9 @@ class ArloBackEnd(object):
         if not self._use_mqtt:
             if self._arlo.cfg.reconnect_every != 0:
                 self._arlo.debug("automatically reconnecting")
-                self._arlo.bg.run_every(self._sse_reconnect, self._arlo.cfg.reconnect_every)
+                self._arlo.bg.run_every(
+                    self._sse_reconnect, self._arlo.cfg.reconnect_every
+                )
         self._arlo.debug("stream up")
         return True
 

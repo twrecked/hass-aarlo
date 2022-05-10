@@ -373,7 +373,7 @@ class ArloBase(ArloDevice):
                 modes = modes.get(self.unique_id, {})
                 self._parse_modes(modes.get("modes", []))
                 self._parse_schedules(modes.get("schedules", []))
-                self._save(TIMEZONE_KEY,modes.get("olsonTimeZone", None))
+                self._save(TIMEZONE_KEY, modes.get("olsonTimeZone", None))
             else:
                 self._arlo.error("failed to read modes (v2)")
 
