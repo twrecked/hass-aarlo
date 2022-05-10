@@ -13,7 +13,7 @@
   "requirements": [
     "unidecode",
     "cloudscraper>=1.2.58",
-    "pyaarlo>=0.8.0a13"
+    "pyaarlo>=0.8.0a14"
   ],
   "version": "0.8.0a7",
   "iot_class": "cloud_push"
