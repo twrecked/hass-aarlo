@@ -1374,7 +1374,7 @@ class ArloCamera(ArloChildDevice):
                 return True
         if cap in (CONNECTION_KEY,):
             # These devices are their own base stations so don't re-add connection key.
-            if self.model_id.startswith(
+            if self.parent_id == self.device_id and self.model_id.startswith(
                 (
                     MODEL_BABY,
                     MODEL_PRO_3_FLOODLIGHT,
