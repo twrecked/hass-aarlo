@@ -535,9 +535,7 @@ class ArloCam(Camera):
         to the original Arlo one. This means we get a `rtsps` stream back which the stream
         component can handle.
         """
-        return await self.hass.async_add_executor_job(
-            self._camera.get_stream, "arlo"
-        )
+        return await self.hass.async_add_executor_job(self._camera.get_stream, "arlo")
 
     async def async_stream_source(self, user_agent=None):
         return await self.hass.async_add_executor_job(

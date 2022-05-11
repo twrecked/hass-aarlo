@@ -37,7 +37,12 @@ from pyaarlo.constant import (
     SPOTLIGHT_KEY,
 )
 
-from .const import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
+from .const import (
+    COMPONENT_ATTRIBUTION,
+    COMPONENT_BRAND,
+    COMPONENT_DATA,
+    COMPONENT_DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
