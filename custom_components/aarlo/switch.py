@@ -17,7 +17,12 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_point_in_time
 from pyaarlo.constant import ACTIVITY_STATE_KEY, SILENT_MODE_KEY, SIREN_STATE_KEY
 
-from .const import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, DOMAIN
+from .const import (
+    COMPONENT_ATTRIBUTION,
+    COMPONENT_BRAND,
+    COMPONENT_DATA,
+    COMPONENT_DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -165,11 +170,10 @@ class AarloSwitch(SwitchEntity):
     def device_info(self):
         """Return the related device info to group entities"""
         return {
-            "identifiers": {(DOMAIN, self._device.device_id)},
+            "identifiers": {(COMPONENT_DOMAIN, self._unique_id)},
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
-            "model": self._device.model_id,
-            "id": self._device.device_id,
+            "id": self._unique_id,
         }
 
 

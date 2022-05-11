@@ -49,7 +49,7 @@ from pyaarlo.constant import (
     SIREN_STATE_KEY,
 )
 
-from . import get_entity_from_domain, is_homekit
+from . import get_entity_from_domain
 from .const import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
@@ -57,7 +57,6 @@ from .const import (
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
-    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -86,6 +85,7 @@ ATTR_VOLUME = "volume"
 ATTR_LAST_THUMBNAIL = "last_thumbnail"
 ATTR_DURATION = "duration"
 ATTR_TIME_ZONE = "time_zone"
+ATTR_STATE = "state"
 
 CONF_FFMPEG_ARGUMENTS = "ffmpeg_arguments"
 
@@ -333,13 +333,19 @@ class ArloCam(Camera):
                     self.clear_stream()
                 elif value == "userStreamActive":
                     self._state = STATE_STREAMING
+                    self._attr_is_streaming = True
                 elif value == "alertStreamActive":
                     self._state = STATE_RECORDING
+                    self._attr_is_recording = True
                 elif value == "unavailable":
                     self._state = "Unavailable"
                     self.clear_stream()
+                elif value == "fullFrameSnapshot":
+                    self._attr_is_recording = True
                 else:
                     self._state = STATE_IDLE
+                    self._attr_is_streaming = False
+                    self._attr_is_recording = False
                     self.clear_stream()
 
             if attr == RECENT_ACTIVITY_KEY:
@@ -455,9 +461,9 @@ class ArloCam(Camera):
         self._camera.turn_on()
         return True
 
-    @property
-    def state(self):
-        return self._camera.state
+    # @property
+    # def state(self):
+    #     return self._camera.state
 
     @property
     def extra_state_attributes(self):
@@ -486,6 +492,7 @@ class ArloCam(Camera):
                 (ATTR_LAST_THUMBNAIL, self.last_thumbnail_url),
                 (ATTR_LAST_VIDEO, self.last_video_url),
                 (ATTR_TIME_ZONE, self._camera.timezone),
+                (ATTR_STATE, self._camera.state),
             )
             if value is not None
         }
@@ -504,7 +511,7 @@ class ArloCam(Camera):
     def device_info(self):
         """Return the related device info to group entities"""
         return {
-            "identifiers": {(DOMAIN, self._camera.device_id)},
+            "identifiers": {(COMPONENT_DOMAIN, self._camera.device_id)},
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
             "model": self._camera.model_id,
@@ -528,9 +535,7 @@ class ArloCam(Camera):
         to the original Arlo one. This means we get a `rtsps` stream back which the stream
         component can handle.
         """
-        return await self.hass.async_add_executor_job(
-            self._camera.get_stream, "arlo"
-        )
+        return await self.hass.async_add_executor_job(self._camera.get_stream, "arlo")
 
     async def async_stream_source(self, user_agent=None):
         return await self.hass.async_add_executor_job(

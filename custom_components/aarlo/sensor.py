@@ -37,7 +37,6 @@ from .const import (
     COMPONENT_BRAND,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
-    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -197,7 +196,7 @@ class ArloSensor(Entity):
     def device_info(self):
         """Return the related device info to group entities"""
         return {
-            "identifiers": {(DOMAIN, self._device.device_id)},
+            "identifiers": {(COMPONENT_DOMAIN, self._device.device_id)},
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
             "id": self._device.device_id,
