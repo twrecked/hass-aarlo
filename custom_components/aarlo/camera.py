@@ -1030,7 +1030,7 @@ def camera_snapshot_service(hass, call):
             hass.bus.fire(
                 "aarlo_snapshot_ready",
                 {
-                    "entity_id": entity_id,
+                    "entity_id": entity_id, "device_id": self._camera.device_id,
                 },
             )
         except HomeAssistantError:
@@ -1057,7 +1057,7 @@ def camera_snapshot_to_file_service(hass, call):
                 out_file.write(snapshot)
 
             hass.bus.fire(
-                "aarlo_snapshot_ready", {"entity_id": entity_id, "file": snapshot_file}
+                "aarlo_snapshot_ready", {"entity_id": entity_id, "device_id": self._camera.device_id, "file": snapshot_file}
             )
         except OSError as err:
             _LOGGER.error("Can't write snapshot to file: %s", err)
