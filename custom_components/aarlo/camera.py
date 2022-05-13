@@ -361,16 +361,16 @@ class ArloCam(Camera):
                         _LOGGER.debug("{0} snapshot updated".format(self._unique_id))
                         self.hass.bus.fire(
                             "aarlo_snapshot_updated",
-                            {"entity_id": "aarlo." + self._unique_id},
+                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._camera.device_id},
                         )
                     else:
                         _LOGGER.debug("{0} capture updated".format(self._unique_id))
                         self.hass.bus.fire(
                             "aarlo_capture_updated",
-                            {"entity_id": "aarlo." + self._unique_id},
+                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._camera.device_id},
                         )
                     self.hass.bus.fire(
-                        "aarlo_image_updated", {"entity_id": "aarlo." + self._unique_id}
+                        "aarlo_image_updated", {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._camera.device_id}
                     )
                 self._last_image_source_ = value
 
@@ -930,7 +930,7 @@ async def aarlo_snapshot_service_handler(camera, _service):
     hass.bus.fire(
         "aarlo_snapshot_ready",
         {
-            "entity_id": "aarlo." + camera.unique_id,
+            "entity_id": "camera.aarlo_" + camera._unique_id, "device_id": self._camera.device_id,
         },
     )
 
@@ -959,7 +959,7 @@ async def aarlo_snapshot_to_file_service_handler(camera, service):
         await hass.async_add_executor_job(_write_image, snapshot_file, image)
         hass.bus.fire(
             "aarlo_snapshot_ready",
-            {"entity_id": "aarlo." + camera.unique_id, "file": snapshot_file},
+            {"entity_id": "camera.aarlo_" + camera._unique_id, "device_id": self._camera.device_id, "file": snapshot_file},
         )
     except OSError as err:
         _LOGGER.error("Can't write image to file: %s", err)
@@ -989,7 +989,7 @@ async def aarlo_video_to_file_service_handler(camera, service):
         await hass.async_add_executor_job(_write_image, video_file, image)
         hass.bus.fire(
             "aarlo_video_ready",
-            {"entity_id": "aarlo." + camera.unique_id, "file": video_file},
+            {"entity_id": "camera.aarlo_" + camera._unique_id, "device_id": self._camera.device_id, "file": video_file},
         )
     except OSError as err:
         _LOGGER.error("Can't write image to file: %s", err)
