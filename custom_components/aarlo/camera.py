@@ -108,14 +108,6 @@ SERVICE_REQUEST_VIDEO_TO_FILE = "camera_request_video_to_file"
 SERVICE_STOP_ACTIVITY = "camera_stop_activity"
 SERVICE_RECORD_START = "camera_start_recording"
 SERVICE_RECORD_STOP = "camera_stop_recording"
-OLD_SERVICE_REQUEST_SNAPSHOT = "aarlo_request_snapshot"
-OLD_SERVICE_REQUEST_SNAPSHOT_TO_FILE = "aarlo_request_snapshot_to_file"
-OLD_SERVICE_REQUEST_VIDEO_TO_FILE = "aarlo_request_video_to_file"
-OLD_SERVICE_STOP_ACTIVITY = "aarlo_stop_activity"
-OLD_SERVICE_SIREN_ON = "aarlo_siren_on"
-OLD_SERVICE_SIREN_OFF = "aarlo_siren_off"
-OLD_SERVICE_RECORD_START = "aarlo_start_recording"
-OLD_SERVICE_RECORD_STOP = "aarlo_stop_recording"
 SIREN_ON_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
@@ -303,11 +295,12 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
-    def __init__(self, camera, config, arlo, arlo_cfg, hass):
+    def __init__(self, camera, config, _arlo, arlo_cfg, hass):
         """Initialize an Arlo camera."""
         super().__init__()
         self._name = camera.name
         self._unique_id = camera.entity_id
+        self._device_id = camera.device_id
         self._camera = camera
         self._state = None
         self._recent = False
@@ -358,19 +351,20 @@ class ArloCam(Camera):
                     and self._last_image_source_ != value
                 ):
                     if value.startswith("snapshot/"):
-                        _LOGGER.debug("{0} snapshot updated".format(self._unique_id))
+                        _LOGGER.debug("{0} snapshot updated".format(self.entity_id))
                         self.hass.bus.fire(
                             "aarlo_snapshot_updated",
-                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._camera.device_id},
+                            {"entity_id": self.entity_id, "device_id": self.device_id},
                         )
                     else:
-                        _LOGGER.debug("{0} capture updated".format(self._unique_id))
+                        _LOGGER.debug("{0} capture updated".format(self.entity_id))
                         self.hass.bus.fire(
                             "aarlo_capture_updated",
-                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._camera.device_id},
+                            {"entity_id": self.entity_id, "device_id": self.device_id},
                         )
                     self.hass.bus.fire(
-                        "aarlo_image_updated", {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._camera.device_id}
+                        "aarlo_image_updated",
+                        {"entity_id": self.entity_id, "device_id": self.device_id},
                     )
                 self._last_image_source_ = value
 
@@ -432,7 +426,7 @@ class ArloCam(Camera):
     def clear_stream(self):
         """Clear out inactive stream.
 
-        Arlo stream changes frequently so we trap that and clear down the stream device.
+        Arlo stream changes frequently, so we trap that and clear down the stream device.
         """
         if hasattr(self, "stream"):
             if self.stream:
@@ -444,6 +438,11 @@ class ArloCam(Camera):
     def unique_id(self):
         """Return a unique ID."""
         return self._unique_id
+
+    @property
+    def device_id(self):
+        """Return a unique ID."""
+        return self._device_id
 
     @property
     def is_recording(self):
@@ -460,10 +459,6 @@ class ArloCam(Camera):
     def turn_on(self):
         self._camera.turn_on()
         return True
-
-    # @property
-    # def state(self):
-    #     return self._camera.state
 
     @property
     def extra_state_attributes(self):
@@ -499,7 +494,7 @@ class ArloCam(Camera):
 
         attrs[ATTR_ATTRIBUTION] = COMPONENT_ATTRIBUTION
         attrs["brand"] = COMPONENT_BRAND
-        attrs["device_id"] = self._camera.device_id
+        attrs["device_id"] = self._device_id
         attrs["model_id"] = self._camera.model_id
         attrs["parent_id"] = self._camera.parent_id
         attrs["friendly_name"] = self._name
@@ -511,11 +506,11 @@ class ArloCam(Camera):
     def device_info(self):
         """Return the related device info to group entities"""
         return {
-            "identifiers": {(COMPONENT_DOMAIN, self._camera.device_id)},
+            "identifiers": {(COMPONENT_DOMAIN, self._device_id)},
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
             "model": self._camera.model_id,
-            "id": self._camera.device_id,
+            "id": self._device_id,
         }
 
     @property
@@ -531,7 +526,7 @@ class ArloCam(Camera):
     async def stream_source(self):
         """Return the source of the stream.
 
-        Note, this is only used by `camera/stream` websocket so we force the `User-Agent`
+        Note, this is only used by `camera/stream` websocket, so we force the `User-Agent`
         to the original Arlo one. This means we get a `rtsps` stream back which the stream
         component can handle.
         """
@@ -604,7 +599,7 @@ class ArloCam(Camera):
         video_path = "/tmp/aarlo-hidden-{}.mp4".format(self._unique_id)
 
         data = {
-            "entity_id": "camera.aarlo_" + self._unique_id,
+            "entity_id": self.entity_id,
             CONF_FILENAME: video_path,
             CONF_DURATION: duration,
             CONF_LOOKBACK: 0,
@@ -923,104 +918,6 @@ async def websocket_siren_off(hass, connection, msg):
         _LOGGER.warning("{} siren off websocket failed".format(msg["entity_id"]))
 
 
-async def aarlo_snapshot_service_handler(camera, _service):
-    _LOGGER.debug("{0} snapshot".format(camera.unique_id))
-    await camera.async_get_snapshot()
-    hass = camera.hass
-    hass.bus.fire(
-        "aarlo_snapshot_ready",
-        {
-            "entity_id": "camera.aarlo_" + camera._unique_id, "device_id": self._camera.device_id,
-        },
-    )
-
-
-async def aarlo_snapshot_to_file_service_handler(camera, service):
-    _LOGGER.info("{0} snapshot to file".format(camera.unique_id))
-
-    hass = camera.hass
-    filename = service.data[ATTR_FILENAME]
-    filename.hass = hass
-
-    snapshot_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-
-    # check if we allow to access to that file
-    if not hass.config.is_allowed_path(snapshot_file):
-        _LOGGER.error("Can't write %s, no access to path!", snapshot_file)
-        return
-
-    image = await camera.async_get_snapshot()
-
-    def _write_image(to_file, image_data):
-        with open(to_file, "wb") as img_file:
-            img_file.write(image_data)
-
-    try:
-        await hass.async_add_executor_job(_write_image, snapshot_file, image)
-        hass.bus.fire(
-            "aarlo_snapshot_ready",
-            {"entity_id": "camera.aarlo_" + camera._unique_id, "device_id": self._camera.device_id, "file": snapshot_file},
-        )
-    except OSError as err:
-        _LOGGER.error("Can't write image to file: %s", err)
-
-
-async def aarlo_video_to_file_service_handler(camera, service):
-    _LOGGER.info("{0} video to file".format(camera.unique_id))
-
-    hass = camera.hass
-    filename = service.data[ATTR_FILENAME]
-    filename.hass = hass
-
-    video_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-
-    # check if we allow to access to that file
-    if not hass.config.is_allowed_path(video_file):
-        _LOGGER.error("Can't write %s, no access to path!", video_file)
-        return
-
-    image = await camera.async_get_video()
-
-    def _write_image(to_file, image_data):
-        with open(to_file, "wb") as img_file:
-            img_file.write(image_data)
-
-    try:
-        await hass.async_add_executor_job(_write_image, video_file, image)
-        hass.bus.fire(
-            "aarlo_video_ready",
-            {"entity_id": "camera.aarlo_" + camera._unique_id, "device_id": self._camera.device_id, "file": video_file},
-        )
-    except OSError as err:
-        _LOGGER.error("Can't write image to file: %s", err)
-
-    _LOGGER.debug("{0} video to file finished".format(camera.unique_id))
-
-
-async def aarlo_stop_activity_handler(camera, _service):
-    _LOGGER.info("{0} stop activity".format(camera.unique_id))
-    camera.stop_activity()
-
-
-async def aarlo_siren_on_service_handler(camera, service):
-    volume = service.data[ATTR_VOLUME]
-    duration = service.data[ATTR_DURATION]
-    camera.siren_on(duration=duration, volume=volume)
-
-
-async def aarlo_siren_off_service_handler(camera, _service):
-    camera.siren_off()
-
-
-async def aarlo_start_recording_handler(camera, service):
-    duration = service.data[ATTR_DURATION]
-    camera.start_recording(duration=duration)
-
-
-async def aarlo_stop_recording_handler(camera, _service):
-    camera.stop_recording()
-
-
 def camera_snapshot_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
@@ -1030,7 +927,8 @@ def camera_snapshot_service(hass, call):
             hass.bus.fire(
                 "aarlo_snapshot_ready",
                 {
-                    "entity_id": entity_id, "device_id": self._camera.device_id,
+                    "entity_id": entity_id,
+                    "device_id": camera.device_id,
                 },
             )
         except HomeAssistantError:
@@ -1057,7 +955,12 @@ def camera_snapshot_to_file_service(hass, call):
                 out_file.write(snapshot)
 
             hass.bus.fire(
-                "aarlo_snapshot_ready", {"entity_id": entity_id, "device_id": self._camera.device_id, "file": snapshot_file}
+                "aarlo_snapshot_ready",
+                {
+                    "entity_id": entity_id,
+                    "device_id": camera.device_id,
+                    "file": snapshot_file,
+                },
             )
         except OSError as err:
             _LOGGER.error("Can't write snapshot to file: %s", err)

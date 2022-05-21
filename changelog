@@ -1,6 +1,7 @@
 aarlo
 0.8.0a8: Bumped pyaarlo version.
   Fixed DOMAIN handling and mode changes, snapshot...
+  Fixed entity_id in callbacks
 0.8.0a7: Bumped pyaarlo version.
   Use Mqtt or SSE backend
   Support Mqtt backend [pyaarlo]
