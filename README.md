@@ -128,7 +128,7 @@ Many thanks to:
 
 <a name="installation-hacs"></a>
 #### HACS
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
 _Aarlo is part of the default HACS store. If you're not interested in development
 branches this is the easiest way to install._
