@@ -1,0 +1,19 @@
+{
+  "config": {
+    "error": {
+      "missing_field": "Por favor preencha todos os campos.",
+      "tfa_no_imap": "Um TFA HOST válido deve incluir `imap`"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "username": "Nome de usuário",
+          "password": "Senha",
+          "tfa_username": "TFA Nome de usuário",
+          "tfa_password": "TFA Senha",
+          "tfa_host": "TFA Host"
+        }
+      }
+    }
+  }
+}
