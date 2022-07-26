@@ -258,3 +258,7 @@ class ArloCfg(object):
     @property
     def use_mqtt(self):
         return self._kw.get("backend", "mqtt") == "mqtt"
+
+    @property
+    def default_ciphers(self):
+        return self._kw.get("default_ciphers", False)
