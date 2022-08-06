@@ -1,6 +1,7 @@
 import email
 import imaplib
 import re
+import ssl
 import time
 import ssl
 
@@ -51,7 +52,7 @@ class Arlo2FAImap:
             # allow default ciphers to be specified
             if self._arlo.cfg.default_ciphers:
                 ctx = ssl.create_default_context()
-                ctx.set_ciphers('DEFAULT')
+                ctx.set_ciphers("DEFAULT")
                 self._arlo.debug(f"imap is using DEFAULT ciphers")
             else:
                 ctx = None
@@ -65,7 +66,7 @@ class Arlo2FAImap:
             if res.lower() != "ok":
                 self._arlo.debug("imap login failed")
                 return False
-            res, status = self._imap.select(mailbox='INBOX', readonly=True)
+            res, status = self._imap.select(mailbox="INBOX", readonly=True)
             if res.lower() != "ok":
                 self._arlo.debug("imap select failed")
                 return False

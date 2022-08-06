@@ -203,7 +203,9 @@ CONFIG_SCHEMA = vol.Schema(
                 ): cv.boolean,
                 vol.Optional(CONF_SAVE_SESSION, default=SAVE_SESSION): cv.boolean,
                 vol.Optional(CONF_BACKEND, default=DEFAULT_BACKEND): cv.string,
-                vol.Optional(CONF_DEFAULT_CIPHERS, default=DEFAULT_DEFAULT_CIPHERS): cv.boolean,
+                vol.Optional(
+                    CONF_DEFAULT_CIPHERS, default=DEFAULT_DEFAULT_CIPHERS
+                ): cv.boolean,
             }
         ),
     },
