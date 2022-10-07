@@ -1,7 +1,6 @@
 import email
 import imaplib
 import re
-import ssl
 import time
 import ssl
 
