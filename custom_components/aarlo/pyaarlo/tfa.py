@@ -2,6 +2,7 @@ import email
 import imaplib
 import re
 import time
+import ssl
 
 import requests
 
@@ -47,8 +48,16 @@ class Arlo2FAImap:
             self.stop()
 
         try:
+            # allow default ciphers to be specified
+            if self._arlo.cfg.default_ciphers:
+                ctx = ssl.create_default_context()
+                ctx.set_ciphers("DEFAULT")
+                self._arlo.debug(f"imap is using DEFAULT ciphers")
+            else:
+                ctx = None
+
             self._imap = imaplib.IMAP4_SSL(
-                self._arlo.cfg.tfa_host, port=self._arlo.cfg.tfa_port
+                self._arlo.cfg.tfa_host, port=self._arlo.cfg.tfa_port, ssl_context=ctx
             )
             res, status = self._imap.login(
                 self._arlo.cfg.tfa_username, self._arlo.cfg.tfa_password
@@ -56,7 +65,7 @@ class Arlo2FAImap:
             if res.lower() != "ok":
                 self._arlo.debug("imap login failed")
                 return False
-            res, status = self._imap.select()
+            res, status = self._imap.select(mailbox="INBOX", readonly=True)
             if res.lower() != "ok":
                 self._arlo.debug("imap select failed")
                 return False
@@ -109,20 +118,23 @@ class Arlo2FAImap:
                     if msg_id in old_ids:
                         continue
 
-                    # new message. look for HTML part and look code code in it
+                    # New message. Look at all the parts and try to grab the code, if we
+                    # hit an exception just move onto the next part.
                     self._arlo.debug("2fa-imap: new-msg={}".format(msg_id))
-                    res, msg = self._imap.fetch(msg_id, "(BODY[])")
-                    for part in email.message_from_bytes(msg[0][1]).walk():
-                        if part.get_content_type() == "text/html":
-                            for line in part.get_payload(decode=True).splitlines():
-
-                                # match code in email, this might need some work if the email changes
-                                code = re.match(r"^\W*(\d{6})\W*$", line.decode())
-                                if code is not None:
-                                    self._arlo.debug(
-                                        "2fa-imap: code={}".format(code.group(1))
-                                    )
-                                    return code.group(1)
+                    res, msg = self._imap.fetch(msg_id, "(BODY[TEXT])")
+                    if isinstance(msg[0][1], bytes):
+                        for part in email.message_from_bytes(msg[0][1]).walk():
+                            try:
+                                for line in part.get_payload(decode=True).splitlines():
+                                    # match code in email, this might need some work if the email changes
+                                    code = re.match(r"^\W*(\d{6})\W*$", line.decode())
+                                    if code is not None:
+                                        self._arlo.debug(
+                                            "2fa-imap: code={}".format(code.group(1))
+                                        )
+                                        return code.group(1)
+                            except:
+                                self._arlo.debug("trying next part")
 
                 # update old so we don't keep trying new
                 self._old_ids = self._new_ids
