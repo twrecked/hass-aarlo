@@ -342,6 +342,7 @@ def login(hass, conf):
             if arlo.is_connected:
                 _LOGGER.debug(f"login succeeded, attempt={attempt}")
                 return arlo
+            arlo.stop()
 
             if attempt == 1:
                 hass.components.persistent_notification.create(
