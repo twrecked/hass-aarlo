@@ -441,6 +441,8 @@ class PyArlo(object):
     def stop(self):
         """Stop connection to Arlo and logout."""
         self._st.save()
+        self._ml.stop()
+        self._bg.stop()
         self._be.logout()
 
     @property

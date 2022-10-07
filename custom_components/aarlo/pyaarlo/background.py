@@ -10,6 +10,7 @@ class ArloBackgroundWorker(threading.Thread):
         self._id = 0
         self._lock = threading.Condition()
         self._queue = {}
+        self._stopThread = False
 
     def _next_id(self):
         self._id += 1
@@ -58,7 +59,7 @@ class ArloBackgroundWorker(threading.Thread):
     def run(self):
 
         with self._lock:
-            while True:
+            while not self._stopThread:
 
                 # loop till done
                 timeout = None
@@ -89,6 +90,12 @@ class ArloBackgroundWorker(threading.Thread):
                         del self._queue[prio][(run_at, job_id)]
                         return True
         return False
+
+    def stop(self):
+        with self._lock:
+            self._stopThread = True
+            self._lock.notify()
+        self.join(10)
 
 
 class ArloBackground:
@@ -141,3 +148,6 @@ class ArloBackground:
     def cancel(self, to_delete):
         if to_delete is not None:
             self._worker.stop_job(to_delete)
+
+    def stop(self):
+        self._worker.stop()
