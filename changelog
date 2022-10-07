@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.2b9: Stop Arlo on authentication failure.
 0.7.2b8: Fix IMAP compatability issues.
 0.7.2b7: Allow sse backend to be used (fix reconnect).
 0.7.2b6: Allow sse backend to be used.
