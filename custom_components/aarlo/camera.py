@@ -354,17 +354,17 @@ class ArloCam(Camera):
                         _LOGGER.debug("{0} snapshot updated".format(self.entity_id))
                         self.hass.bus.fire(
                             "aarlo_snapshot_updated",
-                            {"entity_id": self.entity_id, "device_id": self.device_id},
+                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._camera.device_id},
                         )
                     else:
                         _LOGGER.debug("{0} capture updated".format(self.entity_id))
                         self.hass.bus.fire(
                             "aarlo_capture_updated",
-                            {"entity_id": self.entity_id, "device_id": self.device_id},
+                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._camera.device_id},
                         )
                     self.hass.bus.fire(
                         "aarlo_image_updated",
-                        {"entity_id": self.entity_id, "device_id": self.device_id},
+                        {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._camera.device_id},
                     )
                 self._last_image_source_ = value
 
@@ -599,7 +599,7 @@ class ArloCam(Camera):
         video_path = "/tmp/aarlo-hidden-{}.mp4".format(self._unique_id)
 
         data = {
-            "entity_id": self.entity_id,
+            "entity_id": "camera.aarlo_" + self._unique_id,
             CONF_FILENAME: video_path,
             CONF_DURATION: duration,
             CONF_LOOKBACK: 0,
@@ -927,8 +927,8 @@ def camera_snapshot_service(hass, call):
             hass.bus.fire(
                 "aarlo_snapshot_ready",
                 {
-                    "entity_id": entity_id,
-                    "device_id": camera.device_id,
+                    "entity_id": "camera.aarlo_" + camera._unique_id, 
+                    "device_id": self._camera.device_id,
                 },
             )
         except HomeAssistantError:
@@ -957,9 +957,9 @@ def camera_snapshot_to_file_service(hass, call):
             hass.bus.fire(
                 "aarlo_snapshot_ready",
                 {
-                    "entity_id": entity_id,
-                    "device_id": camera.device_id,
-                    "file": snapshot_file,
+                    "entity_id": "camera.aarlo_" + camera._unique_id, 
+                    "device_id": self._camera.device_id, 
+                    "file": snapshot_file
                 },
             )
         except OSError as err:
@@ -988,7 +988,7 @@ def camera_video_to_file_service(hass, call):
                 out_file.write(video)
 
             hass.bus.fire(
-                "aarlo_video_ready", {"entity_id": entity_id, "file": video_file}
+                "aarlo_video_ready", {"entity_id": "camera.aarlo_" + camera._unique_id, "device_id": self._camera.device_id, "file": video_file}
             )
         except OSError as err:
             _LOGGER.error("Can't write image to file: %s", err)
