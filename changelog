@@ -1,5 +1,7 @@
 aarlo
 0.8.0a9: Call stop on auth failure.
+  Smarter backend detection.
+  Bumped pyaarlo version.
 0.8.0a8: Bumped pyaarlo version.
   Fixed DOMAIN handling and mode changes, snapshot...
   Fixed entity_id in callbacks
