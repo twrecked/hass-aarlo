@@ -50,7 +50,7 @@ class ArloBackEnd(object):
         self._req_lock = threading.Lock()
 
         self._dump_file = self._arlo.cfg.dump_file
-        self._use_mqtt = self._arlo.cfg.use_mqtt
+        self._use_mqtt = False
 
         self._requests = {}
         self._callbacks = {}
@@ -385,6 +385,13 @@ class ArloBackEnd(object):
             self._event_client = None
             self._logged_in = False
 
+    def _mqtt_topics(self):
+        topics = []
+        for device in self._arlo.devices:
+            for topic in device.get("allowedMqttTopics", []):
+                topics.append((topic, 0))
+        return topics
+
     def _mqtt_subscribe(self):
         # Make sure we are listening to library events and individual base
         # station events. This seems sufficient for now.
@@ -398,11 +405,8 @@ class ArloBackEnd(object):
             ]
         )
 
-        topics = []
-        for device in self._arlo.devices:
-            for topic in device.get("allowedMqttTopics", []):
-                topics.append((topic, 0))
-        self._arlo.debug("topcs=\n{}".format(pprint.pformat(topics)))
+        topics = self._mqtt_topics()
+        self._arlo.debug("topics=\n{}".format(pprint.pformat(topics)))
         self._event_client.subscribe(topics)
 
     def _mqtt_on_connect(self, _client, _userdata, _flags, rc):
@@ -546,7 +550,24 @@ class ArloBackEnd(object):
                 "general-error={}\n{}".format(type(e).__name__, traceback.format_exc())
             )
 
+    def _select_backend(self):
+        # determine backend to use
+        if self._arlo.cfg.event_backend == "auto":
+            if len(self._mqtt_topics()) == 0:
+                self._arlo.debug("auto chose SSE backend")
+                self._use_mqtt = False
+            else:
+                self._arlo.debug("auto chose MQTT backend")
+                self._use_mqtt = True
+        elif self._arlo.cfg.event_backend == "mqtt":
+            self._arlo.debug("user chose MQTT backend")
+            self._use_mqtt = True
+        else:
+            self._arlo.debug("user chose SSE backend")
+            self._use_mqtt = False
+
     def start_monitoring(self):
+        self._select_backend()
         self._event_client = None
         self._event_connected = False
         self._event_thread = threading.Thread(
