@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.2b9"
+__version__ = "0.7.2b10"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,7 +121,7 @@ USER_STREAM_DELAY = 1
 SAVE_MEDIA_TO = ""
 NO_UNICODE_SQUASH = True
 SAVE_SESSION = True
-DEFAULT_BACKEND = "mqtt"
+DEFAULT_BACKEND = "auto"
 DEFAULT_DEFAULT_CIPHERS = False
 
 CONFIG_SCHEMA = vol.Schema(

@@ -1,8 +1,8 @@
 import email
 import imaplib
 import re
-import time
 import ssl
+import time
 
 import requests
 
