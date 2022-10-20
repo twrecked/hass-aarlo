@@ -763,9 +763,13 @@ async def websocket_stream_url(hass, connection, msg):
         camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
         _LOGGER.debug("stream_url for " + str(camera.unique_id))
 
+        user_agent = msg.get("user_agent", "linux")
+        if user_agent != "linux":
+            user_agent = "!" + user_agent
+
         # start stream and force user agent to linux, this will return a `mpeg dash`
         # stream we can use directly from the Lovelace card
-        stream = await camera.async_stream_source(user_agent="linux")
+        stream = await camera.async_stream_source(user_agent=user_agent)
         connection.send_message(
             websocket_api.result_message(msg["id"], {"url": stream})
         )
