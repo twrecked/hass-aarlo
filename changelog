@@ -1,5 +1,6 @@
 aarlo/pyaarlo
 0.7.2b12: Fix doorbell capabilities.
+  Custom user agent support.
 0.7.2b11: Possible doorbell fix.
 0.7.2b10: Better choose back end.
   Tidy snapshot handling.

@@ -1038,9 +1038,15 @@ class ArloBackEnd(object):
     def user_agent(self, agent):
         """Map `agent` to a real user agent.
 
+        `!real-string` will use the provided string as-is, used when passing user agent
+        from a browser.
+
         User provides a default user agent they want for most interactions but it can be overridden
         for stream operations.
         """
+        if agent.startswith("!"):
+            self._arlo.debug(f"using user supplied user_agent {agent[:70]}")
+            return agent[1:]
         self._arlo.debug(f"looking for user_agent {agent}")
         if agent.lower() == "arlo":
             return (
