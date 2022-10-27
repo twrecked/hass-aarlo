@@ -121,13 +121,15 @@ class Arlo2FAImap:
                     # New message. Look at all the parts and try to grab the code, if we
                     # hit an exception just move onto the next part.
                     self._arlo.debug("2fa-imap: new-msg={}".format(msg_id))
-                    res, msg = self._imap.fetch(msg_id, "(BODY[TEXT])")
+                    res, msg = self._imap.fetch(msg_id, "(BODY.PEEK[])")
                     if isinstance(msg[0][1], bytes):
                         for part in email.message_from_bytes(msg[0][1]).walk():
+                            if part.get_content_type() != "text/html":
+                                continue
                             try:
                                 for line in part.get_payload(decode=True).splitlines():
                                     # match code in email, this might need some work if the email changes
-                                    code = re.match(r"^\W*(\d{6})\W*$", line.decode())
+                                    code = re.match(r"^\W+(\d{6})\W*$", line.decode())
                                     if code is not None:
                                         self._arlo.debug(
                                             "2fa-imap: code={}".format(code.group(1))
