@@ -763,19 +763,24 @@ And make sure you have enabled `Access Rights` for your secondary account. Arlo 
 update some values for non-admin accounts.
 
 
-<a name="notworking-debug"></a>
-### Enabling and Examining Logs
+<a name="other-debugging"></a>
+### Debugging
+If you run into problems there please provide the following in the bug report
+to help debugging.
+* Version of software running.
+* Make of cameras and base stations you have.
+
 I might also ask you to turn on component logging and event logging. The
 follow paragraphs show you how, it's safe to leave these running if you fancy
-poking around and trying to find out what is going wrong.
+poking around and trying to find out what it going wrong.
 
-* Component logging. You can turn this on by adding the following to your
-  `configuration.yaml` file.
+#### Component logging.
+You can turn this on by adding the following to your `configuration.yaml` file.
+ 
 ```yaml
 logger:
   default: info
   logs:
-    #..any current logs you have enabled..
     custom_components.aarlo: debug
     custom_components.aarlo.alarm_control_panel: debug
     custom_components.aarlo.binary_sensor: debug
@@ -787,8 +792,9 @@ logger:
     pyaarlo: debug
 ```
 
-	If, for example, you suspect the problem is just with your lights you can remove
-	unneeded debug:
+If, for example, you suspect the problem is just with your lights you can
+remove unneeded debug:
+
 ```yaml
 logger:
   default: info
@@ -798,40 +804,42 @@ logger:
     pyaarlo: debug
 ```
 
-	Home assistant logs everything to `/config/home-assistant.log`, a typical piece of
-	debug from Aarlo looks like this.
+Home assistant logs everything to `/config/home-assistant.log`, a typical piece of
+debug from Aarlo looks like this.
+
 ```
 2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] fast refresh
 2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] day testing with 2020-01-21!
 2020-01-21 11:44:50 DEBUG (ArloEventStream) [pyaarlo] async ping response subscriptions/XXXXXX-XXX-XXXXXXX_web
 ```
 
-  Once you have the logs look for the event you are missing at around the time
-  you are expecting it. The events are usually helpfully named, i.e.
-  `motionDetected` for motion events, `batteryLevel` for battery levels. You
-  can look `RESOURCE_KEYS` and `RESOURCE_UPDATE_KEYS` in
-  [constant.py](https://github.com/twrecked/pyaarlo/blob/master/pyaarlo/constant.py)
-  for a list of recognised event types.
-  
-  If you can't see the entries you expect then look for any `traceBack`
-  happening in an `aarlo` component. This will indicate a program crash and
-  can usually be the reason for missing events.
-  
-  If you still can't see the events your expecting then open a bug report and
-  include the logs.
+If you fancy diving in, and please do, searching for exceptions and any
+reference to `traceBack` is a good place to start.
 
-* Event logging. You can look at what events Arlo is sending you by turning on
-  event stream dumping. Add the following to your `configuration.yaml` file
-  and Aarlo will dump events into `/config/.aarlo/packets.dump`:
+#### Verbose debug
+It sometimes helps to turn on more verbose debug, do this by adding this to
+your `aarlo` config.
+
+```yaml
+aarlo:
+  # old config
+  verbose_debug: True
+``` 
+
+#### Event logging
+you can look at what events Arlo is sending you by turning on event stream
+dumping. Add the following to your `configuration.yaml` file and Aarlo will
+dump events into `/config/.aarlo/packets.dump`:
+
 ```yaml
 aarlo:
     # current config here
     packet_dump: True
 ```
 
- This file will be built up from a constant trickle of packets from Arlo. The
- following excerpt shows a login confirmation and a subscription check
- response.
+This file will built up from a constant trickle of packets from Arlo. The
+following expert shows a login confirmation and a subscription check response.
+
 ```
 {'status': 'connected'}
 { 'action': 'is',
@@ -841,14 +849,12 @@ aarlo:
     'transId': 'web!38a29262-1ce0-4c4d-8f75-fafec2c34332'}
 ```
 
-  Another example, if Arlo detects motion you will see a packet with the
-  following field in it:
+Another example, if Arlo detects motion you will see a packet with the
+following field in it:
+
 ```
 'properties': {'motionDetected': True},
 ```
-
-  This information will normally be present in the component logging, if it's
-  missing from there that could indicate an issue.
 
 
 <a name="notworking-bug-reports"></a>
