@@ -1,6 +1,7 @@
 name: Validate with hassfest
 
 on:
+  workflow_dispatch:
   push:
   pull_request:
   schedule:
