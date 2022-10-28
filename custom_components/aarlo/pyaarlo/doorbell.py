@@ -94,19 +94,13 @@ class ArloDoorBell(ArloChildDevice):
         ) or self.model_id.startswith(MODEL_WIREFREE_VIDEO_DOORBELL)
 
     def has_capability(self, cap):
+        # Video Doorbells appear as both ArloCameras and ArloDoorBells, where
+        # capabilities double up - eg, motion detection - we provide the
+        # capability at the camera level.
+        if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY, CONNECTION_KEY):
+            return not self.is_video_doorbell
         if cap in (BUTTON_PRESSED_KEY, SILENT_MODE_KEY):
             return True
-        if cap in (MOTION_DETECTED_KEY, BATTERY_KEY, SIGNAL_STR_KEY):
-            # video doorbell provides these as a camera type
-            if not self.is_video_doorbell:
-                return True
-        if cap in (CONNECTION_KEY,):
-            # If video door bell is its own base station then don't provide connectivity here.
-            if self.is_video_doorbell and self.parent_id == self.device_id:
-                return False
-        if cap in (SIREN_STATE_KEY,):
-            if self.is_video_doorbell:
-                return True
         return super().has_capability(cap)
 
     def update_silent_mode(self):
