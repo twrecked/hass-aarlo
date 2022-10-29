@@ -160,7 +160,11 @@ SCHEMA_WS_LIBRARY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
     }
 )
 SCHEMA_WS_STREAM_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {vol.Required("type"): WS_TYPE_STREAM_URL, vol.Required("entity_id"): cv.entity_id}
+    {
+        vol.Required("type"): WS_TYPE_STREAM_URL,
+        vol.Required("entity_id"): cv.entity_id,
+        vol.Optional("user_agent"): cv.string,
+    }
 )
 SCHEMA_WS_SNAPSHOT_IMAGE = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
     {
