@@ -478,23 +478,29 @@ class ArloBase(ArloDevice):
                 or self.model_id == MODEL_GO
             ):
                 return True
+
         if cap in (PING_CAPABILITY,):
-            # Battery powered wifi devices that act as their own base station don't get pinged.
             if self.model_id.startswith(MODEL_BABY):
                 return True
-            if self.is_own_parent and self.using_wifi and not self.is_corded:
-                return False
+
+            # We have to be careful pinging some base stations because it can rapidly
+            # drain the battery power. Don't ping if:
+            # - it is a device that acts as its own base station
+            # - it does not have a power supply or charger connected
+            # - it is using WiFi directly rather than an Arlo base station
+            if self.is_own_parent:
+                if not self.is_corded and not self.has_charger:
+                    if self.using_wifi:
+                        return False
+
             # Don't ping these devices ever.
             if self.model_id.startswith(
-                (
-                    MODEL_WIREFREE_VIDEO_DOORBELL,
-                    MODEL_ESSENTIAL,
-                    MODEL_PRO_3_FLOODLIGHT,
-                    MODEL_PRO_4,
-                )
+                    (MODEL_WIREFREE_VIDEO_DOORBELL, MODEL_ESSENTIAL, MODEL_PRO_3_FLOODLIGHT, MODEL_PRO_4)
             ):
                 return False
+
             return True
+
         if cap in (RESOURCE_CAPABILITY,):
             # Not all devices need (or want) to get their resources queried.
             if self.model_id.startswith(
