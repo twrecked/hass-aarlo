@@ -11,15 +11,16 @@ for the correct _README_**
 ## New Features in 0.8
 
 ### Split Out Pyaarlo
-The code now uses `pyaalo` by installing it via `pip` rather than maintaining
-its own version. If you run into a problem check the `pyaarlo` `README` file,
-it may have a fix not mentioned here.
+The code now uses _Pyaalo_ by installing it via _pip_ rather than maintaining
+its own version. If you run into a problem check the [Pyaarlo
+README](https://github.com/twrecked/pyaarlo/blob/master/README.md) file,it may
+have a fix not mentioned here.
 
 ### Authentication Caching
 The code will retry authorization tokens for as long as they are valid. This
 means a reduction in authentication attempts and 2FA requests. If this does
-not work for you send me some logs and add restart with `save_session: False`
-to your configuration.
+not work for you send me some logs showing the error and restart with
+`save_session: False` added to your configuration.
 
 ### Saner Defaults
 You will now have less to configure... for example, device refresh and stream
@@ -30,8 +31,8 @@ timeouts are enabled by default.
 The following options have been removed:
 - `hide_deprecated_services`; all component services are now in the `aarlo`
   domain.
-- `http_connections`; no longer used after `cloudscraper` was needed
-- `http_max_size`; no longer used after `cloudscraper` was needed
+- `http_connections`; no longer used after _cloudscraper_ was needed
+- `http_max_size`; no longer used after _cloudscraper_ was needed
 
 
 ## Table of Contents
@@ -79,24 +80,24 @@ The following options have been removed:
 
 <a name="introduction"></a>
 ## Introduction
-Aarlo is an Asynchronous Arlo component for [Home
+_Aarlo_ is an _Asynchronous Arlo_ component for [Home
 Assistant](https://www.home-assistant.io/), it uses the [Arlo
-Website](https://my.arlo.com/#/cameras) APIs and supports base stations,
-cameras, lights and doorbells.
+Website](https://my.arlo.com/#/cameras) APIs to function and supports base
+stations, cameras, lights and doorbells.
 
-Aarlo is based on the original [Arlo
+_Aarlo_ is based on the original [Arlo
 component](https://www.home-assistant.io/integrations/arlo/) and it can
 operate as replacement with minimal configuration changes.
 
-Aarlo also provides a custom [Lovelace
-Card](https://github.com/twrecked/lovelace-hass-aarlo), which overlays a
+_Aarlo_ also provides a custom [_Lovelace
+Card_](https://github.com/twrecked/lovelace-hass-aarlo), which overlays a
 camera's last snapshot with its current status and allows access to the
 cameras recording library and live-streaming.
 
 <a name="introduction-features"></a>
 #### Features
 
-Aarlo provides:
+_Aarlo_ provides:
 - Access to cameras, base stations, sirens, doorbells and lights.
 - Asynchronous, almost immediate, notification of motion, sound and button
   press events.
@@ -109,12 +110,17 @@ Aarlo provides:
 
 <a name="introduction-notes"></a>
 #### Notes
-This document assumes you are familiar with Home Assistant setup and
+This document assumes you are familiar with _Home Assistant_ setup and
 configuration.
 
-Wherever you see `/config` in this document it refers to your Home Assistant
+Wherever you see `/config` in this document it refers to your _Home Assistant_
 configuration directory. For example, for my installation it's
 `/home/steve/ha` which is mapped to `/config` by my docker container.
+
+If you aren't familiar with _Home Assistant_ I recommend visiting the
+[Community Website](https://community.home-assistant.io/). It's full of
+helpful people and there is always someone who's encountered the problem you
+are trying to fix.
 
 <a name="introduction-thanks"></a>
 #### Thanks
@@ -127,10 +133,10 @@ Many thanks to:
 * [Button Card](https://github.com/kuuji/button-card/blob/master/button-card.js)
   for a working Lovelace card I could understand
 * [JetBrains](https://www.jetbrains.com/?from=hass-aarlo) for the excellent
-  **PyCharm IDE** and providing me with an open source license to speed up the
+  **PyCharm IDE** and providing me with an open source licence to speed up the
   project development.
 
-  [![JetBrains](/images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
+  [![JetBrains](images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
 
 
 <a name="installation"></a>
@@ -166,25 +172,25 @@ install go /config
 
 <a name="configuration-moving"></a>
 ### Moving From Arlo
-You can replace all instances of `arlo` with `aarlo` in your Home Assistant
-configuration files to start using Aarlo. The following sections detail new
-configuration items you can use to add extra functionality to your new Aarlo
+You can replace all instances of `arlo` with `aarlo` in your _Home Assistant_
+configuration files to start using _Aarlo_. The following sections detail new
+configuration items you can use to add extra functionality to your new _Aarlo_
 component.
 
-You can also run Arlo and Aarlo side by side but you will need to create an
-Aarlo specific login.
+You can also run _Arlo_ and _Aarlo_ side by side but you will need to create an
+_Aarlo_ specific login.
 
 <a name="configuration-login"></a>
 ### Creating a Login
-_If you are replacing the original Arlo component you don't need to do this
+_If you are replacing the original _Arlo_ component you don't need to do this
 step._
 
-Aarlo needs a dedicated Aarlo login. If you try to reuse an existing login -
-for example, the login from the Arlo app on your phone - the app and this
+_Aarlo_ needs a dedicated _Aarlo_ login. If you try to reuse an existing login -
+for example, the login from the _Arlo_ app on your phone - the app and this
 component will constantly fight to log in.
 
-When you have created the Aarlo login, from your original Arlo account grant
-access to any devices you want to share and give the Aarlo user admin access.
+When you have created the _Aarlo_ login, from your original _Arlo_ account grant
+access to any devices you want to share and give the _Aarlo_ user admin access.
 
 <a name="configuration-main"></a>
 ### Main Configuration
@@ -211,26 +217,26 @@ alarm_control_panel:
     alarm_volume: 8
 ```
 
-* `away_mode_name` Arlo mode to use when setting alarm to `Armed Away`.
-  Default value is `armed` which maps to Arlo's default `Armed` mode.
-* `disarmed_mode_name` Arlo mode to use when setting alarm to `Disarmed`.
-  Default value is `disarmed` which maps to Arlo's default `Disarmed` mode.
-* `home_mode_name` Arlo mode to use when setting alarm to `Armed Home`.
+* `away_mode_name` _Arlo_ mode to use when setting alarm to `Armed Away`.
+  Default value is `armed` which maps to _Arlo_'s default `Armed` mode.
+* `disarmed_mode_name` _Arlo_ mode to use when setting alarm to `Disarmed`.
+  Default value is `disarmed` which maps to _Arlo_'s default `Disarmed` mode.
+* `home_mode_name` _Arlo_ mode to use when setting alarm to `Armed Home`.
   Default value `home`.
-* `night_mode_name` Arlo mode to use when setting alarm to `Armed Night`.
+* `night_mode_name` _Arlo_ mode to use when setting alarm to `Armed Night`.
   Default value `night`.
 * `trigger_time` determines how long, in seconds, the triggered alarm will
   sound
 * `alarm_volume` determine how loud, from 1 to 8, the triggered alarm will
   sound
 
-Arlo does not have a built in `home` or `night` mode. If you need them create
-a custom mode in Arlo and `home_mode_name` and `night_mode_name` to map to
+_Arlo_ does not have a built in `home` or `night` mode. If you need them create
+a custom mode in _Arlo_ and `home_mode_name` and `night_mode_name` to map to
 them. You don't need to map all modes - I don't use `night_mode`. Names are
 case-insensitive. Using duplicate names will cause problems, for example,
 mapping both `away` and `night` mode to `armed` will work when setting the
-mode from Home Assistant but might not show the correct mode if you change it
-in the Arlo app.
+mode from _Home Assistant_ but might not show the correct mode if you change it
+in the _Arlo_ app.
 
 See [here](https://www.home-assistant.io/components/arlo/#alarm) for more
 information on mode names.
@@ -268,9 +274,9 @@ Items on the `monitored_conditions` can be one or more of the following:
 * `sound` fires when a camera detects a sound.
 * `ding` fires when a doorbell is pressed.
 * `cry` fires when crying is detected (ArloBaby only)
-* `connectivity` is true when Arlo a device is connected
+* `connectivity` is true when _Arlo_ a device is connected
 
-The Arlo backend sends the notifications on the event stream so they are
+The _Arlo_ backend sends the notifications on the event stream so they are
 (almost) real time.
 
 <a name="configuration-sensor"></a>
@@ -308,11 +314,10 @@ The rest of the sensors appear per camera.
 * `humidity` The humidity in the room where the camera is, if supported.
 * `air_quality` The air quality in the room where the camera is, if supported.
 
-If you have an Arlo Smart plan the 'last_capture' sensor has the attribute
-'object_type' containing what Arlo cloud service believes to have identified
-as a string ("Person", "Vehicle", "Animal", ...). You can use templating in HA
-to trigger or condition automations based on this or record the info using an
-additional template sensor.
+If you have an _Arlo Smart Plan_ the `last_capture` sensor has the attribute
+'object_type' containing what _Arlo_ cloud service identified as starting the
+recording ("Person", "Vehicle", "Animal", ...). You can use templates in _Home
+Assistant_ to trigger automations on different object types.
 
 <a name="configuration-light"></a>
 ### Light Configuration
@@ -323,13 +328,13 @@ The following enables any lights:
 light:
   - platform: aarlo
 ```
-The component supports the standard Arlo lights, Arlo Baby lights and Arlo Pro
-3 Floodlight. There is one noticeable quirk, you can adjust the brightness of a
-light while it is on but the change will not happen until you turn the light
-off and back on again. This how the official web interface works.
+The component supports the standard _Arlo Light_, _Arlo Baby Light_ and
+_Arlo Pro 3 Floodlight_.
 
-This does not apply to the Pro 3 Floodlight as the brightness can be changed
-while it is turned on.
+There is one quirk; on all lights but the _Arlo Pro 3 Floodlight_ you can
+adjust the brightness of a light while it is on but the change will not take
+effect until you turn the light off and back on again. This how the official
+web interface works.
 
 <a name="configuration-switch"></a>
 ### Switch Configuration
@@ -377,25 +382,26 @@ https://github.com/twrecked/lovelace-hass-aarlo
 
 The custom Lovelace card allows access to the video recordings library and
 presents customizable camera information on the camera feed. It was influenced
-by the Arlo web interface camera view.
+by the _Arlo_ web interface camera view.
 
-*This piece is optional, `aarlo` will work with the standard Lovelace cards.*
+*This piece is optional, _Aarlo_ will work with the standard Lovelace cards.*
 
 
 <a name="2fa"></a>
 ## 2FA
 
-`aarlo` supports 2-factor authentication.
+_Aarlo_ supports 2-factor authentication.
 
-To check if you need to enable 2FA, log in to Arlo using your Home Assistant
-account and see if it sends you a verification code. If it does, you will need
-to provide a mechanism to get this code, choose one of the following:
+To check if you need to enable 2FA, log in to actual _Arlo_ website using your
+_Home Assistant_ account and see if it sends you a verification code. If it
+does, you will need to provide a mechanism to get this code, choose one of the
+following:
 
 <a name="2fa-automatic"></a>
 ### IMAP
 
-For IMAP 2FA Arlo needs to access and your email account form where it reads
-the token Arlo sent.
+For IMAP 2FA _Aarlo_ needs to access and your email account form where it reads
+the token _Arlo_ sent.
 
 ```yaml
 aarlo:
@@ -419,7 +425,7 @@ aarlo:
 
 #### Application Passwords
 
-  For `GMail`, `Yahoo` (and other web based email client) you can't log in
+  For _GMail_ and _Yahoo_ (and other web based email client) you can't log in
   with your usual password, you will have to create an application specific
   password. Explaining why this is necessary is out of the scope of this
   document so see the following pages.
@@ -427,7 +433,7 @@ aarlo:
   - [Gmail App Password](https://support.google.com/mail/answer/185833?hl=en)
   - [Yahoo App Password](https://help.yahoo.com/kb/SLN15241.html)
 
-  If you find you can't log in to your IMAP account check the application
+  If you find you can't log in to your _IMAP_ account check the application
   password requirement.
   
   Once you have created the application password use it in the 2FA
@@ -450,7 +456,7 @@ aarlo:
 <a name="2fa-push"></a>
 ### PUSH
 
-PUSH 2FA Arlo is used when account is set for 2FA to phone app.
+PUSH 2FA _Arlo_ is used when account is set for 2FA to phone app.
 
 ```yaml
 aarlo:
@@ -472,18 +478,18 @@ Entity ID naming follows this pattern
 For example, a camera called "Front Door" will have an entity id of
 `camera.aarlo_front_door`.
 
-For full compatibility `aarlo` will decode Unicode characters. This means a
+For full compatibility _Aarlo_ will decode Unicode characters. This means a
 camera called `Haustür` will be called `component-type.aarlo_haustur`.
 
 If you do not want this behaviour - and be warned, this may cause problems
-using certain HA services - add `no_unicode_squash: True` to your
+using certain _Home Assistant_ services - add `no_unicode_squash: True` to your
 configuration.
 
 
 <a name="other-saving-media"></a>
 ### Saving Media
 If you use the `save_media_to` parameter to specify a file naming scheme
-`aarlo` will use that to save all media - videos and snapshots - locally. You
+_Aarlo_ will use that to save all media - videos and snapshots - locally. You
 can use the following substitutions:
 
 - `SN`; the device serial number
@@ -502,7 +508,7 @@ can use the following substitutions:
 You specify the substitution by prefixing it with a `$` in the format string.
 You can optionally use curly brackets to remove any ambiguity. For example,
 the following configuration will save all media under `/config/media`
-organised by serial number and then by date. The code will add the correct
+organized by serial number and then by date. The code will add the correct
 file extension.
 
 ```yaml
@@ -511,12 +517,12 @@ file extension.
 
 The first time you configure `save_media_to` the system can take several
 minutes to download all the currently available media. The download is
-throttled to not overload Home Assistant or Arlo. Once the initial download is
+throttled to not overload _Home Assistant_ or _Arlo_. Once the initial download is
 completed updates should happen a lot faster.
 
 The code doesn't provide any management of the downloads, it will keep
-downloading them until your device is full. It also doesn't provide a NAS
-interface, you need to mount the NAS device and point `save_media_to` at it.
+downloading them until your device is full. It also doesn't provide a _NAS_
+interface, you need to mount the _NAS_ device and point `save_media_to` at it.
 
 <a name="other-streaming"></a>
 ### Streaming
@@ -526,26 +532,26 @@ of these:
 - add `stream` to the `image_click` options of the card
 - add `stream` to the `image_top` or `image_bottom` options of the card
 
-Streaming works with Home Assistant and, for most people, will just work. But
+Streaming works with _Home Assistant_ and, for most people, will just work. But
 there are still some things to be wary of.
 
 #### Direct Streaming
 
-Arlo recently upgraded their streaming servers to support `mpeg-dash`. You can
-stream this directly to your browser without going through your Home Assistant
+_Arlo_ recently upgraded their streaming servers to support `mpeg-dash`. You can
+stream this directly to your browser without going through your _Home Assistant_
 install.
 
 One of the biggest advantages of direct streaming was audio support but that
-has been added to non-direct streaming in recent Home Assistant releases.
-Direct streaming still offloads the conversion from your Home Assistant server
+has been added to non-direct streaming in recent _Home Assistant_ releases.
+Direct streaming still offloads the conversion from your _Home Assistant_ server
 and reduces the bandwidth usage of your home network, this is especially true
 if streaming from outside your home network.
 
 You can not stream directly to Apple devices, they don't support `mpeg-dash`.
 
 Internally the code will use non-direct streaming as needed. For example, to
-save recording into the Arlo library of longer than 30 seconds the code must
-open a stream to the Arlo servers, it can only do this in non-direct mode
+save recording into the _Arlo_ library of longer than 30 seconds the code must
+open a stream to the _Arlo_ servers, it can only do this in non-direct mode
 because the stream component doesn't support `mpeg-dash`.
 
 To use it on your `aarlo-glance` card you need to add `direct` to the
@@ -576,9 +582,9 @@ If you are still having issues please read these 3 posts:
 ### Snapshots
 Snapshots can be tricky.
 
-The initial implementation would issue a `fullFrameSnapshot` request and Arlo
+The initial implementation would issue a `fullFrameSnapshot` request and _Arlo_
 would return a snapshot. The problem was it wasn't very consistent, I have 2
-identical cameras where snapshot will work on one and not the other. Arlo uses
+identical cameras where snapshot will work on one and not the other. _Arlo_ uses
 this implementation to allow you to position the camera and I've seen it not
 work on their web interface and app.
 
@@ -596,8 +602,8 @@ better.
 * `stream_snapshot_stop`; a positive integer, the number of seconds to stop
   the stream after starting it for a snapshot, default 10. This can help speed
   up cameras that won't send a snapshot on request. Setting it to 0 will let
-  Arlo stop the stream when it thinks it has become idle.
-* `snapshot_checks`; an integer array, default values 1 and 5. Force Aarlo to
+  _Arlo_ stop the stream when it thinks it has become idle.
+* `snapshot_checks`; an integer array, default values 1 and 5. Force _Aarlo_ to
   do a media library check to see if the snapshot has appeared. Useful when
   systems fail to send `mediaUploadNotifications`.
 * `snapshot_timeout`; a positive integer, default 60. How long to give the
@@ -619,30 +625,30 @@ This is a summary of possible sizes:
 
 _*And I know up until about 2 weeks ago this row was working._
 
-_street_ is an original Arlo (VMC3030)
-_front_ is an Arlo Pro (VMC4030P)
+_street_ is an 1st gen _Arlo_ (VMC3030)
+_front_ is an _Arlo Pro_ (VMC4030P)
 
 <a name="other-user-agents"></a>
 ### User Agents
 
 The following user agents are available:
 - `arlo`; the original `netgear` use agent, this is the default and will get
-  `rtsps` streams from the Arlo servers.
+  `rtsps` streams from the _Arlo_ servers.
 - `linux`; a newer `Chrome` user agent, this will get `mpeg-dash` streams from
-  the Arlo servers.
+  the _Arlo_ servers.
 - `apple`, `ipad`, `iphone`, `mac`, `firefox`; these simulate these devices or
   browsers and, for now, these return `mpeg_dash` streams.
 
-As you can see, the user agent you supply to Arlo determines what streaming
+As you can see, the user agent you supply to _Arlo_ determines what streaming
 format is used. I used to think that the agent you used to log in had to be
 the same as the agent you use to start a stream. After some testing I find
 this is not the case.
 
-What this means is `aarlo` can select the best user agent for the task.
+What this means is _Aarlo_ can select the best user agent for the task.
 
-- The `camera.record` service will use `arlo` agent so Home Assistant can save
+- The `camera.record` service will use `arlo` agent so _Home Assistant_ can save
   the stream as `mp4`.
-- The `camera.play_stream` service will use `arlo` agent so Home Assistant can
+- The `camera.play_stream` service will use `arlo` agent so _Home Assistant_ can
   convert the stream to `hls`.
 - The `arlo_stream_url` web service will use the `linux` agent to return a URL
   to an `mpeg-dash` stream.
@@ -656,7 +662,7 @@ the one you set if picked for snapshot operations.
 
 <a name="other-best"></a>
 ### Best Practises and Known Limitations
-The component uses the Arlo webapi.
+The component uses the _Arlo_ webapi.
 * There is no documentation so the API has been reverse engineered using
   browser debug tools.
 * Streaming times out after 30 minutes.
@@ -668,13 +674,13 @@ The component uses the Arlo webapi.
 If you do find the component locks up after a while (I've seen reports of
 hours, days or weeks), you can add the following to the main configuration.
 Start from the top and work down:
-* `refresh_devices_every`, tell Aarlo to request the device list every so
+* `refresh_devices_every`, tell _Aarlo_ to request the device list every so
   often. This will sometimes prevent the back end from ageing you out. The
   value is in hours and a good starting point is 3.
-* `stream_timeout`, tell Aarlo to close and reopen the event stream after a
-  certain period of inactivity. Aarlo will send keep alive every minute so a
+* `stream_timeout`, tell _Aarlo_ to close and reopen the event stream after a
+  certain period of inactivity. _Aarlo_ will send keep alive every minute so a
   good starting point is 180 seconds.
-* `reconnect_every`, tell Aarlo to logout and back in every so often. This
+* `reconnect_every`, tell _Aarlo_ to logout and back in every so often. This
   establishes a new session at the risk of losing an event notification. The
   value is minutes and a good starting point is 90.
 * `request_timeout`, the amount of time to allow for a http request to work. A
@@ -683,9 +689,9 @@ Start from the top and work down:
 Unify your alarm mode names across all your base stations. There is no way to
 specify different mode names for each device.
 
-Arlo will allow shared accounts to give cameras their own name. If you find
+_Arlo_ will allow shared accounts to give cameras their own name. If you find
 cameras appearing with unexpected names (or not appearing at all), log into
-the Arlo web interface with your Home Assistant account and make sure the
+the _Arlo_ web interface with your _Home Assistant_ account and make sure the
 camera names are correct.
 
 You can change the brightness on the light but not while it's turned on. You
@@ -704,7 +710,7 @@ web interface does it.
 
 <a name="notworking-cloudflare"></a>
 ### Cloud Flare
-Arlo recently added Cloud Flare anti-bot protection to the Arlo website. This
+_Arlo_ recently added Cloud Flare anti-bot protection to the _Arlo_ website. This
 service doesn't work well with the Python Requests package. If you see the
 following errors you are running into Cloud Flare issues.
 
@@ -713,9 +719,9 @@ following errors you are running into Cloud Flare issues.
 ```
 
 There are a couple of things you can try:
-* Change your `user_agent` and restart HA. You can even try setting the
-  `user_agent` to `random` if things get desperate.
-* Modify `/etc/hosts` to point to a specific Arlo web server. You can try
+* Change your `user_agent` and restart _Home Assistant_. You can even try
+  setting the `user_agent` to `random` if things get desperate.
+* Modify `/etc/hosts` to point to a specific _Arlo_ web server. You can try
   adding the following and changing which entry you comment out.
   
 ```  
@@ -723,19 +729,19 @@ There are a couple of things you can try:
 #104.18.31.98 ocapi-app.arlo.com
 ```
 
-The good news, `aarlo` will now cache the authentication token so once you've
+The good news, _Aarlo_ will now cache the authentication token so once you've
 logged in you should be not need to be bothered by Cloud Flare for 2 weeks.
 
 This problem affects me, and I'm constantly trying to refine the code.
 
 <a name="notworking-missing-events"></a>
 ### Missing Events
-Arlo is in the middle of (or seems to be in the middle of) changing their back
+_Arlo_ is in the middle of (or seems to be in the middle of) changing their back
 end event system. The original system used a `Server Side Event` socket but
 they now support a `MQTT` broker system. 
 
 By default, the system will use try to work out which event system to use by
-looking for keywords in the Arlo server responses. If aren't seeing the
+looking for keywords in the _Arlo_ server responses. If aren't seeing the
 events you expect to see then try changing to the `Server Side Event` back
 end. Use the `backend` keyword.
 
@@ -759,8 +765,8 @@ you are expecting it. The events are usually helpfully named, i.e.
 See [Missing Events](#notworking-missing-events), they share a lot of the same
 issues.
 
-And make sure you have enabled `Access Rights` for your secondary account. Arlo won't
-update some values for non-admin accounts.
+And make sure you have enabled `Access Rights` for your secondary account.
+_Arlo_ won't update some values for non-admin accounts.
 
 
 <a name="other-debugging"></a>
@@ -805,7 +811,7 @@ logger:
 ```
 
 Home assistant logs everything to `/config/home-assistant.log`, a typical piece of
-debug from Aarlo looks like this.
+debug from _Aarlo_ looks like this.
 
 ```
 2020-01-21 11:44:48 DEBUG (ArloBackgroundWorker) [pyaarlo] fast refresh
@@ -818,7 +824,7 @@ reference to `traceBack` is a good place to start.
 
 #### Verbose debug
 It sometimes helps to turn on more verbose debug, do this by adding this to
-your `aarlo` config.
+your _Aarlo_ config.
 
 ```yaml
 aarlo:
@@ -827,8 +833,8 @@ aarlo:
 ``` 
 
 #### Event logging
-you can look at what events Arlo is sending you by turning on event stream
-dumping. Add the following to your `configuration.yaml` file and Aarlo will
+you can look at what events _Arlo_ is sending you by turning on event stream
+dumping. Add the following to your `configuration.yaml` file and _Aarlo_ will
 dump events into `/config/.aarlo/packets.dump`:
 
 ```yaml
@@ -837,7 +843,7 @@ aarlo:
     packet_dump: True
 ```
 
-This file will built up from a constant trickle of packets from Arlo. The
+This file will built up from a constant trickle of packets from _Arlo_. The
 following expert shows a login confirmation and a subscription check response.
 
 ```
@@ -849,7 +855,7 @@ following expert shows a login confirmation and a subscription check response.
     'transId': 'web!38a29262-1ce0-4c4d-8f75-fafec2c34332'}
 ```
 
-Another example, if Arlo detects motion you will see a packet with the
+Another example, if _Arlo_ detects motion you will see a packet with the
 following field in it:
 
 ```
@@ -869,8 +875,8 @@ to help debugging.
 <a name="notworking-sensitive"></a>
 #### Hiding Sensitive Data
 
-If you paste any debug logs into GitHub it's a good idea to encrypt them before uploading
-them. You can do this one of two ways.
+If you paste any debug logs into _GitHub_ it's a good idea to encrypt them
+before uploading them. You can do this one of two ways.
 
 ##### Online
 
@@ -914,7 +920,7 @@ QyDC4o3xjAKAA4pGGxzZ7zyUP7nU6QgiqDD1aYi7C6SzcnEEdS4=
 ```
 
 #### Notes
-Data isn't anonymised internally... I will be adding that functionality.
+Data isn't anonymized internally... I will be adding that functionality.
 
 You don't need to keep re-installing pyaarlo, just re-activate the virtualenv.
 ```bash
@@ -933,7 +939,46 @@ $
 <a name="notworking-browser"></a>
 ### Reverse Engineering
 
-Coming soon...
+I don't own every piece _Arlo_ of equipment so sometimes, when things go
+wrong, I need to see what _Arlo_ actually expects this code to send and what
+this code can expect back from _Arlo_. _Aarlo_ simulates a web browser
+connection so you can find out what is expected by using the browser
+_Developer Tools_.
+
+_This instructions are for Chrome but most browsers (I hope!) have similar
+functionality._
+
+- Open your browser.
+- Go to [the Arlo camera website](https://my.arlo.com/#/home).
+- With the _Arlo_ website open enable you browser's developer tools. On Chrome
+  you click the three dots in the upper right corner, then select `More Tools`
+  and finally select `Developer Tools`. You can also use the shortcut
+  `CTRL+SHIFT+I`.
+- Select the `Network` tab in the newly opened window.
+- Now log in to the _Arlo_ website.
+
+When you log in the data passed between the browser and _Arlo_ website will
+start to appear, and keep appearing, in this tab. If you click on an entry
+under `Name` you can examine the packets in more detail.
+
+- The `Headers` tab shows you what was sent in the headers of the request.
+- The `Payload` tabs shows you what was sent in the body of the request
+- The `Preview` tab shows the reply sent back from _Arlo_.
+
+![Network TAB](images/chrome-2.png)
+
+If you hover over the field under `name` a pop up will display the full URL the
+request was sent to.
+
+For example, _Arlo_ creates a new device with a `WOOHOO` button, I don't
+posses such a device but you'd like the `WOOHOO` functionality implementing in
+_Aarlo_. What I need is the sequence of packets and their replies when you
+press the button. The only real way to do this is to press the button and see
+what new packets appear in the `Name` tab.
+
+You will then need to copy and paste them into a bug report on _GitHub_. See
+the previous section on how to hide sensitive data.
+
 
 <a name="advanced"></a>
 ## Advanced Use
@@ -1008,14 +1053,14 @@ The component provides the following services:
 | `aarlo.inject_response`                 | `filename` - file to read packet from                                                                                              | Inject a packet into the event stream.                                                                                         |
 
 For recordings longer than 30 seconds you will need to white list the `/tmp`
-directory. This is because we have to keep a stream to Arlo open to prevent
+directory. This is because we have to keep a stream to _Arlo_ open to prevent
 them from stopping the recording after 30 seconds. And we write this stream to
 the `/tmp` directory.
 
 For `restart_device` you need to log in with the main account.
 
 These services are deprecated and will be going away. By moving services under
-the aarlo domain it allows Home Assistant to use the `services.yaml`
+the aarlo domain it allows _Home Assistant_ to use the `services.yaml`
 descriptions.
 
 | Service                                 | Parameters                                                                                  | Description                                                                                                                  |
