@@ -130,7 +130,7 @@ Many thanks to:
   **PyCharm IDE** and providing me with an open source licence to speed up the
   project development.
 
-  [![JetBrains](/images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
+  [![JetBrains](images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
 
 
 <a name="installation"></a>
