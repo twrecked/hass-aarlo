@@ -11,15 +11,16 @@ for the correct _README_**
 ## New Features in 0.8
 
 ### Split Out Pyaarlo
-The code now uses `pyaalo` by installing it via `pip` rather than maintaining
-its own version. If you run into a problem check the `pyaarlo` `README` file,
-it may have a fix not mentioned here.
+The code now uses _Pyaalo_ by installing it via _pip_ rather than maintaining
+its own version. If you run into a problem check the [Pyaarlo
+README](https://github.com/twrecked/pyaarlo/blob/master/README.md) file,it may
+have a fix not mentioned here.
 
 ### Authentication Caching
 The code will retry authorization tokens for as long as they are valid. This
 means a reduction in authentication attempts and 2FA requests. If this does
-not work for you send me some logs and add restart with `save_session: False`
-to your configuration.
+not work for you send me some logs showing the error and restart with
+`save_session: False` added to your configuration.
 
 ### Saner Defaults
 You will now have less to configure... for example, device refresh and stream
@@ -30,8 +31,8 @@ timeouts are enabled by default.
 The following options have been removed:
 - `hide_deprecated_services`; all component services are now in the `aarlo`
   domain.
-- `http_connections`; no longer used after `cloudscraper` was needed
-- `http_max_size`; no longer used after `cloudscraper` was needed
+- `http_connections`; no longer used after _cloudscraper_ was needed
+- `http_max_size`; no longer used after _cloudscraper_ was needed
 
 
 ## Table of Contents
@@ -81,15 +82,15 @@ The following options have been removed:
 ## Introduction
 _Aarlo_ is an _Asynchronous Arlo_ component for [Home
 Assistant](https://www.home-assistant.io/), it uses the [Arlo
-Website](https://my.arlo.com/#/cameras) APIs and supports base stations,
-cameras, lights and doorbells.
+Website](https://my.arlo.com/#/cameras) APIs to function and supports base
+stations, cameras, lights and doorbells.
 
-_Aarlo_ is based on the original [_Arlo_
+_Aarlo_ is based on the original [Arlo
 component](https://www.home-assistant.io/integrations/arlo/) and it can
 operate as replacement with minimal configuration changes.
 
-_Aarlo_ also provides a custom [Lovelace
-Card](https://github.com/twrecked/lovelace-hass-aarlo), which overlays a
+_Aarlo_ also provides a custom [_Lovelace
+Card_](https://github.com/twrecked/lovelace-hass-aarlo), which overlays a
 camera's last snapshot with its current status and allows access to the
 cameras recording library and live-streaming.
 
@@ -109,12 +110,17 @@ _Aarlo_ provides:
 
 <a name="introduction-notes"></a>
 #### Notes
-This document assumes you are familiar with Home Assistant setup and
+This document assumes you are familiar with _Home Assistant_ setup and
 configuration.
 
-Wherever you see `/config` in this document it refers to your Home Assistant
+Wherever you see `/config` in this document it refers to your _Home Assistant_
 configuration directory. For example, for my installation it's
 `/home/steve/ha` which is mapped to `/config` by my docker container.
+
+If you aren't familiar with _Home Assistant_ I recommend visiting the
+[Community Website](https://community.home-assistant.io/). It's full of
+helpful people and there is always someone who's encountered the problem you
+are trying to fix.
 
 <a name="introduction-thanks"></a>
 #### Thanks
@@ -166,7 +172,7 @@ install go /config
 
 <a name="configuration-moving"></a>
 ### Moving From Arlo
-You can replace all instances of `arlo` with `aarlo` in your Home Assistant
+You can replace all instances of `arlo` with `aarlo` in your _Home Assistant_
 configuration files to start using _Aarlo_. The following sections detail new
 configuration items you can use to add extra functionality to your new _Aarlo_
 component.
@@ -229,7 +235,7 @@ a custom mode in _Arlo_ and `home_mode_name` and `night_mode_name` to map to
 them. You don't need to map all modes - I don't use `night_mode`. Names are
 case-insensitive. Using duplicate names will cause problems, for example,
 mapping both `away` and `night` mode to `armed` will work when setting the
-mode from Home Assistant but might not show the correct mode if you change it
+mode from _Home Assistant_ but might not show the correct mode if you change it
 in the _Arlo_ app.
 
 See [here](https://www.home-assistant.io/components/arlo/#alarm) for more
@@ -308,11 +314,10 @@ The rest of the sensors appear per camera.
 * `humidity` The humidity in the room where the camera is, if supported.
 * `air_quality` The air quality in the room where the camera is, if supported.
 
-If you have an _Arlo_ Smart plan the 'last_capture' sensor has the attribute
-'object_type' containing what _Arlo_ cloud service believes to have identified
-as a string ("Person", "Vehicle", "Animal", ...). You can use templating in HA
-to trigger or condition automations based on this or record the info using an
-additional template sensor.
+If you have an _Arlo Smart Plan_ the `last_capture` sensor has the attribute
+'object_type' containing what _Arlo_ cloud service identified as starting the
+recording ("Person", "Vehicle", "Animal", ...). You can use templates in _Home
+Assistant_ to trigger automations on different object types.
 
 <a name="configuration-light"></a>
 ### Light Configuration
@@ -326,10 +331,10 @@ light:
 The component supports the standard _Arlo Light_, _Arlo Baby Light_ and
 _Arlo Pro 3 Floodlight_.
 
-There is one quirk, on all lights but the _Arlo Pro 3 Floodlight_ you can
-adjust the brightness of a light while it is on but the change will not happen
-until you turn the light off and back on again. This how the official web
-interface works.
+There is one quirk; on all lights but the _Arlo Pro 3 Floodlight_ you can
+adjust the brightness of a light while it is on but the change will not take
+effect until you turn the light off and back on again. This how the official
+web interface works.
 
 <a name="configuration-switch"></a>
 ### Switch Configuration
@@ -379,17 +384,18 @@ The custom Lovelace card allows access to the video recordings library and
 presents customizable camera information on the camera feed. It was influenced
 by the _Arlo_ web interface camera view.
 
-*This piece is optional, `aarlo` will work with the standard Lovelace cards.*
+*This piece is optional, _Aarlo_ will work with the standard Lovelace cards.*
 
 
 <a name="2fa"></a>
 ## 2FA
 
-`aarlo` supports 2-factor authentication.
+_Aarlo_ supports 2-factor authentication.
 
-To check if you need to enable 2FA, log in to _Arlo_ using your Home Assistant
-account and see if it sends you a verification code. If it does, you will need
-to provide a mechanism to get this code, choose one of the following:
+To check if you need to enable 2FA, log in to actual _Arlo_ website using your
+_Home Assistant_ account and see if it sends you a verification code. If it
+does, you will need to provide a mechanism to get this code, choose one of the
+following:
 
 <a name="2fa-automatic"></a>
 ### IMAP
@@ -419,7 +425,7 @@ aarlo:
 
 #### Application Passwords
 
-  For `GMail`, `Yahoo` (and other web based email client) you can't log in
+  For _GMail_ and _Yahoo_ (and other web based email client) you can't log in
   with your usual password, you will have to create an application specific
   password. Explaining why this is necessary is out of the scope of this
   document so see the following pages.
@@ -427,7 +433,7 @@ aarlo:
   - [Gmail App Password](https://support.google.com/mail/answer/185833?hl=en)
   - [Yahoo App Password](https://help.yahoo.com/kb/SLN15241.html)
 
-  If you find you can't log in to your IMAP account check the application
+  If you find you can't log in to your _IMAP_ account check the application
   password requirement.
   
   Once you have created the application password use it in the 2FA
@@ -472,18 +478,18 @@ Entity ID naming follows this pattern
 For example, a camera called "Front Door" will have an entity id of
 `camera.aarlo_front_door`.
 
-For full compatibility `aarlo` will decode Unicode characters. This means a
+For full compatibility _Aarlo_ will decode Unicode characters. This means a
 camera called `Haustür` will be called `component-type.aarlo_haustur`.
 
 If you do not want this behaviour - and be warned, this may cause problems
-using certain HA services - add `no_unicode_squash: True` to your
+using certain _Home Assistant_ services - add `no_unicode_squash: True` to your
 configuration.
 
 
 <a name="other-saving-media"></a>
 ### Saving Media
 If you use the `save_media_to` parameter to specify a file naming scheme
-`aarlo` will use that to save all media - videos and snapshots - locally. You
+_Aarlo_ will use that to save all media - videos and snapshots - locally. You
 can use the following substitutions:
 
 - `SN`; the device serial number
@@ -511,12 +517,12 @@ file extension.
 
 The first time you configure `save_media_to` the system can take several
 minutes to download all the currently available media. The download is
-throttled to not overload Home Assistant or _Arlo_. Once the initial download is
+throttled to not overload _Home Assistant_ or _Arlo_. Once the initial download is
 completed updates should happen a lot faster.
 
 The code doesn't provide any management of the downloads, it will keep
-downloading them until your device is full. It also doesn't provide a NAS
-interface, you need to mount the NAS device and point `save_media_to` at it.
+downloading them until your device is full. It also doesn't provide a _NAS_
+interface, you need to mount the _NAS_ device and point `save_media_to` at it.
 
 <a name="other-streaming"></a>
 ### Streaming
@@ -526,18 +532,18 @@ of these:
 - add `stream` to the `image_click` options of the card
 - add `stream` to the `image_top` or `image_bottom` options of the card
 
-Streaming works with Home Assistant and, for most people, will just work. But
+Streaming works with _Home Assistant_ and, for most people, will just work. But
 there are still some things to be wary of.
 
 #### Direct Streaming
 
 _Arlo_ recently upgraded their streaming servers to support `mpeg-dash`. You can
-stream this directly to your browser without going through your Home Assistant
+stream this directly to your browser without going through your _Home Assistant_
 install.
 
 One of the biggest advantages of direct streaming was audio support but that
-has been added to non-direct streaming in recent Home Assistant releases.
-Direct streaming still offloads the conversion from your Home Assistant server
+has been added to non-direct streaming in recent _Home Assistant_ releases.
+Direct streaming still offloads the conversion from your _Home Assistant_ server
 and reduces the bandwidth usage of your home network, this is especially true
 if streaming from outside your home network.
 
@@ -638,11 +644,11 @@ format is used. I used to think that the agent you used to log in had to be
 the same as the agent you use to start a stream. After some testing I find
 this is not the case.
 
-What this means is `aarlo` can select the best user agent for the task.
+What this means is _Aarlo_ can select the best user agent for the task.
 
-- The `camera.record` service will use `arlo` agent so Home Assistant can save
+- The `camera.record` service will use `arlo` agent so _Home Assistant_ can save
   the stream as `mp4`.
-- The `camera.play_stream` service will use `arlo` agent so Home Assistant can
+- The `camera.play_stream` service will use `arlo` agent so _Home Assistant_ can
   convert the stream to `hls`.
 - The `arlo_stream_url` web service will use the `linux` agent to return a URL
   to an `mpeg-dash` stream.
@@ -685,7 +691,7 @@ specify different mode names for each device.
 
 _Arlo_ will allow shared accounts to give cameras their own name. If you find
 cameras appearing with unexpected names (or not appearing at all), log into
-the _Arlo_ web interface with your Home Assistant account and make sure the
+the _Arlo_ web interface with your _Home Assistant_ account and make sure the
 camera names are correct.
 
 You can change the brightness on the light but not while it's turned on. You
@@ -713,8 +719,8 @@ following errors you are running into Cloud Flare issues.
 ```
 
 There are a couple of things you can try:
-* Change your `user_agent` and restart HA. You can even try setting the
-  `user_agent` to `random` if things get desperate.
+* Change your `user_agent` and restart _Home Assistant_. You can even try
+  setting the `user_agent` to `random` if things get desperate.
 * Modify `/etc/hosts` to point to a specific _Arlo_ web server. You can try
   adding the following and changing which entry you comment out.
   
@@ -723,7 +729,7 @@ There are a couple of things you can try:
 #104.18.31.98 ocapi-app.arlo.com
 ```
 
-The good news, `aarlo` will now cache the authentication token so once you've
+The good news, _Aarlo_ will now cache the authentication token so once you've
 logged in you should be not need to be bothered by Cloud Flare for 2 weeks.
 
 This problem affects me, and I'm constantly trying to refine the code.
@@ -759,8 +765,8 @@ you are expecting it. The events are usually helpfully named, i.e.
 See [Missing Events](#notworking-missing-events), they share a lot of the same
 issues.
 
-And make sure you have enabled `Access Rights` for your secondary account. _Arlo_ won't
-update some values for non-admin accounts.
+And make sure you have enabled `Access Rights` for your secondary account.
+_Arlo_ won't update some values for non-admin accounts.
 
 
 <a name="other-debugging"></a>
@@ -818,7 +824,7 @@ reference to `traceBack` is a good place to start.
 
 #### Verbose debug
 It sometimes helps to turn on more verbose debug, do this by adding this to
-your `aarlo` config.
+your _Aarlo_ config.
 
 ```yaml
 aarlo:
@@ -933,10 +939,11 @@ $
 <a name="notworking-browser"></a>
 ### Reverse Engineering
 
-I don't own every piece _Arlo_ of equipment so sometimes, when things go wrong,
-I need to see what _Arlo_ actually expects this code to send and what this code can
-expect back from _Arlo_. _Aarlo_ simulates a web browser connection so you
-can find out what is expected by using the browser _Developer Tools_.
+I don't own every piece _Arlo_ of equipment so sometimes, when things go
+wrong, I need to see what _Arlo_ actually expects this code to send and what
+this code can expect back from _Arlo_. _Aarlo_ simulates a web browser
+connection so you can find out what is expected by using the browser
+_Developer Tools_.
 
 _This instructions are for Chrome but most browsers (I hope!) have similar
 functionality._
@@ -953,6 +960,7 @@ functionality._
 When you log in the data passed between the browser and _Arlo_ website will
 start to appear, and keep appearing, in this tab. If you click on an entry
 under `Name` you can examine the packets in more detail.
+
 - The `Headers` tab shows you what was sent in the headers of the request.
 - The `Payload` tabs shows you what was sent in the body of the request
 - The `Preview` tab shows the reply sent back from _Arlo_.
@@ -962,11 +970,14 @@ under `Name` you can examine the packets in more detail.
 If you hover over the field under `name` a pop up will display the full URL the
 request was sent to.
 
-For example, _Arlo_ creates a new device with a `WOOHOO` button, I don't posses
-such a device but you'd like the `WOOHOO` functionality implementing in
-_Aarlo_. What I need is the sequence of packets and their replies when
-you press the button. The only real way to do this is to press the button and
-see what new packets appear in the `Name` tab.
+For example, _Arlo_ creates a new device with a `WOOHOO` button, I don't
+posses such a device but you'd like the `WOOHOO` functionality implementing in
+_Aarlo_. What I need is the sequence of packets and their replies when you
+press the button. The only real way to do this is to press the button and see
+what new packets appear in the `Name` tab.
+
+You will then need to copy and paste them into a bug report on _GitHub_. See
+the previous section on how to hide sensitive data.
 
 
 <a name="advanced"></a>
@@ -1049,7 +1060,7 @@ the `/tmp` directory.
 For `restart_device` you need to log in with the main account.
 
 These services are deprecated and will be going away. By moving services under
-the aarlo domain it allows Home Assistant to use the `services.yaml`
+the aarlo domain it allows _Home Assistant_ to use the `services.yaml`
 descriptions.
 
 | Service                                 | Parameters                                                                                  | Description                                                                                                                  |
