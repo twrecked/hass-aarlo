@@ -947,7 +947,7 @@ functionality._
   you click the three dots in the upper right corner, then select `More Tools`
   and finally select `Developer Tools`. You can also use the shortcut
   `CTRL+SHIFT+I`.
-- Select the `Network` tab.
+- Select the `Network` tab in the newly opened window.
 - Now log in to the _Arlo_ website.
 
 When you log in the data passed between the browser and _Arlo_ website will
@@ -957,8 +957,10 @@ under `Name` you can examine the packets in more detail.
 - The `Payload` tabs shows you what was sent in the body of the request
 - The `Preview` tab shows the reply sent back from _Arlo_.
 
-If you hover over the field under name a pop up will display the full URL the
+If you hover over the field under `name` a pop up will display the full URL the
 request was sent to.
+
+![Network TAB](/images/chrome-2.svg)]
 
 For example, _Arlo_ creates a new device with a `WOOHOO` button, I don't posses
 such a device but you'd like the `WOOHOO` functionality implementing in
