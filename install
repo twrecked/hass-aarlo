@@ -33,10 +33,11 @@ fi
 #${ECHO} mkdir -p "${DEST}/www"
 #${ECHO} cp -afv dist/hass-aarlo.js "${DEST}/www/aarlo-glance.js"
 
+echo -- installing
 ${ECHO} mkdir -p "${DEST}/custom_components"
 if [[ -n $(command -v fd) ]]; then
 	fd -e py . -e json -e yaml custom_components --exec ${ECHO} cp -vf --parents {} "${DEST}" ;
 else
 	${ECHO} cp -afv custom_components/aarlo "${DEST}/custom_components"
 fi
-
+echo -- finished at "$(date '+%A at %H:%M:%S')"

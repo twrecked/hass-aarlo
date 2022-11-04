@@ -1,6 +1,7 @@
 aarlo/pyaarlo
 0.7.2b12: Fix doorbell capabilities.
   Custom user agent support.
+  Added event_id and time to URL paths.
   Allow ping when devices are on chargers.
 0.7.2b11: Possible doorbell fix.
 0.7.2b10: Better choose back end.
