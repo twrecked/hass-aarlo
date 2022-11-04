@@ -1,0 +1,22 @@
+name: hassfest Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - version-0.7.x
+  pull_request:
+    branches:
+      - master
+      - version-0.7.x
+  schedule:
+    - cron: '0 1 * * *'
+
+jobs:
+  validate:
+    name: hassfest Validation
+    runs-on: "ubuntu-latest"
+    steps:
+        - uses: "actions/checkout@v2"
+        - uses: "home-assistant/actions/hassfest@master"
