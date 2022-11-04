@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - master
-    - version-0.7.x
+      - master
+      - version-0.7.x
   pull_request:
     branches:
-    - master
-    - version-0.7.x
+      - master
+      - version-0.7.x
   schedule:
     - cron: '0 1 * * *'
 
