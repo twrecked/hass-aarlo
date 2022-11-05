@@ -349,6 +349,7 @@ class ArloCam(Camera):
         super().__init__()
         self._name = camera.name
         self._unique_id = camera.entity_id
+        self._device_id = camera.device_id
         self._camera = camera
         self._state = None
         self._recent = False
@@ -396,16 +397,17 @@ class ArloCam(Camera):
                         _LOGGER.debug("{0} snapshot updated".format(self._unique_id))
                         self.hass.bus.fire(
                             "aarlo_snapshot_updated",
-                            {"entity_id": "aarlo." + self._unique_id},
+                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._device_id},
                         )
                     else:
                         _LOGGER.debug("{0} capture updated".format(self._unique_id))
                         self.hass.bus.fire(
                             "aarlo_capture_updated",
-                            {"entity_id": "aarlo." + self._unique_id},
+                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._device_id},
                         )
                     self.hass.bus.fire(
-                        "aarlo_image_updated", {"entity_id": "aarlo." + self._unique_id}
+                        "aarlo_image_updated", 
+                        {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._device_id},
                     )
                 self._last_image_source_ = value
 
