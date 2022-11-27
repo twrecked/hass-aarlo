@@ -82,6 +82,7 @@ CONF_NO_UNICODE_SQUASH = "no_unicode_squash"
 CONF_SAVE_SESSION = "save_session"
 CONF_BACKEND = "backend"
 CONF_DEFAULT_CIPHERS = "default_ciphers"
+CONF_CIPHER_LIST = "cipher_list"
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -123,6 +124,7 @@ NO_UNICODE_SQUASH = True
 SAVE_SESSION = True
 DEFAULT_BACKEND = "auto"
 DEFAULT_DEFAULT_CIPHERS = False
+DEFAULT_CIPHER_LIST = None
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -203,9 +205,8 @@ CONFIG_SCHEMA = vol.Schema(
                 ): cv.boolean,
                 vol.Optional(CONF_SAVE_SESSION, default=SAVE_SESSION): cv.boolean,
                 vol.Optional(CONF_BACKEND, default=DEFAULT_BACKEND): cv.string,
-                vol.Optional(
-                    CONF_DEFAULT_CIPHERS, default=DEFAULT_DEFAULT_CIPHERS
-                ): cv.boolean,
+                vol.Optional(CONF_DEFAULT_CIPHERS, default=DEFAULT_DEFAULT_CIPHERS): cv.boolean,
+                vol.Optional(CONF_CIPHER_LIST, default=DEFAULT_CIPHER_LIST): cv.string,
             }
         ),
     },
@@ -385,6 +386,7 @@ def login(hass, conf):
     save_session = conf.get(CONF_SAVE_SESSION)
     backend = conf.get(CONF_BACKEND)
     default_ciphers = conf.get(CONF_DEFAULT_CIPHERS)
+    cipher_list = conf.get(CONF_CIPHER_LIST)
 
     # Fix up config
     if conf_dir == "":
@@ -442,6 +444,7 @@ def login(hass, conf):
                 save_session=save_session,
                 backend=backend,
                 default_ciphers=default_ciphers,
+                cipher_list=cipher_list,
                 wait_for_initial_setup=False,
                 verbose_debug=verbose_debug,
             )

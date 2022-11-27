@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.2b13: Added `cipher_list` option.
 0.7.2b12: Fix doorbell capabilities.
   Custom user agent support.
   Added event_id and time to URL paths.

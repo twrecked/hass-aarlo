@@ -260,5 +260,7 @@ class ArloCfg(object):
         return self._kw.get("backend", "auto")
 
     @property
-    def default_ciphers(self):
-        return self._kw.get("default_ciphers", False)
+    def cipher_list(self):
+        if self._kw.get("default_ciphers", False):
+            return 'DEFAULT'
+        return self._kw.get("cipher_list", None)
