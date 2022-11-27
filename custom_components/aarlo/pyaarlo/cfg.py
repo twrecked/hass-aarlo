@@ -263,4 +263,4 @@ class ArloCfg(object):
     def cipher_list(self):
         if self._kw.get("default_ciphers", False):
             return 'DEFAULT'
-        return self._kw.get("cipher_list", None)
+        return self._kw.get("cipher_list", "")

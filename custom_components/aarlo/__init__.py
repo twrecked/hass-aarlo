@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.2b12"
+__version__ = "0.7.2b13"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -124,7 +124,7 @@ NO_UNICODE_SQUASH = True
 SAVE_SESSION = True
 DEFAULT_BACKEND = "auto"
 DEFAULT_DEFAULT_CIPHERS = False
-DEFAULT_CIPHER_LIST = None
+DEFAULT_CIPHER_LIST = ""
 
 CONFIG_SCHEMA = vol.Schema(
     {

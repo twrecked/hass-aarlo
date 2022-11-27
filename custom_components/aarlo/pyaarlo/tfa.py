@@ -50,7 +50,7 @@ class Arlo2FAImap:
         try:
             # allow default ciphers to be specified
             cipher_list = self._arlo.cfg.cipher_list
-            if cipher_list is not None:
+            if cipher_list != "":
                 ctx = ssl.create_default_context()
                 ctx.set_ciphers(cipher_list)
                 self._arlo.debug(f"imap is using custom ciphers {cipher_list}")
