@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .const import *
 
-__version__ = "0.8.0a9"
+__version__ = "0.8.0a10"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,6 +102,7 @@ CONFIG_SCHEMA = vol.Schema(
                 ): cv.boolean,
                 vol.Optional(CONF_SAVE_SESSION, default=SAVE_SESSION): cv.boolean,
                 vol.Optional(CONF_BACKEND, default=DEFAULT_BACKEND): cv.string,
+                vol.Optional(CONF_CIPHER_LIST, default=DEFAULT_CIPHER_LIST): cv.string,
             }
         ),
     },
@@ -282,6 +283,7 @@ def login(hass, conf):
     no_unicode_squash = conf.get(CONF_NO_UNICODE_SQUASH)
     save_session = conf.get(CONF_SAVE_SESSION)
     backend = conf.get(CONF_BACKEND)
+    cipher_list = conf.get(CONF_CIPHER_LIST)
 
     # Fix up config
     if conf_dir == "":
@@ -335,6 +337,7 @@ def login(hass, conf):
                 save_media_to=save_media_to,
                 save_session=save_session,
                 backend=backend,
+                cipher_list=cipher_list,
                 wait_for_initial_setup=False,
                 verbose_debug=verbose_debug,
             )

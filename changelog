@@ -1,4 +1,6 @@
 aarlo
+0.8.0a10: Add cipher_list support.
+  Bumped pyyaarlo version.
 0.8.0a9: Call stop on auth failure.
   Smarter backend detection.
   Custom user agent support.

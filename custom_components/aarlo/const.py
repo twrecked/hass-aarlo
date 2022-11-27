@@ -49,6 +49,7 @@ CONF_SAVE_MEDIA_TO = "save_media_to"
 CONF_NO_UNICODE_SQUASH = "no_unicode_squash"
 CONF_SAVE_SESSION = "save_session"
 CONF_BACKEND = "backend"
+CONF_CIPHER_LIST = "cipher_list"
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -86,3 +87,4 @@ SAVE_MEDIA_TO = ""
 NO_UNICODE_SQUASH = True
 SAVE_SESSION = True
 DEFAULT_BACKEND = "auto"
+DEFAULT_CIPHER_LIST = ""
