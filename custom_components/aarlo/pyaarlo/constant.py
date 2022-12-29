@@ -21,6 +21,7 @@ RESTART_PATH = "/hmsweb/users/devices/restart"
 STREAM_SNAPSHOT_PATH = "/hmsweb/users/devices/takeSnapshot"
 STREAM_START_PATH = "/hmsweb/users/devices/startStream"
 IDLE_SNAPSHOT_PATH = "/hmsweb/users/devices/fullFrameSnapshot"
+ACTIVE_MODE_V3_PATH = "/hmsweb/automation/v3/activeMode"
 MQTT_PATH = "/mqtt"
 TRANSID_PREFIX = "web"
 

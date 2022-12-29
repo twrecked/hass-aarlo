@@ -814,6 +814,7 @@ class ArloBackEnd(object):
             "Referer": REFERER_HOST,
             "SchemaVersion": "1",
             "User-Agent": self._user_agent,
+            "x-user-device-id": self._user_id 
         }
         self._session.headers.update(headers)
 
