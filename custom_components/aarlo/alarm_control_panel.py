@@ -399,6 +399,169 @@ class ArloBaseStation(AlarmControlPanelEntity):
             _LOGGER.warning("Wrong code entered for %s", state)
         return check
 
+class ArloLocation(AlarmControlPanelEntity):
+    """Representation of an Arlo Alarm Control Panel."""
+
+    def __init__(self, location, config):
+        """Initialize the alarm control panel."""
+        self._config = config
+        self._name = location.name
+        self._unique_id = location.id
+        self._location = location
+        self._disarmed_mode_name = config.get(CONF_DISARMED_MODE_NAME).lower()
+        self._home_mode_name = config.get(CONF_HOME_MODE_NAME).lower()
+        self._away_mode_name = config.get(CONF_AWAY_MODE_NAME).lower()
+        self._night_mode_name = config.get(CONF_NIGHT_MODE_NAME).lower()
+        self._alarm_volume = config.get(CONF_ALARM_VOLUME)
+        self._state = None
+        _LOGGER.info("ArloLocation: %s created", self._name)
+
+    @property
+    def icon(self):
+        """Return icon."""
+        return ICON
+
+    async def async_added_to_hass(self):
+        """Register callbacks."""
+
+        @callback
+        def update_state(_device, attr, value):
+            _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value))
+            self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY))
+            self.async_schedule_update_ha_state()
+
+        self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY, ARMED))
+        self._base.add_attr_callback(MODE_KEY, update_state)
+
+    @property
+    def should_poll(self):
+        return False
+
+    @property
+    def state(self):
+        """Return the state of the device."""
+        return self._state
+
+    @property
+    def supported_features(self) -> int:
+        """Return the list of supported features."""
+        return (
+            SUPPORT_ALARM_ARM_HOME
+            | SUPPORT_ALARM_ARM_AWAY
+            | SUPPORT_ALARM_ARM_NIGHT
+        )
+
+    @property
+    def code_format(self):
+        """Return one or more digits/characters."""
+        code = self._config.get(CONF_CODE)
+        if code is None:
+            return None
+        if isinstance(code, str) and re.search("^\\d+$", code):
+            return FORMAT_NUMBER
+        return FORMAT_TEXT
+
+    @property
+    def code_arm_required(self):
+        """Whether the code is required for arm actions."""
+        code_required = self._config.get(CONF_CODE_ARM_REQUIRED)
+        return code_required
+
+    def alarm_disarm(self, code=None):
+        code_required = self._config[CONF_CODE_DISARM_REQUIRED]
+        if code_required and not self._validate_code(code, "disarming"):
+            return
+        self.set_mode_in_ha(self._disarmed_mode_name)
+
+    def alarm_arm_away(self, code=None):
+        code_required = self._config[CONF_CODE_ARM_REQUIRED]
+        if code_required and not self._validate_code(code, "arming away"):
+            return
+        self.set_mode_in_ha(self._away_mode_name)
+
+    def alarm_arm_home(self, code=None):
+        code_required = self._config[CONF_CODE_ARM_REQUIRED]
+        if code_required and not self._validate_code(code, "arming home"):
+            return
+        self.set_mode_in_ha(self._home_mode_name)
+
+    def alarm_arm_night(self, code=None):
+        code_required = self._config[CONF_CODE_ARM_REQUIRED]
+        if code_required and not self._validate_code(code, "arming night"):
+            return
+        self.set_mode_in_ha(self._night_mode_name)
+
+    def alarm_trigger(self, code=None):
+        pass
+
+    def alarm_clear(self):
+        pass
+
+    def alarm_arm_custom_bypass(self, code=None):
+        pass
+
+    def restart(self):
+        self._base.restart()
+
+    @property
+    def unique_id(self):
+        """Return a unique ID."""
+        return self._unique_id
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return {
+            ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
+            ATTR_TIME_ZONE: self._base.timezone,
+            "brand": COMPONENT_BRAND,
+            "device_id": self._base.device_id,
+            "model_id": self._base.model_id,
+            "friendly_name": self._name,
+            "on_schedule": self._base.on_schedule,
+            "siren": self._base.has_capability(SIREN_STATE_KEY),
+        }
+
+    def _get_state_from_ha(self, mode):
+        """Convert Arlo mode to Home Assistant state."""
+        lmode = mode.lower()
+        if lmode == self._disarmed_mode_name:
+            return STATE_ALARM_DISARMED
+        if lmode == self._away_mode_name:
+            return STATE_ALARM_ARMED_AWAY
+        if lmode == self._home_mode_name:
+            return STATE_ALARM_ARMED_HOME
+        if lmode == self._night_mode_name:
+            return STATE_ALARM_ARMED_NIGHT
+        if lmode == ARMED:
+            return STATE_ALARM_ARMED_AWAY
+        return mode
+
+    def set_mode_in_ha(self, mode):
+        """convert Home Assistant state to Arlo mode."""
+        lmode = mode.lower()
+        if lmode == self._disarmed_mode_name:
+            if self._trigger_till is not None:
+                _LOGGER.debug("{0} disarming/silencing".format(self._name))
+                self.alarm_clear()
+        _LOGGER.debug("{0} set mode to {1}".format(self._name, lmode))
+        self._location.mode = lmode
+
+    def siren_on(self, duration=30, volume=10):
+        pass
+
+    def siren_off(self):
+        pass
+
+    async def async_siren_on(self, duration, volume):
+        pass
+
+    async def async_siren_off(self):
+        pass
+
+    def _validate_code(self, code, state):
+        pass
+
 
 def _get_base_from_entity_id(hass, entity_id):
     component = hass.data.get(DOMAIN)
@@ -411,6 +574,16 @@ def _get_base_from_entity_id(hass, entity_id):
 
     return base
 
+def _get_location_from_entity_id(hass, entity_id):
+    component = hass.data.get(DOMAIN)
+    if component is None:
+        raise HomeAssistantError("location component not set up")
+
+    location = component.get_entity(entity_id)
+    if location is None:
+        raise HomeAssistantError("location not found")
+
+    return base
 
 @websocket_api.async_response
 async def websocket_siren_on(hass, connection, msg):
@@ -433,7 +606,6 @@ async def websocket_siren_off(hass, connection, msg):
 async def aarlo_mode_service_handler(base, service):
     mode = service.data[ATTR_MODE]
     base.set_mode_in_ha(mode)
-
 
 async def aarlo_siren_on_service_handler(base, service):
     volume = service.data[ATTR_VOLUME]

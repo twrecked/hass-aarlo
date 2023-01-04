@@ -25,6 +25,7 @@ class ArloLocation():
     def __init__(self, arlo, attrs):
         # add a listener
         self._name = attrs.get("locationId")
+        self._gatewayDeviceUniqueIds = attrs.get("gatewayDeviceIds")
         self._location_id = self._name
         self._arlo = arlo
         self._attrs = attrs
@@ -35,7 +36,6 @@ class ArloLocation():
         self._lock = threading.Lock()
         self._attr_cbs_ = []
 
-        #self._refresh_rate = 15
         self._last_update = 0
 
     def _id_to_name(self, mode_id):
@@ -128,6 +128,10 @@ class ArloLocation():
         return modes
 
     @property
+    def gatewayDeviceUniqueIds(self):
+        return self._gatewayDeviceUniqueIds
+
+    @property
     def mode(self):
         """Returns the current mode."""
         return self._load(MODE_KEY, "unknown")
@@ -182,13 +186,14 @@ class ArloLocation():
                 "{0}: mode {1} is unrecognised".format(self._location_id, mode_name)
             )
 
+
     def update_mode(self):
         """Check and update the base's current mode."""
         now = time.monotonic()
         with self._lock:
-            #  if now < self._last_update + MODE_UPDATE_INTERVAL:
-            #  self._arlo.debug('skipping an update')
-            #  return
+            if now < self._last_update + MODE_UPDATE_INTERVAL:
+                self._arlo.debug('skipping an update')
+                return
             self._last_update = now
         
         data = self._arlo.be.get(LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._location_id))
@@ -207,15 +212,6 @@ class ArloLocation():
             self._parse_modes(modes.get("properties", {}))
         else:
             self._arlo.error("failed to read modes (v2)")
-
-    @property
-    def refresh_rate(self):
-        return self._refresh_rate
-
-    @refresh_rate.setter
-    def refresh_rate(self, value):
-        if isinstance(value, (int, float)):
-            self._refresh_rate = value
 
     def __repr__(self):
         # Representation string of object.

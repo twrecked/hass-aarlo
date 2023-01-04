@@ -1,5 +1,9 @@
 import pprint
 import time
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pyaarlo import PyArlo
 
 from .constant import (
     AIR_QUALITY_KEY,
@@ -34,7 +38,7 @@ day_of_week = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su", "Mo"]
 
 
 class ArloBase(ArloDevice):
-    def __init__(self, name, arlo, attrs):
+    def __init__(self, name : str, arlo : 'PyArlo', attrs):
         super().__init__(name, arlo, attrs)
         self._refresh_rate = 15
         self._schedules = None
@@ -252,7 +256,7 @@ class ArloBase(ArloDevice):
         :param mode_name: mode to use, as returned by available_modes:
         """
         if self._v3_modes:
-            self._arlo.debug(f"BaseStations don't have modes in v3.")
+            self._arlo.debug(f"BaseStations don't have modes in v3")
             return
 
         # Actually passed a mode?
@@ -421,6 +425,16 @@ class ArloBase(ArloDevice):
                 self._arlo.error("failed to read modes (v2)")
         else:
             self._arlo.error("V3Modes - None on BaseStation")
+            currLocation = None
+            for location in self._arlo.locations:
+                for gatewayDeviceUniqueId in location.gatewayDeviceUniqueIds:
+                    if gatewayDeviceUniqueId == self.unique_id:
+                        currLocation = location
+                        break
+                if currLocation != None:
+                    break
+            
+            currLocation.update_mode()
 
     @property
     def schedule(self):
