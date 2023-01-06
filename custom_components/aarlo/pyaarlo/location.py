@@ -42,7 +42,7 @@ class ArloLocation():
         return self._load([MODE_ID_TO_NAME_KEY, mode_id], None)
 
     def _name_to_id(self, mode_name):
-        return self._load([MODE_NAME_TO_ID_KEY, mode_name.lower()], None)
+        return self._load([MODE_NAME_TO_ID_KEY, mode_name], None)
 
     def _parse_modes(self, modes):
         for mode in modes.items():
@@ -51,7 +51,7 @@ class ArloLocation():
             if mode_id and mode_name != "":
                 self._arlo.error(mode_id + "<=M=>" + mode_name)
                 self._save([MODE_ID_TO_NAME_KEY, mode_id], mode_name)
-                self._save([MODE_NAME_TO_ID_KEY, mode_name.lower()], mode_id)
+                self._save([MODE_NAME_TO_ID_KEY, mode_name], mode_id)
 
     def _set_mode(self, event):
         
@@ -105,6 +105,16 @@ class ArloLocation():
         # pass on to lower layer
         else:
             super()._event_handler(resource, event)
+
+    @property
+    def name(self):
+        """Returns the device name."""
+        return self._name
+
+    @property
+    def id(self):
+        """Returns the device id."""
+        return self._location_id
 
     @property
     def available_modes(self):

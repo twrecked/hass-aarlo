@@ -151,6 +151,15 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     async_add_entities(base_stations)
 
+    _LOGGER.error("Adding Locations")
+    locations = []
+    for location in arlo.locations:
+        _LOGGER.error("Locations Iterator")
+        locations.append(ArloLocation(location, config))
+
+    async_add_entities(locations)
+
+
     # Component services
     def service_callback(call):
         """Call aarlo service handler."""
@@ -408,10 +417,10 @@ class ArloLocation(AlarmControlPanelEntity):
         self._name = location.name
         self._unique_id = location.id
         self._location = location
-        self._disarmed_mode_name = config.get(CONF_DISARMED_MODE_NAME).lower()
-        self._home_mode_name = config.get(CONF_HOME_MODE_NAME).lower()
-        self._away_mode_name = config.get(CONF_AWAY_MODE_NAME).lower()
-        self._night_mode_name = config.get(CONF_NIGHT_MODE_NAME).lower()
+        self._disarmed_mode_name = config.get(CONF_DISARMED_MODE_NAME)
+        self._home_mode_name = config.get(CONF_HOME_MODE_NAME)
+        self._away_mode_name = config.get(CONF_AWAY_MODE_NAME)
+        self._night_mode_name = config.get(CONF_NIGHT_MODE_NAME)
         self._alarm_volume = config.get(CONF_ALARM_VOLUME)
         self._state = None
         _LOGGER.info("ArloLocation: %s created", self._name)
@@ -427,11 +436,11 @@ class ArloLocation(AlarmControlPanelEntity):
         @callback
         def update_state(_device, attr, value):
             _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value))
-            self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY))
+            self._state = self._get_state_from_ha(self._location.attribute(MODE_KEY))
             self.async_schedule_update_ha_state()
 
-        self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY, ARMED))
-        self._base.add_attr_callback(MODE_KEY, update_state)
+        self._state = self._get_state_from_ha(self._location.attribute(MODE_KEY, ARMED))
+        self._location.add_attr_callback(MODE_KEY, update_state)
 
     @property
     def should_poll(self):
@@ -468,28 +477,28 @@ class ArloLocation(AlarmControlPanelEntity):
         return code_required
 
     def alarm_disarm(self, code=None):
+        _LOGGER.debug("Location {0} disarm.  Code: {1}".format(self._name, code))
         code_required = self._config[CONF_CODE_DISARM_REQUIRED]
         if code_required and not self._validate_code(code, "disarming"):
+            _LOGGER.debug("Code needed and missing.")
             return
         self.set_mode_in_ha(self._disarmed_mode_name)
 
     def alarm_arm_away(self, code=None):
+        _LOGGER.debug("Location {0} arm away.  Code: {1}".format(self._name, code))
         code_required = self._config[CONF_CODE_ARM_REQUIRED]
         if code_required and not self._validate_code(code, "arming away"):
+            _LOGGER.debug("Code needed and missing.")
             return
         self.set_mode_in_ha(self._away_mode_name)
 
     def alarm_arm_home(self, code=None):
+        _LOGGER.debug("Location {0} arm home.  Code: {1}".format(self._name, code))
         code_required = self._config[CONF_CODE_ARM_REQUIRED]
         if code_required and not self._validate_code(code, "arming home"):
+            _LOGGER.debug("Code needed and missing.")
             return
         self.set_mode_in_ha(self._home_mode_name)
-
-    def alarm_arm_night(self, code=None):
-        code_required = self._config[CONF_CODE_ARM_REQUIRED]
-        if code_required and not self._validate_code(code, "arming night"):
-            return
-        self.set_mode_in_ha(self._night_mode_name)
 
     def alarm_trigger(self, code=None):
         pass
@@ -513,39 +522,26 @@ class ArloLocation(AlarmControlPanelEntity):
         """Return the state attributes."""
         return {
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
-            ATTR_TIME_ZONE: self._base.timezone,
             "brand": COMPONENT_BRAND,
-            "device_id": self._base.device_id,
-            "model_id": self._base.model_id,
-            "friendly_name": self._name,
-            "on_schedule": self._base.on_schedule,
-            "siren": self._base.has_capability(SIREN_STATE_KEY),
+            "friendly_name": self._name
         }
 
     def _get_state_from_ha(self, mode):
         """Convert Arlo mode to Home Assistant state."""
-        lmode = mode.lower()
-        if lmode == self._disarmed_mode_name:
+        if mode == self._disarmed_mode_name:
             return STATE_ALARM_DISARMED
-        if lmode == self._away_mode_name:
+        if mode == self._away_mode_name:
             return STATE_ALARM_ARMED_AWAY
-        if lmode == self._home_mode_name:
+        if mode == self._home_mode_name:
             return STATE_ALARM_ARMED_HOME
-        if lmode == self._night_mode_name:
-            return STATE_ALARM_ARMED_NIGHT
-        if lmode == ARMED:
+        if mode == ARMED:
             return STATE_ALARM_ARMED_AWAY
         return mode
 
     def set_mode_in_ha(self, mode):
         """convert Home Assistant state to Arlo mode."""
-        lmode = mode.lower()
-        if lmode == self._disarmed_mode_name:
-            if self._trigger_till is not None:
-                _LOGGER.debug("{0} disarming/silencing".format(self._name))
-                self.alarm_clear()
-        _LOGGER.debug("{0} set mode to {1}".format(self._name, lmode))
-        self._location.mode = lmode
+        _LOGGER.debug("{0} set mode to {1}".format(self._name, mode))
+        self._location.mode = mode
 
     def siren_on(self, duration=30, volume=10):
         pass
@@ -568,11 +564,11 @@ def _get_base_from_entity_id(hass, entity_id):
     if component is None:
         raise HomeAssistantError("base component not set up")
 
-    base = component.get_entity(entity_id)
+    location = component.get_entity(entity_id)
     if base is None:
         raise HomeAssistantError("base not found")
 
-    return base
+    return location
 
 def _get_location_from_entity_id(hass, entity_id):
     component = hass.data.get(DOMAIN)
@@ -583,7 +579,7 @@ def _get_location_from_entity_id(hass, entity_id):
     if location is None:
         raise HomeAssistantError("location not found")
 
-    return base
+    return location
 
 @websocket_api.async_response
 async def websocket_siren_on(hass, connection, msg):
