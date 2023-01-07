@@ -415,7 +415,7 @@ class ArloLocation(AlarmControlPanelEntity):
         """Initialize the alarm control panel."""
         self._config = config
         self._name = location.name
-        self._unique_id = location.id
+        self._unique_id = "location_" + location.id
         self._location = location
         self._disarmed_mode_name = config.get(CONF_DISARMED_MODE_NAME)
         self._home_mode_name = config.get(CONF_HOME_MODE_NAME)

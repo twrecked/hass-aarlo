@@ -70,7 +70,6 @@ class ArloBase(ArloDevice):
 
 
     def schedule_to_modes(self):
-        self._arlo.error("schedule_to_modes1")
         if self._schedules is None:
             return []
 
@@ -91,7 +90,6 @@ class ArloBase(ArloDevice):
                             return modes
 
         # If nothing in schedule we are disarmed.
-        self._arlo.error("schedule_to_modes")
         return ["mode0"]
 
     def _parse_schedules(self, schedules):
@@ -424,7 +422,7 @@ class ArloBase(ArloDevice):
             else:
                 self._arlo.error("failed to read modes (v2)")
         else:
-            self._arlo.error("V3Modes - None on BaseStation")
+            self._arlo.debug("V3Modes - None on BaseStation")
             currLocation = None
             for location in self._arlo.locations:
                 for gatewayDeviceUniqueId in location.gatewayDeviceUniqueIds:

@@ -24,9 +24,9 @@ from .util import time_to_arlotime
 class ArloLocation():
     def __init__(self, arlo, attrs):
         # add a listener
-        self._name = attrs.get("locationId")
+        self._name = attrs.get("locationName")
         self._gatewayDeviceUniqueIds = attrs.get("gatewayDeviceIds")
-        self._location_id = self._name
+        self._location_id = attrs.get("locationId")
         self._arlo = arlo
         self._attrs = attrs
         
@@ -49,7 +49,7 @@ class ArloLocation():
             mode_id = mode[0]
             mode_name = mode[1].get("name", "")
             if mode_id and mode_name != "":
-                self._arlo.error(mode_id + "<=M=>" + mode_name)
+                self._arlo.debug(mode_id + "<=M=>" + mode_name)
                 self._save([MODE_ID_TO_NAME_KEY, mode_id], mode_name)
                 self._save([MODE_NAME_TO_ID_KEY, mode_name], mode_id)
 
@@ -177,7 +177,7 @@ class ArloLocation():
             # Post change.
             self._arlo.debug(self._location_id + ":new-mode=" + mode_name + ",id=" + mode_id)
             mode_revision = self._load(MODE_REVISION_KEY, 1)
-            self._arlo.error("OldRev: {0}".format(mode_revision))
+            self._arlo.debug("OldRev: {0}".format(mode_revision))
 
             data = self._arlo.be.put(
                 LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._location_id) + "&revision={0}".format(mode_revision),
@@ -186,7 +186,7 @@ class ArloLocation():
                 })
             
             mode_revision = data.get("revision")
-            self._arlo.error("NewRev: {0}".format(mode_revision))
+            self._arlo.debug("NewRev: {0}".format(mode_revision))
 
             self._save_and_do_callbacks(MODE_KEY, mode_name)
             self._save(MODE_REVISION_KEY, mode_revision)
@@ -221,7 +221,7 @@ class ArloLocation():
         if modes is not None:
             self._parse_modes(modes.get("properties", {}))
         else:
-            self._arlo.error("failed to read modes (v2)")
+            self._arlo.error("failed to read modes.")
 
     def __repr__(self):
         # Representation string of object.
