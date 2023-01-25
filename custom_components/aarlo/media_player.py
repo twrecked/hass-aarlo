@@ -3,7 +3,7 @@ import logging
 from abc import ABC
 
 from homeassistant.components.media_player import (
-    DEVICE_CLASS_SPEAKER,
+    MediaPlayerDeviceClass,
     MediaPlayerEntity,
 )
 from homeassistant.components.media_player.const import (
@@ -176,7 +176,7 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
     @property
     def device_class(self):
         """Return the device class of the media player."""
-        return DEVICE_CLASS_SPEAKER
+        return MediaPlayerDeviceClass.SPEAKER
 
     @property
     def icon(self):
