@@ -14,6 +14,6 @@
     "unidecode",
     "pyaarlo>=0.8.0b4"
   ],
-  "version": "0.8.0a10",
+  "version": "0.8.0a11",
   "iot_class": "cloud_push"
 }

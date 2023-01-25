@@ -5,21 +5,19 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/sensor.arlo/
 """
 import logging
+import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     CONF_MONITORED_CONDITIONS,
-    DEVICE_CLASS_BATTERY,
-    DEVICE_CLASS_HUMIDITY,
-    DEVICE_CLASS_TEMPERATURE,
     TEMP_CELSIUS,
 )
 from homeassistant.core import callback
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
+from homeassistant.components.sensor import SensorDeviceClass
 from pyaarlo.constant import (
     AIR_QUALITY_KEY,
     BATTERY_KEY,
@@ -161,11 +159,11 @@ class ArloSensor(Entity):
     def device_class(self):
         """Return the device class of the sensor."""
         if self._sensor_type == "temperature":
-            return DEVICE_CLASS_TEMPERATURE
+            return SensorDeviceClass.TEMPERATURE
         if self._sensor_type == "humidity":
-            return DEVICE_CLASS_HUMIDITY
+            return SensorDeviceClass.HUMIDITY
         if self._sensor_type == "battery_level":
-            return DEVICE_CLASS_BATTERY
+            return SensorDeviceClass.BATTERY
         return None
 
     @property
