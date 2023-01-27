@@ -1,5 +1,6 @@
 aarlo/pyaarlo
 0.7.3: Removed DEVICE_CLASS_ constants.
+  Support Arlo v4 APIs [thanks JeffSteinbok]
 0.7.2b13: Added `cipher_list` option.
 0.7.2b12: Fix doorbell capabilities.
   Custom user agent support.
