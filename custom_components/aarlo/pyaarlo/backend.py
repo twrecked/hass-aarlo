@@ -529,6 +529,7 @@ class ArloBackEnd(object):
                 # dig out response
                 try:
                     response = json.loads(event.data)
+                    self._arlo.error("SSE RESPONSE?" + event.data)
                 except json.decoder.JSONDecodeError as e:
                     self._arlo.debug("reopening: json error " + str(e))
                     break
@@ -814,6 +815,7 @@ class ArloBackEnd(object):
             "Referer": REFERER_HOST,
             "SchemaVersion": "1",
             "User-Agent": self._user_agent,
+            "x-user-device-id": self._user_id 
         }
         self._session.headers.update(headers)
 

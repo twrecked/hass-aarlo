@@ -1,3 +1,5 @@
+import platform
+import tempfile
 from .constant import (
     DEFAULT_AUTH_HOST,
     DEFAULT_HOST,
@@ -28,10 +30,14 @@ class ArloCfg(object):
         self._arlo = arlo
         self._kw = kwargs
         self._arlo.debug("Cfg started")
+        if platform.system() == "Windows":
+            self._storage_dir = tempfile.gettempdir() + "\.aarlo"
+        else:
+            self._storage_dir = self._kw.get("storage_dir", "/tmp/.aarlo")
 
     @property
     def storage_dir(self):
-        return self._kw.get("storage_dir", "/tmp/.aarlo")
+        return self._storage_dir
 
     @property
     def name(self):

@@ -31,11 +31,13 @@ from .constant import (
     TOTAL_BELLS_KEY,
     TOTAL_CAMERAS_KEY,
     TOTAL_LIGHTS_KEY,
+    LOCATIONS_PATH_FORMAT,
 )
 from .doorbell import ArloDoorBell
 from .light import ArloLight
 from .media import ArloMediaLibrary
 from .storage import ArloStorage
+from .location import ArloLocation
 from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger("pyaarlo")
@@ -234,6 +236,11 @@ class PyArlo(object):
             if dtype == "lights":
                 self._lights.append(ArloLight(dname, self, device))
 
+        self.info("REFRESH LOCATIONS STARTING")
+        self._refresh_locations()
+
+        #for location in self._locations:
+
         # Save out unchanging stats!
         self._st.set(["ARLO", TOTAL_CAMERAS_KEY], len(self._cameras))
         self._st.set(["ARLO", TOTAL_BELLS_KEY], len(self._doorbells))
@@ -286,6 +293,12 @@ class PyArlo(object):
         # Representation string of object.
         return "<{0}: {1}>".format(self.__class__.__name__, self._cfg.name)
 
+    # Using this to indicate that we're using location-based modes, vs basestation-based modes.
+    # also called Arlo app v4. Open to new ideas for what to call this.
+    @property
+    def _v3_modes(self):
+        return (self.cfg.mode_api.lower() == "v3")
+
     def _refresh_devices(self):
         url = DEVICES_PATH + "?t={}".format(time_to_arlotime())
         self._devices = self._be.get(url)
@@ -313,6 +326,20 @@ class PyArlo(object):
             light = self.lookup_light_by_id(device_id)
             if light is not None:
                 light.update_resources(props)
+
+    def _refresh_locations(self):
+        self.info("_refresh_locations")
+        self._locations = []
+        url = LOCATIONS_PATH_FORMAT.format(self.be._user_id)
+        locationData = self._be.get(url)
+        self.info(locationData)
+        if not locationData:
+            self.warning("No locations returned from " + url)
+        sharedLocations = locationData.get("sharedLocations", [])
+        for sharedLocation in sharedLocations:
+            self._locations.append(ArloLocation(self, sharedLocation))
+
+        self.vdebug("locations={}".format(pprint.pformat(self._locations)))
 
     def _refresh_camera_thumbnails(self, wait=False):
         """Request latest camera thumbnails, called at start up."""
@@ -378,6 +405,9 @@ class PyArlo(object):
         for base in self._bases:
             base.update_modes()
             base.update_mode()
+        for location in self._locations:
+            location.update_modes()
+            location.update_mode()
 
     def _fast_refresh(self):
         self.vdebug("fast refresh")
@@ -529,6 +559,15 @@ class PyArlo(object):
         :rtype: list(ArloBase)
         """
         return self._bases
+
+    @property
+    def locations(self):
+        """List of locations..
+
+        :return: a list of locations.
+        :rtype: list(ArloLocation)
+        """
+        return self._locations
 
     @property
     def blank_image(self):
