@@ -42,7 +42,7 @@ from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger("pyaarlo")
 
-__version__ = "0.7.3"
+__version__ = "0.7.3.1"
 
 
 class PyArlo(object):
@@ -332,12 +332,13 @@ class PyArlo(object):
         self._locations = []
         url = LOCATIONS_PATH_FORMAT.format(self.be._user_id)
         locationData = self._be.get(url)
-        self.info(locationData)
         if not locationData:
             self.warning("No locations returned from " + url)
-        sharedLocations = locationData.get("sharedLocations", [])
-        for sharedLocation in sharedLocations:
-            self._locations.append(ArloLocation(self, sharedLocation))
+        else:
+            self.info(locationData)
+            sharedLocations = locationData.get("sharedLocations", [])
+            for sharedLocation in sharedLocations:
+                self._locations.append(ArloLocation(self, sharedLocation))
 
         self.vdebug("locations={}".format(pprint.pformat(self._locations)))
 
