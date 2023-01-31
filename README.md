@@ -270,11 +270,11 @@ The following enables and configures the binary sensors.
 binary_sensor:
   - platform: aarlo
     monitored_conditions:
-    - motion
-    - sound
-    - ding
-    - cry
-    - connectivity
+      - motion
+      - sound
+      - ding
+      - cry
+      - connectivity
 ```
 
 Items on the `monitored_conditions` can be one or more of the following:
@@ -297,15 +297,15 @@ The following enables and configures the sensors.
 sensor:
   - platform: aarlo
     monitored_conditions:
-    - total_cameras
-    - last_capture
-    - recent_activity
-    - captured_today
-    - battery_level
-    - signal_strength
-    - temperature
-    - humidity
-    - air_quality
+      - total_cameras
+      - last_capture
+      - recent_activity
+      - captured_today
+      - battery_level
+      - signal_strength
+      - temperature
+      - humidity
+      - air_quality
 ```
 
 Items on the `monitored_conditions` can be one or more of the following:
