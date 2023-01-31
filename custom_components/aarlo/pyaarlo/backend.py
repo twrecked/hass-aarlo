@@ -1024,6 +1024,10 @@ class ArloBackEnd(object):
     def sub_id(self):
         return self._sub_id
 
+    @property
+    def user_id(self):
+        return self._user_id
+
     def add_listener(self, device, callback):
         with self._lock:
             if device.device_id not in self._callbacks:

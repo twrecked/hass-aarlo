@@ -39,7 +39,7 @@ day_of_week = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su", "Mo"]
 
 
 class ArloBase(ArloDevice):
-    def __init__(self, name: str, arlo: PyArlo, attrs):
+    def __init__(self, name: str, arlo: 'PyArlo', attrs):
         super().__init__(name, arlo, attrs)
         self._refresh_rate = 15
         self._schedules = None

@@ -241,7 +241,6 @@ class PyArlo(object):
             if dtype == "sensors":
                 self._sensors.append(ArloSensor(dname, self, device))
 
-        self.info("REFRESH LOCATIONS STARTING")
         self._refresh_locations()
 
         # Save out unchanging stats!
@@ -331,9 +330,9 @@ class PyArlo(object):
                 light.update_resources(props)
 
     def _refresh_locations(self):
-        self.info("_refresh_locations")
+        self.debug("_refresh_locations")
         self._locations = []
-        url = LOCATIONS_PATH_FORMAT.format(self.be._user_id)
+        url = LOCATIONS_PATH_FORMAT.format(self.be.user_id)
         location_data = self._be.get(url)
         if not location_data:
             self.warning("No locations returned from " + url)
