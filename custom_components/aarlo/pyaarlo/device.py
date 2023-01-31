@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from unidecode import unidecode
 
 if TYPE_CHECKING:
-    from pyaarlo import PyArlo
+    from . import PyArlo
 
 from .constant import (
     BATTERY_KEY,
@@ -28,7 +28,7 @@ class ArloDevice(object):
     Has code to handle providing common attributes and comment event handling.
     """
 
-    def __init__(self, name, arlo : 'PyArlo', attrs):
+    def __init__(self, name, arlo: 'PyArlo', attrs):
         self._name = name
         self._arlo = arlo
         self._attrs = attrs

@@ -529,7 +529,6 @@ class ArloBackEnd(object):
                 # dig out response
                 try:
                     response = json.loads(event.data)
-                    self._arlo.error("SSE RESPONSE?" + event.data)
                 except json.decoder.JSONDecodeError as e:
                     self._arlo.debug("reopening: json error " + str(e))
                     break
@@ -1024,6 +1023,10 @@ class ArloBackEnd(object):
     @property
     def sub_id(self):
         return self._sub_id
+
+    @property
+    def user_id(self):
+        return self._user_id
 
     def add_listener(self, device, callback):
         with self._lock:

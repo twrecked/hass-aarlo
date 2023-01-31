@@ -38,6 +38,7 @@ from .light import ArloLight
 from .media import ArloMediaLibrary
 from .storage import ArloStorage
 from .location import ArloLocation
+from .sensor import ArloSensor
 from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger("pyaarlo")
@@ -172,6 +173,7 @@ class PyArlo(object):
         self._cameras = []
         self._lights = []
         self._doorbells = []
+        self._sensors = []
 
         # On day flip we do extra work, record today.
         self._today = datetime.date.today()
@@ -201,6 +203,7 @@ class PyArlo(object):
             # This needs it's own code now... Does no parent indicate a base station???
             if (
                 dtype == "basestation"
+                or dtype.lower() == 'hub'
                 or device.get("modelId") == "ABC1000"
                 or device.get("modelId").startswith(MODEL_GO)
                 or dtype == "arloq"
@@ -235,11 +238,10 @@ class PyArlo(object):
                 self._doorbells.append(ArloDoorBell(dname, self, device))
             if dtype == "lights":
                 self._lights.append(ArloLight(dname, self, device))
+            if dtype == "sensors":
+                self._sensors.append(ArloSensor(dname, self, device))
 
-        self.info("REFRESH LOCATIONS STARTING")
         self._refresh_locations()
-
-        #for location in self._locations:
 
         # Save out unchanging stats!
         self._st.set(["ARLO", TOTAL_CAMERAS_KEY], len(self._cameras))
@@ -297,7 +299,7 @@ class PyArlo(object):
     # also called Arlo app v4. Open to new ideas for what to call this.
     @property
     def _v3_modes(self):
-        return (self.cfg.mode_api.lower() == "v3")
+        return self.cfg.mode_api.lower() == "v3"
 
     def _refresh_devices(self):
         url = DEVICES_PATH + "?t={}".format(time_to_arlotime())
@@ -328,17 +330,16 @@ class PyArlo(object):
                 light.update_resources(props)
 
     def _refresh_locations(self):
-        self.info("_refresh_locations")
+        self.debug("_refresh_locations")
         self._locations = []
-        url = LOCATIONS_PATH_FORMAT.format(self.be._user_id)
-        locationData = self._be.get(url)
-        if not locationData:
+        url = LOCATIONS_PATH_FORMAT.format(self.be.user_id)
+        location_data = self._be.get(url)
+        if not location_data:
             self.warning("No locations returned from " + url)
         else:
-            self.info(locationData)
-            sharedLocations = locationData.get("sharedLocations", [])
-            for sharedLocation in sharedLocations:
-                self._locations.append(ArloLocation(self, sharedLocation))
+            shared_locations = location_data.get("sharedLocations", [])
+            for shared_location in shared_locations:
+                self._locations.append(ArloLocation(self, shared_location))
 
         self.vdebug("locations={}".format(pprint.pformat(self._locations)))
 
@@ -569,6 +570,10 @@ class PyArlo(object):
         :rtype: list(ArloLocation)
         """
         return self._locations
+
+    @property
+    def sensors(self):
+        return self._sensors
 
     @property
     def blank_image(self):

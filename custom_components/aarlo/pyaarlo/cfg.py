@@ -31,7 +31,7 @@ class ArloCfg(object):
         self._kw = kwargs
         self._arlo.debug("Cfg started")
         if platform.system() == "Windows":
-            self._storage_dir = tempfile.gettempdir() + "\.aarlo"
+            self._storage_dir = tempfile.gettempdir() + r"\.aarlo"
         else:
             self._storage_dir = self._kw.get("storage_dir", "/tmp/.aarlo")
 
