@@ -1,40 +1,31 @@
-import pprint
-import time
-import threading
-
 from .constant import (
     DEFAULT_MODES,
-    DEFINITIONS_PATH,
     MODE_ID_TO_NAME_KEY,
-    MODE_IS_SCHEDULE_KEY,
     MODE_KEY,
     MODE_NAME_TO_ID_KEY,
     MODE_UPDATE_INTERVAL,
-    TIMEZONE_KEY,
     LOCATION_MODES_PATH_FORMAT,
     LOCATION_ACTIVEMODE_PATH_FORMAT,
     MODE_REVISION_KEY
 )
-from .util import time_to_arlotime
+from .super import ArloSuper
 
-# Represnts a Location object; each Arlo account can have multiple owned locations and
-# multiple shared locations.
-#
-# Should there be a new base class for this as well as ArloDevice?
-class ArloLocation():
+
+AUTOMATION_ACTIVE_MODE = "automation/activeMode"
+AUTOMATION_MODES = "automation/modes"
+
+
+class ArloLocation(ArloSuper):
+    """ Represents a Location object.
+
+    Each Arlo account can have multiple owned locations and multiple shared locations.
+    """
     def __init__(self, arlo, attrs):
-        # add a listener
-        self._name = attrs.get("locationName")
-        self._gatewayDeviceUniqueIds = attrs.get("gatewayDeviceIds")
-        self._location_id = attrs.get("locationId")
-        self._arlo = arlo
-        self._attrs = attrs
-        
-        # BE only knows how to listen for device events.
-        #self._arlo.be.add_listener(self, self._event_handler)
+        super().__init__(attrs.get("locationName", "unknown"), arlo, attrs,
+                         id=attrs.get("locationId", "unknown"),
+                         type="location")
 
-        self._lock = threading.Lock()
-        self._attr_cbs_ = []
+        self._device_ids = attrs.get("gatewayDeviceIds", [])
 
         self._last_update = 0
 
@@ -49,50 +40,35 @@ class ArloLocation():
             mode_id = mode[0]
             mode_name = mode[1].get("name", "")
             if mode_id and mode_name != "":
-                self._arlo.debug(mode_id + "<=M=>" + mode_name)
+                self.debug(mode_id + "<=M=>" + mode_name)
                 self._save([MODE_ID_TO_NAME_KEY, mode_id], mode_name)
                 self._save([MODE_NAME_TO_ID_KEY, mode_name], mode_id)
 
-    def _set_mode(self, event):
-        
-        #TODO
-        if mode_ids:
-            self._arlo.debug(self.name + " mode change " + mode_ids[0])
-            mode_name = self._id_to_name(mode_ids[0])
-            self._save_and_do_callbacks(MODE_KEY, mode_name)
+    def _set_mode_or_schedule(self, event):
+        pass
 
     def _event_handler(self, resource, event):
-        self._arlo.debug(self.name + " BASE got " + resource)
+        self.debug(self.name + " LOCATION got " + resource)
 
-        # modes on base station
-        if resource == "modes":
+        # A (user requested?) mode change.
+        if resource == AUTOMATION_ACTIVE_MODE:
             props = event.get("properties", {})
+            mode = props.get("properties", {}).get("mode", None)
+            if mode is not None:
+                self._save_and_do_callbacks(MODE_KEY, self._id_to_name(mode))
+            mode_revision = props.get("revision", None)
+            if mode_revision is not None:
+                self._save(MODE_REVISION_KEY, mode_revision)
 
-            # list of modes - recheck?
-            self._parse_modes(props.get("modes", []))
+        # A mode list update
+        if resource == AUTOMATION_MODES:
+            self._parse_modes(event.get("properties", {}).get("properties", {}))
 
-            # mode change?
-            if "activeMode" in props:
-                self._save_and_do_callbacks(
-                    MODE_KEY, self._id_to_name(props["activeMode"])
-                )
-            elif "active" in props:
-                self._save_and_do_callbacks(MODE_KEY, self._id_to_name(props["active"]))
-
-        # Location mode change.
-        # These come in per location and can arrive multiple times per state
-        # change. We limit the updates to once per MODE_UPDATE_INTERVAL
-        # seconds. Arlo doesn't send a "schedule changed" notification so we
-        # re-fetch that information before testing the mode.
-        elif resource == "states":
-            now = time.monotonic()
-            with self._lock:
-                if now < self._last_update + MODE_UPDATE_INTERVAL:
-                    return
-                self._last_update = now
-            self._arlo.debug("state change")
-            self.update_modes()
-            self.update_mode()
+        # A (user requested?) mode change.
+        if resource == "states":
+            mode = event.get("states", {}).get("activeMode", None)
+            if mode is not None:
+                self._save_and_do_callbacks(MODE_KEY, self._id_to_name(mode))
 
         # mode change?
         elif resource == "activeAutomations":
@@ -101,20 +77,6 @@ class ArloLocation():
         # schedule has changed, so reload
         elif resource == "automationRevisionUpdate":
             self.update_modes()
-
-        # pass on to lower layer
-        else:
-            super()._event_handler(resource, event)
-
-    @property
-    def name(self):
-        """Returns the device name."""
-        return self._name
-
-    @property
-    def id(self):
-        """Returns the device id."""
-        return self._location_id
 
     @property
     def available_modes(self):
@@ -138,8 +100,8 @@ class ArloLocation():
         return modes
 
     @property
-    def gatewayDeviceUniqueIds(self):
-        return self._gatewayDeviceUniqueIds
+    def device_ids(self):
+        return self._device_ids
 
     @property
     def mode(self):
@@ -156,13 +118,13 @@ class ArloLocation():
         mode_id = None
         real_mode_name = self._id_to_name(mode_name)
         if real_mode_name:
-            self._arlo.debug(f"passed an ID({mode_name}), converting it")
+            self.debug(f"passed an ID({mode_name}), converting it")
             mode_id = mode_name
             mode_name = real_mode_name
 
         # Need to change?
         if self.mode == mode_name:
-            self._arlo.debug("no mode change needed")
+            self.debug("no mode change needed")
             return
 
         if mode_id is None:
@@ -171,133 +133,46 @@ class ArloLocation():
 
             # Need to change?
             if self.mode == mode_id:
-                self._arlo.debug("no mode change needed (id)")
+                self.debug("no mode change needed (id)")
                 return
 
             # Post change.
-            self._arlo.debug(self._location_id + ":new-mode=" + mode_name + ",id=" + mode_id)
+            self.debug(self._id + ":new-mode=" + mode_name + ",id=" + mode_id)
             mode_revision = self._load(MODE_REVISION_KEY, 1)
-            self._arlo.debug("OldRev: {0}".format(mode_revision))
+            self.debug("OldRev: {0}".format(mode_revision))
 
             data = self._arlo.be.put(
-                LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._location_id) + "&revision={0}".format(mode_revision),
+                LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._id) + "&revision={0}".format(mode_revision),
                 {
                     "mode": mode_id,
                 })
             
             mode_revision = data.get("revision")
-            self._arlo.debug("NewRev: {0}".format(mode_revision))
+            self.debug("NewRev: {0}".format(mode_revision))
 
             self._save_and_do_callbacks(MODE_KEY, mode_name)
             self._save(MODE_REVISION_KEY, mode_revision)
                 
         else:
             self._arlo.warning(
-                "{0}: mode {1} is unrecognised".format(self._location_id, mode_name)
+                "{0}: mode {1} is unrecognised".format(self._id, mode_name)
             )
-
 
     def update_mode(self):
         """Check and update the base's current mode."""
-        now = time.monotonic()
-        with self._lock:
-            if now < self._last_update + MODE_UPDATE_INTERVAL:
-                self._arlo.debug('skipping an update')
-                return
-            self._last_update = now
-        
-        data = self._arlo.be.get(LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._location_id))
+        data = self._arlo.be.get(LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._id))
         properties = data.get("properties", {})
         mode_name = properties.get('mode')
         mode_revision = data.get("revision")
         self._save_and_do_callbacks(MODE_KEY, mode_name)
         self._save(MODE_REVISION_KEY, mode_revision)
 
-    def update_modes(self, initial=False):
+    def update_modes(self, _initial=False):
         """Get and update the available modes for the base."""
         modes = self._arlo.be.get(
-            LOCATION_MODES_PATH_FORMAT.format(self._location_id)
+            LOCATION_MODES_PATH_FORMAT.format(self._id)
         )
         if modes is not None:
             self._parse_modes(modes.get("properties", {}))
         else:
             self._arlo.error("failed to read modes.")
-
-    def __repr__(self):
-        # Representation string of object.
-        return "<{0}:{1}:{2}>".format(
-            self.__class__.__name__, self._location_id, self._name
-        )
-
-    def _to_storage_key(self, attr):
-        # Build a key incorporating the type!
-        if isinstance(attr, list):
-            return [self.__class__.__name__, self._location_id] + attr
-        else:
-            return [self.__class__.__name__, self._location_id, attr]
-
-    def _event_handler(self, resource, event):
-        self._arlo.vdebug("{}: got {} event **".format(self.name, resource))
-
-        # Find properties. Event either contains a item called properties or it
-        # is the whole thing.
-        self.update_resources(event.get("properties", event))
-
-    def _do_callbacks(self, attr, value):
-        cbs = []
-        with self._lock:
-            for watch, cb in self._attr_cbs_:
-                if watch == attr or watch == "*":
-                    cbs.append(cb)
-        for cb in cbs:
-            cb(self, attr, value)
-
-    def _save(self, attr, value):
-        # TODO only care if it changes?
-        self._arlo.st.set(self._to_storage_key(attr), value)
-
-    def _save_and_do_callbacks(self, attr, value):
-        self._save(attr, value)
-        self._do_callbacks(attr, value)
-
-    def _load(self, attr, default=None):
-        return self._arlo.st.get(self._to_storage_key(attr), default)
-
-    def _load_matching(self, attr, default=None):
-        return self._arlo.st.get_matching(self._to_storage_key(attr), default)
-
-    def attribute(self, attr, default=None):
-        """Return the value of attribute attr.
-
-        PyArlo stores its state in key/value pairs. This returns the value associated with the key.
-
-        See PyArlo for a non-exhaustive list of attributes.
-
-        :param attr: Attribute to look up.
-        :type attr: str
-        :param default: value to return if not found.
-        :return: The value associated with attribute or `default` if not found.
-        """
-        value = self._load(attr, None)
-        if value is None:
-            value = self._attrs.get(attr, None)
-        if value is None:
-            value = self._attrs.get("properties", {}).get(attr, None)
-        if value is None:
-            value = default
-        return value
-
-    def add_attr_callback(self, attr, cb):
-        """Add an callback to be triggered when an attribute changes.
-
-        Used to register callbacks to track device activity. For example, get a notification whenever
-        motion stop and starts.
-
-        See PyArlo for a non-exhaustive list of attributes.
-
-        :param attr: Attribute - eg `motionStarted` - to monitor.
-        :type attr: str
-        :param cb: Callback to run.
-        """
-        with self._lock:
-            self._attr_cbs_.append((attr, cb))
