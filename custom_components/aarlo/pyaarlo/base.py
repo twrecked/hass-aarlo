@@ -3,7 +3,7 @@ import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pyaarlo import PyArlo
+    from . import PyArlo
 
 from .constant import (
     AIR_QUALITY_KEY,
@@ -20,6 +20,7 @@ from .constant import (
     MODEL_BABY,
     MODEL_ESSENTIAL,
     MODEL_GO,
+    MODEL_HUB,
     MODEL_PRO_3_FLOODLIGHT,
     MODEL_PRO_4,
     MODEL_WIREFREE_VIDEO_DOORBELL,
@@ -38,7 +39,7 @@ day_of_week = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su", "Mo"]
 
 
 class ArloBase(ArloDevice):
-    def __init__(self, name : str, arlo : 'PyArlo', attrs):
+    def __init__(self, name : str, arlo: 'PyArlo', attrs):
         super().__init__(name, arlo, attrs)
         self._refresh_rate = 15
         self._schedules = None
@@ -196,9 +197,11 @@ class ArloBase(ArloDevice):
         ):
             self._arlo.vdebug("deduced v1 api")
             return 1
-        else:
-            self._arlo.vdebug("deduced v2 api")
-            return 2
+        if self.model_id == MODEL_HUB:
+            self._arlo.vdebug("deduced v3 api")
+            return 3
+        self.vdebug("deduced v2 api")
+        return 2
 
 
     @property
@@ -219,10 +222,7 @@ class ArloBase(ArloDevice):
 
         For example:: ``['disarmed', 'armed', 'home']``
         """
-        if self._v3_modes:
-            return []
-        else:
-            return list(self.available_modes_with_ids.keys())
+        return list(self.available_modes_with_ids.keys())
 
     @property
     def available_modes_with_ids(self):
@@ -240,10 +240,7 @@ class ArloBase(ArloDevice):
     @property
     def mode(self):
         """Returns the current mode."""
-        if self._v3_modes:
-            return None
-        else:
-            return self._load(MODE_KEY, "unknown")
+        return self._load(MODE_KEY, "unknown")
 
     @mode.setter
     def mode(self, mode_name):

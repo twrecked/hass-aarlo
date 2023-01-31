@@ -38,6 +38,7 @@ from .light import ArloLight
 from .media import ArloMediaLibrary
 from .storage import ArloStorage
 from .location import ArloLocation
+from .sensor import ArloSensor
 from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger("pyaarlo")
@@ -172,6 +173,7 @@ class PyArlo(object):
         self._cameras = []
         self._lights = []
         self._doorbells = []
+        self._sensors = []
 
         # On day flip we do extra work, record today.
         self._today = datetime.date.today()
@@ -201,6 +203,7 @@ class PyArlo(object):
             # This needs it's own code now... Does no parent indicate a base station???
             if (
                 dtype == "basestation"
+                or dtype.lower() == 'hub'
                 or device.get("modelId") == "ABC1000"
                 or device.get("modelId").startswith(MODEL_GO)
                 or dtype == "arloq"
@@ -235,6 +238,8 @@ class PyArlo(object):
                 self._doorbells.append(ArloDoorBell(dname, self, device))
             if dtype == "lights":
                 self._lights.append(ArloLight(dname, self, device))
+            if dtype == "sensors":
+                self._sensors.append(ArloSensor(dname, self, device))
 
         self.info("REFRESH LOCATIONS STARTING")
         self._refresh_locations()
@@ -569,6 +574,10 @@ class PyArlo(object):
         :rtype: list(ArloLocation)
         """
         return self._locations
+
+    @property
+    def sensors(self):
+        return self._sensors
 
     @property
     def blank_image(self):

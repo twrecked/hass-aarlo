@@ -13,27 +13,41 @@ from homeassistant.const import ATTR_ATTRIBUTION, CONF_MONITORED_CONDITIONS
 from homeassistant.core import callback
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 
-from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
+from . import (
+    COMPONENT_ATTRIBUTION,
+    COMPONENT_BRAND,
+    COMPONENT_DATA,
+    COMPONENT_DOMAIN,
+)
 from .pyaarlo.constant import (
+    ALS_STATE_KEY,
     AUDIO_DETECTED_KEY,
     BUTTON_PRESSED_KEY,
     CONNECTION_KEY,
+    CONTACT_STATE_KEY,
     CRY_DETECTION_KEY,
     MOTION_DETECTED_KEY,
+    MOTION_STATE_KEY,
     SILENT_MODE_KEY,
+    TAMPER_STATE_KEY,
+    WATER_STATE_KEY,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = [COMPONENT_DOMAIN]
 
-# sensor_type [ description, class, attribute ]
+# sensor_type [ description, class, attribute, [extra_attributes], icon ]
 SENSOR_TYPES = {
     "sound": ["Sound", "sound", AUDIO_DETECTED_KEY, [], None],
-    "motion": ["Motion", "motion", MOTION_DETECTED_KEY, [], None],
+    "motion": ["Motion", "motion", MOTION_DETECTED_KEY, [MOTION_STATE_KEY], None],
     "ding": ["Ding", None, BUTTON_PRESSED_KEY, [SILENT_MODE_KEY], "mdi:doorbell"],
     "cry": ["Cry", "sound", CRY_DETECTION_KEY, [], None],
     "connectivity": ["Connected", "connectivity", CONNECTION_KEY, [], None],
+    "contact": ["Open/Close", "opening", CONTACT_STATE_KEY, [], None],
+    "light": ["Light On", "light", ALS_STATE_KEY, [], None],
+    "tamper": ["Tamper", "tamper", TAMPER_STATE_KEY, [], None],
+    "leak": ["Moisture", "moisture", WATER_STATE_KEY, [], None],
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -66,6 +80,9 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         for light in arlo.lights:
             if light.has_capability(SENSOR_TYPES.get(sensor_type)[2]):
                 sensors.append(ArloBinarySensor(light, sensor_type))
+        for sensor in arlo.sensors:
+            if sensor.has_capability(SENSOR_TYPES.get(sensor_type)[2]):
+                sensors.append(ArloBinarySensor(sensor, sensor_type))
 
     async_add_entities(sensors)
 
