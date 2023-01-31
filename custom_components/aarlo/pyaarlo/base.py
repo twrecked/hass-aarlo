@@ -39,7 +39,7 @@ day_of_week = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su", "Mo"]
 
 
 class ArloBase(ArloDevice):
-    def __init__(self, name : str, arlo: 'PyArlo', attrs):
+    def __init__(self, name: str, arlo: PyArlo, attrs):
         super().__init__(name, arlo, attrs)
         self._refresh_rate = 15
         self._schedules = None
@@ -68,7 +68,6 @@ class ArloBase(ArloDevice):
                 self._save([MODE_NAME_TO_ID_KEY, mode_name.lower()], mode_id)
                 self._save([MODE_IS_SCHEDULE_KEY, mode_id.lower()], False)
                 self._save([MODE_IS_SCHEDULE_KEY, mode_name.lower()], False)
-
 
     def schedule_to_modes(self):
         if self._schedules is None:
@@ -179,7 +178,7 @@ class ArloBase(ArloDevice):
             super()._event_handler(resource, event)
 
     @property 
-    def _modesVersion(self):
+    def _modes_version(self):
         if self._arlo.cfg.mode_api.lower() == "v1":
             self._arlo.vdebug("forced v1 api")
             return 1
@@ -200,21 +199,20 @@ class ArloBase(ArloDevice):
         if self.model_id == MODEL_HUB:
             self._arlo.vdebug("deduced v3 api")
             return 3
-        self.vdebug("deduced v2 api")
+        self._arlo.vdebug("deduced v2 api")
         return 2
-
 
     @property
     def _v1_modes(self):
-        return (self._modesVersion == 1)
+        return self._modes_version == 1
         
     @property
     def _v2_modes(self):
-        return (self._modesVersion == 2)
+        return self._modes_version == 2
 
     @property
     def _v3_modes(self):
-        return (self._modesVersion == 3)
+        return self._modes_version == 3
 
     @property
     def available_modes(self):
@@ -246,7 +244,8 @@ class ArloBase(ArloDevice):
     def mode(self, mode_name):
         """Set the base station mode.
 
-        **Note:** Setting mode has been known to hang, method includes code to keep retrying.
+        **Note:** Setting mode has been known to hang, method includes code to
+        keep retrying.
 
         :param mode_name: mode to use, as returned by available_modes:
         """
@@ -420,16 +419,16 @@ class ArloBase(ArloDevice):
                 self._arlo.error("failed to read modes (v2)")
         else:
             self._arlo.debug("V3Modes - None on BaseStation")
-            currLocation = None
+            curr_location = None
             for location in self._arlo.locations:
                 for gatewayDeviceUniqueId in location.gatewayDeviceUniqueIds:
                     if gatewayDeviceUniqueId == self.unique_id:
-                        currLocation = location
+                        curr_location = location
                         break
-                if currLocation != None:
+                if curr_location is not None:
                     break
             
-            currLocation.update_mode()
+            curr_location.update_mode()
 
     @property
     def schedule(self):

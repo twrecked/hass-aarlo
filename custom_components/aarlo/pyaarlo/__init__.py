@@ -244,8 +244,6 @@ class PyArlo(object):
         self.info("REFRESH LOCATIONS STARTING")
         self._refresh_locations()
 
-        #for location in self._locations:
-
         # Save out unchanging stats!
         self._st.set(["ARLO", TOTAL_CAMERAS_KEY], len(self._cameras))
         self._st.set(["ARLO", TOTAL_BELLS_KEY], len(self._doorbells))
@@ -302,7 +300,7 @@ class PyArlo(object):
     # also called Arlo app v4. Open to new ideas for what to call this.
     @property
     def _v3_modes(self):
-        return (self.cfg.mode_api.lower() == "v3")
+        return self.cfg.mode_api.lower() == "v3"
 
     def _refresh_devices(self):
         url = DEVICES_PATH + "?t={}".format(time_to_arlotime())
@@ -336,14 +334,13 @@ class PyArlo(object):
         self.info("_refresh_locations")
         self._locations = []
         url = LOCATIONS_PATH_FORMAT.format(self.be._user_id)
-        locationData = self._be.get(url)
-        if not locationData:
+        location_data = self._be.get(url)
+        if not location_data:
             self.warning("No locations returned from " + url)
         else:
-            self.info(locationData)
-            sharedLocations = locationData.get("sharedLocations", [])
-            for sharedLocation in sharedLocations:
-                self._locations.append(ArloLocation(self, sharedLocation))
+            shared_locations = location_data.get("sharedLocations", [])
+            for shared_location in shared_locations:
+                self._locations.append(ArloLocation(self, shared_location))
 
         self.vdebug("locations={}".format(pprint.pformat(self._locations)))
 
