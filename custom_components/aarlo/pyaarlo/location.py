@@ -1,5 +1,4 @@
 from .constant import (
-    DEFAULT_MODES,
     MODE_ID_TO_NAME_KEY,
     MODE_KEY,
     MODE_NAME_TO_ID_KEY,
@@ -12,6 +11,11 @@ from .super import ArloSuper
 
 AUTOMATION_ACTIVE_MODE = "automation/activeMode"
 AUTOMATION_MODES = "automation/modes"
+DEFAULT_MODES = {
+    "standby": "Stand By",
+    "armAway": "Armed Away",
+    "armHome": "Armed Home"
+}
 
 
 class ArloLocation(ArloSuper):
