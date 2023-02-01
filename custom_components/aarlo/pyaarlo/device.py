@@ -1,4 +1,3 @@
-import threading
 from typing import TYPE_CHECKING
 
 from unidecode import unidecode
@@ -125,17 +124,12 @@ class ArloDevice(ArloSuper):
         return self.user_id + "_web"
 
     @property
-    def unique_id(self):
-        """Returns the device's unique id."""
-        return self._unique_id
-
-    @property
     def is_own_parent(self):
         """Returns True if device is its own parent.
 
         Can work from child or parent class.
         """
-        return self._parent_id == self._device_id
+        return self._parent_id == self.device_id
 
     def attribute(self, attr, default=None):
         """Return the value of attribute attr.
@@ -307,7 +301,7 @@ class ArloChildDevice(ArloDevice):
 
         Some devices - certain cameras - can provide other types.
         """
-        return self.resource_type + "/" + self._device_id
+        return self.resource_type + "/" + self.device_id
 
     @property
     def parent_id(self):

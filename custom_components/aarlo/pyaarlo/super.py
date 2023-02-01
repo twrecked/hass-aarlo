@@ -1,5 +1,6 @@
 import threading
 from typing import TYPE_CHECKING
+from unidecode import unidecode
 
 if TYPE_CHECKING:
     from . import PyArlo
@@ -99,6 +100,15 @@ class ArloSuper(object):
     def device_type(self):
         """Returns the device id."""
         return self._type
+
+    @property
+    def entity_id(self):
+        if self._arlo.cfg.serial_ids:
+            return self.device_id
+        elif self._arlo.cfg.no_unicode_squash:
+            return self.name.lower().replace(" ", "_")
+        else:
+            return unidecode(self.name.lower().replace(" ", "_"))
 
     @property
     def unique_id(self):
