@@ -3,7 +3,6 @@ from .constant import (
     MODE_ID_TO_NAME_KEY,
     MODE_KEY,
     MODE_NAME_TO_ID_KEY,
-    MODE_UPDATE_INTERVAL,
     LOCATION_MODES_PATH_FORMAT,
     LOCATION_ACTIVEMODE_PATH_FORMAT,
     MODE_REVISION_KEY
@@ -27,8 +26,6 @@ class ArloLocation(ArloSuper):
 
         self._device_ids = attrs.get("gatewayDeviceIds", [])
 
-        self._last_update = 0
-
     def _id_to_name(self, mode_id):
         return self._load([MODE_ID_TO_NAME_KEY, mode_id], None)
 
@@ -44,9 +41,6 @@ class ArloLocation(ArloSuper):
                 self._save([MODE_ID_TO_NAME_KEY, mode_id], mode_name)
                 self._save([MODE_NAME_TO_ID_KEY, mode_name], mode_id)
 
-    def _set_mode_or_schedule(self, event):
-        pass
-
     def _event_handler(self, resource, event):
         self.debug(self.name + " LOCATION got " + resource)
 
@@ -55,7 +49,7 @@ class ArloLocation(ArloSuper):
             props = event.get("properties", {})
             mode = props.get("properties", {}).get("mode", None)
             if mode is not None:
-                self._save_and_do_callbacks(MODE_KEY, self._id_to_name(mode))
+                self._save_and_do_callbacks(MODE_KEY, mode)
             mode_revision = props.get("revision", None)
             if mode_revision is not None:
                 self._save(MODE_REVISION_KEY, mode_revision)
@@ -68,15 +62,7 @@ class ArloLocation(ArloSuper):
         if resource == "states":
             mode = event.get("states", {}).get("activeMode", None)
             if mode is not None:
-                self._save_and_do_callbacks(MODE_KEY, self._id_to_name(mode))
-
-        # mode change?
-        elif resource == "activeAutomations":
-            self._set_mode_or_schedule(event)
-
-        # schedule has changed, so reload
-        elif resource == "automationRevisionUpdate":
-            self.update_modes()
+                self._save_and_do_callbacks(MODE_KEY, mode)
 
     @property
     def available_modes(self):
@@ -109,62 +95,52 @@ class ArloLocation(ArloSuper):
         return self._load(MODE_KEY, "unknown")
 
     @mode.setter
-    def mode(self, mode_name):
+    def mode(self, id_or_name):
         """Set the location mode.
 
-        :param mode_name: mode to use, as returned by available_modes:
+        :param id_or_name: mode to use, as returned by available_modes:
         """
-        # Actually passed a mode?
-        mode_id = None
-        real_mode_name = self._id_to_name(mode_name)
-        if real_mode_name:
-            self.debug(f"passed an ID({mode_name}), converting it")
-            mode_id = mode_name
-            mode_name = real_mode_name
+        # Convert to an ID.
+        mode_id = self._name_to_id(id_or_name)
+        if mode_id is None:
+            mode_id = id_or_name
+        if mode_id is None:
+            self._arlo.error("passed invalid id or name {id_or_name}")
+            return
 
         # Need to change?
-        if self.mode == mode_name:
+        if self.mode == mode_id:
             self.debug("no mode change needed")
             return
 
-        if mode_id is None:
-            mode_id = self._name_to_id(mode_name)
-        if mode_id:
+        # Post change.
+        self.debug(f"new-mode={id}({id_or_name})")
+        mode_revision = self._load(MODE_REVISION_KEY, 1)
+        self.vdebug(f"old-revision={mode_revision}")
 
-            # Need to change?
-            if self.mode == mode_id:
-                self.debug("no mode change needed (id)")
-                return
+        data = self._arlo.be.put(
+            LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._id) + "&revision={0}".format(mode_revision),
+            {
+                "mode": mode_id,
+            })
 
-            # Post change.
-            self.debug(self._id + ":new-mode=" + mode_name + ",id=" + mode_id)
-            mode_revision = self._load(MODE_REVISION_KEY, 1)
-            self.debug("OldRev: {0}".format(mode_revision))
+        mode_revision = data.get("revision")
+        self.vdebug(f"new-revision={mode_revision}")
 
-            data = self._arlo.be.put(
-                LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._id) + "&revision={0}".format(mode_revision),
-                {
-                    "mode": mode_id,
-                })
-            
-            mode_revision = data.get("revision")
-            self.debug("NewRev: {0}".format(mode_revision))
+        self._save_and_do_callbacks(MODE_KEY, mode_id)
+        self._save(MODE_REVISION_KEY, mode_revision)
 
-            self._save_and_do_callbacks(MODE_KEY, mode_name)
-            self._save(MODE_REVISION_KEY, mode_revision)
-                
-        else:
-            self._arlo.warning(
-                "{0}: mode {1} is unrecognised".format(self._id, mode_name)
-            )
+    @property
+    def mode_name(self):
+        """Returns the current mode using the Arlo friendly name."""
+        return self._id_to_name(self._load(MODE_KEY, "standby"))
 
     def update_mode(self):
         """Check and update the base's current mode."""
         data = self._arlo.be.get(LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._id))
-        properties = data.get("properties", {})
-        mode_id = properties.get('mode')
+        mode_id = data.get("properties", {}).get('mode')
         mode_revision = data.get("revision")
-        self._save_and_do_callbacks(MODE_KEY, self._id_to_name(mode_id))
+        self._save_and_do_callbacks(MODE_KEY, mode_id)
         self._save(MODE_REVISION_KEY, mode_revision)
 
     def update_modes(self, _initial=False):
@@ -176,3 +152,24 @@ class ArloLocation(ArloSuper):
             self._parse_modes(modes.get("properties", {}))
         else:
             self._arlo.error("failed to read modes.")
+
+    def stand_by(self):
+        self.mode = "standby"
+
+    @property
+    def is_stand_by(self):
+        return self.mode == "standby"
+
+    def arm_home(self):
+        self.mode = "armHome"
+
+    @property
+    def is_armed_home(self):
+        return self.mode == "armHome"
+
+    def arm_away(self):
+        self.mode = "armAway"
+
+    @property
+    def is_armed_away(self):
+        return self.mode == "armAway"
