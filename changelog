@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.4b1: Add event handling to ArloLocatio.
 0.7.4b0: Add initial 8-in-1 sensor support
   [thanks xirtamoen for lending the sensors]
 
