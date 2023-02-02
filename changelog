@@ -1,4 +1,8 @@
 aarlo
+0.8.0a12: Add initial 8-in-1 sensor support
+    [thanks xirtamoen for lending the sensors]
+  Support Arlo v4 APIs
+    [thanks JeffSteinbok]
 0.8.0a11: Fix DEVICE_CLASS_* constants.
 0.8.0a10: Add cipher_list support.
   Bumped pyyaarlo version.

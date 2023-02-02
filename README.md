@@ -261,11 +261,11 @@ The following enables and configures the binary sensors.
 binary_sensor:
   - platform: aarlo
     monitored_conditions:
-    - motion
-    - sound
-    - ding
-    - cry
-    - connectivity
+      - motion
+      - sound
+      - ding
+      - cry
+      - connectivity
 ```
 
 Items on the `monitored_conditions` can be one or more of the following:
@@ -288,15 +288,15 @@ The following enables and configures the sensors.
 sensor:
   - platform: aarlo
     monitored_conditions:
-    - total_cameras
-    - last_capture
-    - recent_activity
-    - captured_today
-    - battery_level
-    - signal_strength
-    - temperature
-    - humidity
-    - air_quality
+      - total_cameras
+      - last_capture
+      - recent_activity
+      - captured_today
+      - battery_level
+      - signal_strength
+      - temperature
+      - humidity
+      - air_quality
 ```
 
 Items on the `monitored_conditions` can be one or more of the following:
@@ -1007,7 +1007,7 @@ granular control:
 | `backend`               | string      | `mqtt`                       | Use mqtt or sse backend                                                                                                                                                                                                                  |
 | `no_media_upload`       | boolean     | `False`                      | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.) *Deprecated, prefer `media_retry`.                                                                             |
 | `media_retry`           | list(ints)  | 5, 15, 25                    | Used as a workaround for Arlo issues where the camera never gets a media upload notification. (Not needed in most cases.)                                                                                                                |
-| `mode_api`              | string      | `auto`                       | available options: [`v1`, `v2`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device                                                        |
+| `mode_api`              | string      | `auto`                       | available options: [`v1`, `v2`, `v3`] You can override this by setting this option to  v1 or v2 to use the old or new version exclusively. The default is  auto, choose based on device                                                  |
 | `save_updates_to`       | string      | ''                           | A directory to automatically save updated camera images to. Has format `$save_updates_to/$unique_id.jpg`                                                                                                                                 |
 | `save_media_to`         | string      | ''                           | A string describing where to save new media files. This include both video and snapshots. See the "Save Media" section.                                                                                                                  |
 | `verbose_debug`         | boolean     | `False`                      | Turn on extra debug. This extra information is usually not needed!                                                                                                                                                                       |

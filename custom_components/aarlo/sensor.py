@@ -83,6 +83,9 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             for light in arlo.lights:
                 if light.has_capability(SENSOR_TYPES[sensor_type][3]):
                     sensors.append(ArloSensor(arlo, light, sensor_type))
+            for sensor in arlo.sensors:
+                if sensor.has_capability(SENSOR_TYPES[sensor_type][3]):
+                    sensors.append(ArloSensor(arlo, sensor, sensor_type))
 
     async_add_entities(sensors)
 

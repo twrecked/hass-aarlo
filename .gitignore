@@ -114,4 +114,8 @@ tmp
 custom_components/aarlo/pyaarlo/main.py
 .ycm_extra_conf.py
 
+.vscode
 
+# Stuff Jeff Added for now
+CURL.txt
+test.py
