@@ -159,7 +159,6 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     async_add_entities(locations)
 
-
     # Component services
     def service_callback(call):
         """Call aarlo service handler."""
@@ -408,6 +407,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
             _LOGGER.warning("Wrong code entered for %s", state)
         return check
 
+
 class ArloLocation(AlarmControlPanelEntity):
     """Representation of an Arlo Alarm Control Panel."""
 
@@ -415,13 +415,8 @@ class ArloLocation(AlarmControlPanelEntity):
         """Initialize the alarm control panel."""
         self._config = config
         self._name = location.name
-        self._unique_id = "location_" + location.id
+        self._unique_id = location.entity_id
         self._location = location
-        self._disarmed_mode_name = config.get(CONF_DISARMED_MODE_NAME)
-        self._home_mode_name = config.get(CONF_HOME_MODE_NAME)
-        self._away_mode_name = config.get(CONF_AWAY_MODE_NAME)
-        self._night_mode_name = config.get(CONF_NIGHT_MODE_NAME)
-        self._alarm_volume = config.get(CONF_ALARM_VOLUME)
         self._state = None
         _LOGGER.info("ArloLocation: %s created", self._name)
 
@@ -439,7 +434,7 @@ class ArloLocation(AlarmControlPanelEntity):
             self._state = self._get_state_from_ha(self._location.attribute(MODE_KEY))
             self.async_schedule_update_ha_state()
 
-        self._state = self._get_state_from_ha(self._location.attribute(MODE_KEY, ARMED))
+        self._state = self._get_state_from_ha(self._location.attribute(MODE_KEY, "Stand By"))
         self._location.add_attr_callback(MODE_KEY, update_state)
 
     @property
@@ -457,7 +452,6 @@ class ArloLocation(AlarmControlPanelEntity):
         return (
             SUPPORT_ALARM_ARM_HOME
             | SUPPORT_ALARM_ARM_AWAY
-            | SUPPORT_ALARM_ARM_NIGHT
         )
 
     @property
@@ -480,25 +474,22 @@ class ArloLocation(AlarmControlPanelEntity):
         _LOGGER.debug("Location {0} disarm.  Code: {1}".format(self._name, code))
         code_required = self._config[CONF_CODE_DISARM_REQUIRED]
         if code_required and not self._validate_code(code, "disarming"):
-            _LOGGER.debug("Code needed and missing.")
             return
-        self.set_mode_in_ha(self._disarmed_mode_name)
+        self._location.stand_by()
 
     def alarm_arm_away(self, code=None):
         _LOGGER.debug("Location {0} arm away.  Code: {1}".format(self._name, code))
         code_required = self._config[CONF_CODE_ARM_REQUIRED]
         if code_required and not self._validate_code(code, "arming away"):
-            _LOGGER.debug("Code needed and missing.")
             return
-        self.set_mode_in_ha(self._away_mode_name)
+        self._location.arm_away()
 
     def alarm_arm_home(self, code=None):
         _LOGGER.debug("Location {0} arm home.  Code: {1}".format(self._name, code))
         code_required = self._config[CONF_CODE_ARM_REQUIRED]
         if code_required and not self._validate_code(code, "arming home"):
-            _LOGGER.debug("Code needed and missing.")
             return
-        self.set_mode_in_ha(self._home_mode_name)
+        self._location.arm_home()
 
     def alarm_trigger(self, code=None):
         pass
@@ -510,7 +501,7 @@ class ArloLocation(AlarmControlPanelEntity):
         pass
 
     def restart(self):
-        self._base.restart()
+        pass
 
     @property
     def unique_id(self):
@@ -528,15 +519,12 @@ class ArloLocation(AlarmControlPanelEntity):
 
     def _get_state_from_ha(self, mode):
         """Convert Arlo mode to Home Assistant state."""
-        if mode == self._disarmed_mode_name:
-            return STATE_ALARM_DISARMED
-        if mode == self._away_mode_name:
+        _LOGGER.info(f"{self._name}: mode check: mode={mode}")
+        if self._location.is_armed_away:
             return STATE_ALARM_ARMED_AWAY
-        if mode == self._home_mode_name:
+        if self._location.is_armed_home:
             return STATE_ALARM_ARMED_HOME
-        if mode == ARMED:
-            return STATE_ALARM_ARMED_AWAY
-        return mode
+        return STATE_ALARM_DISARMED
 
     def set_mode_in_ha(self, mode):
         """convert Home Assistant state to Arlo mode."""
@@ -556,7 +544,12 @@ class ArloLocation(AlarmControlPanelEntity):
         pass
 
     def _validate_code(self, code, state):
-        pass
+        """Validate given code."""
+        conf_code = self._config.get(CONF_CODE)
+        check = conf_code is None or code == conf_code
+        if not check:
+            _LOGGER.warning("Wrong code entered for %s", state)
+        return check
 
 
 def _get_base_from_entity_id(hass, entity_id):
@@ -565,10 +558,11 @@ def _get_base_from_entity_id(hass, entity_id):
         raise HomeAssistantError("base component not set up")
 
     location = component.get_entity(entity_id)
-    if base is None:
+    if location is None:
         raise HomeAssistantError("base not found")
 
     return location
+
 
 def _get_location_from_entity_id(hass, entity_id):
     component = hass.data.get(DOMAIN)
@@ -580,6 +574,7 @@ def _get_location_from_entity_id(hass, entity_id):
         raise HomeAssistantError("location not found")
 
     return location
+
 
 @websocket_api.async_response
 async def websocket_siren_on(hass, connection, msg):
@@ -602,6 +597,7 @@ async def websocket_siren_off(hass, connection, msg):
 async def aarlo_mode_service_handler(base, service):
     mode = service.data[ATTR_MODE]
     base.set_mode_in_ha(mode)
+
 
 async def aarlo_siren_on_service_handler(base, service):
     volume = service.data[ATTR_VOLUME]

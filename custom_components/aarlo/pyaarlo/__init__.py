@@ -337,8 +337,9 @@ class PyArlo(object):
         if not location_data:
             self.warning("No locations returned from " + url)
         else:
-            shared_locations = location_data.get("sharedLocations", [])
-            for shared_location in shared_locations:
+            for user_location in location_data.get("userLocations", []):
+                self._locations.append(ArloLocation(self, user_location))
+            for shared_location in location_data.get("sharedLocations", []):
                 self._locations.append(ArloLocation(self, shared_location))
 
         self.vdebug("locations={}".format(pprint.pformat(self._locations)))

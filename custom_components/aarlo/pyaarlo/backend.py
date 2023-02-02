@@ -282,20 +282,17 @@ class ArloBackEnd(object):
         # This a list ditch effort to funnel the answer the correct place...
         #  Check for device_id
         #  Check for unique_id
+        #  Check for locationId
         # If none of those then is unhandled
         # Packet number #?.
         else:
-            device_id = response.get("deviceId", None)
+            device_id = response.get("deviceId",
+                                     response.get("uniqueId",
+                                                  response.get("locationId")))
             if device_id is not None:
                 responses.append((device_id, resource, response))
             else:
-                device_id = response.get("uniqueId", None)
-                if device_id is not None:
-                    responses.append((device_id, resource, response))
-                else:
-                    self._arlo.debug(
-                        "unhandled response {} - {}".format(resource, response)
-                    )
+                self.debug(f"unhandled response {resource} - {response}")
 
         # Now find something waiting for this/these.
         for device_id, resource, response in responses:

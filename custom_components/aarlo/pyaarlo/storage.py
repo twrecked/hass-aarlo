@@ -60,10 +60,10 @@ class ArloStorage(object):
         with self.lock:
             return self._keys_matching(key)
 
-    def set(self, key, value):
+    def set(self, key, value, prefix=""):
         ekey = self._ekey(key)
         output = "set:" + ekey + "=" + str(value)
-        self._arlo.debug(output[:80])
+        self._arlo.debug(f"{prefix}: {output[:80]}")
         with self.lock:
             self.db[ekey] = value
             return value

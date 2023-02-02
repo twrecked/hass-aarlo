@@ -1,4 +1,3 @@
-import threading
 from typing import TYPE_CHECKING
 
 from unidecode import unidecode
@@ -20,26 +19,20 @@ from .constant import (
     TIMEZONE_KEY,
     XCLOUD_ID_KEY,
 )
+from .super import ArloSuper
 
 
-class ArloDevice(object):
+class ArloDevice(ArloSuper):
     """Base class for all Arlo devices.
 
     Has code to handle providing common attributes and comment event handling.
     """
 
     def __init__(self, name, arlo: 'PyArlo', attrs):
-        self._name = name
-        self._arlo = arlo
-        self._attrs = attrs
-
-        self._lock = threading.Lock()
-        self._attr_cbs_ = []
-
-        # Basic IDs.
-        self._device_id = attrs.get("deviceId", None)
-        self._device_type = attrs.get("deviceType", "unknown")
-        self._unique_id = attrs.get("uniqueId", None)
+        super().__init__(name, arlo, attrs,
+                         id=attrs.get("deviceId", "unknown"),
+                         type=attrs.get("deviceType", "unknown"),
+                         uid=attrs.get("uniqueId", None))
 
         # We save this here but only expose it directly in the ArloChild class.
         # Some devices are their own parents and we need to know that at the ArloDevice
@@ -61,58 +54,6 @@ class ArloDevice(object):
             if value is not None:
                 self._save(key, value)
 
-        # add a listener
-        self._arlo.be.add_listener(self, self._event_handler)
-
-    def __repr__(self):
-        # Representation string of object.
-        return "<{0}:{1}:{2}>".format(
-            self.__class__.__name__, self._device_type, self._name
-        )
-
-    def _to_storage_key(self, attr):
-        # Build a key incorporating the type!
-        if isinstance(attr, list):
-            return [self.__class__.__name__, self._device_id] + attr
-        else:
-            return [self.__class__.__name__, self._device_id, attr]
-
-    def _event_handler(self, resource, event):
-        self._arlo.vdebug("{}: got {} event **".format(self.name, resource))
-
-        # Find properties. Event either contains a item called properties or it
-        # is the whole thing.
-        self.update_resources(event.get("properties", event))
-
-    def _do_callbacks(self, attr, value):
-        cbs = []
-        with self._lock:
-            for watch, cb in self._attr_cbs_:
-                if watch == attr or watch == "*":
-                    cbs.append(cb)
-        for cb in cbs:
-            cb(self, attr, value)
-
-    def _save(self, attr, value):
-        # TODO only care if it changes?
-        self._arlo.st.set(self._to_storage_key(attr), value)
-
-    def _save_and_do_callbacks(self, attr, value):
-        self._save(attr, value)
-        self._do_callbacks(attr, value)
-
-    def _load(self, attr, default=None):
-        return self._arlo.st.get(self._to_storage_key(attr), default)
-
-    def _load_matching(self, attr, default=None):
-        return self._arlo.st.get_matching(self._to_storage_key(attr), default)
-
-    def update_resources(self, props):
-        for key in RESOURCE_KEYS + RESOURCE_UPDATE_KEYS:
-            value = props.get(key, None)
-            if value is not None:
-                self._save_and_do_callbacks(key, value)
-
     @property
     def entity_id(self):
         if self._arlo.cfg.serial_ids:
@@ -123,23 +64,13 @@ class ArloDevice(object):
             return unidecode(self.name.lower().replace(" ", "_"))
 
     @property
-    def name(self):
-        """Returns the device name."""
-        return self._name
-
-    @property
-    def device_id(self):
-        """Returns the device's id."""
-        return self._device_id
-
-    @property
     def resource_id(self):
         """Returns the resource id, used for making requests and checking responses.
 
         For base stations has the format [DEVICE-ID] and for other devices has
         the format [RESOURCE-TYPE]/[DEVICE-ID]
         """
-        return self._device_id
+        return self.device_id
 
     @property
     def resource_type(self):
@@ -152,12 +83,7 @@ class ArloDevice(object):
     @property
     def serial_number(self):
         """Returns the device serial number."""
-        return self._device_id
-
-    @property
-    def device_type(self):
-        """Returns the Arlo reported device type."""
-        return self._device_type
+        return self.device_id
 
     @property
     def model_id(self):
@@ -198,17 +124,12 @@ class ArloDevice(object):
         return self.user_id + "_web"
 
     @property
-    def unique_id(self):
-        """Returns the device's unique id."""
-        return self._unique_id
-
-    @property
     def is_own_parent(self):
         """Returns True if device is its own parent.
 
         Can work from child or parent class.
         """
-        return self._parent_id == self._device_id
+        return self._parent_id == self.device_id
 
     def attribute(self, attr, default=None):
         """Return the value of attribute attr.
@@ -380,7 +301,7 @@ class ArloChildDevice(ArloDevice):
 
         Some devices - certain cameras - can provide other types.
         """
-        return self.resource_type + "/" + self._device_id
+        return self.resource_type + "/" + self.device_id
 
     @property
     def parent_id(self):
