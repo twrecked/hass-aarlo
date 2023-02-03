@@ -1,4 +1,7 @@
 aarlo/pyaarlo
+0.7.4b2: Autodetect location and select new APIs.
+  Re-order URLS to better match web page
+  Add x-transaction-id into headers
 0.7.4b1: Add event handling to ArloLocatio.
 0.7.4b0: Add initial 8-in-1 sensor support
   [thanks xirtamoen for lending the sensors]

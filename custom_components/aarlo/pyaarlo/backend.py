@@ -43,6 +43,9 @@ from .util import days_until, now_strftime, time_to_arlotime, to_b64
 
 # include token and session details
 class ArloBackEnd(object):
+
+    _multi_location = False
+
     def __init__(self, arlo):
 
         self._arlo = arlo
@@ -108,6 +111,9 @@ class ArloBackEnd(object):
         except Exception as e:
             self._arlo.warning("session file not written" + str(e))
 
+    def _transaction_id(self):
+        return 'FE!' + str(uuid.uuid4())
+
     def _request(
         self,
         path,
@@ -129,12 +135,12 @@ class ArloBackEnd(object):
             with self._req_lock:
                 if host is None:
                     host = self._arlo.cfg.host
-                url = self._add_extra_params(host + path)
+                tid = self._transaction_id()
+                url = self._add_extra_params(host + path, tid)
+                headers['x-transaction-id'] = tid
                 self._arlo.vdebug("request-url={}".format(url))
                 self._arlo.vdebug("request-params=\n{}".format(pprint.pformat(params)))
-                self._arlo.vdebug(
-                    "request-headers=\n{}".format(pprint.pformat(headers))
-                )
+                self._arlo.vdebug("request-headers=\n{}".format(pprint.pformat(headers)))
                 if method == "GET":
                     r = self._session.get(
                         url,
@@ -193,14 +199,13 @@ class ArloBackEnd(object):
     def gen_trans_id(self, trans_type=TRANSID_PREFIX):
         return trans_type + "!" + str(uuid.uuid4())
 
-    def _add_extra_params(self, url):
+    def _add_extra_params(self, url, tid):
         if '?' in url:
             url = url + '&'
         else:
             url = url + '?'
-        eid = str(uuid.uuid4())
         now = time_to_arlotime()
-        return f"{url}event_id=FE!{eid}&time={now}"
+        return f"{url}event_id={tid}&time={now}"
 
     def _event_dispatcher(self, response):
 
@@ -777,6 +782,8 @@ class ArloBackEnd(object):
         if v2_session is None:
             self._arlo.error("session start failed")
             return False
+        self._multi_location = v2_session.get('supportsMultiLocation', False)
+        self._arlo.debug(f"multilocation is {self._multi_location}")
         return True
 
     def _login(self):
@@ -1024,6 +1031,10 @@ class ArloBackEnd(object):
     @property
     def user_id(self):
         return self._user_id
+
+    @property
+    def multi_location(self):
+        return self._multi_location
 
     def add_listener(self, device, callback):
         with self._lock:
