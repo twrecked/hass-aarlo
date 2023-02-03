@@ -168,6 +168,7 @@ class ArloBackEnd(object):
             self._arlo.vdebug("request-body=\n{}".format(pprint.pformat(body)))
         except Exception as e:
             self._arlo.warning("body-error={}".format(type(e).__name__))
+            self._arlo.debug(f"request-text={r.text}")
             return None
 
         self._arlo.vdebug("request-end={}".format(r.status_code))
