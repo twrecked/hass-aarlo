@@ -188,6 +188,9 @@ class ArloBase(ArloDevice):
         if self._arlo.cfg.mode_api.lower() == "v3":
             self._arlo.vdebug("forced v3 api")
             return 3
+        if self._arlo.be.multi_location:
+            self._arlo.debug("multilocation, deduced v3 api")
+            return 3
         if (
             self.model_id == MODEL_BABY
             or self.model_id == MODEL_GO
@@ -196,9 +199,6 @@ class ArloBase(ArloDevice):
         ):
             self._arlo.vdebug("deduced v1 api")
             return 1
-        if self.model_id == MODEL_HUB:
-            self._arlo.vdebug("deduced v3 api")
-            return 3
         self._arlo.vdebug("deduced v2 api")
         return 2
 
