@@ -114,6 +114,11 @@ class ArloBackEnd(object):
     def _transaction_id(self):
         return 'FE!' + str(uuid.uuid4())
 
+    def _build_url(self, url, tid):
+        sep = "&" if "?" in url else "?"
+        now = time_to_arlotime()
+        return f"{url}{sep}eventId={tid}&time={now}"
+
     def _request(
         self,
         path,
@@ -136,7 +141,7 @@ class ArloBackEnd(object):
                 if host is None:
                     host = self._arlo.cfg.host
                 tid = self._transaction_id()
-                url = self._add_extra_params(host + path, tid)
+                url = self._build_url(host + path, tid)
                 headers['x-transaction-id'] = tid
                 self._arlo.vdebug("request-url={}".format(url))
                 self._arlo.vdebug("request-params=\n{}".format(pprint.pformat(params)))
@@ -199,14 +204,6 @@ class ArloBackEnd(object):
 
     def gen_trans_id(self, trans_type=TRANSID_PREFIX):
         return trans_type + "!" + str(uuid.uuid4())
-
-    def _add_extra_params(self, url, tid):
-        if '?' in url:
-            url = url + '&'
-        else:
-            url = url + '?'
-        now = time_to_arlotime()
-        return f"{url}event_id={tid}&time={now}"
 
     def _event_dispatcher(self, response):
 
@@ -298,7 +295,7 @@ class ArloBackEnd(object):
             if device_id is not None:
                 responses.append((device_id, resource, response))
             else:
-                self.debug(f"unhandled response {resource} - {response}")
+                self._arlo.debug(f"unhandled response {resource} - {response}")
 
         # Now find something waiting for this/these.
         for device_id, resource, response in responses:
@@ -628,11 +625,15 @@ class ArloBackEnd(object):
     def _auth(self):
         headers = {
             "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
             "Origin": ORIGIN_HOST,
             "Referer": REFERER_HOST,
             "Source": "arloCamWeb",
             "User-Agent": self._user_agent,
+            "x-user-device-id": self._user_id,
+            "x-user-device-name": "QlJPV1NFUg==",
+            "x-user-device-type": "BROWSER",
         }
 
         # Handle 1015 error
@@ -761,12 +762,16 @@ class ArloBackEnd(object):
     def _validate(self):
         headers = {
             "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
             "Authorization": self._token64,
             "Origin": ORIGIN_HOST,
             "Referer": REFERER_HOST,
             "User-Agent": self._user_agent,
             "Source": "arloCamWeb",
+            "x-user-device-id": self._user_id,
+            "x-user-device-name": "QlJPV1NFUg==",
+            "x-user-device-type": "BROWSER",
         }
 
         # Validate it!
@@ -810,7 +815,8 @@ class ArloBackEnd(object):
         # update sessions headers
         headers = {
             "Accept": "application/json",
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
             "Auth-Version": "2",
             "Authorization": self._token,
             "Content-Type": "application/json; charset=utf-8;",
@@ -819,7 +825,6 @@ class ArloBackEnd(object):
             "Referer": REFERER_HOST,
             "SchemaVersion": "1",
             "User-Agent": self._user_agent,
-            "x-user-device-id": self._user_id 
         }
         self._session.headers.update(headers)
 

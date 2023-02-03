@@ -1,4 +1,6 @@
 aarlo/pyaarlo
+0.7.4b4: Fix URL and headers.
+0.7.4b3: Add extra debug.
 0.7.4b2: Autodetect location and select new APIs.
   Re-order URLS to better match web page
   Add x-transaction-id into headers
