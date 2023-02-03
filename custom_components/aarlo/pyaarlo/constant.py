@@ -25,6 +25,7 @@ IDLE_SNAPSHOT_PATH = "/hmsweb/users/devices/fullFrameSnapshot"
 LOCATIONS_PATH_FORMAT = "/hmsdevicemanagement/users/{0}/locations"  # {0} is _user_id
 LOCATION_MODES_PATH_FORMAT = "/hmsweb/automation/v3/modes?locationId={0}"  # {0} is _location_id
 LOCATION_ACTIVEMODE_PATH_FORMAT = "/hmsweb/automation/v3/activeMode?locationId={0}"  # {0} is _location_id
+LOCATIONS_EMERGENCY_PATH = "/hmsweb/users/emergency/locations"
 
 MQTT_PATH = "/mqtt"
 TRANSID_PREFIX = "web"

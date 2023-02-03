@@ -32,6 +32,7 @@ from .constant import (
     TOTAL_CAMERAS_KEY,
     TOTAL_LIGHTS_KEY,
     LOCATIONS_PATH_FORMAT,
+    LOCATIONS_EMERGENCY_PATH,
 )
 from .doorbell import ArloDoorBell
 from .light import ArloLight
@@ -332,8 +333,17 @@ class PyArlo(object):
                 light.update_resources(props)
 
     def _refresh_locations(self):
+        """Retrieve location list from the backend
+        """
         self.debug("_refresh_locations")
         self._locations = []
+
+        elocation_data = self._be.get(LOCATIONS_EMERGENCY_PATH)
+        if elocation_data:
+            self.debug("got something")
+        else:
+            self.debug("got nothing")
+
         url = LOCATIONS_PATH_FORMAT.format(self.be.user_id)
         location_data = self._be.get(url)
         if not location_data:
