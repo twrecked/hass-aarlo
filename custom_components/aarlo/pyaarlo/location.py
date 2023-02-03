@@ -36,6 +36,12 @@ class ArloLocation(ArloSuper):
     def _name_to_id(self, mode_name):
         return self._load([MODE_NAME_TO_ID_KEY, mode_name], None)
 
+    def _extra_headers(self):
+        return {
+            "x-forwarded-user": self._arlo.be.user_id,
+            "x-user-device-id": self._arlo.be.user_id,
+        }
+
     def _parse_modes(self, modes):
         for mode in modes.items():
             mode_id = mode[0]
@@ -118,15 +124,14 @@ class ArloLocation(ArloSuper):
             return
 
         # Post change.
-        self.debug(f"new-mode={id}({id_or_name})")
+        self.debug(f"new-mode={mode_id}({id_or_name})")
         mode_revision = self._load(MODE_REVISION_KEY, 1)
         self.vdebug(f"old-revision={mode_revision}")
 
         data = self._arlo.be.put(
-            LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._id) + "&revision={0}".format(mode_revision),
-            {
-                "mode": mode_id,
-            })
+            LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._id) + f"&revision={mode_revision}",
+            params={"mode": mode_id},
+            headers=self._extra_headers())
 
         mode_revision = data.get("revision")
         self.vdebug(f"new-revision={mode_revision}")
@@ -141,7 +146,8 @@ class ArloLocation(ArloSuper):
 
     def update_mode(self):
         """Check and update the base's current mode."""
-        data = self._arlo.be.get(LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._id))
+        data = self._arlo.be.get(LOCATION_ACTIVEMODE_PATH_FORMAT.format(self._id),
+                                 headers=self._extra_headers())
         mode_id = data.get("properties", {}).get('mode')
         mode_revision = data.get("revision")
         self._save_and_do_callbacks(MODE_KEY, mode_id)
@@ -149,9 +155,8 @@ class ArloLocation(ArloSuper):
 
     def update_modes(self, _initial=False):
         """Get and update the available modes for the base."""
-        modes = self._arlo.be.get(
-            LOCATION_MODES_PATH_FORMAT.format(self._id)
-        )
+        modes = self._arlo.be.get(LOCATION_MODES_PATH_FORMAT.format(self._id),
+                                  headers=self._extra_headers())
         if modes is not None:
             self._parse_modes(modes.get("properties", {}))
         else:
