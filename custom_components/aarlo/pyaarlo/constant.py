@@ -62,6 +62,10 @@ SLOW_REFRESH_INTERVAL = 10 * 60
 EVENT_STREAM_TIMEOUT = (FAST_REFRESH_INTERVAL * 2) + 5
 MODE_UPDATE_INTERVAL = 2
 
+# Device capabilities
+PING_CAPABILITY = "pingCapability"
+RESOURCE_CAPABILITY = "resourceCapability"
+
 # update keys
 ACTIVITY_STATE_KEY = "activityState"
 AIR_QUALITY_KEY = "airQuality"
@@ -86,8 +90,6 @@ MOTION_DETECTED_KEY = "motionDetected"
 MOTION_STATE_KEY = "motionState"
 MOTION_ENABLED_KEY = "motionSetupModeEnabled"
 MOTION_SENS_KEY = "motionSetupModeSensitivity"
-PING_CAPABILITY = "pingCapability"
-RESOURCE_CAPABILITY = "resourceCapability"
 POWER_SAVE_KEY = "powerSaveMode"
 PRIVACY_KEY = "privacyActive"
 LIGHT_BRIGHTNESS_KEY = "lightBrightness"

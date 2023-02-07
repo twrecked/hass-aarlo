@@ -305,32 +305,30 @@ class PyArlo(object):
         return self.cfg.mode_api.lower() == "v3"
 
     def _refresh_devices(self):
+        """Read in the devices list.
+        This returns all devices known to the Arlo system. The newer devices
+        include state information - battery levels etc - while the old devices
+        don't. We update what we can.
+        """
         url = DEVICES_PATH + "?t={}".format(time_to_arlotime())
         self._devices = self._be.get(url)
         if not self._devices:
             self.warning("No devices returned from " + url)
             self._devices = []
-        self.vdebug("devices={}".format(pprint.pformat(self._devices)))
+        self.vdebug(f"devices={pprint.pformat(self._devices)}")
 
         # Newer devices include information in this response. Be sure to update it.
         for device in self._devices:
             device_id = device.get("deviceId", None)
             props = device.get("properties", None)
-            if device_id is None or props is None:
-                continue
-            self.debug(f"updating {device_id} from device refresh")
-            base = self.lookup_base_station_by_id(device_id)
-            if base is not None:
-                base.update_resources(props)
-            camera = self.lookup_camera_by_id(device_id)
-            if camera is not None:
-                camera.update_resources(props)
-            doorbell = self.lookup_doorbell_by_id(device_id)
-            if doorbell is not None:
-                doorbell.update_resources(props)
-            light = self.lookup_light_by_id(device_id)
-            if light is not None:
-                light.update_resources(props)
+            self.vdebug(f"device-id={device_id}")
+            if device_id is not None and props is not None:
+                device = self.lookup_device_by_id(device_id)
+                if device is not None:
+                    self.vdebug(f"updating {device_id} from device refresh")
+                    device.update_resources(props)
+                else:
+                    self.vdebug(f"not updating {device_id} from device refresh")
 
     def _refresh_locations(self):
         """Retrieve location list from the backend
@@ -384,36 +382,7 @@ class PyArlo(object):
     def _refresh_bases(self, initial):
         for base in self._bases:
             base.update_modes(initial)
-            if base.has_capability(RESOURCE_CAPABILITY):
-                self._be.notify(
-                    base=base,
-                    body={
-                        "action": "get",
-                        "resource": "cameras",
-                        "publishResponse": False,
-                    },
-                    wait_for="response",
-                )
-                self._be.notify(
-                    base=base,
-                    body={
-                        "action": "get",
-                        "resource": "doorbells",
-                        "publishResponse": False,
-                    },
-                    wait_for="response",
-                )
-                self._be.notify(
-                    base=base,
-                    body={
-                        "action": "get",
-                        "resource": "lights",
-                        "publishResponse": False,
-                    },
-                    wait_for="response",
-                )
-            else:
-                self.vdebug(f"NO resource for {base.device_id}")
+            base.update_states()
 
     def _refresh_modes(self):
         self.vdebug("refresh modes")
@@ -585,6 +554,10 @@ class PyArlo(object):
         return self._locations
 
     @property
+    def all_devices(self):
+        return self.cameras + self.doorbells + self.lights + self.base_stations + self.locations
+
+    @property
     def sensors(self):
         return self._sensors
 
@@ -694,6 +667,16 @@ class PyArlo(object):
         if base_station:
             return base_station[0]
         return None
+
+    def lookup_device_by_id(self, device_id):
+        device = self.lookup_base_station_by_id(device_id)
+        if device is None:
+            device = self.lookup_camera_by_id(device_id)
+        if device is None:
+            device = self.lookup_doorbell_by_id(device_id)
+        if device is None:
+            device = self.lookup_light_by_id(device_id)
+        return device
 
     def inject_response(self, response):
         """Inject a test packet into the event stream.
