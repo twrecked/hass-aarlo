@@ -151,10 +151,10 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     async_add_entities(base_stations)
 
-    _LOGGER.error("Adding Locations")
+    _LOGGER.debug("Adding Locations")
     locations = []
     for location in arlo.locations:
-        _LOGGER.error("Locations Iterator")
+        _LOGGER.debug("Locations Iterator")
         locations.append(ArloLocation(location, config))
 
     async_add_entities(locations)
