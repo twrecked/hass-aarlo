@@ -254,6 +254,13 @@ class ArloBackEnd(object):
             device_id = resource.split("/")[1]
             responses.append((device_id, resource, response))
 
+        # Device status...
+        elif resource == 'devices':
+            for device_id in response.get('devices', {}):
+                self._arlo.debug(f"DEVICES={device_id}")
+                props = response['devices'][device_id]
+                responses.append((device_id, resource, props))
+
         # These are base station responses. Which can be about the base station
         # or devices on it... Check if property is list.
         # Packet number #3/#2
