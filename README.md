@@ -785,9 +785,9 @@ debug from _Aarlo_ looks like this.
 2020-01-21 11:44:50 DEBUG (ArloEventStream) [pyaarlo] async ping response subscriptions/XXXXXX-XXX-XXXXXXX_web
 ```
 
-_If you fancy poking around and trying to find out what it going wrong. If you
-fancy diving in, and please do, searching for `ERROR` and any reference to
-`traceBack` is a good place to start._
+_If you fancy poking around and trying to find out what it going wrong, dive 
+in, searching for `ERROR` and any reference to `traceBack` is a good place 
+to start._
 
 #### Basic Debug
 You can turn this on by adding the following to your `configuration.yaml`
@@ -840,27 +840,28 @@ Enable very verbose debug by adding this to your _Aarlo_ config.
 
 ```yaml
 aarlo:
-    # current config here
-    packet_dump: True
+  # old config
+  verbose_debug: True
+  packet_dump: True
 ```
 
 The logs will now include dumps of packets sent by _Arlo_. The following
 is an example of a subscription response:
 
-```
-{'status': 'connected'}
-{ 'action': 'is',
-    'from': 'XXXXXXXXXXXXX',
-    'resource': 'subscriptions/XXXXXX-XXX-XXXXXXX_web',
-    'to': 'XXXXXX-XXX-XXXXXXX_web',
-    'transId': 'web!38a29262-1ce0-4c4d-8f75-fafec2c34332'}
+```json
+{"status": "connected"},
+{ "action": "is",
+    "from": "XXXXXXXXXXXXX",
+    "resource": "subscriptions/XXXXXX-XXX-XXXXXXX_web",
+    "to": "XXXXXX-XXX-XXXXXXX_web",
+    "transId": "web!38a29262-1ce0-4c4d-8f75-fafec2c34332"}
 ```
 
 Another example, if _Arlo_ detects motion you will see a packet with the
 following field in it:
 
-```
-'properties': {'motionDetected': True},
+```json
+"properties": {"motionDetected": "True"},
 ```
 
 
@@ -923,9 +924,6 @@ To encrypt your logs save the output to a file and do the following. Attach
 (pyaarlo)$ cat your-log-file | pyaarlo encrypt > home-assistant.log.enc
 ```
 
-#### Notes
-Data isn't anonymized internally... I will be adding that functionality.
-
 You don't need to keep re-installing pyaarlo, just re-activate the virtualenv.
 ```bash
 $ cd where-you-where-before
@@ -938,6 +936,9 @@ When you're finished with pyaarlo deactivate the virtualenv.
 (pyaarlo) $ deactivate
 $
 ```
+
+#### Notes
+_Data isn't anonymized internally... I will be adding that functionality._
 
 
 <a name="notworking-browser"></a>
