@@ -65,7 +65,7 @@ The following options have been removed:
    - [Cloud Flare](#notworking-cloudflare)
    - [Missing Events](#notworking-missing-events)
    - [Missing/Incorrect Values](#notworking-missing-values)
-   - [Enabling and Examining Logs](#notworking-debug)
+   - [Debug Logs](#notworking-debug)
    - [Bug Reports](#notworking-bug-reports)
      - [Hiding Sensitive Data](#notworking-sensitive)
    - [Reverse Engineering](#notworking-browser)
@@ -743,7 +743,7 @@ end event system. The original system used a `Server Side Event` socket but
 they now support a `MQTT` broker system. 
 
 By default, the system will use try to work out which event system to use by
-looking for keywords in the _Arlo_ server responses. If aren't seeing the
+looking for keywords in the _Arlo_ server responses. If yiur aren't seeing the
 events you expect to see then try changing to the `Server Side Event` back
 end. Use the `backend` keyword.
 
@@ -771,46 +771,10 @@ And make sure you have enabled `Access Rights` for your secondary account.
 _Arlo_ won't update some values for non-admin accounts.
 
 
-<a name="other-debugging"></a>
-### Debugging
-If you run into problems there please provide the following in the bug report
-to help debugging.
-* Version of software running.
-* Make of cameras and base stations you have.
-
-I might also ask you to turn on component logging and event logging. The
-follow paragraphs show you how, it's safe to leave these running if you fancy
-poking around and trying to find out what it going wrong.
-
-#### Component logging.
-You can turn this on by adding the following to your `configuration.yaml` file.
- 
-```yaml
-logger:
-  default: info
-  logs:
-    custom_components.aarlo: debug
-    custom_components.aarlo.alarm_control_panel: debug
-    custom_components.aarlo.binary_sensor: debug
-    custom_components.aarlo.camera: debug
-    custom_components.aarlo.light: debug
-    custom_components.aarlo.media_player: debug
-    custom_components.aarlo.sensor: debug
-    custom_components.aarlo.switch: debug
-    pyaarlo: debug
-```
-
-If, for example, you suspect the problem is just with your lights you can
-remove unneeded debug:
-
-```yaml
-logger:
-  default: info
-  logs:
-    custom_components.aarlo: debug
-    custom_components.aarlo.light: debug
-    pyaarlo: debug
-```
+<a name="notworking-debug"></a>
+### Debug Logs
+I might ask you to provide logging, the follow paragraphs show you how. It's
+safe to leave these enabled, they just increase the size of the log file.
 
 Home assistant logs everything to `/config/home-assistant.log`, a typical piece of
 debug from _Aarlo_ looks like this.
@@ -821,12 +785,46 @@ debug from _Aarlo_ looks like this.
 2020-01-21 11:44:50 DEBUG (ArloEventStream) [pyaarlo] async ping response subscriptions/XXXXXX-XXX-XXXXXXX_web
 ```
 
-If you fancy diving in, and please do, searching for exceptions and any
-reference to `traceBack` is a good place to start.
+_If you fancy poking around and trying to find out what it going wrong. If you
+fancy diving in, and please do, searching for `ERROR` and any reference to
+`traceBack` is a good place to start._
 
-#### Verbose debug
-It sometimes helps to turn on more verbose debug, do this by adding this to
-your _Aarlo_ config.
+#### Basic Debug
+You can turn this on by adding the following to your `configuration.yaml`
+file. This provides a high level view of what is happening.
+ 
+```yaml
+logger:
+  default: info
+  logs:
+    pyaarlo: debug
+    custom_components.aarlo: debug
+    custom_components.aarlo.alarm_control_panel: debug
+    custom_components.aarlo.binary_sensor: debug
+    custom_components.aarlo.camera: debug
+    custom_components.aarlo.light: debug
+    custom_components.aarlo.media_player: debug
+    custom_components.aarlo.sensor: debug
+    custom_components.aarlo.switch: debug
+```
+
+If, for example, you suspect the problem is just with your lights you can
+remove unneeded debug:
+
+```yaml
+logger:
+  default: info
+  logs:
+    pyaarlo: debug
+    custom_components.aarlo: debug
+    custom_components.aarlo.light: debug
+```
+
+#### Verbose Debug
+It sometimes helps to turn on more verbose debug, this provides more
+information about the program's internal states.
+
+Enable verbose debug by adding this to your _Aarlo_ config. 
 
 ```yaml
 aarlo:
@@ -834,10 +832,11 @@ aarlo:
   verbose_debug: True
 ``` 
 
-#### Event logging
-you can look at what events _Arlo_ is sending you by turning on event stream
-dumping. Add the following to your `configuration.yaml` file and _Aarlo_ will
-dump events into `/config/.aarlo/packets.dump`:
+#### Very Verbose Debug
+Finally, you can look at what events _Arlo_ is sending you by turning on
+packet dumping.
+
+Enable very verbose debug by adding this to your _Aarlo_ config. 
 
 ```yaml
 aarlo:
@@ -845,8 +844,8 @@ aarlo:
     packet_dump: True
 ```
 
-This file will built up from a constant trickle of packets from _Arlo_. The
-following expert shows a login confirmation and a subscription check response.
+The logs will now include dumps of packets sent by _Arlo_. The following
+is an example of a subscription response:
 
 ```
 {'status': 'connected'}
@@ -867,8 +866,8 @@ following field in it:
 
 <a name="notworking-bug-reports"></a>
 ### Bug Reports
-If you run into problems there please provide the following in the bug report
-to help debugging.
+If you run into problems please create a bug report, include the following
+information in the bug report to help debugging.
 * Version of software running.
 * Make of cameras and base stations you have.
 * What you were doing or expecting
@@ -877,16 +876,32 @@ to help debugging.
 <a name="notworking-sensitive"></a>
 #### Hiding Sensitive Data
 
-If you paste any debug logs into _GitHub_ it's a good idea to encrypt them
-before uploading them. You can do this one of two ways.
+If you attach any logs to the bug report it's a good idea to encrypt them
+before uploading them. You can do this in several ways.
 
 ##### Online
 
 You can encrypt your output on this
-[webpage](https://pyaarlo-tfa.appspot.com/). 
+[webpage](https://pyaarlo-tfa.appspot.com/). You can upload the file or copy
+and paste it into the buffer. Press `Submit`.
 
-**This page doesn't forward the output to me, so you will have to copy and
-paste it into a bug report.**
+**This page doesn't forward automatically the output to me, so you will have
+to copy and paste it into a file and attach it to the bug report.**
+
+##### Command Line
+
+If you are comfortable using the command line you can use `curl` to encrypt
+the logs. Attach `home-assistant.log.enc` to the bug report.
+
+_If you are using a Linux environment you don't need to run this from the
+docker._
+
+```sh
+docker exec -it YOUR_DOCKER_NAME bash
+cd /config/
+cat home-assistant.log | curl -s -F 'plain_text_file=@-;filename=clear.txt' https://pyaarlo-tfa.appspot.com/encrypt > home-assistant.log.enc
+exit
+```
 
 ##### Pyaarlo
 
@@ -895,30 +910,17 @@ component. The easiest way to install it is in a virtual environment. The
 following steps will install Pyaarlo.
 
 ```bash
-$ virtualenv -p /usr/bin/python3.6 pyaarlo
+$ python3 -m venv pyaarlo
 $ source pyaarlo/bin/activate
-(pyaarlo) $ pip install git+https://github.com/twrecked/pyaarlo
+(pyaarlo) $ pip install pyaarlo
 (pyaarlo) $ pyaarlo --help
 ```
 
-To encrypt your logs save the output to a file and do the following:
+To encrypt your logs save the output to a file and do the following. Attach
+`home-assistant.log.enc` to the bug report.
 
 ```bash
-(pyaarlo)$ cat your-log-file | pyaarlo encrypt
-```
-
-The output will look like this - only longer! Paste everything, including the `BEGIN` and
-`END` lines into your bug report.
-
-```
------BEGIN PYAARLO DUMP-----
-gAN9cQAoWAEAAABucQFCAAEAAJJ7SWmo+vX28ycatrCV2s1o0wiIo3SPVOaRkHBf6xVup2D/cdZI
-nvim30f/oTNwkuspbwYTwOzXHZJygnsi/9vX4+5g65te+bJczzVl6hoBM+2uaNfFi63iL0blMv32
-zwTZHPj7TxwcJbdOGuP+A+yqEpxPbIsI/8nUP9CLvE01cxje+a7swgUdidoPTAAPSjjteGWl/h+V
-DMX8UcDPtN+fdYOyEVlVOoFPQC4u/xXjN0qusfW0yNqpKHzD82Vkz0Igc5USXCRsbAs1YNgnZgXt
-KWwDrH5v31jNd6zppaF5EtgfnyDsUohzqYy0bciXfD0HAQS/6sbT+sSaRf39q7pxAlgBAAAAb3ED
-QyDC4o3xjAKAA4pGGxzZ7zyUP7nU6QgiqDD1aYi7C6SzcnEEdS4=
------END PYAARLO DUMP-----
+(pyaarlo)$ cat your-log-file | pyaarlo encrypt > home-assistant.log.enc
 ```
 
 #### Notes
