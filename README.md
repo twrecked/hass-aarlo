@@ -319,6 +319,8 @@ If you have an _Arlo Smart Plan_ the `last_capture` sensor has the attribute
 recording ("Person", "Vehicle", "Animal", ...). You can use templates in _Home
 Assistant_ to trigger automations on different object types.
 
+_Note:_ It is important to note a limitation from [pyaarlo](https://github.com/twrecked/pyaarlo#limitations) that the 'object_type' only gets updated AFTER arlo has processed what caused the motion. 
+
 <a name="configuration-light"></a>
 ### Light Configuration
 
