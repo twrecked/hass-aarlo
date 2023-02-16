@@ -822,7 +822,7 @@ logger:
 It sometimes helps to turn on more verbose debug, this provides more
 information about the program's internal states.
 
-Enable verbose debug by adding this to your _Aarlo_ config. 
+Follow the _Basic Debug_ instructions and then add this to your _Aarlo_ config. 
 
 ```yaml
 aarlo:
@@ -834,7 +834,7 @@ aarlo:
 Finally, you can look at what events _Arlo_ is sending you by turning on
 packet dumping.
 
-Enable very verbose debug by adding this to your _Aarlo_ config. 
+Follow the _Basic Debug_ instructions and then add this to your _Aarlo_ config. 
 
 ```yaml
 aarlo:
