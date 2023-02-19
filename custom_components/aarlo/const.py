@@ -38,6 +38,8 @@ CONF_TFA_TYPE = "tfa_type"
 CONF_TFA_HOST = "tfa_host"
 CONF_TFA_USERNAME = "tfa_username"
 CONF_TFA_PASSWORD = "tfa_password"
+CONF_TFA_TIMEOUT = "tfa_timeout"
+CONF_TFA_TOTAL_TIMEOUT = "tfa_total_timeout"
 CONF_LIBRARY_DAYS = "library_days"
 CONF_AUTH_HOST = "auth_host"
 CONF_SERIAL_IDS = "serial_ids"
@@ -77,6 +79,8 @@ DEFAULT_TFA_TYPE = "email"
 DEFAULT_TFA_HOST = "unknown.imap.com"
 DEFAULT_TFA_USERNAME = "unknown@unknown.com"
 DEFAULT_TFA_PASSWORD = "unknown"
+DEFAULT_TFA_TIMEOUT = timedelta(seconds=3)
+DEFAULT_TFA_TOTAL_TIMEOUT = timedelta(seconds=60)
 DEFAULT_LIBRARY_DAYS = 27
 SERIAL_IDS = False
 STREAM_SNAPSHOT = False
