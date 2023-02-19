@@ -676,10 +676,6 @@ class ArloBackEnd(object):
             # update headers and create 2fa instance
             headers["Authorization"] = self._token64
             tfa = self._get_tfa()
-            # snapshot 2fa before sending in request
-            if not tfa.start():
-                self._arlo.error("2fa startup failed")
-                return False
 
             # get available 2fa choices,
             self._arlo.debug("getting tfa choices")
@@ -701,6 +697,11 @@ class ArloBackEnd(object):
                 return False
 
             if tfa != TFA_PUSH_SOURCE:
+                # snapshot 2fa before sending in request
+                if not tfa.start():
+                    self._arlo.error("2fa startup failed")
+                    return False
+
                 # start authentication with email
                 self._arlo.debug(
                     "starting auth with {}".format(self._arlo.cfg.tfa_type)

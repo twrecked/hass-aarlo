@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.4b7"
+__version__ = "0.7.4b8"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,6 +70,8 @@ CONF_TFA_TYPE = "tfa_type"
 CONF_TFA_HOST = "tfa_host"
 CONF_TFA_USERNAME = "tfa_username"
 CONF_TFA_PASSWORD = "tfa_password"
+CONF_TFA_TIMEOUT = "tfa_timeout"
+CONF_TFA_TOTAL_TIMEOUT = "tfa_total_timeout"
 CONF_LIBRARY_DAYS = "library_days"
 CONF_AUTH_HOST = "auth_host"
 CONF_SERIAL_IDS = "serial_ids"
@@ -113,6 +115,8 @@ DEFAULT_TFA_TYPE = "email"
 DEFAULT_TFA_HOST = "unknown.imap.com"
 DEFAULT_TFA_USERNAME = "unknown@unknown.com"
 DEFAULT_TFA_PASSWORD = "unknown"
+DEFAULT_TFA_TIMEOUT = timedelta(seconds=3)
+DEFAULT_TFA_TOTAL_TIMEOUT = timedelta(seconds=60)
 DEFAULT_LIBRARY_DAYS = 30
 SERIAL_IDS = False
 STREAM_SNAPSHOT = False
@@ -187,6 +191,8 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_TFA_PASSWORD, default=DEFAULT_TFA_PASSWORD
                 ): cv.string,
+                vol.Optional(CONF_TFA_TIMEOUT, default=DEFAULT_TFA_TIMEOUT): cv.time_period,
+                vol.Optional(CONF_TFA_TOTAL_TIMEOUT, default=DEFAULT_TFA_TOTAL_TIMEOUT): cv.time_period,
                 vol.Optional(
                     CONF_LIBRARY_DAYS, default=DEFAULT_LIBRARY_DAYS
                 ): cv.positive_int,
@@ -375,6 +381,8 @@ def login(hass, conf):
     tfa_host = conf.get(CONF_TFA_HOST)
     tfa_username = conf.get(CONF_TFA_USERNAME)
     tfa_password = conf.get(CONF_TFA_PASSWORD)
+    tfa_timeout = int(conf.get(CONF_TFA_TIMEOUT).total_seconds())
+    tfa_total_timeout = int(conf.get(CONF_TFA_TOTAL_TIMEOUT).total_seconds())
     library_days = conf.get(CONF_LIBRARY_DAYS)
     serial_ids = conf.get(CONF_SERIAL_IDS)
     stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
@@ -433,6 +441,8 @@ def login(hass, conf):
                 tfa_host=tfa_host,
                 tfa_username=tfa_username,
                 tfa_password=tfa_password,
+                tfa_timeout=tfa_timeout,
+                tfa_total_timeout=tfa_total_timeout,
                 library_days=library_days,
                 serial_ids=serial_ids,
                 stream_snapshot=stream_snapshot,
