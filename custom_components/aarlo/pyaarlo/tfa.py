@@ -81,7 +81,7 @@ class Arlo2FAImap:
             return False
 
         self._new_ids = self._old_ids
-        self._arlo.debug("old-ids={}".format(self._old_ids))
+        self._arlo.debug("2fa-imap: old-ids={}".format(self._old_ids))
         if res.lower() == "ok":
             return True
 
@@ -92,6 +92,7 @@ class Arlo2FAImap:
 
         # give tfa_total_timeout seconds for email to arrive
         start = time.time()
+        self._arlo.debug(f"2fa-imap: retry-every={self._arlo.cfg.tfa_timeout},up-to={self._arlo.cfg.tfa_total_timeout}")
         while True:
 
             # wait a short while, stop after a total timeout
