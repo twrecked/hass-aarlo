@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.4b7: Reorder IMAP to start earlier.
 0.7.4b6: Improve status handling.
 0.7.4b5: Fix URL and headers.
 0.7.4b4: Fix URL and headers.
