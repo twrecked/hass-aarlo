@@ -1,4 +1,5 @@
 aarlo/pyaarlo
+0.7.4b9: Fix missing events.
 0.7.4b8: Make IMAP timeout configurable.
   Back out: reorder IMAP to start earlier.
 0.7.4b7: Reorder IMAP to start earlier.
