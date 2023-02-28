@@ -73,12 +73,9 @@ class ArloSuper(object):
         self._arlo.st.set(self._to_storage_key(attr), value, prefix=self._id)
 
     def _save_and_do_callbacks(self, attr, value):
-        if value != self._load(attr):
-            self._save(attr, value)
-            self._do_callbacks(attr, value)
-            self.debug(f"{attr}: NEW {str(value)[:80]}")
-        else:
-            self.vdebug(f"{attr}: OLD {str(value)[:80]}")
+        self._save(attr, value)
+        self._do_callbacks(attr, value)
+        self.debug(f"{attr}: {str(value)[:100]}")
 
     def _load(self, attr, default=None):
         return self._arlo.st.get(self._to_storage_key(attr), default)
