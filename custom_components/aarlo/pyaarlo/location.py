@@ -18,13 +18,20 @@ DEFAULT_MODES = {
 }
 
 
+def location_name(name, user):
+    if user:
+        return f"user_location_{name}"
+    return f"location_{name}"
+
+
 class ArloLocation(ArloSuper):
     """ Represents a Location object.
 
     Each Arlo account can have multiple owned locations and multiple shared locations.
     """
-    def __init__(self, arlo, attrs):
-        super().__init__(attrs.get("locationName", "unknown"), arlo, attrs,
+    def __init__(self, arlo, attrs, user=False):
+        super().__init__(location_name(attrs.get("locationName", "unknown"), user),
+                         arlo, attrs,
                          id=attrs.get("locationId", "unknown"),
                          type="location")
 

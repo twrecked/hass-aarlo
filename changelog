@@ -1,4 +1,6 @@
 aarlo/pyaarlo
+0.7.4b11:
+  Make location names unique.
 0.7.4b10:
   Tidy image capture code.
 0.7.4b9: Fix missing events.
