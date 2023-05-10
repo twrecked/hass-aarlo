@@ -482,9 +482,9 @@ class ArloBackEnd(object):
             self._event_client.tls_set_context(ssl_context)
             self._event_client.username_pw_set(f"{self._user_id}", self._token)
             self._event_client.ws_set_options(path=MQTT_PATH, headers=headers)
-            self.debug(f"mqtt: host={self._arlo.cfg.mqtt_host}, "
-                       f"check={self._arlo.cfg.mqtt_hostname_check}, "
-                       f"transport={self._arlo.cfg.mqtt_transport}")
+            self._arlo.debug(f"mqtt: host={self._arlo.cfg.mqtt_host}, "
+                             f"check={self._arlo.cfg.mqtt_hostname_check}, "
+                             f"transport={self._arlo.cfg.mqtt_transport}")
 
             # Connect.
             self._event_client.connect(self._arlo.cfg.mqtt_host, port=443, keepalive=60)
