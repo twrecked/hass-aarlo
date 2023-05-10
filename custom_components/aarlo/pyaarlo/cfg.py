@@ -3,6 +3,7 @@ import tempfile
 from .constant import (
     DEFAULT_AUTH_HOST,
     DEFAULT_HOST,
+    MQTT_HOST,
     PRELOAD_DAYS,
     TFA_CONSOLE_SOURCE,
     TFA_DEFAULT_HOST,
@@ -58,6 +59,18 @@ class ArloCfg(object):
     @property
     def auth_host(self):
         return self._kw.get("auth_host", DEFAULT_AUTH_HOST)
+
+    @property
+    def mqtt_host(self):
+        return self._kw.get("mqtt_host", MQTT_HOST)
+
+    @property
+    def mqtt_hostname_check(self):
+        return self._kw.get("mqtt_hostname_check", True)
+
+    @property
+    def mqtt_transport(self):
+        return self._kw.get("mqtt_transport", "tcp")
 
     @property
     def dump(self):
