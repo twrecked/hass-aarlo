@@ -472,17 +472,22 @@ class ArloBackEnd(object):
 
             # Create and set up the MQTT client.
             self._event_client = mqtt.Client(
-                client_id=self._event_client_id, transport="websockets"
+                client_id=self._event_client_id, transport=self._arlo.cfg.mqtt_transport
             )
             self._event_client.on_log = self._mqtt_on_log
             self._event_client.on_connect = self._mqtt_on_connect
             self._event_client.on_message = self._mqtt_on_message
-            self._event_client.tls_set_context(ssl.create_default_context())
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = self._arlo.cfg.mqtt_hostname_check
+            self._event_client.tls_set_context(ssl_context)
             self._event_client.username_pw_set(f"{self._user_id}", self._token)
             self._event_client.ws_set_options(path=MQTT_PATH, headers=headers)
+            self.debug(f"mqtt: host={self._arlo.cfg.mqtt_host}, "
+                       f"check={self._arlo.cfg.mqtt_hostname_check}, "
+                       f"transport={self._arlo.cfg.mqtt_transport}")
 
             # Connect.
-            self._event_client.connect(MQTT_HOST, port=443, keepalive=60)
+            self._event_client.connect(self._arlo.cfg.mqtt_host, port=443, keepalive=60)
             self._event_client.loop_forever()
 
         except Exception as e:
@@ -639,7 +644,7 @@ class ArloBackEnd(object):
             "Source": "arloCamWeb",
             "User-Agent": self._user_agent,
             "x-user-device-id": self._user_id,
-            "x-user-device-name": "QlJPV1NFUg==",
+            "x-user-device-automation-name": "QlJPV1NFUg==",
             "x-user-device-type": "BROWSER",
         }
 
@@ -777,7 +782,7 @@ class ArloBackEnd(object):
             "User-Agent": self._user_agent,
             "Source": "arloCamWeb",
             "x-user-device-id": self._user_id,
-            "x-user-device-name": "QlJPV1NFUg==",
+            "x-user-device-automation-name": "QlJPV1NFUg==",
             "x-user-device-type": "BROWSER",
         }
 
