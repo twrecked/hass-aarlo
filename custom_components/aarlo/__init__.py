@@ -26,7 +26,12 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from requests.exceptions import ConnectTimeout, HTTPError
 
-from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
+from .pyaarlo.constant import (
+    DEFAULT_AUTH_HOST,
+    DEFAULT_HOST,
+    MQTT_HOST,
+    SIREN_STATE_KEY
+)
 
 __version__ = "0.7.4b11"
 
@@ -85,6 +90,9 @@ CONF_SAVE_SESSION = "save_session"
 CONF_BACKEND = "backend"
 CONF_DEFAULT_CIPHERS = "default_ciphers"
 CONF_CIPHER_LIST = "cipher_list"
+CONF_MQTT_HOST = "mqtt_host"
+CONF_MQTT_HOSTNAME_CHECK = "mqtt_hostname_check"
+CONF_MQTT_TRANSPORT = "mqtt_transport"
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -129,6 +137,9 @@ SAVE_SESSION = True
 DEFAULT_BACKEND = "auto"
 DEFAULT_DEFAULT_CIPHERS = False
 DEFAULT_CIPHER_LIST = ""
+DEFAULT_MQTT_HOST = MQTT_HOST
+DEFAULT_MQTT_HOSTNAME_CHECK = True
+DEFAULT_MQTT_TRANSPORT = "tcp"
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -213,6 +224,9 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_BACKEND, default=DEFAULT_BACKEND): cv.string,
                 vol.Optional(CONF_DEFAULT_CIPHERS, default=DEFAULT_DEFAULT_CIPHERS): cv.boolean,
                 vol.Optional(CONF_CIPHER_LIST, default=DEFAULT_CIPHER_LIST): cv.string,
+                vol.Optional(CONF_MQTT_HOST, default=DEFAULT_MQTT_HOST): cv.string,
+                vol.Optional(CONF_MQTT_HOSTNAME_CHECK, default=DEFAULT_MQTT_HOSTNAME_CHECK): cv.boolean,
+                vol.Optional(CONF_MQTT_TRANSPORT, default=DEFAULT_MQTT_TRANSPORT): cv.string,
             }
         ),
     },
@@ -395,6 +409,9 @@ def login(hass, conf):
     backend = conf.get(CONF_BACKEND)
     default_ciphers = conf.get(CONF_DEFAULT_CIPHERS)
     cipher_list = conf.get(CONF_CIPHER_LIST)
+    mqtt_host = conf.get(CONF_MQTT_HOST)
+    mqtt_hostname_check = conf.get(CONF_MQTT_HOSTNAME_CHECK)
+    mqtt_transport = conf.get(CONF_MQTT_TRANSPORT)
 
     # Fix up config
     if conf_dir == "":
@@ -457,6 +474,9 @@ def login(hass, conf):
                 cipher_list=cipher_list,
                 wait_for_initial_setup=False,
                 verbose_debug=verbose_debug,
+                mqtt_host=mqtt_host,
+                mqtt_hostname_check=mqtt_hostname_check,
+                mqtt_transport=mqtt_transport,
             )
 
             if arlo.is_connected:
