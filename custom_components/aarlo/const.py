@@ -52,6 +52,9 @@ CONF_NO_UNICODE_SQUASH = "no_unicode_squash"
 CONF_SAVE_SESSION = "save_session"
 CONF_BACKEND = "backend"
 CONF_CIPHER_LIST = "cipher_list"
+CONF_MQTT_HOST = "mqtt_host"
+CONF_MQTT_HOSTNAME_CHECK = "mqtt_hostname_check"
+CONF_MQTT_TRANSPORT = "mqtt_transport"
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -92,3 +95,5 @@ NO_UNICODE_SQUASH = True
 SAVE_SESSION = True
 DEFAULT_BACKEND = "auto"
 DEFAULT_CIPHER_LIST = ""
+DEFAULT_MQTT_HOSTNAME_CHECK = True
+DEFAULT_MQTT_TRANSPORT = "tcp"

@@ -1,4 +1,8 @@
 aarlo
+0.8.0a13:
+  Handle Arlo backend changes.
+  Make MQTT more configurable.
+  Bump pyaarlo revision.
 0.8.0a12: Add initial 8-in-1 sensor support
     [thanks xirtamoen for lending the sensors]
   Support Arlo v4 APIs

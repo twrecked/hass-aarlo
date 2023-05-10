@@ -23,12 +23,12 @@ from homeassistant.const import (
 )
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
-from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
+from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY, MQTT_HOST
 from requests.exceptions import ConnectTimeout, HTTPError
 
 from .const import *
 
-__version__ = "0.8.0a12"
+__version__ = "0.8.0a13"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,6 +105,9 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_SAVE_SESSION, default=SAVE_SESSION): cv.boolean,
                 vol.Optional(CONF_BACKEND, default=DEFAULT_BACKEND): cv.string,
                 vol.Optional(CONF_CIPHER_LIST, default=DEFAULT_CIPHER_LIST): cv.string,
+                vol.Optional(CONF_MQTT_HOST, default=MQTT_HOST): cv.string,
+                vol.Optional(CONF_MQTT_HOSTNAME_CHECK, default=DEFAULT_MQTT_HOSTNAME_CHECK): cv.boolean,
+                vol.Optional(CONF_MQTT_TRANSPORT, default=DEFAULT_MQTT_TRANSPORT): cv.string,
             }
         ),
     },
@@ -288,6 +291,9 @@ def login(hass, conf):
     save_session = conf.get(CONF_SAVE_SESSION)
     backend = conf.get(CONF_BACKEND)
     cipher_list = conf.get(CONF_CIPHER_LIST)
+    mqtt_host = conf.get(CONF_MQTT_HOST)
+    mqtt_hostname_check = conf.get(CONF_MQTT_HOSTNAME_CHECK)
+    mqtt_transport = conf.get(CONF_MQTT_TRANSPORT)
 
     # Fix up config
     if conf_dir == "":
@@ -346,6 +352,9 @@ def login(hass, conf):
                 cipher_list=cipher_list,
                 wait_for_initial_setup=False,
                 verbose_debug=verbose_debug,
+                mqtt_host=mqtt_host,
+                mqtt_hostname_check=mqtt_hostname_check,
+                mqtt_transport=mqtt_transport,
             )
 
             if arlo.is_connected:
