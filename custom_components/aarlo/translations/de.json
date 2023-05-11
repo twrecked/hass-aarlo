@@ -3,6 +3,13 @@
     "error": {
       "missing_field": "Bitte füllen Sie alle Felder aus.",
       "tfa_no_imap": "Ein gültiger TFA-HOST sollte „imap“ enthalten"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "username": "Nutzername"
+        }
+      }
     }
   }
 }
