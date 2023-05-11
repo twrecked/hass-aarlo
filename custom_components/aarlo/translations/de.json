@@ -10,7 +10,8 @@
           "username": "Nutzername",
           "password": "Passwort",
           "tfa_username": "TFA-Benutzername",
-          "tfa_password": "TFA-Passwort"
+          "tfa_password": "TFA-Passwort",
+          "tfa_host": "TFA-Host"
         }
       }
     }
