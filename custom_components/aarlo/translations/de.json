@@ -1,1 +1,7 @@
-{}
+{
+  "config": {
+    "error": {
+      "missing_field": "Bitte füllen Sie alle Felder aus."
+    }
+  }
+}
