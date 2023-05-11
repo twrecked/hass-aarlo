@@ -9,7 +9,8 @@
         "data": {
           "username": "Nutzername",
           "password": "Passwort",
-          "tfa_username": "TFA-Benutzername"
+          "tfa_username": "TFA-Benutzername",
+          "tfa_password": "TFA-Passwort"
         }
       }
     }
