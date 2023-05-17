@@ -23,6 +23,7 @@ from .constant import (
     MODEL_HUB,
     MODEL_PRO_3_FLOODLIGHT,
     MODEL_PRO_4,
+    MODEL_WIRED_VIDEO_DOORBELL,
     MODEL_WIREFREE_VIDEO_DOORBELL,
     PING_CAPABILITY,
     RESOURCE_CAPABILITY,
@@ -547,8 +548,18 @@ class ArloBase(ArloDevice):
                 return True
 
         if cap in (PING_CAPABILITY,):
+
+            # Always true for these devices.
             if self.model_id.startswith(MODEL_BABY):
                 return True
+            if self.model_id.startswith(MODEL_WIRED_VIDEO_DOORBELL):
+                return True
+
+            # Don't ping these devices ever.
+            if self.model_id.startswith(
+                    (MODEL_WIREFREE_VIDEO_DOORBELL, MODEL_ESSENTIAL, MODEL_PRO_3_FLOODLIGHT, MODEL_PRO_4)
+            ):
+                return False
 
             # We have to be careful pinging some base stations because it can rapidly
             # drain the battery power. Don't ping if:
@@ -559,12 +570,6 @@ class ArloBase(ArloDevice):
                 if not self.is_corded and not self.has_charger:
                     if self.using_wifi:
                         return False
-
-            # Don't ping these devices ever.
-            if self.model_id.startswith(
-                    (MODEL_WIREFREE_VIDEO_DOORBELL, MODEL_ESSENTIAL, MODEL_PRO_3_FLOODLIGHT, MODEL_PRO_4)
-            ):
-                return False
 
             return True
 
