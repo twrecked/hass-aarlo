@@ -1,4 +1,6 @@
 aarlo/pyaarlo
+0.7.4b13:
+  Always ping wired doorbell devices
 0.7.4b12:
   Modify headers to match new Arlo backend.
   Allow MQTT to be configured for new Arlo backend.
