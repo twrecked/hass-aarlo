@@ -45,6 +45,7 @@ from .util import days_until, now_strftime, time_to_arlotime, to_b64
 class ArloBackEnd(object):
 
     _multi_location = False
+    _user_device_id = None
 
     def __init__(self, arlo):
 
@@ -60,6 +61,7 @@ class ArloBackEnd(object):
         self._resource_types = DEFAULT_RESOURCES
 
         self._load_session()
+        self._user_device_id = str(uuid.uuid4())
 
         # event thread stuff
         self._event_thread = None
@@ -129,6 +131,7 @@ class ArloBackEnd(object):
         raw=False,
         timeout=None,
         host=None,
+        authpost=False,
     ):
         if params is None:
             params = {}
@@ -140,9 +143,13 @@ class ArloBackEnd(object):
             with self._req_lock:
                 if host is None:
                     host = self._arlo.cfg.host
-                tid = self._transaction_id()
-                url = self._build_url(host + path, tid)
-                headers['x-transaction-id'] = tid
+                if authpost:
+                    url = host + path
+                else:
+                    tid = self._transaction_id()
+                    url = self._build_url(host + path, tid)
+                    headers['x-transaction-id'] = tid
+
                 self._arlo.vdebug("request-url={}".format(url))
                 self._arlo.vdebug("request-params=\n{}".format(pprint.pformat(params)))
                 self._arlo.vdebug("request-headers=\n{}".format(pprint.pformat(headers)))
@@ -643,7 +650,7 @@ class ArloBackEnd(object):
             "Referer": REFERER_HOST,
             "Source": "arloCamWeb",
             "User-Agent": self._user_agent,
-            "x-user-device-id": self._user_id,
+            "x-user-device-id": self._user_device_id,
             "x-user-device-automation-name": "QlJPV1NFUg==",
             "x-user-device-type": "BROWSER",
         }
@@ -741,7 +748,12 @@ class ArloBackEnd(object):
                 self._arlo.debug(
                     "starting auth with {}".format(self._arlo.cfg.tfa_type)
                 )
-                body = self.auth_post(AUTH_START_PATH, {"factorId": factor_id}, headers)
+                payload = {
+                    "factorId": factor_id,
+                    "factorType": "BROWSER",
+                    "userId": self._user_id
+                }
+                body = self.auth_post(AUTH_START_PATH, payload, headers)
                 if body is None:
                     self._arlo.error("2fa startAuth failed")
                     return False
@@ -781,7 +793,7 @@ class ArloBackEnd(object):
             "Referer": REFERER_HOST,
             "User-Agent": self._user_agent,
             "Source": "arloCamWeb",
-            "x-user-device-id": self._user_id,
+            "x-user-device-id": self._user_device_id,
             "x-user-device-automation-name": "QlJPV1NFUg==",
             "x-user-device-type": "BROWSER",
         }
@@ -1028,14 +1040,14 @@ class ArloBackEnd(object):
 
     def auth_post(self, path, params=None, headers=None, raw=False, timeout=None):
         return self._request(
-            path, "POST", params, headers, False, raw, timeout, self._arlo.cfg.auth_host
+            path, "POST", params, headers, False, raw, timeout, self._arlo.cfg.auth_host, authpost=True
         )
 
     def auth_get(
         self, path, params=None, headers=None, stream=False, raw=False, timeout=None
     ):
         return self._request(
-            path, "GET", params, headers, stream, raw, timeout, self._arlo.cfg.auth_host
+            path, "GET", params, headers, stream, raw, timeout, self._arlo.cfg.auth_host, authpost=True
         )
 
     @property
