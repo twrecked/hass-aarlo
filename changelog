@@ -1,4 +1,7 @@
 aarlo/pyaarlo
+0.7.4b14:
+  Bump cloudscraper revision.
+  Update Arlo headers.
 0.7.4b13:
   Always ping wired doorbell devices
 0.7.4b12:
