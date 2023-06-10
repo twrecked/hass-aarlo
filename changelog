@@ -1,4 +1,6 @@
 aarlo/pyaarlo
+0.7.4b15:
+  Limit number of logins to help with cloudflare issues
 0.7.4b14:
   Bump cloudscraper revision.
   Update Arlo headers.
