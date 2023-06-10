@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .const import *
 
-__version__ = "0.8.0a13"
+__version__ = "0.8.0a14"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -389,6 +389,9 @@ def login(hass, conf):
 
         # line up a retry
         attempt = attempt + 1
+        if attempt == 5:
+            _LOGGER.error(f"unable to connect to Arlo: stopping retries, too may failures")
+            return None
         time.sleep(sleep)
         sleep = min(300, sleep * 2)
 
