@@ -33,7 +33,7 @@ from .pyaarlo.constant import (
     SIREN_STATE_KEY
 )
 
-__version__ = "0.7.4b14"
+__version__ = "0.7.4b15"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -511,6 +511,9 @@ def login(hass, conf):
 
         # line up a retry
         attempt = attempt + 1
+        if attempt == 5:
+            _LOGGER.error(f"unable to connect to Arlo: stopping retries, too may failures")
+            return None
         time.sleep(sleep)
         sleep = min(300, sleep * 2)
 
