@@ -521,7 +521,7 @@ class ArloBackEnd(object):
                 self._event_client = SSEClient(
                     self._arlo,
                     self._arlo.cfg.host + SUBSCRIBE_PATH,
-                    session=self._session,
+                    headers=self._headers(),
                     reconnect_cb=self._sse_reconnected,
                 )
             else:
@@ -533,7 +533,7 @@ class ArloBackEnd(object):
                 self._event_client = SSEClient(
                     self._arlo,
                     self._arlo.cfg.host + SUBSCRIBE_PATH,
-                    session=self._session,
+                    headers=self._headers(),
                     reconnect_cb=self._sse_reconnected,
                     timeout=self._arlo.cfg.stream_timeout,
                 )
@@ -646,13 +646,43 @@ class ArloBackEnd(object):
             "Accept": "application/json, text/plain, */*",
             "Accept-Encoding": "gzip, deflate, br",
             "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
+            "Cache-Control": "no-cache",
             "Origin": ORIGIN_HOST,
+            "Pragma": "no-cache",
             "Referer": REFERER_HOST,
+            # "Sec-Ch-Ua": '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
+            # "Sec-Ch-Ua-Mobile": "?0",
+            # "Sec-Ch-Ua-Platform": "Linux",
+            # "Sec-Fetch-Dest": "empty",
+            # "Sec-Fetch-Mode": "cors",
+            # "Sec-Fetch-Site": "same-site",
             "Source": "arloCamWeb",
             "User-Agent": self._user_agent,
-            "x-user-device-id": self._user_device_id,
-            "x-user-device-automation-name": "QlJPV1NFUg==",
-            "x-user-device-type": "BROWSER",
+            "X-User-Device-Automation-name": "QlJPV1NFUg==",
+            "X-User-Device-Id": self._user_device_id,
+            "X-User-Device-Type": "BROWSER",
+        }
+
+    def _headers(self):
+        return {
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
+            "Auth-Version": "2",
+            "Authorization": self._token,
+            "Cache-Control": "no-cache",
+            "Content-Type": "application/json; charset=utf-8;",
+            "Origin": ORIGIN_HOST,
+            "Pragma": "no-cache",
+            "Referer": REFERER_HOST,
+            # "SchemaVersion": "1",
+            # "Sec-Ch-Ua": '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
+            # "Sec-Ch-Ua-Mobile": "?0",
+            # "Sec-Ch-Ua-Platform": "Linux",
+            # "Sec-Fetch-Dest": "empty",
+            # "Sec-Fetch-Mode": "cors",
+            # "Sec-Fetch-Site": "same-site",
+            "User-Agent": self._user_agent,
         }
 
     def _auth(self):
@@ -834,19 +864,7 @@ class ArloBackEnd(object):
             self._arlo.debug("newish sessions, re-using")
 
         # update sessions headers
-        headers = {
-            "Accept": "application/json",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
-            "Auth-Version": "2",
-            "Authorization": self._token,
-            "Content-Type": "application/json; charset=utf-8;",
-            "Origin": ORIGIN_HOST,
-            "Pragma": "no-cache",
-            "Referer": REFERER_HOST,
-            "SchemaVersion": "1",
-            "User-Agent": self._user_agent,
-        }
+        headers = self._headers()
         self._session.headers.update(headers)
 
         # Grab a session. Needed for new session and used to check existing
