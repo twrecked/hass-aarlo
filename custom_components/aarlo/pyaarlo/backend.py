@@ -675,7 +675,7 @@ class ArloBackEnd(object):
             "Origin": ORIGIN_HOST,
             "Pragma": "no-cache",
             "Referer": REFERER_HOST,
-            # "SchemaVersion": "1",
+            "SchemaVersion": "1",
             # "Sec-Ch-Ua": '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
             # "Sec-Ch-Ua-Mobile": "?0",
             # "Sec-Ch-Ua-Platform": "Linux",
