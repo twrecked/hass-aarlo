@@ -9,7 +9,7 @@
     "ffmpeg"
   ],
   "documentation": "https://github.com/twrecked/hass-aarlo/blob/master/README.md",
-  "iot_class": "cloud_push"
+  "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
   "requirements": [
     "unidecode",
