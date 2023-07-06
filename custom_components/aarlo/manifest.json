@@ -1,19 +1,19 @@
 {
   "domain": "aarlo",
   "name": "Arlo Camera Support",
-  "config_flow": true,
-  "documentation": "https://github.com/twrecked/hass-aarlo/blob/master/README.md",
-  "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
-  "dependencies": [
-    "ffmpeg"
-  ],
   "codeowners": [
     "@twrecked"
   ],
+  "config_flow": true,
+  "dependencies": [
+    "ffmpeg"
+  ],
+  "documentation": "https://github.com/twrecked/hass-aarlo/blob/master/README.md",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
   "requirements": [
     "unidecode",
-    "pyaarlo>=0.8.0b7"
+    "pyaarlo>=0.8.0b10"
   ],
-  "version": "0.8.0a14",
-  "iot_class": "cloud_push"
+  "version": "0.8.0a15"
 }
