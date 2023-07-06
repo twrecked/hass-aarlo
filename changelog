@@ -1,4 +1,6 @@
 aarlo
+0.8.0a15:
+  Bump pyaarlo revision.
 0.8.0a14:
   Limit retries to (try to) prevent cloudflare lockouts
 0.8.0a13:
