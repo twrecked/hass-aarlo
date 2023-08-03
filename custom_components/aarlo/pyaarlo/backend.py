@@ -656,7 +656,7 @@ class ArloBackEnd(object):
             # "Sec-Fetch-Dest": "empty",
             # "Sec-Fetch-Mode": "cors",
             # "Sec-Fetch-Site": "same-site",
-            "Source": "arloCamWeb",
+            # "Source": "arloCamWeb",
             "User-Agent": self._user_agent,
             "X-User-Device-Automation-name": "QlJPV1NFUg==",
             "X-User-Device-Id": self._user_device_id,
@@ -851,7 +851,7 @@ class ArloBackEnd(object):
         # If token looks invalid we'll try the whole process.
         get_new_session = days_until(self._expires_in) < 2
         if get_new_session:
-            self._session = cloudscraper.create_scraper()
+            self._session = cloudscraper.create_scraper(ecdhCurve='secp384r1')
             self._arlo.debug("oldish session, getting a new one")
             if not self._auth():
                 return False
