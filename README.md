@@ -741,7 +741,7 @@ end event system. The original system used a `Server Side Event` socket but
 they now support a `MQTT` broker system. 
 
 By default, the system will use try to work out which event system to use by
-looking for keywords in the _Arlo_ server responses. If yiur aren't seeing the
+looking for keywords in the _Arlo_ server responses. If you aren't seeing the
 events you expect to see then try changing to the `Server Side Event` back
 end. Use the `backend` keyword.
 
