@@ -23,6 +23,7 @@ from .constant import (
     MODEL_HUB,
     MODEL_PRO_3_FLOODLIGHT,
     MODEL_PRO_4,
+    MODEL_PRO_5,
     MODEL_WIRED_VIDEO_DOORBELL,
     MODEL_WIREFREE_VIDEO_DOORBELL,
     PING_CAPABILITY,
@@ -557,7 +558,8 @@ class ArloBase(ArloDevice):
 
             # Don't ping these devices ever.
             if self.model_id.startswith(
-                    (MODEL_WIREFREE_VIDEO_DOORBELL, MODEL_ESSENTIAL, MODEL_PRO_3_FLOODLIGHT, MODEL_PRO_4)
+                    (MODEL_WIREFREE_VIDEO_DOORBELL, MODEL_ESSENTIAL,
+                     MODEL_PRO_3_FLOODLIGHT, MODEL_PRO_4, MODEL_PRO_5)
             ):
                 return False
 
