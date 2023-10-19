@@ -16,6 +16,7 @@
       }
     }
   },
+
   "services": {
     "camera_request_snapshot": {
       "name": "Camera Request Snapshot",
@@ -62,6 +63,105 @@
         "entity_id": {
           "name": "Entity",
           "description": "Camera to use."
+        }
+      }
+    },
+
+    "camera_start_recording": {
+      "name": "Camera Start Recording",
+      "description": "Ask a camera start recording to library.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Camera to use."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "How long to record for."
+        }
+      }
+    },
+    "camera_stop_recording": {
+      "name": "Camera Stop Recording",
+      "description": "Ask a camera to stop recording.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Camera to use."
+        }
+      }
+    },
+
+    "alarm_set_mode": {
+      "name": "Alarm Set Mode",
+      "description": "Change Basestation Mode.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Basestation to use."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Mode to change to."
+        }
+      }
+    },
+
+    "siren_on": {
+      "name": "Siren One",
+      "description": "Turn a siren on at a given volume and for a given duration.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Siren to use."
+        },
+        "volume": {
+          "name": "Volume",
+          "description": "How loud to sound at."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "How long to sound for."
+        }
+      }
+    },
+    "siren_off": {
+      "name": "Siren Off",
+      "description": "Turn a siren off.",
+      "fields": {
+        "entity_id": {
+          "name": "Entity",
+          "description": "Siren to use."
+        }
+      }
+    },
+
+    "sirens_on": {
+      "name": "Sirens On",
+      "description": "Turn all the sirens on at a given volume and for a given duration.",
+      "fields": {
+        "volume": {
+          "name": "Volume",
+          "description": "How loud to sound at."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "How long to sound for."
+        }
+      }
+    },
+    "sirens_off": {
+      "name": "Sirens Off",
+      "description": "Turn all the sirens off."
+    },
+
+    "inject_response": {
+      "name": "Inject a Fake Packet",
+      "description": "For testing, inject a fake packet into the event stream.",
+      "fields": {
+        "filename": {
+          "name": "File Name",
+          "description": "File name to containing the packet."
         }
       }
     }
