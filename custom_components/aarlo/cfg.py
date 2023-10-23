@@ -53,6 +53,7 @@ from pyaarlo.constant import (
 
 from .const import *
 
+
 _LOGGER = logging.getLogger(__name__)
 
 ARMED = "armed"
@@ -333,5 +334,3 @@ class ArloFileCfg(object):
             })
         except Exception as e:
             _LOGGER.debug(f"couldn't save user data {str(e)}")
-           
-           
