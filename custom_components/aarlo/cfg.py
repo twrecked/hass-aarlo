@@ -1,4 +1,7 @@
+import copy
 import logging
+from datetime import timedelta
+
 import voluptuous as vol
 
 from homeassistant.const import (
@@ -7,9 +10,11 @@ from homeassistant.const import (
     CONF_HOST,
     CONF_MONITORED_CONDITIONS,
     CONF_PASSWORD,
+    CONF_PLATFORM,
     CONF_SCAN_INTERVAL,
     CONF_TRIGGER_TIME,
     CONF_USERNAME,
+    Platform,
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
@@ -136,6 +141,16 @@ AARLO_SCHEMA = vol.Schema({
     vol.Optional(CONF_MQTT_TRANSPORT, default=DEFAULT_MQTT_TRANSPORT): cv.string,
 })
 
+AARLO_SCHEMA_IN_CONFIG = [
+    CONF_USERNAME,
+    CONF_PASSWORD,
+    CONF_TFA_SOURCE,
+    CONF_TFA_TYPE,
+    CONF_TFA_HOST,
+    CONF_TFA_USERNAME,
+    CONF_TFA_PASSWORD
+]
+
 # This is the default alarm schema.
 ALARM_SCHEMA = vol.Schema({
     vol.Optional(CONF_CODE): cv.string,
@@ -217,7 +232,6 @@ class ArloFileCfg(object):
     Reads in non config flow settings from the external config file.
     """
 
-    _config_file: str = "/config/aarlo.yaml"
     _main_config = {}
     _alarm_config = {}
     _binary_sensor_config = {}
@@ -227,41 +241,36 @@ class ArloFileCfg(object):
     def __init__(self):
         pass
 
+    def _get_platform_config(self, config):
+        for entry in config:
+            if entry[CONF_PLATFORM] == DOMAIN:
+                entry = copy.deepcopy(entry)
+                entry.pop(CONF_PLATFORM)
+                return entry
+        return {}
+
     def load(self):
 
         # Read in current config
         config = {}
         try:
-            config = load_yaml(self._config_file)
+            config = load_yaml(AARLO_CONFIG_FILE)
         except Exception as e:
             _LOGGER.debug(f"failed to read aarlo config {str(e)}")
 
         # Fix up the pieces to standard defaults..
-        self._main_config = AARLO_SCHEMA(config.get("aarlo", {}))
-        self._alarm_config = ALARM_SCHEMA(config.get("alarm", {}))
-        self._binary_sensor_config = BINARY_SENSOR_SCHEMA(config.get("binary_sensor", {}))
-        self._sensor_config = SENSOR_SCHEMA(config.get("sensor", {}))
-        self._switch_config = SWITCH_SCHEMA(config.get("switch", {}))
+        self._main_config = AARLO_SCHEMA(config.get(DOMAIN, {}))
+        self._alarm_config = ALARM_SCHEMA(config.get(Platform.ALARM_CONTROL_PANEL, {}))
+        self._binary_sensor_config = BINARY_SENSOR_SCHEMA(config.get(Platform.BINARY_SENSOR, {}))
+        self._sensor_config = SENSOR_SCHEMA(config.get(Platform.SENSOR, {}))
+        self._switch_config = SWITCH_SCHEMA(config.get(Platform.SWITCH, {}))
 
-        _LOGGER.debug(f"config-file={self._config_file}")
+        _LOGGER.debug(f"config-file={AARLO_CONFIG_FILE}")
         _LOGGER.debug(f"main-config={self._main_config}")
         _LOGGER.debug(f"alarm-config={self._alarm_config}")
         _LOGGER.debug(f"binary-sensor-config={self._binary_sensor_config}")
         _LOGGER.debug(f"sensor-config={self._sensor_config}")
         _LOGGER.debug(f"switch-config={self._switch_config}")
-
-        try:
-            save_yaml(self._config_file, {
-                'version': 1,
-                'aarlo': {
-                    'host': "https://this-is-my-host.com",
-                    'conf_dir': '/crap'
-                },
-                'alarm': {}
-            })
-        except Exception as e:
-            _LOGGER.debug(f"couldn't save user data {str(e)}")
-        _LOGGER.debug("saved")
 
     @property
     def main_config(self):
@@ -269,3 +278,60 @@ class ArloFileCfg(object):
 
     def main_config_value(self, key: str, default=None):
         return self._main_config.get(key, default)
+
+    def import_config(self, config):
+        """ Take the current aarlo config and make the new yaml file.
+
+        Aarlo seems to need a lot of fine tuning so rather than get rid of
+        the options or clutter up the config flow system I'm adding a text file
+        where the user can configure things.
+        """
+
+        # We need to
+        # - strip out the config flow items from this
+        # - replace timedelta with strings
+        # - remove defaults
+        aarlo_config = {}
+        default_aarlo_config = AARLO_SCHEMA({})
+        for key, value in config.get(DOMAIN, {}).items():
+            _LOGGER.debug(f"trying-td={key}")
+
+            # Skip these.
+            if key in AARLO_SCHEMA_IN_CONFIG:
+                continue
+            if default_aarlo_config[key] == value:
+                continue
+
+            # Convert to a format yaml_save will work with if needed.
+            if isinstance(value, timedelta):
+                _LOGGER.debug(f"td={key}")
+                aarlo_config[key] = value.seconds
+            else:
+                aarlo_config[key] = value
+
+        # For now, everything else comes as-as.
+        alarm_config = self._get_platform_config(config.get(Platform.ALARM_CONTROL_PANEL, []))
+        binary_sensor_config = self._get_platform_config(config.get(Platform.BINARY_SENSOR, []))
+        sensor_config = self._get_platform_config(config.get(Platform.SENSOR, []))
+        switch_config = self._get_platform_config(config.get(Platform.SWITCH, []))
+
+        _LOGGER.debug(f"aarl0={aarlo_config}")
+        _LOGGER.debug(f"alarm={alarm_config}")
+        _LOGGER.debug(f"bsens={binary_sensor_config}")
+        _LOGGER.debug(f"senso={sensor_config}")
+        _LOGGER.debug(f"swith={switch_config}")
+
+        # Save it out.
+        try:
+            save_yaml(AARLO_CONFIG_FILE, {
+                "version": 1,
+                DOMAIN: aarlo_config,
+                str(Platform.ALARM_CONTROL_PANEL): alarm_config,
+                str(Platform.BINARY_SENSOR): binary_sensor_config,
+                str(Platform.SENSOR): sensor_config,
+                str(Platform.SWITCH): switch_config,
+            })
+        except Exception as e:
+            _LOGGER.debug(f"couldn't save user data {str(e)}")
+           
+           

@@ -159,6 +159,7 @@ async def async_setup(hass, config):
     """Set up an Arlo component."""
 
     fcfg = ArloFileCfg()
+    fcfg.import_config(config)
     fcfg.load()
 
     # Read config
