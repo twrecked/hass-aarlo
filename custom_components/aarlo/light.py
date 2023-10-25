@@ -7,6 +7,7 @@ https://home-assistant.io/components/sensor.arlo/
 
 import logging
 import pprint
+from collections.abc import Callable
 
 import homeassistant.util.color as color_util
 from homeassistant.components.light import (
@@ -26,6 +27,10 @@ from homeassistant.const import (
     ATTR_BATTERY_LEVEL,
 )
 from homeassistant.core import callback
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import HomeAssistantType
+
 from pyaarlo.constant import (
     BRIGHTNESS_KEY,
     FLOODLIGHT_KEY,
@@ -55,7 +60,11 @@ LIGHT_EFFECT_RAINBOW = "rainbow"
 LIGHT_EFFECT_NONE = "none"
 
 
-async def async_setup_platform(hass, _config, async_add_entities, _discovery_info=None):
+async def async_setup_entry(
+        hass: HomeAssistantType,
+        entry: ConfigEntry,
+        async_add_entities: Callable[[list], None],
+) -> None:
     """Set up an Arlo IP light."""
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
@@ -84,6 +93,11 @@ class ArloLight(LightEntity):
         self._brightness = None
         self._light = light
         _LOGGER.info("ArloLight: %s created", self._name)
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._light.device_id)},
+            manufacturer=COMPONENT_BRAND,
+        )
 
     async def async_added_to_hass(self):
         """Register callbacks."""

@@ -310,8 +310,21 @@ class ArloFileCfg(object):
     def domain_config(self):
         return self._main_config
 
-    def main_config_value(self, key: str, default=None):
-        return self._main_config.get(key, default)
+    @property
+    def alarm_config(self):
+        return self._alarm_config
+
+    @property
+    def binary_sensor_config(self):
+        return self._binary_sensor_config
+
+    @property
+    def sensor_config(self):
+        return self._sensor_config
+
+    @property
+    def switch_config(self):
+        return self._switch_config
 
 
 class UpgradeCfg(object):

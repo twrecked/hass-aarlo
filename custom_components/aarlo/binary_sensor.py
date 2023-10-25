@@ -5,13 +5,18 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/sensor.arlo/
 """
 import logging
+import voluptuous as vol
+from collections.abc import Callable
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.const import ATTR_ATTRIBUTION, CONF_MONITORED_CONDITIONS
+from homeassistant.const import ATTR_ATTRIBUTION, CONF_MONITORED_CONDITIONS, Platform
 from homeassistant.core import callback
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import HomeAssistantType
+
 from pyaarlo.constant import (
     ALS_STATE_KEY,
     AUDIO_DETECTED_KEY,
@@ -32,6 +37,7 @@ from . import (
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
 )
+from .cfg import ArloFileCfg
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,11 +65,22 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
+async def async_setup_entry(
+        hass: HomeAssistantType,
+        entry: ConfigEntry,
+        async_add_entities: Callable[[list], None],
+) -> None:
+    _LOGGER.debug("setting up the entries...")
+# async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP sensor."""
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
         return
+
+    filecfg = ArloFileCfg()
+    filecfg.load()
+    config = filecfg.binary_sensor_config
+    _LOGGER.debug(f"binary-sensor={config}")
 
     sensors = []
     for sensor_type in config.get(CONF_MONITORED_CONDITIONS):
@@ -104,6 +121,12 @@ class ArloBinarySensor(BinarySensorEntity):
         self._other_attrs = SENSOR_TYPES.get(self._sensor_type)[3]
         self._icon = SENSOR_TYPES.get(self._sensor_type)[4]
         _LOGGER.info("ArloBinarySensor: %s created", self._name)
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
+            manufacturer=COMPONENT_BRAND,
+            model=self._device.model_id,
+        )
 
     async def async_added_to_hass(self):
         """Register callbacks."""

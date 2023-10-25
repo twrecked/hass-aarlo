@@ -8,10 +8,11 @@ from __future__ import annotations
 
 import base64
 import logging
+import voluptuous as vol
+from collections.abc import Callable
+from haffmpeg.camera import CameraMjpeg
 
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-from haffmpeg.camera import CameraMjpeg
 from homeassistant.components import websocket_api
 from homeassistant.components.camera import (
     ATTR_FILENAME,
@@ -35,6 +36,10 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import HomeAssistantType
+
 from pyaarlo.constant import (
     ACTIVITY_STATE_KEY,
     CHARGER_KEY,
@@ -58,6 +63,7 @@ from .const import (
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
 )
+from .cfg import ArloFileCfg
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -191,15 +197,24 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
+async def async_setup_entry(
+        hass: HomeAssistantType,
+        entry: ConfigEntry,
+        async_add_entities: Callable[[list], None],
+) -> None:
+    _LOGGER.debug("setting up the entries...")
+# async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP Camera."""
     arlo = hass.data[COMPONENT_DATA]
     arlo_cfg = hass.data[COMPONENT_CONFIG]
 
+    _LOGGER.debug(f"entry.data={entry.data}")
+    _LOGGER.debug(f"camera-config={arlo_cfg}")
+
     cameras = []
     cameras_with_siren = False
     for camera in arlo.cameras:
-        cameras.append(ArloCam(camera, config, arlo, arlo_cfg, hass))
+        cameras.append(ArloCam(camera, entry.data, arlo, arlo_cfg, hass))
         if camera.has_capability(SIREN_STATE_KEY):
             cameras_with_siren = True
 
@@ -315,6 +330,12 @@ class ArloCam(Camera):
         self._ffmpeg = hass.data[DATA_FFMPEG]
         self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info("ArloCam: %s created", self._name)
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._device_id)},
+            manufacturer=COMPONENT_BRAND,
+            model=self._camera.model_id,
+        )
 
     async def async_added_to_hass(self):
         """Register callbacks."""

@@ -7,6 +7,7 @@ https://home-assistant.io/components/alarm_control_panel.arlo/
 import logging
 import re
 import time
+from collections.abc import Callable
 from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
@@ -40,6 +41,10 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_point_in_time
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import HomeAssistantType
+
 from pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
 
 from . import get_entity_from_domain
@@ -51,6 +56,8 @@ from .const import (
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
 )
+from .cfg import ArloFileCfg
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -137,11 +144,21 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
+async def async_setup_entry(
+        hass: HomeAssistantType,
+        entry: ConfigEntry,
+        async_add_entities: Callable[[list], None],
+) -> None:
+    _LOGGER.debug("setting up the entries...")
     """Set up the Arlo Alarm Control Panels."""
     arlo = hass.data[COMPONENT_DATA]
     if not arlo.base_stations:
         return
+
+    filecfg = ArloFileCfg()
+    filecfg.load()
+    config = filecfg.alarm_config
+    _LOGGER.debug(f"sensor={config}")
 
     base_stations = []
     base_stations_with_sirens = False
@@ -209,6 +226,11 @@ class ArloBaseStation(AlarmControlPanelEntity):
         self._trigger_till = None
         self._state = None
         _LOGGER.info("ArloBaseStation: %s created", self._name)
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._base.device_id)},
+            manufacturer=COMPONENT_BRAND,
+        )
 
     @property
     def icon(self):

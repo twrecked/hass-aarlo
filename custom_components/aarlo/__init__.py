@@ -211,12 +211,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if arlo is None:
         return False
 
+    # create a pseudo device
+    aarlo_device = {
+        DEVICE_NAME_KEY: arlo.name,
+        DEVICE_ID_KEY: arlo.device_id,
+        "modelId": arlo.model_id
+    }
+    await _async_get_or_create_momentary_device_in_registry(hass, entry, aarlo_device)
+
+    # create the real devices
     for device in arlo.devices:
         _LOGGER.debug(f"would try to add {device[DEVICE_NAME_KEY]}")
         await _async_get_or_create_momentary_device_in_registry(hass, entry, device)
 
     hass.data[COMPONENT_DATA] = arlo
     hass.data[COMPONENT_SERVICES] = {}
+    hass.data[COMPONENT_CONFIG] = ArloCfg(
+        save_updates_to=merged_config['save_updates_to'],
+        stream_snapshot=merged_config['stream_snapshot']
+    )
+    _LOGGER.debug(f"update hass data {hass.data[DOMAIN]}")
+
+    platforms = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.CAMERA,
+                 Platform.ALARM_CONTROL_PANEL, Platform.LIGHT]
+    await hass.config_entries.async_forward_entry_setups(entry, platforms)
+
     return True
 
 

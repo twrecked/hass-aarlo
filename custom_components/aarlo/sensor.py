@@ -6,6 +6,7 @@ https://home-assistant.io/components/sensor.arlo/
 """
 import logging
 import voluptuous as vol
+from collections.abc import Callable
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.const import (
@@ -18,6 +19,10 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
 from homeassistant.components.sensor import SensorDeviceClass
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import HomeAssistantType
+
 from pyaarlo.constant import (
     AIR_QUALITY_KEY,
     BATTERY_KEY,
@@ -36,6 +41,7 @@ from .const import (
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
 )
+from .cfg import ArloFileCfg
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,11 +69,21 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
+async def async_setup_entry(
+        hass: HomeAssistantType,
+        entry: ConfigEntry,
+        async_add_entities: Callable[[list], None],
+) -> None:
+    _LOGGER.debug("setting up the entries...")
     """Set up an Arlo IP sensor."""
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
         return
+
+    filecfg = ArloFileCfg()
+    filecfg.load()
+    config = filecfg.sensor_config
+    _LOGGER.debug(f"sensor={config}")
 
     sensors = []
     for sensor_type in config.get(CONF_MONITORED_CONDITIONS):
@@ -116,6 +132,11 @@ class ArloSensor(Entity):
         self._state = None
         self._attr = sensor_details[3]
         _LOGGER.info("ArloSensor: %s created", self._name)
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
+            manufacturer=COMPONENT_BRAND,
+        )
 
     async def async_added_to_hass(self):
         """Register callbacks."""
