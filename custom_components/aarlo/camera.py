@@ -528,17 +528,6 @@ class ArloCam(Camera):
         return attrs
 
     @property
-    def device_info3(self):
-        """Return the related device info to group entities"""
-        return {
-            "identifiers": {(COMPONENT_DOMAIN, self._device_id)},
-            "name": self._name,
-            "manufacturer": COMPONENT_BRAND,
-            "model": self._camera.model_id,
-            "id": self._device_id,
-        }
-
-    @property
     def model(self):
         """Return the camera model."""
         return self._camera.model_id

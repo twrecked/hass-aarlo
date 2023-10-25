@@ -182,16 +182,6 @@ class AarloSwitch(SwitchEntity):
 
         return attrs
 
-    @property
-    def device_info2(self):
-        """Return the related device info to group entities"""
-        return {
-            "identifiers": {(COMPONENT_DOMAIN, self._unique_id)},
-            "name": self._name,
-            "manufacturer": COMPONENT_BRAND,
-            "id": self._unique_id,
-        }
-
 
 class AarloSirenBaseSwitch(AarloSwitch):
     """Representation of an Aarlo Momentary switch."""

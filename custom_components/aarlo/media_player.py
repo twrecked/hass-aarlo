@@ -213,16 +213,6 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
         }
 
     @property
-    def device_info2(self):
-        """Return the related device info to group entities"""
-        return {
-            "identifiers": {(COMPONENT_DOMAIN, self._unique_id)},
-            "name": self._name,
-            "manufacturer": COMPONENT_BRAND,
-            "id": self._unique_id,
-        }
-
-    @property
     def shuffle(self):
         """Boolean if shuffle is enabled."""
         return self._shuffle

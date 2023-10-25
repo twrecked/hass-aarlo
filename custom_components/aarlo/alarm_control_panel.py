@@ -358,17 +358,6 @@ class ArloBaseStation(AlarmControlPanelEntity):
             "siren": self._base.has_capability(SIREN_STATE_KEY),
         }
 
-    @property
-    def device_info2(self):
-        """Return the related device info to group entities"""
-        return {
-            "identifiers": {(COMPONENT_DOMAIN, self._base.device_id)},
-            "name": self._name,
-            "manufacturer": COMPONENT_BRAND,
-            "model": self._base.model_id,
-            "id": self._base.device_id,
-        }
-
     def _get_state_from_ha(self, mode):
         """Convert Arlo mode to Home Assistant state."""
         lmode = mode.lower()

@@ -214,13 +214,3 @@ class ArloSensor(Entity):
                 attrs["object_type"] = None
 
         return attrs
-
-    @property
-    def device_info2(self):
-        """Return the related device info to group entities"""
-        return {
-            "identifiers": {(COMPONENT_DOMAIN, self._device.device_id)},
-            "name": self._name,
-            "manufacturer": COMPONENT_BRAND,
-            "id": self._device.device_id,
-        }
