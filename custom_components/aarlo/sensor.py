@@ -136,6 +136,7 @@ class ArloSensor(Entity):
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
             manufacturer=COMPONENT_BRAND,
+            model=self._device.model_id,
         )
 
     async def async_added_to_hass(self):
@@ -215,7 +216,7 @@ class ArloSensor(Entity):
         return attrs
 
     @property
-    def device_info(self):
+    def device_info2(self):
         """Return the related device info to group entities"""
         return {
             "identifiers": {(COMPONENT_DOMAIN, self._device.device_id)},

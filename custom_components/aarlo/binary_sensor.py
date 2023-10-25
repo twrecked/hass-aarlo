@@ -190,7 +190,7 @@ class ArloBinarySensor(BinarySensorEntity):
         return value
 
     @property
-    def device_info(self):
+    def device_info2(self):
         """Return the related device info to group entities"""
         return {
             "identifiers": {(COMPONENT_DOMAIN, self._device.device_id)},

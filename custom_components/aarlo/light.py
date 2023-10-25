@@ -93,10 +93,13 @@ class ArloLight(LightEntity):
         self._brightness = None
         self._light = light
         _LOGGER.info("ArloLight: %s created", self._name)
+        _LOGGER.info("ArloLight: %s created", self._light.device_id)
+        _LOGGER.info("ArloLight: %s created", self._light.model_id)
 
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._light.device_id)},
             manufacturer=COMPONENT_BRAND,
+            model=self._light.model_id,
         )
 
     async def async_added_to_hass(self):
@@ -184,10 +187,10 @@ class ArloLight(LightEntity):
         return attrs
 
     @property
-    def device_info(self):
+    def device_info2(self):
         """Return the related device info to group entities"""
         return {
-            "identifiers": {(COMPONENT_DOMAIN, self._unique_id)},
+            "identifiers": {(COMPONENT_DOMAIN, self._light.device_id)},
             "name": self._name,
             "manufacturer": COMPONENT_BRAND,
             "id": self._unique_id,

@@ -230,6 +230,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._base.device_id)},
             manufacturer=COMPONENT_BRAND,
+            model=self._base.model_id,
         )
 
     @property
@@ -358,7 +359,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
         }
 
     @property
-    def device_info(self):
+    def device_info2(self):
         """Return the related device info to group entities"""
         return {
             "identifiers": {(COMPONENT_DOMAIN, self._base.device_id)},

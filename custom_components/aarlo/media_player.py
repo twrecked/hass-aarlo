@@ -1,6 +1,7 @@
 """Provide functionality to interact with vlc devices on the network."""
 import logging
 from abc import ABC
+from collections.abc import Callable
 
 from homeassistant.components.media_player import (
     MediaPlayerDeviceClass,
@@ -24,6 +25,10 @@ from homeassistant.const import (
     STATE_PLAYING,
 )
 from homeassistant.core import callback
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import HomeAssistantType
+
 from pyaarlo.constant import MEDIA_PLAYER_KEY
 
 from .const import (
@@ -59,7 +64,11 @@ SUPPORT_ARLO = (
 """
 
 
-async def async_setup_platform(hass, _config, async_add_entities, _discovery_info=None):
+async def async_setup_entry(
+        hass: HomeAssistantType,
+        entry: ConfigEntry,
+        async_add_entities: Callable[[list], None],
+) -> None:
     """Set up an Arlo media player."""
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
@@ -93,6 +102,12 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
         self._playlist = []
 
         _LOGGER.info("ArloMediaPlayer: %s created", self._name)
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
+            manufacturer=COMPONENT_BRAND,
+            model=self._device.model_id,
+        )
 
     async def async_added_to_hass(self):
         """Register callbacks."""
@@ -198,7 +213,7 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
         }
 
     @property
-    def device_info(self):
+    def device_info2(self):
         """Return the related device info to group entities"""
         return {
             "identifiers": {(COMPONENT_DOMAIN, self._unique_id)},
