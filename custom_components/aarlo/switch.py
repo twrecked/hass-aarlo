@@ -5,6 +5,7 @@ This component provides support for Aarlo switches.
 
 import logging
 import time
+from collections.abc import Callable
 from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
@@ -15,6 +16,10 @@ from homeassistant.const import ATTR_ATTRIBUTION
 from homeassistant.core import callback
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_point_in_time
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.typing import HomeAssistantType
+
 from pyaarlo.constant import ACTIVITY_STATE_KEY, SILENT_MODE_KEY, SIREN_STATE_KEY
 
 from .const import (
@@ -23,6 +28,8 @@ from .const import (
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
 )
+from .cfg import ArloFileCfg
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,10 +71,19 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
+async def async_setup_entry(
+        hass: HomeAssistantType,
+        _entry: ConfigEntry,
+        async_add_entities: Callable[[list], None],
+) -> None:
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
         return
+
+    filecfg = ArloFileCfg()
+    filecfg.load()
+    config = filecfg.switch_config
+    _LOGGER.debug(f"switch={config}")
 
     devices = []
     adevices = []
@@ -167,7 +183,7 @@ class AarloSwitch(SwitchEntity):
         return attrs
 
     @property
-    def device_info(self):
+    def device_info2(self):
         """Return the related device info to group entities"""
         return {
             "identifiers": {(COMPONENT_DOMAIN, self._unique_id)},
@@ -244,6 +260,12 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
         self._state = "off"
         _LOGGER.debug("{0}".format(str(config)))
 
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
+            manufacturer=COMPONENT_BRAND,
+            model=self._device.model_id,
+        )
+
     async def async_added_to_hass(self):
         """Register callbacks."""
 
@@ -291,6 +313,12 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
         self._devices = devices
         self._device = arlo
         self._state = "off"
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
+            manufacturer=COMPONENT_BRAND,
+            model=self._device.model_id,
+        )
 
     async def async_added_to_hass(self):
         """Register callbacks."""
@@ -343,6 +371,12 @@ class AarloSnapshotSwitch(AarloSwitch):
         self._device = camera
         self._timeout = config.get(CONF_SNAPSHOT_TIMEOUT)
 
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
+            manufacturer=COMPONENT_BRAND,
+            model=self._device.model_id,
+        )
+
     async def async_added_to_hass(self):
         """Register callbacks."""
 
@@ -380,6 +414,12 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
         self._doorbell = doorbell
         self._state = False
         self._block = block
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._doorbell.device_id)},
+            manufacturer=COMPONENT_BRAND,
+            model=self._doorbell.model_id,
+        )
 
     @property
     def state(self):

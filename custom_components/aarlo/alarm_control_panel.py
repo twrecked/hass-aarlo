@@ -158,7 +158,7 @@ async def async_setup_entry(
     filecfg = ArloFileCfg()
     filecfg.load()
     config = filecfg.alarm_config
-    _LOGGER.debug(f"sensor={config}")
+    _LOGGER.debug(f"alarm={config}")
 
     base_stations = []
     base_stations_with_sirens = False

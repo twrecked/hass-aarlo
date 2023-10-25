@@ -232,7 +232,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     _LOGGER.debug(f"update hass data {hass.data[DOMAIN]}")
 
-    platforms = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.CAMERA,
+    platforms = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH, Platform.CAMERA,
                  Platform.ALARM_CONTROL_PANEL, Platform.LIGHT, Platform.MEDIA_PLAYER]
     await hass.config_entries.async_forward_entry_setups(entry, platforms)
 
