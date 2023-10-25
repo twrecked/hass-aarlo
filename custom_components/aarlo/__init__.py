@@ -9,25 +9,39 @@ import logging
 import os.path
 import pprint
 import time
-from traceback import extract_stack
-
 import voluptuous as vol
+from traceback import extract_stack
+from requests.exceptions import ConnectTimeout, HTTPError
+
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
+from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_HOST,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
+    CONF_SOURCE,
     CONF_USERNAME,
+    Platform
 )
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
-from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY, MQTT_HOST
-from requests.exceptions import ConnectTimeout, HTTPError
+from homeassistant.helpers.typing import ConfigType
+import homeassistant.helpers.device_registry as dr
+
+from pyaarlo.constant import (
+    DEFAULT_AUTH_HOST,
+    DEFAULT_HOST,
+    DEVICE_ID_KEY,
+    DEVICE_NAME_KEY,
+    SIREN_STATE_KEY,
+    MQTT_HOST
+)
 
 from .const import *
-from .cfg import UpgradeCfg
+from .cfg import ArloFileCfg
 
 __version__ = "0.8.0a16"
 
@@ -155,11 +169,76 @@ RESTART_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup(hass, config):
+def setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up an momentary component.
+    """
+
+    hass.data.setdefault(DOMAIN, {})
+
+    # See if we have already imported the data. If we haven't then do it now.
+    config_entry = _async_find_aarlo_config(hass)
+    if not config_entry:
+        _LOGGER.debug('importing a YAML setup')
+        hass.async_create_task(
+            hass.config_entries.flow.async_init(
+                DOMAIN,
+                context={CONF_SOURCE: SOURCE_IMPORT},
+                data=config
+            )
+        )
+        return True
+
+    _LOGGER.debug('ignoring a YAML setup')
+    return True
+
+
+@callback
+def _async_find_aarlo_config(hass):
+    """ If we have anything in config_entries for aarlo we consider it
+    configured and will ignore the YAML.
+    """
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        return entry
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    filecfg = ArloFileCfg()
+    filecfg.load()
+    merged_config = {**entry.data[DOMAIN], **filecfg.domain_config}
+    _LOGGER.debug(f'async setup {merged_config}')
+
+    arlo = await hass.async_add_executor_job(login, hass, merged_config)
+    if arlo is None:
+        return False
+
+    for device in arlo.devices:
+        _LOGGER.debug(f"would try to add {device[DEVICE_NAME_KEY]}")
+        await _async_get_or_create_momentary_device_in_registry(hass, entry, device)
+
+    hass.data[COMPONENT_DATA] = arlo
+    hass.data[COMPONENT_SERVICES] = {}
+    return True
+
+
+async def _async_get_or_create_momentary_device_in_registry(
+        hass: HomeAssistant, entry: ConfigEntry, device
+) -> None:
+    device_registry = dr.async_get(hass)
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, device[DEVICE_ID_KEY])},
+        manufacturer=COMPONENT_BRAND,
+        name=device[DEVICE_NAME_KEY],
+        model=device['modelId'],
+        sw_version=__version__
+    )
+
+
+async def async_setup2(hass, config):
     """Set up an Arlo component."""
 
-    UpgradeCfg.create_file_config(config)
-    UpgradeCfg.create_flow_config(config)
+    # UpgradeCfg.create_file_config(config)
+    # UpgradeCfg.create_flow_config(config)
 
     # Read config
     conf = config[COMPONENT_DOMAIN]

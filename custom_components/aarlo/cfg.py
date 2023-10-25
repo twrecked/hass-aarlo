@@ -249,7 +249,6 @@ SWITCH_SCHEMA = vol.Schema({
 AARLO_CONFIG_FILE = "/config/aarlo.yaml"
 
 
-
 def _get_platform_config(config):
     """Find and return the aarlo entry from any platform config.
     """
@@ -308,69 +307,11 @@ class ArloFileCfg(object):
         _LOGGER.debug(f"switch-config={self._switch_config}")
 
     @property
-    def platform_config(self):
+    def domain_config(self):
         return self._main_config
 
     def main_config_value(self, key: str, default=None):
         return self._main_config.get(key, default)
-
-    def import_config2(self, config):
-        """ Take the current aarlo config and make the new yaml file.
-
-        Aarlo seems to need a lot of fine tuning so rather than get rid of
-        the options or clutter up the config flow system I'm adding a text file
-        where the user can configure things.
-        """
-
-        # We need to
-        # - strip out the config flow items from this
-        # - replace timedelta with strings
-        # - remove defaults
-        aarlo_config = {}
-        default_aarlo_config = AARLO_FULL_SCHEMA({
-            CONF_USERNAME: "",
-            CONF_PASSWORD: "",
-        })
-        for key, value in config.get(DOMAIN, {}).items():
-            _LOGGER.debug(f"trying-td={key}")
-
-            # Skip these.
-            if key in AARLO_SCHEMA_ONLY_IN_CONFIG:
-                continue
-            if default_aarlo_config[key] == value:
-                continue
-
-            # Convert to a format yaml_save will work with if needed.
-            if isinstance(value, timedelta):
-                _LOGGER.debug(f"td={key}")
-                aarlo_config[key] = value.seconds
-            else:
-                aarlo_config[key] = value
-
-        # For now, everything else comes as-as.
-        alarm_config = self._get_platform_config(config.get(Platform.ALARM_CONTROL_PANEL, []))
-        binary_sensor_config = self._get_platform_config(config.get(Platform.BINARY_SENSOR, []))
-        sensor_config = self._get_platform_config(config.get(Platform.SENSOR, []))
-        switch_config = self._get_platform_config(config.get(Platform.SWITCH, []))
-
-        _LOGGER.debug(f"aarl0={aarlo_config}")
-        _LOGGER.debug(f"alarm={alarm_config}")
-        _LOGGER.debug(f"bsens={binary_sensor_config}")
-        _LOGGER.debug(f"senso={sensor_config}")
-        _LOGGER.debug(f"swith={switch_config}")
-
-        # Save it out.
-        try:
-            save_yaml(AARLO_CONFIG_FILE, {
-                "version": 1,
-                DOMAIN: aarlo_config,
-                str(Platform.ALARM_CONTROL_PANEL): alarm_config,
-                str(Platform.BINARY_SENSOR): binary_sensor_config,
-                str(Platform.SENSOR): sensor_config,
-                str(Platform.SWITCH): switch_config,
-            })
-        except Exception as e:
-            _LOGGER.debug(f"couldn't save user data {str(e)}")
 
 
 class UpgradeCfg(object):
@@ -437,21 +378,17 @@ class UpgradeCfg(object):
             _LOGGER.debug(f"couldn't save user data {str(e)}")
 
     @staticmethod
-    def create_flow_config(config):
+    def create_domain_flow_config(config):
         """ Take the current aarlo config and make the new flow configuration.
         """
 
         # Some import defaults.
-        aarlo_config = {
-            "naming_style": "original",
-            "imported": True,
-            DOMAIN: {}
-        }
+        domain_config = {}
 
         full_aarlo_config = AARLO_FULL_SCHEMA(config.get(DOMAIN, {}))
         for key, value in full_aarlo_config.items():
             if key in AARLO_SCHEMA_ONLY_IN_CONFIG:
-                aarlo_config[DOMAIN][key] = value
+                domain_config[key] = value
 
-        _LOGGER.debug(f"flow-config={aarlo_config}")
-        return {DOMAIN: aarlo_config}
+        _LOGGER.debug(f"domain-flow-config={domain_config}")
+        return domain_config

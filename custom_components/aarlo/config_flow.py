@@ -1,10 +1,23 @@
 """Config flow for Aarlo"""
 
+import logging
 import voluptuous as vol
+
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
-from .const import CONF_TFA_HOST, CONF_TFA_PASSWORD, CONF_TFA_USERNAME, DOMAIN
+from .const import (
+    CONF_TFA_HOST,
+    CONF_TFA_PASSWORD,
+    CONF_TFA_USERNAME,
+    DOMAIN
+)
+from .cfg import UpgradeCfg
+
+
+_LOGGER = logging.getLogger(__name__)
+
+DEFAULT_IMPORTED_NAME = "imported"
 
 
 class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
@@ -53,3 +66,16 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user", data_schema=vol.Schema(data_schema), errors=errors
         )
+
+    async def async_step_import(self, import_data):
+        """Import momentary config from configuration.yaml."""
+
+        _LOGGER.info("importing aarlo YAML")
+        UpgradeCfg.create_file_config(import_data)
+        domain_config = UpgradeCfg.create_domain_flow_config(import_data)
+
+        return self.async_create_entry(title=f"{DEFAULT_IMPORTED_NAME} {DOMAIN}", data={
+            "naming_style": "original",
+            "imported": True,
+            DOMAIN: domain_config
+        })
