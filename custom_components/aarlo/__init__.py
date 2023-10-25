@@ -27,7 +27,7 @@ from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY, M
 from requests.exceptions import ConnectTimeout, HTTPError
 
 from .const import *
-from .cfg import ArloFileCfg
+from .cfg import ArloFileCfg, ArloFlowCfg
 
 __version__ = "0.8.0a16"
 
@@ -162,17 +162,14 @@ async def async_setup(hass, config):
     fcfg.import_config(config)
     fcfg.load()
 
+    flcfg = ArloFlowCfg()
+    flcfg.import_config(config)
+
     # Read config
     conf = config[COMPONENT_DOMAIN]
     injection_service = conf.get(CONF_INJECTION_SERVICE)
     save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
     stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
-
-    # Fix up streaming...
-    patch_file = hass.config.config_dir + "/aarlo.patch"
-    if os.path.isfile(patch_file):
-        _LOGGER.error("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
-        os.system("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
 
     # Login. We'll keep trying!!
     arlo = await hass.async_add_executor_job(login, hass, conf)

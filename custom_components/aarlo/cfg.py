@@ -119,11 +119,6 @@ AARLO_SCHEMA = vol.Schema({
     vol.Optional(CONF_VERBOSE_DEBUG, default=VERBOSE_DEBUG): cv.boolean,
     vol.Optional(CONF_INJECTION_SERVICE, default=DEFAULT_INJECTION_SERVICE): cv.boolean,
     vol.Optional(CONF_SNAPSHOT_TIMEOUT, default=SNAPSHOT_TIMEOUT): cv.time_period,
-    vol.Optional(CONF_TFA_SOURCE, default=DEFAULT_TFA_SOURCE): cv.string,
-    vol.Optional(CONF_TFA_TYPE, default=DEFAULT_TFA_TYPE): cv.string,
-    vol.Optional(CONF_TFA_HOST, default=DEFAULT_TFA_HOST): cv.string,
-    vol.Optional(CONF_TFA_USERNAME, default=DEFAULT_TFA_USERNAME): cv.string,
-    vol.Optional(CONF_TFA_PASSWORD, default=DEFAULT_TFA_PASSWORD): cv.string,
     vol.Optional(CONF_TFA_TIMEOUT, default=DEFAULT_TFA_TIMEOUT): cv.time_period,
     vol.Optional(CONF_TFA_TOTAL_TIMEOUT, default=DEFAULT_TFA_TOTAL_TIMEOUT): cv.time_period,
     vol.Optional(CONF_LIBRARY_DAYS, default=DEFAULT_LIBRARY_DAYS): cv.positive_int,
@@ -142,7 +137,17 @@ AARLO_SCHEMA = vol.Schema({
     vol.Optional(CONF_MQTT_TRANSPORT, default=DEFAULT_MQTT_TRANSPORT): cv.string,
 })
 
-AARLO_SCHEMA_IN_CONFIG = [
+AARLO_FULL_SCHEMA = AARLO_SCHEMA.extend({
+    vol.Required(CONF_USERNAME): cv.string,
+    vol.Required(CONF_PASSWORD): cv.string,
+    vol.Optional(CONF_TFA_SOURCE, default=DEFAULT_TFA_SOURCE): cv.string,
+    vol.Optional(CONF_TFA_TYPE, default=DEFAULT_TFA_TYPE): cv.string,
+    vol.Optional(CONF_TFA_HOST, default=DEFAULT_TFA_HOST): cv.string,
+    vol.Optional(CONF_TFA_USERNAME, default=DEFAULT_TFA_USERNAME): cv.string,
+    vol.Optional(CONF_TFA_PASSWORD, default=DEFAULT_TFA_PASSWORD): cv.string,
+})
+
+AARLO_SCHEMA_ONLY_IN_CONFIG = [
     CONF_USERNAME,
     CONF_PASSWORD,
     CONF_TFA_SOURCE,
@@ -293,12 +298,15 @@ class ArloFileCfg(object):
         # - replace timedelta with strings
         # - remove defaults
         aarlo_config = {}
-        default_aarlo_config = AARLO_SCHEMA({})
+        default_aarlo_config = AARLO_FULL_SCHEMA({
+            CONF_USERNAME: "",
+            CONF_PASSWORD: "",
+        })
         for key, value in config.get(DOMAIN, {}).items():
             _LOGGER.debug(f"trying-td={key}")
 
             # Skip these.
-            if key in AARLO_SCHEMA_IN_CONFIG:
+            if key in AARLO_SCHEMA_ONLY_IN_CONFIG:
                 continue
             if default_aarlo_config[key] == value:
                 continue
@@ -334,3 +342,32 @@ class ArloFileCfg(object):
             })
         except Exception as e:
             _LOGGER.debug(f"couldn't save user data {str(e)}")
+
+
+class ArloFlowCfg(object):
+    """Helper class to get at Arlo configuration options.
+
+    Reads in non config flow settings from the external config file.
+    """
+
+    def import_config(self, config):
+        """ Take the current aarlo config and make the new flow configuration.
+
+        Aarlo seems to need a lot of fine tuning so rather than get rid of
+        the options or clutter up the config flow system I'm adding a text file
+        where the user can configure things.
+        """
+
+        # Some import defaults.
+        aarlo_config = {
+            "naming_style": "original",
+            "imported": True,
+        }
+
+        full_aarlo_config = AARLO_FULL_SCHEMA(config.get(DOMAIN, {}))
+        for key, value in full_aarlo_config.items():
+            if key in AARLO_SCHEMA_ONLY_IN_CONFIG:
+                aarlo_config[key] = value
+
+        _LOGGER.debug(f"flow-config={aarlo_config}")
+        return {DOMAIN: aarlo_config}
