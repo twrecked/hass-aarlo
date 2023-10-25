@@ -27,7 +27,7 @@ from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY, M
 from requests.exceptions import ConnectTimeout, HTTPError
 
 from .const import *
-from .cfg import ArloFileCfg, ArloFlowCfg
+from .cfg import UpgradeCfg
 
 __version__ = "0.8.0a16"
 
@@ -158,12 +158,8 @@ RESTART_SCHEMA = vol.Schema(
 async def async_setup(hass, config):
     """Set up an Arlo component."""
 
-    fcfg = ArloFileCfg()
-    fcfg.import_config(config)
-    fcfg.load()
-
-    flcfg = ArloFlowCfg()
-    flcfg.import_config(config)
+    UpgradeCfg.create_file_config(config)
+    UpgradeCfg.create_flow_config(config)
 
     # Read config
     conf = config[COMPONENT_DOMAIN]
