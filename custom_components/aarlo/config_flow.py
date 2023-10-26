@@ -72,7 +72,7 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
 
         _LOGGER.info("importing aarlo YAML")
         UpgradeCfg.create_file_config(import_data)
-        domain_config = UpgradeCfg.create_domain_flow_config(import_data)
+        domain_config = UpgradeCfg.create_flow_config(import_data)
 
         return self.async_create_entry(title=f"{DEFAULT_IMPORTED_NAME} {DOMAIN}", data={
             "naming_style": "original",

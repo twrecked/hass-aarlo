@@ -70,6 +70,7 @@ async def async_setup_entry(
         async_add_entities: Callable[[list], None],
 ) -> None:
     """Set up an Arlo media player."""
+
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
         return
@@ -106,7 +107,6 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
             manufacturer=COMPONENT_BRAND,
-            model=self._device.model_id,
         )
 
     async def async_added_to_hass(self):

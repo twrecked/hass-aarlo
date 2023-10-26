@@ -391,7 +391,7 @@ class UpgradeCfg(object):
             _LOGGER.debug(f"couldn't save user data {str(e)}")
 
     @staticmethod
-    def create_domain_flow_config(config):
+    def create_flow_config(config):
         """ Take the current aarlo config and make the new flow configuration.
         """
 

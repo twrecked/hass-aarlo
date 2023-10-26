@@ -62,8 +62,9 @@ from .const import (
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
+    CONF_SAVE_UPDATES_TO,
+    CONF_STREAM_SNAPSHOT,
 )
-from .cfg import ArloFileCfg
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -206,7 +207,7 @@ async def async_setup_entry(
 # async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP Camera."""
     arlo = hass.data[COMPONENT_DATA]
-    arlo_cfg = hass.data[COMPONENT_CONFIG]
+    arlo_cfg = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
 
     _LOGGER.debug(f"entry.data={entry.data}")
     _LOGGER.debug(f"camera-config={arlo_cfg}")
@@ -214,7 +215,7 @@ async def async_setup_entry(
     cameras = []
     cameras_with_siren = False
     for camera in arlo.cameras:
-        cameras.append(ArloCam(camera, entry.data, arlo, arlo_cfg, hass))
+        cameras.append(ArloCam(camera, arlo, arlo_cfg, hass))
         if camera.has_capability(SIREN_STATE_KEY):
             cameras_with_siren = True
 
@@ -314,7 +315,7 @@ async def async_setup_entry(
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
-    def __init__(self, camera, config, _arlo, arlo_cfg, hass):
+    def __init__(self, camera, _arlo, arlo_cfg, hass):
         """Initialize an Arlo camera."""
         super().__init__()
         self._name = camera.name
@@ -325,16 +326,15 @@ class ArloCam(Camera):
         self._recent = False
         self._last_image_source_ = None
         self._motion_status = False
-        self._stream_snapshot = arlo_cfg.stream_snapshot
-        self._save_updates_to = arlo_cfg.save_updates_to
+        self._stream_snapshot = arlo_cfg.get(CONF_STREAM_SNAPSHOT)
+        self._save_updates_to = arlo_cfg.get(CONF_SAVE_UPDATES_TO)
         self._ffmpeg = hass.data[DATA_FFMPEG]
-        self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
+        self._ffmpeg_arguments = arlo_cfg.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info("ArloCam: %s created", self._name)
 
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._device_id)},
             manufacturer=COMPONENT_BRAND,
-            model=self._camera.model_id,
         )
 
     async def async_added_to_hass(self):

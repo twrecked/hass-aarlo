@@ -62,10 +62,11 @@ LIGHT_EFFECT_NONE = "none"
 
 async def async_setup_entry(
         hass: HomeAssistantType,
-        entry: ConfigEntry,
+        _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:
     """Set up an Arlo IP light."""
+
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
         return
@@ -93,13 +94,10 @@ class ArloLight(LightEntity):
         self._brightness = None
         self._light = light
         _LOGGER.info("ArloLight: %s created", self._name)
-        _LOGGER.info("ArloLight: %s created", self._light.device_id)
-        _LOGGER.info("ArloLight: %s created", self._light.model_id)
 
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._light.device_id)},
             manufacturer=COMPONENT_BRAND,
-            model=self._light.model_id,
         )
 
     async def async_added_to_hass(self):

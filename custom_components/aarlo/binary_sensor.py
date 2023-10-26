@@ -34,10 +34,10 @@ from pyaarlo.constant import (
 from . import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
+    COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
 )
-from .cfg import ArloFileCfg
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,19 +67,16 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 
 async def async_setup_entry(
         hass: HomeAssistantType,
-        entry: ConfigEntry,
+        _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:
-    _LOGGER.debug("setting up the entries...")
-# async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP sensor."""
+
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
         return
 
-    filecfg = ArloFileCfg()
-    filecfg.load()
-    config = filecfg.binary_sensor_config
+    config = hass.data[COMPONENT_CONFIG][Platform.BINARY_SENSOR]
     _LOGGER.debug(f"binary-sensor={config}")
 
     sensors = []
@@ -110,9 +107,7 @@ class ArloBinarySensor(BinarySensorEntity):
     def __init__(self, device, sensor_type):
         """Initialize an Arlo sensor."""
         self._name = "{0} {1}".format(SENSOR_TYPES[sensor_type][0], device.name)
-        self._unique_id = "{0}_{1}".format(
-            SENSOR_TYPES[sensor_type][0], device.entity_id
-        ).lower()
+        self._unique_id = "{0}_{1}".format(SENSOR_TYPES[sensor_type][0], device.entity_id).lower()
         self._device = device
         self._sensor_type = sensor_type
         self._state = None
@@ -125,7 +120,6 @@ class ArloBinarySensor(BinarySensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
             manufacturer=COMPONENT_BRAND,
-            model=self._device.model_id,
         )
 
     async def async_added_to_hass(self):

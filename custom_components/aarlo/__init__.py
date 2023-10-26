@@ -202,16 +202,33 @@ def _async_find_aarlo_config(hass):
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    _LOGGER.debug(f'async setup for aarlo')
+    
+    # Merge the flow config and file config. Only the domain level needs
+    # doing now.
     filecfg = ArloFileCfg()
     filecfg.load()
-    merged_config = {**entry.data[DOMAIN], **filecfg.domain_config}
-    _LOGGER.debug(f'async setup {merged_config}')
+    domain_config = {**entry.data[COMPONENT_DOMAIN], **filecfg.domain_config}
 
-    arlo = await hass.async_add_executor_job(login, hass, merged_config)
+    # Try to login to aarlo.
+    arlo = await hass.async_add_executor_job(login, hass, domain_config)
     if arlo is None:
         return False
 
-    # create a pseudo device
+    # We've logged in so create the session config from the flow config
+    # and file config.
+    hass.data[COMPONENT_DATA] = arlo
+    hass.data[COMPONENT_SERVICES] = {}
+    hass.data[COMPONENT_CONFIG] = {
+        COMPONENT_DOMAIN: domain_config,
+        str(Platform.ALARM_CONTROL_PANEL): filecfg.alarm_config,
+        str(Platform.BINARY_SENSOR): filecfg.binary_sensor_config,
+        str(Platform.SENSOR): filecfg.sensor_config,
+        str(Platform.SWITCH): filecfg.switch_config,
+    }
+    _LOGGER.debug(f"update hass data {hass.data[COMPONENT_CONFIG]}")
+    
+    # Create a pseudo device. We use this for pseudo entities.
     aarlo_device = {
         DEVICE_NAME_KEY: arlo.name,
         DEVICE_ID_KEY: arlo.device_id,
@@ -224,14 +241,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.debug(f"would try to add {device[DEVICE_NAME_KEY]}")
         await _async_get_or_create_momentary_device_in_registry(hass, entry, device)
 
-    hass.data[COMPONENT_DATA] = arlo
-    hass.data[COMPONENT_SERVICES] = {}
-    hass.data[COMPONENT_CONFIG] = ArloCfg(
-        save_updates_to=merged_config['save_updates_to'],
-        stream_snapshot=merged_config['stream_snapshot']
-    )
-    _LOGGER.debug(f"update hass data {hass.data[DOMAIN]}")
-
+    # Create the entities.
     platforms = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH, Platform.CAMERA,
                  Platform.ALARM_CONTROL_PANEL, Platform.LIGHT, Platform.MEDIA_PLAYER]
     await hass.config_entries.async_forward_entry_setups(entry, platforms)

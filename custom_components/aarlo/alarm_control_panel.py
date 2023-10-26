@@ -31,6 +31,7 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_CODE,
     CONF_TRIGGER_TIME,
+    Platform,
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
@@ -56,7 +57,6 @@ from .const import (
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
 )
-from .cfg import ArloFileCfg
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -146,18 +146,16 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
 
 async def async_setup_entry(
         hass: HomeAssistantType,
-        entry: ConfigEntry,
+        _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:
-    _LOGGER.debug("setting up the entries...")
     """Set up the Arlo Alarm Control Panels."""
+
     arlo = hass.data[COMPONENT_DATA]
     if not arlo.base_stations:
         return
 
-    filecfg = ArloFileCfg()
-    filecfg.load()
-    config = filecfg.alarm_config
+    config = hass.data[COMPONENT_CONFIG][Platform.ALARM_CONTROL_PANEL]
     _LOGGER.debug(f"alarm={config}")
 
     base_stations = []
@@ -230,7 +228,6 @@ class ArloBaseStation(AlarmControlPanelEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._base.device_id)},
             manufacturer=COMPONENT_BRAND,
-            model=self._base.model_id,
         )
 
     @property
@@ -425,6 +422,11 @@ class ArloLocation(AlarmControlPanelEntity):
         self._location = location
         self._state = None
         _LOGGER.info("ArloLocation: %s created", self._name)
+
+        self._attr_device_info = DeviceInfo(
+            identifiers={(COMPONENT_DOMAIN, self._location.device_id)},
+            manufacturer=COMPONENT_BRAND,
+        )
 
     @property
     def icon(self):

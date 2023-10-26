@@ -12,7 +12,7 @@ import homeassistant.helpers.config_validation as cv
 import homeassistant.util.dt as dt_util
 import voluptuous as vol
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import ATTR_ATTRIBUTION
+from homeassistant.const import ATTR_ATTRIBUTION, Platform
 from homeassistant.core import callback
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_point_in_time
@@ -25,10 +25,10 @@ from pyaarlo.constant import ACTIVITY_STATE_KEY, SILENT_MODE_KEY, SIREN_STATE_KE
 from .const import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
+    COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
 )
-from .cfg import ArloFileCfg
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -76,13 +76,12 @@ async def async_setup_entry(
         _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:
+
     arlo = hass.data.get(COMPONENT_DATA)
     if not arlo:
         return
 
-    filecfg = ArloFileCfg()
-    filecfg.load()
-    config = filecfg.switch_config
+    config = hass.data[COMPONENT_CONFIG][Platform.ALARM_CONTROL_PANEL]
     _LOGGER.debug(f"switch={config}")
 
     devices = []
