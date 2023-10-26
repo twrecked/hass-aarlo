@@ -1,17 +1,23 @@
 {
   "config": {
+    "abort": {
+      "single_instance_allowed": "Only one instance of Aarlo is allowed."
+    },
     "error": {
-      "missing_field": "Please fill in all fields.",
-      "tfa_no_imap": "A valid TFA HOST should include `imap`"
+      "missing_imap_fields": "Please fill in all the TFA fields for IMAP.",
+      "missing_restapi_fields": "Please fill in all the TFA fields for RESTAPI."
     },
     "step": {
       "user": {
+        "title": "Arlo Login Details",
+        "description": "Enter your Home Assistant Arlo account details.\nIf needed, enter your Two Factor Authentication details.\nTo fine tune settings, look into '/config/aarlo.yaml'.",
         "data": {
           "username": "Username",
           "password": "Password",
+          "tfa_type": "Two Factor Mechanism",
+          "tfa_host": "TFA Host",
           "tfa_username": "TFA Username",
-          "tfa_password": "TFA Password",
-          "tfa_host": "TFA Host"
+          "tfa_password": "TFA Password"
         }
       }
     }
