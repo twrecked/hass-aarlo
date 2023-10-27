@@ -121,9 +121,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         data_schema = {
             vol.Required(CONF_USERNAME, default=self.username): str,
             vol.Required(CONF_PASSWORD, default=self.password): str,
-            vol.Required("tfa_type",
-                         # description={"suggested_value": "IMAP"},
-                         default="IMAP"): TFA_SELECTOR,
+            vol.Required(CONF_TFA_TYPE, default="IMAP"): TFA_SELECTOR,
             vol.Optional(CONF_TFA_USERNAME, default=self.tfaUsername): str,
             vol.Optional(CONF_TFA_PASSWORD, default=self.tfaPassword): str,
             vol.Optional(CONF_TFA_HOST, default=self.tfaHost): str,
@@ -142,7 +140,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         options = UpgradeCfg.create_flow_options(import_data)
 
         return self.async_create_entry(
-            title=f"Aarlo Config for {data[CONF_USERNAME]} (imported)",
+            title=f"Aarlo for {data[CONF_USERNAME]} (imported)",
             data=data,
             options=options
         )
@@ -237,8 +235,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             _LOGGER.debug(f"user-input-sensor={user_input}")
             self._config.update(user_input)
-            _LOGGER.debug(f"_config={self._config}")
-            return self.async_create_entry(title="", data=self._config)
+            return await self.async_step_switch(None)
 
         options = self._config_entry.options
         return self.async_show_form(
@@ -263,4 +260,37 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required("sensor_air_quality",
                              default=options.get("sensor_air_quality", True)): bool,
             }),
+        )
+
+    async def async_step_switch(
+            self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+
+        if user_input is not None:
+            _LOGGER.debug(f"user-input-switch={user_input}")
+            self._config.update(user_input)
+            _LOGGER.debug(f"_config={self._config}")
+            return self.async_create_entry(title="", data=self._config)
+
+        options = self._config_entry.options
+        return self.async_show_form(
+            step_id="switch",
+            data_schema=vol.Schema({
+                vol.Required("switch_siren",
+                             default=options.get("switch_siren", True)): bool,
+                vol.Required("switch_all_sirens",
+                             default=options.get("switch_all_sirens", True)): bool,
+                vol.Required("switch_siren_allow_off",
+                             default=options.get("switch_siren_allow_off", True)): bool,
+                vol.Required("switch_siren_volume",
+                             default=options.get("switch_siren_volume", True)): int,
+                vol.Required("switch_siren_duration",
+                             default=options.get("switch_siren_duration", True)): int,
+                vol.Required("switch_snapshot",
+                             default=options.get("switch_snapshot", True)): bool,
+                vol.Required("switch_snapshot_timeout",
+                             default=options.get("switch_snapshot_timeout", True)): int,
+                vol.Required("switch_doorbell_silence",
+                             default=options.get("switch_doorbell_silence", True)): bool,
+            })
         )
