@@ -8,7 +8,7 @@ import logging
 import re
 import time
 from collections.abc import Callable
-from datetime import timedelta
+# from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
 import homeassistant.util.dt as dt_util
@@ -31,7 +31,6 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_CODE,
     CONF_TRIGGER_TIME,
-    Platform,
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
@@ -49,57 +48,26 @@ from homeassistant.helpers.typing import HomeAssistantType
 from pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
 
 from . import get_entity_from_domain
-from .const import (
-    COMPONENT_ATTRIBUTION,
-    COMPONENT_BRAND,
-    COMPONENT_CONFIG,
-    COMPONENT_DATA,
-    COMPONENT_DOMAIN,
-    COMPONENT_SERVICES,
-)
-
+from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = [COMPONENT_DOMAIN]
 
-ARMED = "armed"
-DISARMED = "disarmed"
-ICON = "mdi:security"
-
-CONF_CODE_ARM_REQUIRED = "code_arm_required"
-CONF_CODE_DISARM_REQUIRED = "code_disarm_required"
-CONF_DISARMED_MODE_NAME = "disarmed_mode_name"
-CONF_HOME_MODE_NAME = "home_mode_name"
-CONF_AWAY_MODE_NAME = "away_mode_name"
-CONF_NIGHT_MODE_NAME = "night_mode_name"
-CONF_ALARM_VOLUME = "alarm_volume"
-CONF_COMMAND_TEMPLATE = "command_template"
-
-DEFAULT_COMMAND_TEMPLATE = "{{action}}"
-DEFAULT_TRIGGER_TIME = timedelta(seconds=60)
-DEFAULT_HOME = "home"
-DEFAULT_NIGHT = "night"
-DEFAULT_ALARM_VOLUME = "8"
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Optional(CONF_CODE): cv.string,
-        vol.Optional(CONF_CODE_ARM_REQUIRED, default=True): cv.boolean,
-        vol.Optional(CONF_CODE_DISARM_REQUIRED, default=True): cv.boolean,
-        vol.Optional(
-            CONF_COMMAND_TEMPLATE, default=DEFAULT_COMMAND_TEMPLATE
-        ): cv.template,
-        vol.Optional(CONF_DISARMED_MODE_NAME, default=DISARMED): cv.string,
-        vol.Optional(CONF_HOME_MODE_NAME, default=DEFAULT_HOME): cv.string,
-        vol.Optional(CONF_AWAY_MODE_NAME, default=ARMED): cv.string,
-        vol.Optional(CONF_NIGHT_MODE_NAME, default=DEFAULT_NIGHT): cv.string,
-        vol.Optional(CONF_ALARM_VOLUME, default=DEFAULT_ALARM_VOLUME): cv.string,
-        vol.Optional(CONF_TRIGGER_TIME, default=DEFAULT_TRIGGER_TIME): vol.All(
-            cv.time_period, cv.positive_timedelta
-        ),
-    }
-)
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Optional(CONF_CODE): cv.string,
+    vol.Optional(CONF_CODE_ARM_REQUIRED, default=True): cv.boolean,
+    vol.Optional(CONF_CODE_DISARM_REQUIRED, default=True): cv.boolean,
+    vol.Optional(CONF_COMMAND_TEMPLATE, default=DEFAULT_COMMAND_TEMPLATE): cv.template,
+    vol.Optional(CONF_DISARMED_MODE_NAME, default=STATE_ALARM_DISARMED): cv.string,
+    vol.Optional(CONF_HOME_MODE_NAME, default=STATE_ALARM_ARLO_HOME): cv.string,
+    vol.Optional(CONF_AWAY_MODE_NAME, default=STATE_ALARM_ARLO_ARMED): cv.string,
+    vol.Optional(CONF_NIGHT_MODE_NAME, default=STATE_ALARM_ARLO_NIGHT): cv.string,
+    vol.Optional(CONF_ALARM_VOLUME, default=DEFAULT_ALARM_VOLUME): cv.string,
+    vol.Optional(CONF_TRIGGER_TIME, default=DEFAULT_TRIGGER_TIME): vol.All(
+        cv.time_period, cv.positive_timedelta
+    ),
+})
 
 ATTR_MODE = "mode"
 ATTR_VOLUME = "volume"
@@ -107,41 +75,30 @@ ATTR_DURATION = "duration"
 ATTR_TIME_ZONE = "time_zone"
 
 SERVICE_MODE = "alarm_set_mode"
-OLD_SERVICE_MODE = "aarlo_set_mode"
-OLD_SERVICE_SIREN_ON = "aarlo_siren_on"
-OLD_SERVICE_SIREN_OFF = "aarlo_siren_off"
-SERVICE_MODE_SCHEMA = vol.Schema(
-    {
+SERVICE_MODE_SCHEMA = vol.Schema({
         vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
         vol.Required(ATTR_MODE): cv.string,
-    }
-)
-SERVICE_SIREN_ON_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-        vol.Required(ATTR_DURATION): cv.positive_int,
-        vol.Required(ATTR_VOLUME): cv.positive_int,
-    }
-)
-SERVICE_SIREN_OFF_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-    }
-)
+})
+SERVICE_SIREN_ON_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+    vol.Required(ATTR_DURATION): cv.positive_int,
+    vol.Required(ATTR_VOLUME): cv.positive_int,
+})
+SERVICE_SIREN_OFF_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+})
 
 WS_TYPE_SIREN_ON = "aarlo_alarm_siren_on"
 WS_TYPE_SIREN_OFF = "aarlo_alarm_siren_off"
-SCHEMA_WS_SIREN_ON = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {
+SCHEMA_WS_SIREN_ON = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
         vol.Required("type"): WS_TYPE_SIREN_ON,
         vol.Required("entity_id"): cv.entity_id,
         vol.Required(ATTR_DURATION): cv.positive_int,
         vol.Required(ATTR_VOLUME): cv.positive_int,
-    }
-)
-SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {vol.Required("type"): WS_TYPE_SIREN_OFF, vol.Required("entity_id"): cv.entity_id}
-)
+})
+SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_SIREN_OFF, vol.Required("entity_id"): cv.entity_id
+})
 
 
 async def async_setup_entry(
@@ -155,7 +112,7 @@ async def async_setup_entry(
     if not arlo.base_stations:
         return
 
-    config = hass.data[COMPONENT_CONFIG][Platform.ALARM_CONTROL_PANEL]
+    config = hass.data[COMPONENT_CONFIG][ALARM_DOMAIN]
     _LOGGER.debug(f"alarm={config}")
 
     base_stations = []
@@ -233,7 +190,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
     @property
     def icon(self):
         """Return icon."""
-        return ICON
+        return ALARM_ICON
 
     async def async_added_to_hass(self):
         """Register callbacks."""
@@ -244,7 +201,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
             self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY))
             self.async_schedule_update_ha_state()
 
-        self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY, ARMED))
+        self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY, STATE_ALARM_ARLO_ARMED))
         self._base.add_attr_callback(MODE_KEY, update_state)
 
     @property
@@ -366,7 +323,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
             return STATE_ALARM_ARMED_HOME
         if lmode == self._night_mode_name:
             return STATE_ALARM_ARMED_NIGHT
-        if lmode == ARMED:
+        if lmode == STATE_ALARM_ARLO_ARMED:
             return STATE_ALARM_ARMED_AWAY
         return mode
 
@@ -431,7 +388,7 @@ class ArloLocation(AlarmControlPanelEntity):
     @property
     def icon(self):
         """Return icon."""
-        return ICON
+        return ALARM_ICON
 
     async def async_added_to_hass(self):
         """Register callbacks."""

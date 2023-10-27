@@ -12,6 +12,7 @@ COMPONENT_BRAND = "Arlo"
 NOTIFICATION_ID = "aarlo_notification"
 NOTIFICATION_TITLE = "aarlo Component Setup"
 
+# All config.
 CONF_PACKET_DUMP = "packet_dump"
 CONF_CACHE_VIDEOS = "cache_videos"
 CONF_DB_MOTION_TIME = "db_motion_time"
@@ -54,6 +55,28 @@ CONF_CIPHER_LIST = "cipher_list"
 CONF_MQTT_HOST = "mqtt_host"
 CONF_MQTT_HOSTNAME_CHECK = "mqtt_hostname_check"
 CONF_MQTT_TRANSPORT = "mqtt_transport"
+
+# All defaults
+
+# Alarm Specifics
+STATE_ALARM_ARLO_ARMED = "armed"
+STATE_ALARM_ARLO_HOME = "home"
+STATE_ALARM_ARLO_NIGHT = "night"
+
+ALARM_ICON = "mdi:security"
+
+CONF_CODE_ARM_REQUIRED = "code_arm_required"
+CONF_CODE_DISARM_REQUIRED = "code_disarm_required"
+CONF_DISARMED_MODE_NAME = "disarmed_mode_name"
+CONF_HOME_MODE_NAME = "home_mode_name"
+CONF_AWAY_MODE_NAME = "away_mode_name"
+CONF_NIGHT_MODE_NAME = "night_mode_name"
+CONF_ALARM_VOLUME = "alarm_volume"
+CONF_COMMAND_TEMPLATE = "command_template"
+
+DEFAULT_COMMAND_TEMPLATE = "{{action}}"
+DEFAULT_TRIGGER_TIME = timedelta(seconds=60)
+DEFAULT_ALARM_VOLUME = 8
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
