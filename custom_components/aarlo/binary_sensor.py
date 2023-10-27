@@ -1,8 +1,8 @@
 """
-This component provides HA sensor for Netgear Arlo IP cameras.
+This component provides HA sensor for Arlo IP cameras.
 
 For more details about this platform, please refer to the documentation at
-https://home-assistant.io/components/sensor.arlo/
+https://github.com/twrecked/hass-aarlo/blob/master/README.md
 """
 import logging
 import voluptuous as vol
@@ -48,7 +48,7 @@ _LOGGER = logging.getLogger(__name__)
 DEPENDENCIES = [COMPONENT_DOMAIN]
 
 # Supported Sensors
-#  sensor_type: [ Home Assistant sensor type
+#  sensor_type: Home Assistant sensor type
 #    description: What the sensor does.
 #    class: Home Assistant sensor this represents
 #    main attribute: Pyaarlo capability that indicates this device provides this sensor
@@ -94,7 +94,7 @@ async def async_setup_entry(
     sensors = []
     for sensor_type in config.get(CONF_MONITORED_CONDITIONS):
         sensor_value = SENSOR_TYPES[sensor_type]
-        if sensor_type == BinarySensorDeviceClass.CONNECTIVITY:
+        if sensor_type == "connectivity":
             for base in arlo.base_stations:
                 if base.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
                     sensors.append(ArloBinarySensor(base, sensor_type, sensor_value))
@@ -131,7 +131,6 @@ class ArloBinarySensor(BinarySensorEntity):
         self._attr_is_on = False
         self._attr_should_poll = False
         self._attr_device_class = sensor_value[SENSOR_TYPES_CLASS]
-
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
             manufacturer=COMPONENT_BRAND,
