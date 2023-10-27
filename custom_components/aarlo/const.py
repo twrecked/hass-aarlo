@@ -58,26 +58,6 @@ CONF_MQTT_TRANSPORT = "mqtt_transport"
 
 # All defaults
 
-# Alarm Specifics
-STATE_ALARM_ARLO_ARMED = "armed"
-STATE_ALARM_ARLO_HOME = "home"
-STATE_ALARM_ARLO_NIGHT = "night"
-
-ALARM_ICON = "mdi:security"
-
-CONF_CODE_ARM_REQUIRED = "code_arm_required"
-CONF_CODE_DISARM_REQUIRED = "code_disarm_required"
-CONF_DISARMED_MODE_NAME = "disarmed_mode_name"
-CONF_HOME_MODE_NAME = "home_mode_name"
-CONF_AWAY_MODE_NAME = "away_mode_name"
-CONF_NIGHT_MODE_NAME = "night_mode_name"
-CONF_ALARM_VOLUME = "alarm_volume"
-CONF_COMMAND_TEMPLATE = "command_template"
-
-DEFAULT_COMMAND_TEMPLATE = "{{action}}"
-DEFAULT_TRIGGER_TIME = timedelta(seconds=60)
-DEFAULT_ALARM_VOLUME = 8
-
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
 CACHE_VIDEOS = False
@@ -119,3 +99,43 @@ DEFAULT_BACKEND = "auto"
 DEFAULT_CIPHER_LIST = ""
 DEFAULT_MQTT_HOSTNAME_CHECK = True
 DEFAULT_MQTT_TRANSPORT = "tcp"
+
+# Alarm Specifics
+STATE_ALARM_ARLO_ARMED = "armed"
+STATE_ALARM_ARLO_HOME = "home"
+STATE_ALARM_ARLO_NIGHT = "night"
+
+ALARM_ICON = "mdi:security"
+
+CONF_CODE_ARM_REQUIRED = "code_arm_required"
+CONF_CODE_DISARM_REQUIRED = "code_disarm_required"
+CONF_DISARMED_MODE_NAME = "disarmed_mode_name"
+CONF_HOME_MODE_NAME = "home_mode_name"
+CONF_AWAY_MODE_NAME = "away_mode_name"
+CONF_NIGHT_MODE_NAME = "night_mode_name"
+CONF_ALARM_VOLUME = "alarm_volume"
+CONF_COMMAND_TEMPLATE = "command_template"
+
+DEFAULT_COMMAND_TEMPLATE = "{{action}}"
+DEFAULT_TRIGGER_TIME = timedelta(seconds=60)
+DEFAULT_ALARM_VOLUME = 8
+
+# Switch Specifics
+CONF_SIRENS = "siren"
+CONF_ALL_SIRENS = "all_sirens"
+CONF_SIREN_DURATION = "siren_duration"
+CONF_SIREN_VOLUME = "siren_volume"
+CONF_SIREN_ALLOW_OFF = "siren_allow_off"
+CONF_SNAPSHOT = "snapshot"
+# CONF_SNAPSHOT_TIMEOUT = "snapshot_timeout"
+CONF_DOORBELL_SILENCE = "doorbell_silence"
+
+SIRENS_DEFAULT = False
+SIREN_DURATION_DEFAULT = timedelta(seconds=300)
+SIREN_VOLUME_DEFAULT = 8
+SIREN_ALLOW_OFF_DEFAULT = True
+ALL_SIRENS_DEFAULT = False
+SNAPSHOTS_DEFAULT = False
+SILENT_MODE_DEFAULT = False
+SNAPSHOT_TIMEOUT_DEFAULT = timedelta(seconds=60)
+
