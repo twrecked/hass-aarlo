@@ -179,7 +179,7 @@ ALARM_SCHEMA = vol.Schema({
     vol.Optional(CONF_CODE): cv.string,
     vol.Optional(CONF_CODE_ARM_REQUIRED, default=True): cv.boolean,
     vol.Optional(CONF_CODE_DISARM_REQUIRED, default=True): cv.boolean,
-    vol.Optional(CONF_COMMAND_TEMPLATE, default=DEFAULT_COMMAND_TEMPLATE): cv.template,
+    vol.Optional(CONF_COMMAND_TEMPLATE, default=DEFAULT_COMMAND_TEMPLATE): cv.string,
     vol.Optional(CONF_DISARMED_MODE_NAME, default=DISARMED): cv.string,
     vol.Optional(CONF_HOME_MODE_NAME, default=DEFAULT_HOME): cv.string,
     vol.Optional(CONF_AWAY_MODE_NAME, default=ARMED): cv.string,
@@ -260,6 +260,22 @@ def _get_platform_config(config):
     return {}
 
 
+def _upgrade_timedeltas(config_in):
+    """Remove any timedeltas from the dictionary.
+    Home Assistant doesn't like writing them to YAML so we convert them to
+    seconds.
+    """
+    config_out = {}
+    for key, value in config_in.items():
+        # Convert to a format yaml_save will work with if needed.
+        if isinstance(value, timedelta):
+            _LOGGER.debug(f"rewriting-time-delta={key}")
+            config_out[key] = value.seconds
+        else:
+            config_out[key] = value
+    return config_out
+
+
 class ArloFileCfg(object):
     """Helper class to get at Arlo configuration options.
 
@@ -275,7 +291,7 @@ class ArloFileCfg(object):
     def __init__(self):
         pass
 
-    def _get_platform_config(self, config):
+    def _get_platform_config2(self, config):
         for entry in config:
             if entry[CONF_PLATFORM] == DOMAIN:
                 entry = copy.deepcopy(entry)
@@ -342,8 +358,8 @@ class UpgradeCfg(object):
 
         # We need to
         # - strip out the config flow items from this
-        # - replace timedelta with strings
         # - remove defaults
+        # - replace timedelta with strings
         aarlo_config = {}
         default_aarlo_config = AARLO_FULL_SCHEMA({
             CONF_USERNAME: "",
@@ -357,13 +373,9 @@ class UpgradeCfg(object):
                 continue
             if default_aarlo_config[key] == value:
                 continue
+            aarlo_config[key] = value
 
-            # Convert to a format yaml_save will work with if needed.
-            if isinstance(value, timedelta):
-                _LOGGER.debug(f"td={key}")
-                aarlo_config[key] = value.seconds
-            else:
-                aarlo_config[key] = value
+        aarlo_config = _upgrade_timedeltas(aarlo_config)
 
         # For now, everything else comes as-as.
         alarm_config = _get_platform_config(config.get(Platform.ALARM_CONTROL_PANEL, []))
@@ -403,7 +415,7 @@ class UpgradeCfg(object):
             if key in AARLO_SCHEMA_ONLY_IN_CONFIG:
                 domain_config[key] = value
 
-        _LOGGER.debug(f"domain-flow-config={domain_config}")
+        _LOGGER.debug(f"flow-data={domain_config}")
         return domain_config
 
     @staticmethod
@@ -411,18 +423,25 @@ class UpgradeCfg(object):
         """ Take the current aarlo config and make the new flow options.
         """
 
-        options = _get_platform_config(config.get(Platform.ALARM_CONTROL_PANEL, {}))
+        # Fill in the defaults, convert the time deltas and add the platform prefix.
+        options = ALARM_SCHEMA(_get_platform_config(config.get(Platform.ALARM_CONTROL_PANEL, {})))
+        options = _upgrade_timedeltas(options)
         options = {f"alarm_control_panel_{k}": v for k, v in options.items()}
 
+        # Move out of 'monitored_conditions' array and add platform prefix.
         for kb, vb in _get_platform_config(config.get(Platform.BINARY_SENSOR, {})).items():
             if kb == "monitored_conditions":
                 options.update({f"binary_sensor_{v}": True for v in vb})
 
+        # Move out of 'monitored_conditions' array and add platform prefix.
         for ks, vs in _get_platform_config(config.get(Platform.SENSOR, {})).items():
             if ks == "monitored_conditions":
                 options.update({f"sensor_{v}": True for v in vs})
 
-        switch_config = _get_platform_config(config.get(Platform.SWITCH, {}))
+        # Fill in the defaults, convert the time deltas and add the platform prefix.
+        switch_config = SWITCH_SCHEMA(_get_platform_config(config.get(Platform.SWITCH, {})))
+        switch_config = _upgrade_timedeltas(switch_config)
         options.update({f"switch_{k}": v for k, v in switch_config.items()})
 
+        _LOGGER.debug(f"flow-options={options}")
         return options
