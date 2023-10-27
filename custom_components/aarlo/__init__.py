@@ -6,7 +6,6 @@ https://home-assistant.io/components/arlo/
 """
 import json
 import logging
-import os.path
 import pprint
 import time
 import voluptuous as vol
@@ -173,7 +172,7 @@ def setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up an momentary component.
     """
 
-    hass.data.setdefault(DOMAIN, {})
+    hass.data.setdefault(COMPONENT_DOMAIN, {})
 
     # See if we have already imported the data. If we haven't then do it now.
     config_entry = _async_find_aarlo_config(hass)
@@ -181,7 +180,7 @@ def setup(hass: HomeAssistant, config: ConfigType) -> bool:
         _LOGGER.debug('importing a YAML setup')
         hass.async_create_task(
             hass.config_entries.flow.async_init(
-                DOMAIN,
+                COMPONENT_DOMAIN,
                 context={CONF_SOURCE: SOURCE_IMPORT},
                 data=config
             )
@@ -197,7 +196,7 @@ def _async_find_aarlo_config(hass):
     """ If we have anything in config_entries for aarlo we consider it
     configured and will ignore the YAML.
     """
-    for entry in hass.config_entries.async_entries(DOMAIN):
+    for entry in hass.config_entries.async_entries(COMPONENT_DOMAIN):
         return entry
 
 
@@ -253,7 +252,7 @@ async def _async_get_or_create_momentary_device_in_registry(
     device_registry = dr.async_get(hass)
     device_registry.async_get_or_create(
         config_entry_id=entry.entry_id,
-        identifiers={(DOMAIN, device[DEVICE_ID_KEY])},
+        identifiers={(COMPONENT_DOMAIN, device[DEVICE_ID_KEY])},
         manufacturer=COMPONENT_BRAND,
         name=device[DEVICE_NAME_KEY],
         model=device['modelId'],

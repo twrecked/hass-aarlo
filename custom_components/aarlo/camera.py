@@ -18,7 +18,7 @@ from homeassistant.components.camera import (
     ATTR_FILENAME,
     CONF_DURATION,
     CONF_LOOKBACK,
-    DOMAIN,
+    DOMAIN as CAMERA_DOMAIN,
     SERVICE_RECORD,
     STATE_IDLE,
     STATE_RECORDING,
@@ -241,9 +241,9 @@ async def async_setup_entry(
     async def async_service_callback(call):
         await hass.async_add_executor_job(service_callback, call)
 
-    if not hasattr(hass.data[COMPONENT_SERVICES], DOMAIN):
+    if not hasattr(hass.data[COMPONENT_SERVICES], CAMERA_DOMAIN):
         _LOGGER.info("installing handlers")
-        hass.data[COMPONENT_SERVICES][DOMAIN] = "installed"
+        hass.data[COMPONENT_SERVICES][CAMERA_DOMAIN] = "installed"
         hass.services.async_register(
             COMPONENT_DOMAIN,
             SERVICE_REQUEST_SNAPSHOT,
@@ -618,7 +618,7 @@ class ArloCam(Camera):
             CONF_DURATION: duration,
             CONF_LOOKBACK: 0,
         }
-        self.hass.services.call(DOMAIN, SERVICE_RECORD, data, blocking=True)
+        self.hass.services.call(CAMERA_DOMAIN, SERVICE_RECORD, data, blocking=True)
 
         _LOGGER.debug("waiting on stream connect")
         return self._camera.wait_for_user_stream()
@@ -703,7 +703,7 @@ class ArloCam(Camera):
 @websocket_api.async_response
 async def websocket_video_url(hass, connection, msg):
     try:
-        camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
+        camera = get_entity_from_domain(hass, CAMERA_DOMAIN, msg["entity_id"])
         video = camera.last_video
         url = video.video_url if video is not None else None
         url_type = video.content_type if video is not None else None
@@ -731,7 +731,7 @@ async def websocket_video_url(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_library(hass, connection, msg):
     try:
-        camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
+        camera = get_entity_from_domain(hass, CAMERA_DOMAIN, msg["entity_id"])
         videos = []
         _LOGGER.debug("library+" + str(msg["at_most"]))
         for v in camera.last_n_videos(msg["at_most"]):
@@ -774,7 +774,7 @@ async def websocket_library(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_stream_url(hass, connection, msg):
     try:
-        camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
+        camera = get_entity_from_domain(hass, CAMERA_DOMAIN, msg["entity_id"])
         _LOGGER.debug("stream_url for " + str(camera.unique_id))
 
         user_agent = msg.get("user_agent", "linux")
@@ -801,7 +801,7 @@ async def websocket_stream_url(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_snapshot_image(hass, connection, msg):
     try:
-        camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
+        camera = get_entity_from_domain(hass, CAMERA_DOMAIN, msg["entity_id"])
         _LOGGER.debug("snapshot_image for " + str(camera.unique_id))
 
         image = await camera.async_get_snapshot()
@@ -828,7 +828,7 @@ async def websocket_snapshot_image(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_request_snapshot(hass, connection, msg):
     try:
-        camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
+        camera = get_entity_from_domain(hass, CAMERA_DOMAIN, msg["entity_id"])
         _LOGGER.debug("request_snapshot_image for " + str(camera.unique_id))
 
         await camera.async_request_snapshot()
@@ -849,7 +849,7 @@ async def websocket_request_snapshot(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_video_data(hass, connection, msg):
     try:
-        camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
+        camera = get_entity_from_domain(hass, CAMERA_DOMAIN, msg["entity_id"])
         _LOGGER.debug("video_data for " + str(camera.unique_id))
 
         video = await camera.async_get_video()
@@ -876,7 +876,7 @@ async def websocket_video_data(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_stop_activity(hass, connection, msg):
     try:
-        camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
+        camera = get_entity_from_domain(hass, CAMERA_DOMAIN, msg["entity_id"])
         _LOGGER.debug("stop_activity for " + str(camera.unique_id))
 
         stopped = await camera.async_stop_activity()
@@ -897,7 +897,7 @@ async def websocket_stop_activity(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_siren_on(hass, connection, msg):
     try:
-        camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
+        camera = get_entity_from_domain(hass, CAMERA_DOMAIN, msg["entity_id"])
         _LOGGER.debug("stop_activity for " + str(camera.unique_id))
 
         await camera.async_siren_on(duration=msg["duration"], volume=msg["volume"])
@@ -918,7 +918,7 @@ async def websocket_siren_on(hass, connection, msg):
 @websocket_api.async_response
 async def websocket_siren_off(hass, connection, msg):
     try:
-        camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
+        camera = get_entity_from_domain(hass, CAMERA_DOMAIN, msg["entity_id"])
         _LOGGER.debug("stop_activity for " + str(camera.unique_id))
 
         await camera.async_siren_off()
@@ -940,7 +940,7 @@ def camera_snapshot_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             _LOGGER.info("{} snapshot".format(entity_id))
-            camera = get_entity_from_domain(hass, DOMAIN, entity_id)
+            camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
             camera.get_snapshot()
             hass.bus.fire(
                 "aarlo_snapshot_ready",
@@ -956,7 +956,7 @@ def camera_snapshot_service(hass, call):
 def camera_snapshot_to_file_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
-            camera = get_entity_from_domain(hass, DOMAIN, entity_id)
+            camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
             filename = call.data[ATTR_FILENAME]
             filename.hass = hass
             snapshot_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
@@ -989,7 +989,7 @@ def camera_snapshot_to_file_service(hass, call):
 def camera_video_to_file_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
-            camera = get_entity_from_domain(hass, DOMAIN, entity_id)
+            camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
             filename = call.data[ATTR_FILENAME]
             filename.hass = hass
             video_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
@@ -1019,7 +1019,7 @@ def camera_stop_activity_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             _LOGGER.info("{} stop activity".format(entity_id))
-            get_entity_from_domain(hass, DOMAIN, entity_id).stop_activity()
+            get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id).stop_activity()
         except HomeAssistantError:
             _LOGGER.warning("{} stop activity service failed".format(entity_id))
 
@@ -1029,7 +1029,7 @@ def camera_start_recording_service(hass, call):
         try:
             duration = call.data[ATTR_DURATION]
             _LOGGER.info("{} start recording(duration={})".format(entity_id, duration))
-            camera = get_entity_from_domain(hass, DOMAIN, entity_id)
+            camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
             camera.start_recording(duration=duration)
         except HomeAssistantError as e:
             _LOGGER.warning(f"{entity_id} start recording service failed - {str(e)}")
@@ -1039,6 +1039,6 @@ def camera_stop_recording_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             _LOGGER.info("{} stop recording".format(entity_id))
-            get_entity_from_domain(hass, DOMAIN, entity_id).stop_recording()
+            get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id).stop_recording()
         except HomeAssistantError as e:
             _LOGGER.warning(f"{entity_id} stop recording service failed - {str(e)}")

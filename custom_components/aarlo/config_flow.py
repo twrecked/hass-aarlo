@@ -17,7 +17,7 @@ from .const import (
     CONF_TFA_SOURCE,
     CONF_TFA_TYPE,
     CONF_TFA_USERNAME,
-    DOMAIN,
+    COMPONENT_DOMAIN,
 )
 from .cfg import UpgradeCfg
 
@@ -40,7 +40,7 @@ TFA_SELECTOR = SelectSelector(
 )
 
 
-class AarloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
     """Aarlo config flow."""
 
     VERSION = 1

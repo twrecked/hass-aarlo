@@ -72,7 +72,7 @@
       },
       "switch": {
         "title": "Switches",
-        "description": "Enable which switches?\nNOTE: not all sensors will be available on every device.",
+        "description": "Enable which switches?\nNOTE: not all switches will be available for every device.",
         "data": {
           "switch_siren": "Switches to turn sirens on",
           "switch_all_sirens": "A switch turn all sirens on",

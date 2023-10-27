@@ -252,7 +252,7 @@ def _fix_config(config):
     """Find and return the aarlo entry from any platform config.
     """
     for entry in config:
-        if entry[CONF_PLATFORM] == DOMAIN:
+        if entry[CONF_PLATFORM] == COMPONENT_DOMAIN:
             entry = copy.deepcopy(entry)
             entry.pop(CONF_PLATFORM)
             return entry
@@ -307,7 +307,7 @@ class BlendedCfg(object):
             _LOGGER.debug(f"failed to read aarlo config {str(e)}")
 
         # Fix up the pieces to standard defaults..
-        self._main_config = AARLO_SCHEMA(config.get(DOMAIN, {}))
+        self._main_config = AARLO_SCHEMA(config.get(COMPONENT_DOMAIN, {}))
 
         _LOGGER.debug(f"l-config-file={AARLO_CONFIG_FILE}")
         _LOGGER.debug(f"l-main-config={self._main_config}")
@@ -371,7 +371,7 @@ class UpgradeCfg(object):
         # - remove defaults
         # - replace timedelta with strings
         file_config = {k: _fix_value(v)
-                       for k, v in config.get(DOMAIN, {}).items()
+                       for k, v in config.get(COMPONENT_DOMAIN, {}).items()
                        if k not in AARLO_SCHEMA_ONLY_IN_CONFIG and default_aarlo_config[k] != v}
         _LOGGER.debug(f"aarlo-file-config={file_config}")
 
@@ -382,7 +382,7 @@ class UpgradeCfg(object):
         try:
             save_yaml(AARLO_CONFIG_FILE, {
                 "version": 1,
-                DOMAIN: file_config,
+                COMPONENT_DOMAIN: file_config,
             })
         except Exception as e:
             _LOGGER.debug(f"couldn't save user data {str(e)}")
@@ -392,7 +392,7 @@ class UpgradeCfg(object):
         """ Take the current aarlo config and make the new flow configuration.
         """
 
-        data = {k: v for k, v in AARLO_FULL_SCHEMA(config.get(DOMAIN, {})).items()
+        data = {k: v for k, v in AARLO_FULL_SCHEMA(config.get(COMPONENT_DOMAIN, {})).items()
                 if k in AARLO_SCHEMA_ONLY_IN_CONFIG }
 
         _LOGGER.debug(f"aarlo-flow-data={data}")

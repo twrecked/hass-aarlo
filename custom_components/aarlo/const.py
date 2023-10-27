@@ -2,7 +2,6 @@
 
 from datetime import timedelta
 
-DOMAIN = "aarlo"
 COMPONENT_DOMAIN = "aarlo"
 COMPONENT_DATA = "aarlo-data"
 COMPONENT_SERVICES = "aarlo-services"

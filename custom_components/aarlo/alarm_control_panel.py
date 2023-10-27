@@ -15,7 +15,7 @@ import homeassistant.util.dt as dt_util
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.alarm_control_panel import (
-    DOMAIN,
+    DOMAIN as ALARM_DOMAIN,
     FORMAT_NUMBER,
     FORMAT_TEXT,
     AlarmControlPanelEntity,
@@ -186,9 +186,9 @@ async def async_setup_entry(
         # pass off to background thread
         await hass.async_add_executor_job(service_callback, call)
 
-    if not hasattr(hass.data[COMPONENT_SERVICES], DOMAIN):
+    if not hasattr(hass.data[COMPONENT_SERVICES], ALARM_DOMAIN):
         _LOGGER.info("installing handlers")
-        hass.data[COMPONENT_SERVICES][DOMAIN] = "installed"
+        hass.data[COMPONENT_SERVICES][ALARM_DOMAIN] = "installed"
         hass.services.async_register(
             COMPONENT_DOMAIN,
             SERVICE_MODE,
@@ -561,7 +561,7 @@ class ArloLocation(AlarmControlPanelEntity):
 
 
 def _get_base_from_entity_id(hass, entity_id):
-    component = hass.data.get(DOMAIN)
+    component = hass.data.get(ALARM_DOMAIN)
     if component is None:
         raise HomeAssistantError("base component not set up")
 
@@ -573,7 +573,7 @@ def _get_base_from_entity_id(hass, entity_id):
 
 
 def _get_location_from_entity_id(hass, entity_id):
-    component = hass.data.get(DOMAIN)
+    component = hass.data.get(ALARM_DOMAIN)
     if component is None:
         raise HomeAssistantError("location component not set up")
 
@@ -621,7 +621,7 @@ def alarm_mode_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             mode = call.data["mode"]
-            get_entity_from_domain(hass, DOMAIN, entity_id).set_mode_in_ha(mode)
+            get_entity_from_domain(hass, ALARM_DOMAIN, entity_id).set_mode_in_ha(mode)
             _LOGGER.info("{0} setting mode to {1}".format(entity_id, mode))
         except HomeAssistantError:
             _LOGGER.warning("{0} is not an aarlo alarm device".format(entity_id))
