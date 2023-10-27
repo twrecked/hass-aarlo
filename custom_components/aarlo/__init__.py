@@ -208,7 +208,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # doing now.
     filecfg = ArloFileCfg()
     filecfg.load()
-    domain_config = {**entry.data[COMPONENT_DOMAIN], **filecfg.domain_config}
+    domain_config = {**entry.data, **filecfg.domain_config}
 
     # Try to login to aarlo.
     arlo = await hass.async_add_executor_job(login, hass, domain_config)
@@ -265,9 +265,6 @@ async def _async_get_or_create_momentary_device_in_registry(
 
 async def async_setup2(hass, config):
     """Set up an Arlo component."""
-
-    # UpgradeCfg.create_file_config(config)
-    # UpgradeCfg.create_flow_config(config)
 
     # Read config
     conf = config[COMPONENT_DOMAIN]

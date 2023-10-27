@@ -391,7 +391,7 @@ class UpgradeCfg(object):
             _LOGGER.debug(f"couldn't save user data {str(e)}")
 
     @staticmethod
-    def create_flow_config(config):
+    def create_flow_data(config):
         """ Take the current aarlo config and make the new flow configuration.
         """
 
@@ -405,3 +405,24 @@ class UpgradeCfg(object):
 
         _LOGGER.debug(f"domain-flow-config={domain_config}")
         return domain_config
+
+    @staticmethod
+    def create_flow_options(config):
+        """ Take the current aarlo config and make the new flow options.
+        """
+
+        options = _get_platform_config(config.get(Platform.ALARM_CONTROL_PANEL, {}))
+        options = {f"alarm_control_panel_{k}": v for k, v in options.items()}
+
+        for kb, vb in _get_platform_config(config.get(Platform.BINARY_SENSOR, {})).items():
+            if kb == "monitored_conditions":
+                options.update({f"binary_sensor_{v}": True for v in vb})
+
+        for ks, vs in _get_platform_config(config.get(Platform.SENSOR, {})).items():
+            if ks == "monitored_conditions":
+                options.update({f"sensor_{v}": True for v in vs})
+
+        switch_config = _get_platform_config(config.get(Platform.SWITCH, {}))
+        options.update({f"switch_{k}": v for k, v in switch_config.items()})
+
+        return options

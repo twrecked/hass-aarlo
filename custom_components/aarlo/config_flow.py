@@ -2,9 +2,11 @@
 
 import logging
 import voluptuous as vol
+from typing import Any
 
-from homeassistant.config_entries import ConfigFlow
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant import config_entries
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.core import callback
 from homeassistant.helpers.selector import selector, SelectOptionDict, \
     SelectSelector, SelectSelectorConfig, SelectSelectorMode
 
@@ -37,10 +39,18 @@ TFA_SELECTOR = SelectSelector(
 )
 
 
-class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
+class AarloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Aarlo config flow."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+            config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        """Create the options flow."""
+        return ArloOptionsFlowHandler(config_entry)
 
     def __init__(self):
         """Initialize the config flow."""
@@ -128,11 +138,95 @@ class AarloFlowHandler(ConfigFlow, domain=DOMAIN):
 
         _LOGGER.info("importing aarlo YAML")
         UpgradeCfg.create_file_config(import_data)
-        domain_config = UpgradeCfg.create_flow_config(import_data)
+        data = UpgradeCfg.create_flow_data(import_data)
+        options = UpgradeCfg.create_flow_options(import_data)
 
         return self.async_create_entry(
-            title=f"{DEFAULT_IMPORTED_NAME} {DOMAIN}", data={
-                "naming_style": "original",
-                "imported": True,
-                DOMAIN: domain_config
-            })
+            title=f"Aarlo Config for {data[CONF_USERNAME]} (imported)",
+            data=data,
+            options=options
+        )
+
+
+class ArloOptionsFlowHandler(config_entries.OptionsFlow):
+
+    _config: dict[str, Any] = {}
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self._config_entry = config_entry
+
+    async def async_step_init(
+            self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Manage the options."""
+        return await self.async_step_binary_sensor(user_input)
+
+    async def async_step_binary_sensor(
+            self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+
+        if user_input is not None:
+            _LOGGER.debug(f"user-input={user_input}")
+            self._config = user_input
+            return await self.async_step_sensor(None)
+
+        options = self._config_entry.options
+        return self.async_show_form(
+            step_id="binary_sensor",
+            data_schema=vol.Schema({
+                vol.Required("binary_sensor_sound",
+                             default=options.get("binary_sensor_sound", True)): bool,
+                vol.Required("binary_sensor_motion",
+                             default=options.get("binary_sensor_motion", True)): bool,
+                vol.Required("binary_sensor_ding",
+                             default=options.get("binary_sensor_ding", True)): bool,
+                vol.Required("binary_sensor_cry",
+                             default=options.get("binary_sensor_cry", True)): bool,
+                vol.Required("binary_sensor_connectivity",
+                             default=options.get("binary_sensor_connectivity", True)): bool,
+                vol.Required("binary_sensor_contact",
+                             default=options.get("binary_sensor_contact", True)): bool,
+                vol.Required("binary_sensor_light",
+                             default=options.get("binary_sensor_light", True)): bool,
+                vol.Required("binary_sensor_tamper",
+                             default=options.get("binary_sensor_tamper", True)): bool,
+                vol.Required("binary_sensor_leak",
+                             default=options.get("binary_sensor_leak", True)): bool,
+            }),
+        )
+
+    async def async_step_sensor(
+            self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+
+        if user_input is not None:
+            _LOGGER.debug(f"user-input={user_input}")
+            self._config.update(user_input)
+            _LOGGER.debug(f"_config={self._config}")
+            return self.async_create_entry(title="", data=self._config)
+
+        options = self._config_entry.options
+        return self.async_show_form(
+            step_id="sensor",
+            data_schema=vol.Schema({
+                vol.Required("sensor_last_capture",
+                             default=options.get("sensor_last_capture", True)): bool,
+                vol.Required("sensor_total_cameras",
+                             default=options.get("sensor_total_cameras", True)): bool,
+                vol.Required("sensor_recent_activity",
+                             default=options.get("sensor_recent_activity", True)): bool,
+                vol.Required("sensor_captured_today",
+                             default=options.get("sensor_captured_today", True)): bool,
+                vol.Required("sensor_battery_level",
+                             default=options.get("sensor_battery_level", True)): bool,
+                vol.Required("sensor_signal_strength",
+                             default=options.get("sensor_signal_strength", True)): bool,
+                vol.Required("sensor_temperature",
+                             default=options.get("sensor_temperature", True)): bool,
+                vol.Required("sensor_humidity",
+                             default=options.get("sensor_humidity", True)): bool,
+                vol.Required("sensor_air_quality",
+                             default=options.get("sensor_air_quality", True)): bool,
+            }),
+        )
