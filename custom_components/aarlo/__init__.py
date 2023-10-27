@@ -41,7 +41,7 @@ from pyaarlo.constant import (
 )
 
 from .const import *
-from .cfg import ArloBlendedCfg
+from .cfg import BlendedCfg
 
 __version__ = "0.8.0a16"
 
@@ -206,7 +206,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     # Merge the flow config and file config. Only the domain level needs
     # doing now.
-    cfg = ArloBlendedCfg(entry.data, entry.options)
+    cfg = BlendedCfg(entry.data, entry.options)
     domain_config = cfg.domain_config
 
     # Try to login to aarlo.

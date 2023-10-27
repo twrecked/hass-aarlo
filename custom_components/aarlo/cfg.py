@@ -7,9 +7,8 @@ where the user can configure things.
 
 There are 2 pieces:
 
-- `FileCfg`; this class is responsible for loading and correcting the
-  file based configuration. It will return config for each of the
-  platforms we support.
+- `BlendedCfg`; this class is responsible for loading the new file based
+  configuration and merging it with the flow data and options.
 
 - `UpgradeCfg`; A helper class to import configuration from the old YAML
   layout.
@@ -288,7 +287,7 @@ def _extract_monitored_conditions(config_in, prefix):
     }
 
 
-class ArloBlendedCfg(object):
+class BlendedCfg(object):
     """Helper class to get at Arlo configuration options.
 
     Reads in non config flow settings from the external config file and merges
@@ -377,38 +376,22 @@ class UpgradeCfg(object):
             CONF_PASSWORD: "",
         })
         for key, value in config.get(DOMAIN, {}).items():
-            _LOGGER.debug(f"trying-td={key}")
-
-            # Skip these.
             if key in AARLO_SCHEMA_ONLY_IN_CONFIG:
                 continue
             if default_aarlo_config[key] == value:
                 continue
             aarlo_config[key] = value
-
         aarlo_config = _upgrade_timedeltas(aarlo_config)
+        _LOGGER.debug(f"aarlo-file-config={aarlo_config}")
 
-        # For now, everything else comes as-as.
-        alarm_config = _get_platform_config(config.get(Platform.ALARM_CONTROL_PANEL, []))
-        binary_sensor_config = _get_platform_config(config.get(Platform.BINARY_SENSOR, []))
-        sensor_config = _get_platform_config(config.get(Platform.SENSOR, []))
-        switch_config = _get_platform_config(config.get(Platform.SWITCH, []))
-
-        _LOGGER.debug(f"aarl0={aarlo_config}")
-        _LOGGER.debug(f"alarm={alarm_config}")
-        _LOGGER.debug(f"bsens={binary_sensor_config}")
-        _LOGGER.debug(f"senso={sensor_config}")
-        _LOGGER.debug(f"swith={switch_config}")
+        # For now, we move all the other config into the options, I'll add it
+        # here as needed.
 
         # Save it out.
         try:
             save_yaml(AARLO_CONFIG_FILE, {
                 "version": 1,
                 DOMAIN: aarlo_config,
-                # str(Platform.ALARM_CONTROL_PANEL): alarm_config,
-                # str(Platform.BINARY_SENSOR): binary_sensor_config,
-                # str(Platform.SENSOR): sensor_config,
-                # str(Platform.SWITCH): switch_config,
             })
         except Exception as e:
             _LOGGER.debug(f"couldn't save user data {str(e)}")
@@ -426,7 +409,7 @@ class UpgradeCfg(object):
             if key in AARLO_SCHEMA_ONLY_IN_CONFIG:
                 domain_config[key] = value
 
-        _LOGGER.debug(f"flow-data={domain_config}")
+        _LOGGER.debug(f"aarlo-flow-data={domain_config}")
         return domain_config
 
     @staticmethod
@@ -454,5 +437,5 @@ class UpgradeCfg(object):
         switch_config = _upgrade_timedeltas(switch_config)
         options.update({f"switch_{k}": v for k, v in switch_config.items()})
 
-        _LOGGER.debug(f"flow-options={options}")
+        _LOGGER.debug(f"aarlo-flow-options={options}")
         return options
