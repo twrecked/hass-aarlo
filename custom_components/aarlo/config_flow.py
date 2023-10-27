@@ -5,9 +5,9 @@ import voluptuous as vol
 from typing import Any
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
-from homeassistant.helpers.selector import selector, SelectOptionDict, \
+from homeassistant.helpers.selector import SelectOptionDict, \
     SelectSelector, SelectSelectorConfig, SelectSelectorMode
 
 from .const import (
@@ -25,6 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_IMPORTED_NAME = "imported"
 
+# TFA types. We actually map these to the correct source/type pairing.
 TFA_TYPES = [
     SelectOptionDict(value="NONE", label="None"),
     SelectOptionDict(value="IMAP", label="IMAP"),
@@ -54,11 +55,11 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self):
         """Initialize the config flow."""
-        self.username = None
-        self.password = None
-        self.tfaUsername = ""
-        self.tfaPassword = ""
-        self.tfaHost = ""
+        self.username = ""
+        self.password = ""
+        self.tfa_username = ""
+        self.tfa_password = ""
+        self.tfa_host = ""
 
     async def async_step_user(self, info: dict = None):
         """Handle user initiated flow."""
@@ -78,18 +79,18 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
             # Lets look at what we have.
             _LOGGER.debug(f"info={info}")
-            if info["tfa_type"] == "NONE":
+            if info[CONF_TFA_TYPE] == "NONE":
                 config.update({
                     CONF_TFA_TYPE: "none"
                 })
 
-            elif info["tfa_type"] == "PUSH":
+            elif info[CONF_TFA_TYPE] == "PUSH":
                 config.update({
                     CONF_TFA_TYPE: "push",
                     CONF_TFA_SOURCE: "push",
                 })
 
-            elif info["tfa_type"] == "IMAP":
+            elif info[CONF_TFA_TYPE] == "IMAP":
                 if (not info[CONF_TFA_USERNAME] or not info[CONF_TFA_PASSWORD]
                         or not info[CONF_TFA_HOST]):
                     errors["base"] = "missing_imap_fields"
@@ -102,7 +103,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         CONF_TFA_PASSWORD: info[CONF_TFA_PASSWORD],
                     })
 
-            elif info["tfa_type"] == "RESTAPI":
+            elif info[CONF_TFA_TYPE] == "RESTAPI":
                 if (not info[CONF_TFA_USERNAME] or not info[CONF_TFA_PASSWORD]
                         or not info[CONF_TFA_HOST]):
                     errors["base"] = "missing_restapi_fields"
@@ -122,9 +123,9 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Required(CONF_USERNAME, default=self.username): str,
             vol.Required(CONF_PASSWORD, default=self.password): str,
             vol.Required(CONF_TFA_TYPE, default="IMAP"): TFA_SELECTOR,
-            vol.Optional(CONF_TFA_USERNAME, default=self.tfaUsername): str,
-            vol.Optional(CONF_TFA_PASSWORD, default=self.tfaPassword): str,
-            vol.Optional(CONF_TFA_HOST, default=self.tfaHost): str,
+            vol.Optional(CONF_TFA_USERNAME, default=self.tfa_username): str,
+            vol.Optional(CONF_TFA_PASSWORD, default=self.tfa_password): str,
+            vol.Optional(CONF_TFA_HOST, default=self.tfa_host): str,
         }
 
         return self.async_show_form(

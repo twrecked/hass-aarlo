@@ -8,7 +8,7 @@ COMPONENT_DATA = "aarlo-data"
 COMPONENT_SERVICES = "aarlo-services"
 COMPONENT_CONFIG = "aarlo-config"
 COMPONENT_ATTRIBUTION = "Data provided by my.arlo.com"
-COMPONENT_BRAND = "Netgear Arlo"
+COMPONENT_BRAND = "Arlo"
 
 NOTIFICATION_ID = "aarlo_notification"
 NOTIFICATION_TITLE = "aarlo Component Setup"
