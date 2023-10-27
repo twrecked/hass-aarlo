@@ -96,7 +96,7 @@ DEFAULT_COMMAND_TEMPLATE = "{{action}}"
 DEFAULT_TRIGGER_TIME = timedelta(seconds=60)
 DEFAULT_HOME = "home"
 DEFAULT_NIGHT = "night"
-DEFAULT_ALARM_VOLUME = "8"
+DEFAULT_ALARM_VOLUME = 8
 SIRENS_DEFAULT = False
 SIREN_DURATION_DEFAULT = timedelta(seconds=300)
 SIREN_VOLUME_DEFAULT = "8"
@@ -183,7 +183,7 @@ ALARM_SCHEMA = vol.Schema({
     vol.Optional(CONF_HOME_MODE_NAME, default=DEFAULT_HOME): cv.string,
     vol.Optional(CONF_AWAY_MODE_NAME, default=ARMED): cv.string,
     vol.Optional(CONF_NIGHT_MODE_NAME, default=DEFAULT_NIGHT): cv.string,
-    vol.Optional(CONF_ALARM_VOLUME, default=DEFAULT_ALARM_VOLUME): cv.string,
+    vol.Optional(CONF_ALARM_VOLUME, default=DEFAULT_ALARM_VOLUME): cv.positive_int,
     vol.Optional(CONF_TRIGGER_TIME, default=DEFAULT_TRIGGER_TIME): vol.All(
         cv.time_period, cv.positive_timedelta
     ),

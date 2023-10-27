@@ -160,15 +160,49 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
             self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         """Manage the options."""
-        return await self.async_step_binary_sensor(user_input)
+        return await self.async_step_alarm_control_panel(user_input)
+
+    async def async_step_alarm_control_panel(
+            self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+
+        if user_input is not None:
+            _LOGGER.debug(f"user-input-alarm={user_input}")
+            self._config = user_input
+            return await self.async_step_binary_sensor(None)
+
+        options = self._config_entry.options
+        return self.async_show_form(
+            step_id="alarm_control_panel",
+            data_schema=vol.Schema({
+                vol.Required("alarm_control_panel_disarmed_mode_name",
+                             default=options.get("alarm_control_panel_disarmed_mode_name", True)): str,
+                vol.Required("alarm_control_panel_home_mode_name",
+                             default=options.get("alarm_control_panel_home_mode_name", True)): str,
+                vol.Required("alarm_control_panel_away_mode_name",
+                             default=options.get("alarm_control_panel_away_mode_name", True)): str,
+                vol.Required("alarm_control_panel_night_mode_name",
+                             default=options.get("alarm_control_panel_night_mode_name", True)): str,
+                vol.Required("alarm_control_panel_code_arm_required",
+                             default=options.get("alarm_control_panel_code_arm_required", True)): bool,
+                vol.Required("alarm_control_panel_code_disarm_required",
+                             default=options.get("alarm_control_panel_code_disarm_required", True)): bool,
+                vol.Required("alarm_control_panel_trigger_time",
+                             default=options.get("alarm_control_panel_trigger_time", True)): int,
+                vol.Required("alarm_control_panel_alarm_volume",
+                             default=options.get("alarm_control_panel_alarm_volume", True)): int,
+                # vol.Required("alarm_control_panel_command_template",
+                #              default=options.get("alarm_control_panel_command_template", True)): str,
+            })
+        )
 
     async def async_step_binary_sensor(
             self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
 
         if user_input is not None:
-            _LOGGER.debug(f"user-input={user_input}")
-            self._config = user_input
+            _LOGGER.debug(f"user-input-binary-sensor={user_input}")
+            self._config.update(user_input)
             return await self.async_step_sensor(None)
 
         options = self._config_entry.options
@@ -201,7 +235,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
 
         if user_input is not None:
-            _LOGGER.debug(f"user-input={user_input}")
+            _LOGGER.debug(f"user-input-sensor={user_input}")
             self._config.update(user_input)
             _LOGGER.debug(f"_config={self._config}")
             return self.async_create_entry(title="", data=self._config)

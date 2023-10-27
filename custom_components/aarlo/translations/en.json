@@ -25,34 +25,49 @@
 
   "options": {
     "step": {
+      "alarm_control_panel": {
+        "title": "Alarm Settings",
+        "description": "Set mode names and other alarm requirements.",
+        "data": {
+          "alarm_control_panel_disarmed_mode_name": "Disarmed Mode Name",
+          "alarm_control_panel_home_mode_name": "Home Mode Name",
+          "alarm_control_panel_away_mode_name": "Away Mode Name",
+          "alarm_control_panel_night_mode_name": "Night Mode Name",
+          "alarm_control_panel_command_template": "Command Template",
+          "alarm_control_panel_trigger_time": "Trigger Time",
+          "alarm_control_panel_alarm_volume": "Alarm Volume",
+          "alarm_control_panel_code_arm_required": "Arm Code Required?",
+          "alarm_control_panel_code_disarm_required": "Disarm Code Required?"
+        }
+      },
       "binary_sensor": {
         "title": "Binary Sensors",
         "description": "Enable which binary sensors?\n\nNOTE: not all sensors will be available on every device.",
         "data": {
-          "binary_sensor_sound": "Sound detection.",
-          "binary_sensor_motion": "Motion detection.",
-          "binary_sensor_ding": "Doorbell presses.",
-          "binary_sensor_cry": "Cry detection.",
-          "binary_sensor_connectivity": "Device connectivity.",
-          "binary_sensor_contact": "Open/close sensors.",
-          "binary_sensor_light": "Brightness sensors.",
-          "binary_sensor_tamper": "Tamper detection.",
-          "binary_sensor_leak": "Leak detection."
+          "binary_sensor_sound": "Sound detection?",
+          "binary_sensor_motion": "Motion detection?",
+          "binary_sensor_ding": "Doorbell presses?",
+          "binary_sensor_cry": "Cry detection?",
+          "binary_sensor_connectivity": "Device connectivity?",
+          "binary_sensor_contact": "Open/close sensors?",
+          "binary_sensor_light": "Brightness sensors?",
+          "binary_sensor_tamper": "Tamper detection?",
+          "binary_sensor_leak": "Leak detection?"
         }
       },
       "sensor": {
         "title": "Sensors",
         "description": "Enable which sensors?\nNOTE: not all sensors will be available on every device.",
         "data": {
-          "sensor_last_capture": "Last capture time.",
-          "sensor_total_cameras": "Total number of cameras detected.",
-          "sensor_recent_activity": "Recent activity detected.",
-          "sensor_captured_today": "Number of videos/snapshots captured today.",
-          "sensor_battery_level": "Device battery level.",
-          "sensor_signal_strength": "WiFi signal strength.",
-          "sensor_temperature": "Room temperature.",
-          "sensor_humidity": "Room humidity.",
-          "sensor_air_quality": "Air quality."
+          "sensor_last_capture": "Last capture time?",
+          "sensor_total_cameras": "Total number of cameras detected?",
+          "sensor_recent_activity": "Recent activity detected?",
+          "sensor_captured_today": "Number of videos/snapshots captured today?",
+          "sensor_battery_level": "Device battery level?",
+          "sensor_signal_strength": "WiFi signal strength?",
+          "sensor_temperature": "Room temperature?",
+          "sensor_humidity": "Room humidity?",
+          "sensor_air_quality": "Air quality?"
         }
       }
     }
