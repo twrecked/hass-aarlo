@@ -81,7 +81,7 @@ async def async_setup_entry(
     if not arlo:
         return
 
-    config = hass.data[COMPONENT_CONFIG][Platform.ALARM_CONTROL_PANEL]
+    config = hass.data[COMPONENT_CONFIG][Platform.SWITCH]
     _LOGGER.debug(f"switch={config}")
 
     devices = []

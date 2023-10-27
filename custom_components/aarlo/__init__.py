@@ -41,7 +41,7 @@ from pyaarlo.constant import (
 )
 
 from .const import *
-from .cfg import ArloFileCfg
+from .cfg import ArloBlendedCfg
 
 __version__ = "0.8.0a16"
 
@@ -206,25 +206,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     # Merge the flow config and file config. Only the domain level needs
     # doing now.
-    filecfg = ArloFileCfg()
-    filecfg.load()
-    domain_config = {**entry.data, **filecfg.domain_config}
+    cfg = ArloBlendedCfg(entry.data, entry.options)
+    domain_config = cfg.domain_config
 
     # Try to login to aarlo.
     arlo = await hass.async_add_executor_job(login, hass, domain_config)
     if arlo is None:
         return False
 
-    # We've logged in so create the session config from the flow config
-    # and file config.
+    # We've logged in so create the session config.
     hass.data[COMPONENT_DATA] = arlo
     hass.data[COMPONENT_SERVICES] = {}
     hass.data[COMPONENT_CONFIG] = {
         COMPONENT_DOMAIN: domain_config,
-        str(Platform.ALARM_CONTROL_PANEL): filecfg.alarm_config,
-        str(Platform.BINARY_SENSOR): filecfg.binary_sensor_config,
-        str(Platform.SENSOR): filecfg.sensor_config,
-        str(Platform.SWITCH): filecfg.switch_config,
+        str(Platform.ALARM_CONTROL_PANEL): cfg.alarm_config,
+        str(Platform.BINARY_SENSOR): cfg.binary_sensor_config,
+        str(Platform.SENSOR): cfg.sensor_config,
+        str(Platform.SWITCH): cfg.switch_config,
     }
     _LOGGER.debug(f"update hass data {hass.data[COMPONENT_CONFIG]}")
     

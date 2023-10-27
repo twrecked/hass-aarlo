@@ -276,10 +276,23 @@ def _upgrade_timedeltas(config_in):
     return config_out
 
 
-class ArloFileCfg(object):
+def _extract_platform_config(config_in, prefix):
+    return {
+        k.replace(prefix, '', 1): v for k, v in config_in.items() if k.startswith(prefix)
+    }
+
+
+def _extract_monitored_conditions(config_in, prefix):
+    return {
+        CONF_MONITORED_CONDITIONS: [k.replace(prefix, '', 1) for k, v in config_in.items() if k.startswith(prefix) and v is True]
+    }
+
+
+class ArloBlendedCfg(object):
     """Helper class to get at Arlo configuration options.
 
-    Reads in non config flow settings from the external config file.
+    Reads in non config flow settings from the external config file and merges
+    them with flow data and options.
     """
 
     _main_config = {}
@@ -288,16 +301,9 @@ class ArloFileCfg(object):
     _sensor_config = {}
     _switch_config = {}
 
-    def __init__(self):
-        pass
-
-    def _get_platform_config2(self, config):
-        for entry in config:
-            if entry[CONF_PLATFORM] == DOMAIN:
-                entry = copy.deepcopy(entry)
-                entry.pop(CONF_PLATFORM)
-                return entry
-        return {}
+    def __init__(self, data, options):
+        self.load()
+        self.merge(data, options)
 
     def load(self):
 
@@ -310,17 +316,22 @@ class ArloFileCfg(object):
 
         # Fix up the pieces to standard defaults..
         self._main_config = AARLO_SCHEMA(config.get(DOMAIN, {}))
-        self._alarm_config = ALARM_SCHEMA(config.get(Platform.ALARM_CONTROL_PANEL, {}))
-        self._binary_sensor_config = BINARY_SENSOR_SCHEMA(config.get(Platform.BINARY_SENSOR, {}))
-        self._sensor_config = SENSOR_SCHEMA(config.get(Platform.SENSOR, {}))
-        self._switch_config = SWITCH_SCHEMA(config.get(Platform.SWITCH, {}))
 
-        _LOGGER.debug(f"config-file={AARLO_CONFIG_FILE}")
-        _LOGGER.debug(f"main-config={self._main_config}")
-        _LOGGER.debug(f"alarm-config={self._alarm_config}")
-        _LOGGER.debug(f"binary-sensor-config={self._binary_sensor_config}")
-        _LOGGER.debug(f"sensor-config={self._sensor_config}")
-        _LOGGER.debug(f"switch-config={self._switch_config}")
+        _LOGGER.debug(f"l-config-file={AARLO_CONFIG_FILE}")
+        _LOGGER.debug(f"l-main-config={self._main_config}")
+
+    def merge(self, data, options):
+
+        self._main_config = {**data, **self._main_config}
+        self._alarm_config = ALARM_SCHEMA(_extract_platform_config(options, "alarm_control_panel_"))
+        self._binary_sensor_config = _extract_monitored_conditions(options, "binary_sensor_")
+        self._sensor_config = _extract_monitored_conditions(options, "sensor_")
+        self._switch_config = SWITCH_SCHEMA(_extract_platform_config(options, "switch_"))
+        _LOGGER.debug(f"m-main-config={self._main_config}")
+        _LOGGER.debug(f"m-alarm-config={self._alarm_config}")
+        _LOGGER.debug(f"m-binary-sensor-config={self._binary_sensor_config}")
+        _LOGGER.debug(f"m-sensor-config={self._sensor_config}")
+        _LOGGER.debug(f"m-switch-config={self._switch_config}")
 
     @property
     def domain_config(self):
@@ -394,10 +405,10 @@ class UpgradeCfg(object):
             save_yaml(AARLO_CONFIG_FILE, {
                 "version": 1,
                 DOMAIN: aarlo_config,
-                str(Platform.ALARM_CONTROL_PANEL): alarm_config,
-                str(Platform.BINARY_SENSOR): binary_sensor_config,
-                str(Platform.SENSOR): sensor_config,
-                str(Platform.SWITCH): switch_config,
+                # str(Platform.ALARM_CONTROL_PANEL): alarm_config,
+                # str(Platform.BINARY_SENSOR): binary_sensor_config,
+                # str(Platform.SENSOR): sensor_config,
+                # str(Platform.SWITCH): switch_config,
             })
         except Exception as e:
             _LOGGER.debug(f"couldn't save user data {str(e)}")
