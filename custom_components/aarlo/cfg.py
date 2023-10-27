@@ -248,7 +248,7 @@ SWITCH_SCHEMA = vol.Schema({
 AARLO_CONFIG_FILE = "/config/aarlo.yaml"
 
 
-def _get_platform_config(config):
+def _fix_config(config):
     """Find and return the aarlo entry from any platform config.
     """
     for entry in config:
@@ -259,20 +259,12 @@ def _get_platform_config(config):
     return {}
 
 
-def _upgrade_timedeltas(config_in):
-    """Remove any timedeltas from the dictionary.
-    Home Assistant doesn't like writing them to YAML so we convert them to
-    seconds.
+def _fix_value(value):
+    """ If needed, convert value into a type that can be stored in yaml.
     """
-    config_out = {}
-    for key, value in config_in.items():
-        # Convert to a format yaml_save will work with if needed.
-        if isinstance(value, timedelta):
-            _LOGGER.debug(f"rewriting-time-delta={key}")
-            config_out[key] = value.seconds
-        else:
-            config_out[key] = value
-    return config_out
+    if isinstance(value, timedelta):
+        return max(value.seconds, 1)
+    return value
 
 
 def _extract_platform_config(config_in, prefix):
@@ -305,6 +297,8 @@ class BlendedCfg(object):
         self.merge(data, options)
 
     def load(self):
+        """ Load extra config from aarlo.yaml file.
+        """
 
         # Read in current config
         config = {}
@@ -320,6 +314,8 @@ class BlendedCfg(object):
         _LOGGER.debug(f"l-main-config={self._main_config}")
 
     def merge(self, data, options):
+        """ Rebuild config from flow data and options.
+        """
 
         self._main_config = {**data, **self._main_config}
         self._alarm_config = ALARM_SCHEMA(_extract_platform_config(options, "alarm_control_panel_"))
@@ -366,32 +362,29 @@ class UpgradeCfg(object):
         where the user can configure things.
         """
 
-        # We need to
-        # - strip out the config flow items from this
-        # - remove defaults
-        # - replace timedelta with strings
-        aarlo_config = {}
+        # A default config.
         default_aarlo_config = AARLO_FULL_SCHEMA({
             CONF_USERNAME: "",
             CONF_PASSWORD: "",
         })
-        for key, value in config.get(DOMAIN, {}).items():
-            if key in AARLO_SCHEMA_ONLY_IN_CONFIG:
-                continue
-            if default_aarlo_config[key] == value:
-                continue
-            aarlo_config[key] = value
-        aarlo_config = _upgrade_timedeltas(aarlo_config)
-        _LOGGER.debug(f"aarlo-file-config={aarlo_config}")
 
-        # For now, we move all the other config into the options, I'll add it
-        # here as needed.
+        # We need to
+        # - strip out the config flow items from this
+        # - remove defaults
+        # - replace timedelta with strings
+        file_config = {k: _fix_value(v)
+                       for k, v in config.get(DOMAIN, {}).items()
+                       if k not in AARLO_SCHEMA_ONLY_IN_CONFIG and default_aarlo_config[k] != v}
+        _LOGGER.debug(f"aarlo-file-config={file_config}")
+
+        # For now, we move all the other configs into the options, if we need
+        # to move any into the file we can read it from here.
 
         # Save it out.
         try:
             save_yaml(AARLO_CONFIG_FILE, {
                 "version": 1,
-                DOMAIN: aarlo_config,
+                DOMAIN: file_config,
             })
         except Exception as e:
             _LOGGER.debug(f"couldn't save user data {str(e)}")
@@ -401,16 +394,11 @@ class UpgradeCfg(object):
         """ Take the current aarlo config and make the new flow configuration.
         """
 
-        # Some import defaults.
-        domain_config = {}
+        data = {k: v for k, v in AARLO_FULL_SCHEMA(config.get(DOMAIN, {})).items()
+                if k in AARLO_SCHEMA_ONLY_IN_CONFIG }
 
-        full_aarlo_config = AARLO_FULL_SCHEMA(config.get(DOMAIN, {}))
-        for key, value in full_aarlo_config.items():
-            if key in AARLO_SCHEMA_ONLY_IN_CONFIG:
-                domain_config[key] = value
-
-        _LOGGER.debug(f"aarlo-flow-data={domain_config}")
-        return domain_config
+        _LOGGER.debug(f"aarlo-flow-data={data}")
+        return data
 
     @staticmethod
     def create_flow_options(config):
@@ -418,24 +406,21 @@ class UpgradeCfg(object):
         """
 
         # Fill in the defaults, convert the time deltas and add the platform prefix.
-        options = ALARM_SCHEMA(_get_platform_config(config.get(Platform.ALARM_CONTROL_PANEL, {})))
-        options = _upgrade_timedeltas(options)
-        options = {f"alarm_control_panel_{k}": v for k, v in options.items()}
+        options = {f"alarm_control_panel_{k}": _fix_value(v)
+                   for k, v in ALARM_SCHEMA(_fix_config(config.get(Platform.ALARM_CONTROL_PANEL, {}))).items()}
 
         # Move out of 'monitored_conditions' array and add platform prefix.
-        for kb, vb in _get_platform_config(config.get(Platform.BINARY_SENSOR, {})).items():
-            if kb == "monitored_conditions":
-                options.update({f"binary_sensor_{v}": True for v in vb})
+        options.update({f"binary_sensor_{v}": True
+                        for v in _fix_config(config.get(Platform.BINARY_SENSOR, {})).get(CONF_MONITORED_CONDITIONS, [])})
 
         # Move out of 'monitored_conditions' array and add platform prefix.
-        for ks, vs in _get_platform_config(config.get(Platform.SENSOR, {})).items():
-            if ks == "monitored_conditions":
-                options.update({f"sensor_{v}": True for v in vs})
+        options.update({f"sensor_{v}": True
+                        for v in _fix_config(config.get(Platform.SENSOR, {})).get(CONF_MONITORED_CONDITIONS, [])})
 
         # Fill in the defaults, convert the time deltas and add the platform prefix.
-        switch_config = SWITCH_SCHEMA(_get_platform_config(config.get(Platform.SWITCH, {})))
-        switch_config = _upgrade_timedeltas(switch_config)
-        options.update({f"switch_{k}": v for k, v in switch_config.items()})
+        # switch_config = SWITCH_SCHEMA(_fix_config(config.get(Platform.SWITCH, {})))
+        options.update({f"switch_{k}": _fix_value(v)
+                        for k, v in SWITCH_SCHEMA(_fix_config(config.get(Platform.SWITCH, {}))).items()})
 
         _LOGGER.debug(f"aarlo-flow-options={options}")
         return options
