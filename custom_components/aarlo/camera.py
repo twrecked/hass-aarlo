@@ -1,8 +1,8 @@
 """
-Support for Netgear Arlo IP cameras.
+This component provides HA sensor for Arlo IP cameras.
 
 For more details about this platform, please refer to the documentation at
-https://home-assistant.io/components/camera.arlo/
+https://github.com/twrecked/hass-aarlo/blob/master/README.md
 """
 from __future__ import annotations
 
@@ -18,12 +18,14 @@ from homeassistant.components.camera import (
     ATTR_FILENAME,
     CONF_DURATION,
     CONF_LOOKBACK,
+    Camera,
+    CameraEntityFeature,
     DOMAIN as CAMERA_DOMAIN,
     SERVICE_RECORD,
     STATE_IDLE,
     STATE_RECORDING,
     STATE_STREAMING,
-    Camera,
+    StreamType
 )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
 from homeassistant.const import (
@@ -31,6 +33,7 @@ from homeassistant.const import (
     ATTR_BATTERY_LEVEL,
     ATTR_ENTITY_ID,
     CONF_FILENAME,
+    STATE_ALARM_DISARMED
 )
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
@@ -64,14 +67,16 @@ from .const import (
     COMPONENT_SERVICES,
     CONF_SAVE_UPDATES_TO,
     CONF_STREAM_SNAPSHOT,
+    STATE_ALARM_ARLO_ARMED,
 )
+
 
 _LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = [COMPONENT_DOMAIN, "ffmpeg"]
 
-ARLO_MODE_ARMED = "armed"
-ARLO_MODE_DISARMED = "disarmed"
+# ARLO_MODE_ARMED = "armed"
+# ARLO_MODE_DISARMED = "disarmed"
 
 ATTR_BATTERY_TECH = "battery_tech"
 ATTR_BRIGHTNESS = "brightness"
@@ -95,19 +100,18 @@ ATTR_TIME_ZONE = "time_zone"
 ATTR_STATE = "state"
 
 CONF_FFMPEG_ARGUMENTS = "ffmpeg_arguments"
+DEFAULT_FFMPEG_ARGUMENTS = "-pred 1 -q:v 2 -r 5"
 
 POWERSAVE_MODE_MAPPING = {1: "best_battery_life", 2: "optimized", 3: "best_video"}
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Optional(CONF_FFMPEG_ARGUMENTS): cv.string,
-    }
-)
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Optional(CONF_FFMPEG_ARGUMENTS): cv.string,
+})
 
 CAMERA_SERVICE_SCHEMA = vol.Schema({vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids})
-CAMERA_SERVICE_SNAPSHOT = CAMERA_SERVICE_SCHEMA.extend(
-    {vol.Required(ATTR_FILENAME): cv.template}
-)
+CAMERA_SERVICE_SNAPSHOT = CAMERA_SERVICE_SCHEMA.extend({
+    vol.Required(ATTR_FILENAME): cv.template
+})
 
 SERVICE_REQUEST_SNAPSHOT = "camera_request_snapshot"
 SERVICE_REQUEST_SNAPSHOT_TO_FILE = "camera_request_snapshot_to_file"
@@ -115,24 +119,18 @@ SERVICE_REQUEST_VIDEO_TO_FILE = "camera_request_video_to_file"
 SERVICE_STOP_ACTIVITY = "camera_stop_activity"
 SERVICE_RECORD_START = "camera_start_recording"
 SERVICE_RECORD_STOP = "camera_stop_recording"
-SIREN_ON_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-        vol.Required(ATTR_DURATION): cv.positive_int,
-        vol.Required(ATTR_VOLUME): cv.positive_int,
-    }
-)
-SIREN_OFF_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-    }
-)
-RECORD_START_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-        vol.Required(ATTR_DURATION): cv.positive_int,
-    }
-)
+SIREN_ON_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+    vol.Required(ATTR_DURATION): cv.positive_int,
+    vol.Required(ATTR_VOLUME): cv.positive_int,
+})
+SIREN_OFF_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+})
+RECORD_START_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+    vol.Required(ATTR_DURATION): cv.positive_int,
+})
 
 WS_TYPE_VIDEO_URL = "aarlo_video_url"
 WS_TYPE_LIBRARY = "aarlo_library"
@@ -143,74 +141,56 @@ WS_TYPE_VIDEO_DATA = "aarlo_video_data"
 WS_TYPE_STOP_ACTIVITY = "aarlo_stop_activity"
 WS_TYPE_SIREN_ON = "aarlo_camera_siren_on"
 WS_TYPE_SIREN_OFF = "aarlo_camera_siren_off"
-SCHEMA_WS_VIDEO_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {
-        vol.Required("type"): WS_TYPE_VIDEO_URL,
-        vol.Required("entity_id"): cv.entity_id,
-        vol.Required("index"): cv.positive_int,
-    }
-)
-SCHEMA_WS_LIBRARY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {
-        vol.Required("type"): WS_TYPE_LIBRARY,
-        vol.Required("entity_id"): cv.entity_id,
-        vol.Required("at_most"): cv.positive_int,
-    }
-)
-SCHEMA_WS_STREAM_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {
-        vol.Required("type"): WS_TYPE_STREAM_URL,
-        vol.Required("entity_id"): cv.entity_id,
-        vol.Optional("user_agent"): cv.string,
-    }
-)
-SCHEMA_WS_SNAPSHOT_IMAGE = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {
-        vol.Required("type"): WS_TYPE_SNAPSHOT_IMAGE,
-        vol.Required("entity_id"): cv.entity_id,
-    }
-)
-SCHEMA_WS_REQUEST_SNAPSHOT = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {
-        vol.Required("type"): WS_TYPE_REQUEST_SNAPSHOT,
-        vol.Required("entity_id"): cv.entity_id,
-    }
-)
-SCHEMA_WS_VIDEO_DATA = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {vol.Required("type"): WS_TYPE_VIDEO_DATA, vol.Required("entity_id"): cv.entity_id}
-)
-SCHEMA_WS_STOP_ACTIVITY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {
-        vol.Required("type"): WS_TYPE_STOP_ACTIVITY,
-        vol.Required("entity_id"): cv.entity_id,
-    }
-)
-SCHEMA_WS_SIREN_ON = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {
-        vol.Required("type"): WS_TYPE_SIREN_ON,
-        vol.Required("entity_id"): cv.entity_id,
-        vol.Required(ATTR_DURATION): cv.positive_int,
-        vol.Required(ATTR_VOLUME): cv.positive_int,
-    }
-)
-SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {vol.Required("type"): WS_TYPE_SIREN_OFF, vol.Required("entity_id"): cv.entity_id}
-)
+SCHEMA_WS_VIDEO_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_VIDEO_URL,
+    vol.Required("entity_id"): cv.entity_id,
+    vol.Required("index"): cv.positive_int,
+})
+SCHEMA_WS_LIBRARY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_LIBRARY,
+    vol.Required("entity_id"): cv.entity_id,
+    vol.Required("at_most"): cv.positive_int,
+})
+SCHEMA_WS_STREAM_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_STREAM_URL,
+    vol.Required("entity_id"): cv.entity_id,
+    vol.Optional("user_agent"): cv.string,
+})
+SCHEMA_WS_SNAPSHOT_IMAGE = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_SNAPSHOT_IMAGE,
+    vol.Required("entity_id"): cv.entity_id,
+})
+SCHEMA_WS_REQUEST_SNAPSHOT = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_REQUEST_SNAPSHOT,
+    vol.Required("entity_id"): cv.entity_id,
+})
+SCHEMA_WS_VIDEO_DATA = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_VIDEO_DATA, vol.Required("entity_id"): cv.entity_id
+})
+SCHEMA_WS_STOP_ACTIVITY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_STOP_ACTIVITY,
+    vol.Required("entity_id"): cv.entity_id,
+})
+SCHEMA_WS_SIREN_ON = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_SIREN_ON,
+    vol.Required("entity_id"): cv.entity_id,
+    vol.Required(ATTR_DURATION): cv.positive_int,
+    vol.Required(ATTR_VOLUME): cv.positive_int,
+})
+SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
+    vol.Required("type"): WS_TYPE_SIREN_OFF, vol.Required("entity_id"): cv.entity_id
+})
 
 
 async def async_setup_entry(
         hass: HomeAssistantType,
-        entry: ConfigEntry,
+        _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:
-    _LOGGER.debug("setting up the entries...")
-# async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP Camera."""
+
     arlo = hass.data[COMPONENT_DATA]
     arlo_cfg = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
-
-    _LOGGER.debug(f"entry.data={entry.data}")
-    _LOGGER.debug(f"camera-config={arlo_cfg}")
 
     cameras = []
     cameras_with_siren = False
@@ -315,34 +295,44 @@ async def async_setup_entry(
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
+    _state: str | None = None
+    _recent: bool = False
+    _last_image_source: str | None = None
+    _ffmpeg_arguments: str = DEFAULT_FFMPEG_ARGUMENTS
+    _stream_snapshot: bool = False
+    _save_updates_to: str | None = None
+
     def __init__(self, camera, _arlo, arlo_cfg, hass):
         """Initialize an Arlo camera."""
         super().__init__()
-        self._name = camera.name
-        self._unique_id = camera.entity_id
-        self._device_id = camera.device_id
+        
         self._camera = camera
-        self._state = None
-        self._recent = False
-        self._last_image_source_ = None
-        self._motion_status = False
+        self._last_image_source = None
         self._stream_snapshot = arlo_cfg.get(CONF_STREAM_SNAPSHOT)
         self._save_updates_to = arlo_cfg.get(CONF_SAVE_UPDATES_TO)
         self._ffmpeg = hass.data[DATA_FFMPEG]
-        self._ffmpeg_arguments = arlo_cfg.get(CONF_FFMPEG_ARGUMENTS)
-        _LOGGER.info("ArloCam: %s created", self._name)
 
+        self._attr_name = camera.name
+        self._attr_unique_id = camera.entity_id
+
+        self._attr_brand = COMPONENT_BRAND
+        self._attr_frontend_stream_type = StreamType.HLS
+        self._attr_is_on = camera.is_on
+        self._attr_model = camera.model_id
+        self._attr_should_poll = False
+        self._attr_supported_features = CameraEntityFeature.ON_OFF | CameraEntityFeature.STREAM
         self._attr_device_info = DeviceInfo(
-            identifiers={(COMPONENT_DOMAIN, self._device_id)},
+            identifiers={(COMPONENT_DOMAIN, self._camera.device_id)},
             manufacturer=COMPONENT_BRAND,
         )
+        _LOGGER.info(f"ArloCam: {self._attr_name} created")
 
     async def async_added_to_hass(self):
         """Register callbacks."""
 
         @callback
         def update_state(_device, attr, value):
-            _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value)[:80])
+            _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:120]}")
 
             # set state
             if attr == ACTIVITY_STATE_KEY or attr == CONNECTION_KEY:
@@ -372,8 +362,8 @@ class ArloCam(Camera):
             # Trigger snapshot/capture/image updated events
             if attr == LAST_IMAGE_SRC_KEY:
                 if (
-                    self._last_image_source_ is not None
-                    and self._last_image_source_ != value
+                    self._last_image_source is not None
+                    and self._last_image_source != value
                 ):
                     if value.startswith("snapshot/"):
                         _LOGGER.debug("{0} snapshot updated".format(self.entity_id))
@@ -391,17 +381,21 @@ class ArloCam(Camera):
                         "aarlo_image_updated",
                         {"entity_id": self.entity_id, "device_id": self.device_id},
                     )
-                self._last_image_source_ = value
+                self._last_image_source = value
 
             # Save image if asked to
             if attr == LAST_IMAGE_DATA_KEY and self._save_updates_to != "":
-                filename = "{}/{}.jpg".format(self._save_updates_to, self._unique_id)
+                filename = "{}/{}.jpg".format(self._save_updates_to, self._attr_unique_id)
                 _LOGGER.debug("saving to {}".format(filename))
                 if not self.hass.config.is_allowed_path(filename):
                     _LOGGER.error("Can't write %s, no access to path!", filename)
                 else:
                     with open(filename, "wb") as img_file:
                         img_file.write(value)
+
+            # Is the camera on or off?
+            if attr == PRIVACY_KEY:
+                self._attr_is_on = not value
 
             # Signal changes.
             self.async_schedule_update_ha_state()
@@ -425,7 +419,7 @@ class ArloCam(Camera):
 
         if not video:
             error_msg = (
-                f"Video not found for {self._name}. "
+                f"Video not found for {self._attr_name}. "
                 f"Is it older than {self._camera.min_days_vdo_cache} days?"
             )
             _LOGGER.error(error_msg)
@@ -446,7 +440,7 @@ class ArloCam(Camera):
             try:
                 await stream.close()
             except:
-                _LOGGER.debug(f"problem with stream close for {self._name}")
+                _LOGGER.debug(f"problem with stream close for {self._attr_name}")
 
     def clear_stream(self):
         """Clear out inactive stream.
@@ -460,30 +454,15 @@ class ArloCam(Camera):
                 self.stream = None
 
     @property
-    def unique_id(self):
-        """Return a unique ID."""
-        return self._unique_id
-
-    @property
     def device_id(self):
         """Return a unique ID."""
-        return self._device_id
+        return self._camera.device_id
 
-    @property
-    def is_recording(self):
-        return self._camera.is_recording
-
-    @property
-    def is_on(self):
-        return self._camera.is_on
-
-    def turn_off(self):
+    def turn_off(self) -> None:
         self._camera.turn_off()
-        return True
 
-    def turn_on(self):
+    def turn_on(self) -> None:
         self._camera.turn_on()
-        return True
 
     @property
     def extra_state_attributes(self):
@@ -517,25 +496,16 @@ class ArloCam(Camera):
             if value is not None
         }
 
-        attrs[ATTR_ATTRIBUTION] = COMPONENT_ATTRIBUTION
-        attrs["brand"] = COMPONENT_BRAND
-        attrs["device_id"] = self._device_id
-        attrs["model_id"] = self._camera.model_id
-        attrs["parent_id"] = self._camera.parent_id
-        attrs["friendly_name"] = self._name
-        attrs["siren"] = self._camera.has_capability(SIREN_STATE_KEY)
+        attrs.update({
+            ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
+            "name": self._attr_name,
+            "has_siren": self._camera.has_capability(SIREN_STATE_KEY),
+            "device_brand": COMPONENT_BRAND,
+            "device_id": self._camera.device_id,
+            "device_model": self._camera.model_id,
+        })
 
         return attrs
-
-    @property
-    def model(self):
-        """Return the camera model."""
-        return self._camera.model_id
-
-    @property
-    def brand(self):
-        """Return the camera brand."""
-        return COMPONENT_BRAND
 
     async def stream_source(self):
         """Return the source of the stream.
@@ -556,11 +526,6 @@ class ArloCam(Camera):
     ) -> bytes | None:
         """Return a still image response from the camera."""
         return self._camera.last_image_from_cache
-
-    @property
-    def motion_detection_enabled(self):
-        """Return the camera motion detection status."""
-        return self._motion_status
 
     @property
     def last_video(self):
@@ -595,26 +560,20 @@ class ArloCam(Camera):
 
     def enable_motion_detection(self):
         """Enable the Motion detection in base station (Arm)."""
-        self._motion_status = True
-        self.set_base_station_mode(ARLO_MODE_ARMED)
+        self._attr_motion_detection_enabled = True
+        self.set_base_station_mode(STATE_ALARM_ARLO_ARMED)
 
     def disable_motion_detection(self):
         """Disable the motion detection in base station (Disarm)."""
-        self._motion_status = False
-        self.set_base_station_mode(ARLO_MODE_DISARMED)
+        self._attr_motion_detection_enabled = False
+        self.set_base_station_mode(STATE_ALARM_DISARMED)
 
     def _attach_hidden_stream(self, duration):
-        _LOGGER.info(
-            "{} attaching hidden stream for duration {}".format(
-                self._unique_id, duration
-            )
-        )
-
-        video_path = "/tmp/aarlo-hidden-{}.mp4".format(self._unique_id)
+        _LOGGER.info(f"{self._attr_unique_id} attaching hidden stream for duration {duration}")
 
         data = {
             "entity_id": self.entity_id,
-            CONF_FILENAME: video_path,
+            CONF_FILENAME: f"/tmp/aarlo-hidden-{self._attr_unique_id}.mp4",
             CONF_DURATION: duration,
             CONF_LOOKBACK: 0,
         }

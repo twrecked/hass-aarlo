@@ -1,6 +1,8 @@
 """
-This component provides support for Aarlo switches.
+This component provides HA sensor for Arlo IP cameras.
 
+For more details about this platform, please refer to the documentation at
+https://github.com/twrecked/hass-aarlo/blob/master/README.md
 """
 
 import logging
