@@ -1,9 +1,11 @@
 """
-This component provides HA sensor for Arlo IP cameras.
+Support for Arlo Binary Sensors.
 
 For more details about this platform, please refer to the documentation at
 https://github.com/twrecked/hass-aarlo/blob/master/README.md
+https://www.home-assistant.io/integrations/binary_sensor
 """
+
 import logging
 import voluptuous as vol
 from collections.abc import Callable
