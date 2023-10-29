@@ -1,9 +1,10 @@
 """
-This component provides support for Netgear Arlo IP cameras.
+Support for Arlo Cameras and Accesories.
 
-For more details about this component, please refer to the documentation at
-https://home-assistant.io/components/arlo/
+For more details about this platform, please refer to the documentation at
+https://github.com/twrecked/hass-aarlo/blob/master/README.md
 """
+
 import json
 import logging
 import pprint
@@ -41,6 +42,7 @@ from pyaarlo.constant import (
 
 from .const import *
 from .cfg import BlendedCfg, PyaarloCfg
+
 
 __version__ = "0.8.0a16"
 
@@ -137,35 +139,36 @@ SERVICE_SIREN_OFF = "siren_off"
 SERVICE_SIRENS_OFF = "sirens_off"
 SERVICE_RESTART = "restart_device"
 SERVICE_INJECT_RESPONSE = "inject_response"
-SIREN_ON_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-        vol.Required(ATTR_DURATION): cv.positive_int,
-        vol.Required(ATTR_VOLUME): cv.positive_int,
-    }
-)
-SIRENS_ON_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_DURATION): cv.positive_int,
-        vol.Required(ATTR_VOLUME): cv.positive_int,
-    }
-)
-SIREN_OFF_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-    }
-)
-SIRENS_OFF_SCHEMA = vol.Schema({})
-INJECT_RESPONSE_SCHEMA = vol.Schema(
-    {
-        vol.Required("filename"): cv.string,
-    }
-)
-RESTART_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-    }
-)
+SIREN_ON_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+    vol.Required(ATTR_DURATION): cv.positive_int,
+    vol.Required(ATTR_VOLUME): cv.positive_int,
+})
+SIRENS_ON_SCHEMA = vol.Schema({
+    vol.Required(ATTR_DURATION): cv.positive_int,
+    vol.Required(ATTR_VOLUME): cv.positive_int,
+})
+SIREN_OFF_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+})
+SIRENS_OFF_SCHEMA = vol.Schema({
+})
+INJECT_RESPONSE_SCHEMA = vol.Schema({
+    vol.Required("filename"): cv.string,
+})
+RESTART_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+})
+
+ARLO_PLATFORMS = [
+    Platform.ALARM_CONTROL_PANEL,
+    Platform.BINARY_SENSOR,
+    Platform.CAMERA,
+    Platform.LIGHT,
+    Platform.MEDIA_PLAYER,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 
 def setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -202,9 +205,8 @@ def _async_find_aarlo_config(hass):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug(f'async setup for aarlo')
-    
-    # Merge the flow config and file config. Only the domain level needs
-    # doing now.
+
+    # Get the blended config.
     cfg = BlendedCfg(entry.data, entry.options)
     domain_config = cfg.domain_config
 
@@ -225,7 +227,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
     _LOGGER.debug(f"update hass data {hass.data[COMPONENT_CONFIG]}")
     
-    # Create a pseudo device. We use this for deviceless entities.
+    # Create a pseudo device. We use this for device less entities.
     aarlo_device = {
         DEVICE_NAME_KEY: arlo.name,
         DEVICE_ID_KEY: arlo.device_id,
@@ -239,9 +241,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await _async_get_or_create_momentary_device_in_registry(hass, entry, device)
 
     # Create the entities.
-    platforms = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.SWITCH, Platform.CAMERA,
-                 Platform.ALARM_CONTROL_PANEL, Platform.LIGHT, Platform.MEDIA_PLAYER]
-    await hass.config_entries.async_forward_entry_setups(entry, platforms)
+    await hass.config_entries.async_forward_entry_setups(entry, ARLO_PLATFORMS)
 
     return True
 
