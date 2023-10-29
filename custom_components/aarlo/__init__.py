@@ -336,6 +336,17 @@ def get_entity_from_domain(hass, domains, entity_id):
     raise HomeAssistantError("{} not found in {}".format(entity_id, ",".join(domains)))
 
 
+def to_bool(value) -> bool:
+    """Try our hardest to make a bool.
+    """
+    if isinstance(value, str):
+        value = value.lower()
+        if value == "off" or value == "no":
+            return False
+        return True
+    return bool(value)
+
+
 def aarlo_siren_on(hass, call):
     for entity_id in call.data["entity_id"]:
         try:

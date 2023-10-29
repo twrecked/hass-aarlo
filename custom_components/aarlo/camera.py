@@ -59,6 +59,8 @@ from pyaarlo.constant import (
 
 from . import get_entity_from_domain
 from .const import (
+    ATTR_BATTERY_TECH,
+    ATTR_CHARGER_TYPE,
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
     COMPONENT_CONFIG,
@@ -75,10 +77,6 @@ _LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = [COMPONENT_DOMAIN, "ffmpeg"]
 
-# ARLO_MODE_ARMED = "armed"
-# ARLO_MODE_DISARMED = "disarmed"
-
-ATTR_BATTERY_TECH = "battery_tech"
 ATTR_BRIGHTNESS = "brightness"
 ATTR_FLIPPED = "flipped"
 ATTR_MIRRORED = "mirrored"
@@ -89,7 +87,6 @@ ATTR_UNSEEN_VIDEOS = "unseen_videos"
 ATTR_RECENT_ACTIVITY = "recent_activity"
 ATTR_IMAGE_SRC = "image_source"
 ATTR_CHARGING = "charging"
-ATTR_CHARGER_TYPE = "charger_type"
 ATTR_WIRED = "wired"
 ATTR_WIRED_ONLY = "wired_only"
 ATTR_LAST_VIDEO = "last_video"

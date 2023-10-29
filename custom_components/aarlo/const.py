@@ -100,6 +100,10 @@ DEFAULT_CIPHER_LIST = ""
 DEFAULT_MQTT_HOSTNAME_CHECK = True
 DEFAULT_MQTT_TRANSPORT = "tcp"
 
+# All attributes
+ATTR_BATTERY_TECH = "battery_tech"
+ATTR_CHARGER_TYPE = "charger_type"
+
 # Alarm Specifics
 STATE_ALARM_ARLO_ARMED = "armed"
 STATE_ALARM_ARLO_HOME = "home"

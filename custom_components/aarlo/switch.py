@@ -32,12 +32,13 @@ from pyaarlo.constant import (
     SIREN_STATE_KEY
 )
 
+from . import to_bool
 from .const import *
 
 
 _LOGGER = logging.getLogger(__name__)
 
-DEPENDENCIES = ["aarlo"]
+DEPENDENCIES = [COMPONENT_DOMAIN]
 
 DEFAULT_TOGGLE_FOR = timedelta(seconds=1)
 DEFAULT_TOGGLE_UNTIL_STR = "1970-01-01T00:00:00+00:00"
@@ -55,17 +56,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
         vol.All(cv.time_period, cv.positive_timedelta),
     vol.Optional(CONF_DOORBELL_SILENCE, default=SILENT_MODE_DEFAULT): cv.boolean,
 })
-
-
-def _to_bool(value) -> bool:
-    """Try our hardest to make a bool.
-    """
-    if isinstance(value, str):
-        value = value.lower()
-        if value == "off" or value == "no":
-            return False
-        return True
-    return bool(value)
 
 
 async def async_setup_entry(
@@ -233,7 +223,7 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
         @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(f"siren-callback:{self._attr_name}:{attr}:{str(value)[:80]}")
-            self._attr_is_on = _to_bool(value)
+            self._attr_is_on = to_bool(value)
             self.async_schedule_update_ha_state()
 
         _LOGGER.debug(f"register siren callbacks for {self._device.name}")
