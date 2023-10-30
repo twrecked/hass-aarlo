@@ -1,14 +1,50 @@
 # hass-aarlo
 
 
-## Installed from HACS?
-**This is the _README_ for 0.8, if you installed from HACS you are using
-version 0.7; see
+## Version 0.7??
+**This is the _README_ for 0.8.1, if you are using version 0.7; see
 [here](https://github.com/twrecked/hass-aarlo/blob/version-0.7.x/README.md)
 for the correct _README_**
 
 
-## New Features in 0.8
+## New Features in 0.8.1
+
+### Config Flow
+
+Finally. Thanks to @NickM-27 for starting this. After sitting on it for far too
+long I decided to do the work I needed to, this integration now acts much like 
+every intergration, splitting down by entity, device and integration.
+
+This means a lot of this documentation is now out of date, I will upgrade it
+when all the option changes have been finalised, for now I will just add a
+quick note inline. 
+
+#### What pieces are done
+
+- _upgrade_; the code will upgrade a _0.7_ build to the _config flow_ system.
+  Your current configuration will be moved into 2 places. The username, 
+  password and 2FA setting will be moved into the code config regisrty, all
+  other config will be moved into a _aarlo.yaml_ file. For all other setting
+  they have been moved into the _Integration_ configure dialogs.
+- _device groupings_; for example, a camera battery will appear as
+  an entity under a camera device.
+
+#### What pieces need doing
+
+- _integration creation_; you can create new integrations but you will need 
+  to reconfigure them to get all the sensors working
+- _reload/reconfigure_; works, but I need to deal with orphans when devices 
+  are turned off
+- _unique ids_; create better one for new integrations
+- _config_; maybe work out which config pieces are really needed
+
+#### What if it goes wrong?
+
+For now I recommend leaving your old configuration in place so you can revert
+back to a _0.7_ release if you encounter an issue.
+
+
+## New Features in 0.8.0
 
 ### Split Out Pyaarlo
 The code now uses _Pyaalo_ by installing it via _pip_ rather than maintaining
@@ -25,7 +61,6 @@ not work for you send me some logs showing the error and restart with
 ### Saner Defaults
 You will now have less to configure... for example, device refresh and stream
 timeouts are enabled by default.
-
 
 ## Breaking Changes in 0.8
 The following options have been removed:
@@ -194,6 +229,9 @@ access to any devices you want to share and give the _Aarlo_ user admin access.
 
 <a name="configuration-main"></a>
 ### Main Configuration
+
+**This is now handled from the Integration Page**
+
 The following configuration is the minimum needed.
 
 ```yaml
@@ -204,6 +242,8 @@ aarlo:
 
 <a name="configuration-alarm"></a>
 ### Alarm Configuration
+
+** This is now handled from the Integration Configure Pages **
 
 The following enables and configures the base stations.
 
@@ -245,6 +285,8 @@ information on mode names.
 <a name="configuration-camera"></a>
 ### Camera Configuration
 
+**This is now handled from the Integration Configure Pages**
+
 The following enables any cameras.
 
 ```yaml
@@ -281,6 +323,8 @@ The _Arlo_ backend sends the notifications on the event stream so they are
 
 <a name="configuration-sensor"></a>
 ### Sensor Configuration
+
+**This is now handled from the Integration Configure Pages**
 
 The following enables and configures the sensors.
 
@@ -324,6 +368,8 @@ _Note:_ It is important to note a limitation from [pyaarlo](https://github.com/t
 <a name="configuration-light"></a>
 ### Light Configuration
 
+**This is now handled from the Integration Configure Pages**
+
 The following enables any lights:
 
 ```yaml
@@ -340,6 +386,8 @@ web interface works.
 
 <a name="configuration-switch"></a>
 ### Switch Configuration
+
+**This is now handled from the Integration Configure Pages**
 
 The following enables and configures some pseudo switches:
 
@@ -369,6 +417,8 @@ is and how long, in seconds, it sounds.
 <a name="configuration-media"></a>
 ### Media Player Configuration
 
+**This is now handled from the Integration Configure Pages**
+
 The following enables media player for supported devices:
 
 ```yaml
@@ -393,6 +443,8 @@ by the _Arlo_ web interface camera view.
 ## 2FA
 
 _Aarlo_ supports 2-factor authentication.
+
+**This is now handled from the Integration Page**
 
 To check if you need to enable 2FA, log in to actual _Arlo_ website using your
 _Home Assistant_ account and see if it sends you a verification code. If it

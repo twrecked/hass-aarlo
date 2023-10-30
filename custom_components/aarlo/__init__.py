@@ -1,34 +1,51 @@
 """
-This component provides support for Netgear Arlo IP cameras.
+Support for Arlo Cameras and Accesories.
 
-For more details about this component, please refer to the documentation at
-https://home-assistant.io/components/arlo/
+For more details about this platform, please refer to the documentation at
+https://github.com/twrecked/hass-aarlo/blob/master/README.md
 """
+
 import json
 import logging
-import os.path
 import pprint
 import time
-from traceback import extract_stack
-
 import voluptuous as vol
+from traceback import extract_stack
+from requests.exceptions import ConnectTimeout, HTTPError
+
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
+from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_HOST,
     CONF_PASSWORD,
     CONF_SCAN_INTERVAL,
+    CONF_SOURCE,
     CONF_USERNAME,
+    Platform
 )
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
-from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY, MQTT_HOST
-from requests.exceptions import ConnectTimeout, HTTPError
+from homeassistant.helpers.typing import ConfigType
+import homeassistant.helpers.device_registry as dr
+
+from pyaarlo.constant import (
+    DEFAULT_AUTH_HOST,
+    DEFAULT_HOST,
+    DEVICE_ID_KEY,
+    DEVICE_NAME_KEY,
+    SIREN_STATE_KEY,
+    MQTT_HOST
+)
 
 from .const import *
+from .utils import get_entity_from_domain
+from .cfg import BlendedCfg, PyaarloCfg
 
-__version__ = "0.8.0a16"
+
+__version__ = "0.8.1a1"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -108,6 +125,11 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_MQTT_HOST, default=MQTT_HOST): cv.string,
                 vol.Optional(CONF_MQTT_HOSTNAME_CHECK, default=DEFAULT_MQTT_HOSTNAME_CHECK): cv.boolean,
                 vol.Optional(CONF_MQTT_TRANSPORT, default=DEFAULT_MQTT_TRANSPORT): cv.string,
+
+                # deprecated
+                vol.Optional(CONF_HIDE_DEPRECATED_SERVICES, default=True): cv.boolean,
+                vol.Optional(CONF_HTTP_CONNECTIONS, default=5): cv.positive_int,
+                vol.Optional(CONF_HTTP_MAX_SIZE, default=10): cv.positive_int,
             }
         ),
     },
@@ -123,181 +145,164 @@ SERVICE_SIREN_OFF = "siren_off"
 SERVICE_SIRENS_OFF = "sirens_off"
 SERVICE_RESTART = "restart_device"
 SERVICE_INJECT_RESPONSE = "inject_response"
-SIREN_ON_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-        vol.Required(ATTR_DURATION): cv.positive_int,
-        vol.Required(ATTR_VOLUME): cv.positive_int,
-    }
-)
-SIRENS_ON_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_DURATION): cv.positive_int,
-        vol.Required(ATTR_VOLUME): cv.positive_int,
-    }
-)
-SIREN_OFF_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-    }
-)
-SIRENS_OFF_SCHEMA = vol.Schema({})
-INJECT_RESPONSE_SCHEMA = vol.Schema(
-    {
-        vol.Required("filename"): cv.string,
-    }
-)
-RESTART_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-    }
-)
+SIREN_ON_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+    vol.Required(ATTR_DURATION): cv.positive_int,
+    vol.Required(ATTR_VOLUME): cv.positive_int,
+})
+SIRENS_ON_SCHEMA = vol.Schema({
+    vol.Required(ATTR_DURATION): cv.positive_int,
+    vol.Required(ATTR_VOLUME): cv.positive_int,
+})
+SIREN_OFF_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+})
+SIRENS_OFF_SCHEMA = vol.Schema({
+})
+INJECT_RESPONSE_SCHEMA = vol.Schema({
+    vol.Required("filename"): cv.string,
+})
+RESTART_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
+})
+
+ARLO_PLATFORMS = [
+    Platform.ALARM_CONTROL_PANEL,
+    Platform.BINARY_SENSOR,
+    Platform.CAMERA,
+    Platform.LIGHT,
+    Platform.MEDIA_PLAYER,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 
-async def async_setup(hass, config):
-    """Set up an Arlo component."""
+def setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up an momentary component.
+    """
 
-    # Read config
-    conf = config[COMPONENT_DOMAIN]
-    injection_service = conf.get(CONF_INJECTION_SERVICE)
-    save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
-    stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
+    hass.data.setdefault(COMPONENT_DOMAIN, {})
 
-    # Fix up streaming...
-    patch_file = hass.config.config_dir + "/aarlo.patch"
-    if os.path.isfile(patch_file):
-        _LOGGER.error("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
-        os.system("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
+    # See if we have already imported the data. If we haven't then do it now.
+    config_entry = _async_find_aarlo_config(hass)
+    if not config_entry:
+        _LOGGER.debug('importing a YAML setup')
+        hass.async_create_task(
+            hass.config_entries.flow.async_init(
+                COMPONENT_DOMAIN,
+                context={CONF_SOURCE: SOURCE_IMPORT},
+                data=config
+            )
+        )
+        return True
 
-    # Login. We'll keep trying!!
-    arlo = await hass.async_add_executor_job(login, hass, conf)
+    _LOGGER.debug('ignoring a YAML setup')
+    return True
+
+
+@callback
+def _async_find_aarlo_config(hass):
+    """ If we have anything in config_entries for aarlo we consider it
+    configured and will ignore the YAML.
+    """
+    for entry in hass.config_entries.async_entries(COMPONENT_DOMAIN):
+        return entry
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    _LOGGER.debug(f'async setup for aarlo')
+
+    # Get the blended config.
+    cfg = BlendedCfg(entry.data, entry.options)
+    domain_config = cfg.domain_config
+
+    # Try to login to aarlo.
+    arlo = await hass.async_add_executor_job(login, hass, domain_config)
     if arlo is None:
         return False
 
+    # We've logged in so create the session config.
     hass.data[COMPONENT_DATA] = arlo
     hass.data[COMPONENT_SERVICES] = {}
-    hass.data[COMPONENT_CONFIG] = ArloCfg(
-        save_updates_to=save_updates_to,
-        stream_snapshot=stream_snapshot,
-    )
+    hass.data[COMPONENT_CONFIG] = {
+        COMPONENT_DOMAIN: domain_config,
+        str(Platform.ALARM_CONTROL_PANEL): cfg.alarm_config,
+        str(Platform.BINARY_SENSOR): cfg.binary_sensor_config,
+        str(Platform.SENSOR): cfg.sensor_config,
+        str(Platform.SWITCH): cfg.switch_config,
+    }
+    _LOGGER.debug(f"update hass data {hass.data[COMPONENT_CONFIG]}")
+    
+    # Create a pseudo device. We use this for device less entities.
+    aarlo_device = {
+        DEVICE_NAME_KEY: arlo.name,
+        DEVICE_ID_KEY: arlo.device_id,
+        "modelId": arlo.model_id
+    }
+    await _async_get_or_create_momentary_device_in_registry(hass, entry, aarlo_device)
 
-    # Component services
-    has_sirens = False
-    for device in arlo.cameras + arlo.base_stations:
-        if device.has_capability(SIREN_STATE_KEY):
-            has_sirens = True
+    # create the real devices
+    for device in arlo.devices:
+        _LOGGER.debug(f"would try to add {device[DEVICE_NAME_KEY]}")
+        await _async_get_or_create_momentary_device_in_registry(hass, entry, device)
 
-    def service_callback(call):
-        """Call aarlo service handler."""
-        _LOGGER.info("{} service called".format(call.service))
-        if has_sirens:
-            if call.service == SERVICE_SIREN_ON:
-                aarlo_siren_on(hass, call)
-            if call.service == SERVICE_SIRENS_ON:
-                aarlo_sirens_on(hass, call)
-            if call.service == SERVICE_SIREN_OFF:
-                aarlo_siren_off(hass, call)
-            if call.service == SERVICE_SIRENS_OFF:
-                aarlo_sirens_off(hass, call)
-        if call.service == SERVICE_RESTART:
-            aarlo_restart_device(hass, call)
-        if call.service == SERVICE_INJECT_RESPONSE:
-            aarlo_inject_response(hass, call)
+    # Create the entities.
+    await hass.config_entries.async_forward_entry_setups(entry, ARLO_PLATFORMS)
 
-    async def async_service_callback(call):
-        await hass.async_add_executor_job(service_callback, call)
-
-    hass.services.async_register(
-        COMPONENT_DOMAIN,
-        SERVICE_SIREN_ON,
-        async_service_callback,
-        schema=SIREN_ON_SCHEMA,
-    )
-    hass.services.async_register(
-        COMPONENT_DOMAIN,
-        SERVICE_SIRENS_ON,
-        async_service_callback,
-        schema=SIRENS_ON_SCHEMA,
-    )
-    hass.services.async_register(
-        COMPONENT_DOMAIN,
-        SERVICE_SIREN_OFF,
-        async_service_callback,
-        schema=SIREN_OFF_SCHEMA,
-    )
-    hass.services.async_register(
-        COMPONENT_DOMAIN,
-        SERVICE_SIRENS_OFF,
-        async_service_callback,
-        schema=SIRENS_OFF_SCHEMA,
-    )
-    hass.services.async_register(
-        COMPONENT_DOMAIN,
-        SERVICE_RESTART,
-        async_service_callback,
-        schema=RESTART_SCHEMA,
-    )
-    if injection_service:
-        hass.services.async_register(
-            COMPONENT_DOMAIN,
-            SERVICE_INJECT_RESPONSE,
-            async_service_callback,
-            schema=INJECT_RESPONSE_SCHEMA,
-        )
+    # Make sure we pick up config changes.
+    entry.async_on_unload(entry.add_update_listener(update_listener))
 
     return True
 
 
-def login(hass, conf):
-    # Read config
-    username = conf.get(CONF_USERNAME)
-    password = conf.get(CONF_PASSWORD)
-    host = conf.get(CONF_HOST)
-    auth_host = conf.get(CONF_AUTH_HOST)
-    packet_dump = conf.get(CONF_PACKET_DUMP)
-    cache_videos = conf.get(CONF_CACHE_VIDEOS)
-    motion_time = conf.get(CONF_DB_MOTION_TIME).total_seconds()
-    ding_time = conf.get(CONF_DB_DING_TIME).total_seconds()
-    recent_time = conf.get(CONF_RECENT_TIME).total_seconds()
-    last_format = conf.get(CONF_LAST_FORMAT)
-    conf_dir = conf.get(CONF_CONF_DIR)
-    req_timeout = conf.get(CONF_REQ_TIMEOUT).total_seconds()
-    str_timeout = conf.get(CONF_STR_TIMEOUT).total_seconds()
-    no_media_up = conf.get(CONF_NO_MEDIA_UP)
-    media_retry = conf.get(CONF_MEDIA_RETRY)
-    snapshot_checks = conf.get(CONF_SNAPSHOT_CHECKS)
-    user_agent = conf.get(CONF_USER_AGENT)
-    mode_api = conf.get(CONF_MODE_API)
-    device_refresh = conf.get(CONF_DEVICE_REFRESH)
-    mode_refresh = conf.get(CONF_MODE_REFRESH)
-    reconnect_every = conf.get(CONF_RECONNECT_EVERY)
-    verbose_debug = conf.get(CONF_VERBOSE_DEBUG)
-    snapshot_timeout = conf.get(CONF_SNAPSHOT_TIMEOUT).total_seconds()
-    tfa_source = conf.get(CONF_TFA_SOURCE)
-    tfa_type = conf.get(CONF_TFA_TYPE)
-    tfa_host = conf.get(CONF_TFA_HOST)
-    tfa_username = conf.get(CONF_TFA_USERNAME)
-    tfa_password = conf.get(CONF_TFA_PASSWORD)
-    tfa_timeout = int(conf.get(CONF_TFA_TIMEOUT).total_seconds())
-    tfa_total_timeout = int(conf.get(CONF_TFA_TOTAL_TIMEOUT).total_seconds())
-    library_days = conf.get(CONF_LIBRARY_DAYS)
-    serial_ids = conf.get(CONF_SERIAL_IDS)
-    stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
-    stream_snapshot_stop = conf.get(CONF_STREAM_SNAPSHOT_STOP)
-    save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
-    save_media_to = conf.get(CONF_SAVE_MEDIA_TO)
-    user_stream_delay = conf.get(CONF_USER_STREAM_DELAY)
-    no_unicode_squash = conf.get(CONF_NO_UNICODE_SQUASH)
-    save_session = conf.get(CONF_SAVE_SESSION)
-    backend = conf.get(CONF_BACKEND)
-    cipher_list = conf.get(CONF_CIPHER_LIST)
-    mqtt_host = conf.get(CONF_MQTT_HOST)
-    mqtt_hostname_check = conf.get(CONF_MQTT_HOSTNAME_CHECK)
-    mqtt_transport = conf.get(CONF_MQTT_TRANSPORT)
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    _LOGGER.debug(f"unloading it {entry.title}")
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, ARLO_PLATFORMS)
+    if unload_ok:
+        await hass.async_add_executor_job(hass.data[COMPONENT_DATA].stop, True)
+        hass.data.pop(COMPONENT_DATA)
+        hass.data.pop(COMPONENT_SERVICES)
+        hass.data.pop(COMPONENT_CONFIG)
+    _LOGGER.debug(f"ok={unload_ok}")
 
-    # Fix up config
-    if conf_dir == "":
-        conf_dir = hass.config.config_dir + "/.aarlo"
+    return unload_ok
+
+
+async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, ARLO_PLATFORMS)
+    if not unload_ok:
+        _LOGGER.warning(f"failed to reconfigure Aarlo {entry.title}")
+        return
+
+    _LOGGER.debug("reconfiguring...")
+    cfg = BlendedCfg(entry.data, entry.options)
+    hass.data[COMPONENT_CONFIG] = {
+        COMPONENT_DOMAIN: cfg.domain_config,
+        str(Platform.ALARM_CONTROL_PANEL): cfg.alarm_config,
+        str(Platform.BINARY_SENSOR): cfg.binary_sensor_config,
+        str(Platform.SENSOR): cfg.sensor_config,
+        str(Platform.SWITCH): cfg.switch_config,
+    }
+    # XXX remove orphaned entries
+    await hass.config_entries.async_forward_entry_setups(entry, ARLO_PLATFORMS)
+
+
+async def _async_get_or_create_momentary_device_in_registry(
+        hass: HomeAssistant, entry: ConfigEntry, device
+) -> None:
+    device_registry = dr.async_get(hass)
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(COMPONENT_DOMAIN, device[DEVICE_ID_KEY])},
+        manufacturer=COMPONENT_BRAND,
+        name=device[DEVICE_NAME_KEY],
+        model=device['modelId'],
+        sw_version=__version__
+    )
+
+
+def login(hass, conf):
 
     sleep = 15
     attempt = 1
@@ -309,54 +314,7 @@ def login(hass, conf):
             if attempt != 1:
                 _LOGGER.debug(f"login-attempt={attempt}")
 
-            arlo = PyArlo(
-                username=username,
-                password=password,
-                cache_videos=cache_videos,
-                storage_dir=conf_dir,
-                dump=packet_dump,
-                host=host,
-                auth_host=auth_host,
-                db_motion_time=motion_time,
-                db_ding_time=ding_time,
-                request_timeout=req_timeout,
-                stream_timeout=str_timeout,
-                recent_time=recent_time,
-                last_format=last_format,
-                no_media_upload=no_media_up,
-                media_retry=media_retry,
-                snapshot_checks=snapshot_checks,
-                user_agent=user_agent,
-                mode_api=mode_api,
-                refresh_devices_every=device_refresh,
-                refresh_modes_every=mode_refresh,
-                reconnect_every=reconnect_every,
-                snapshot_timeout=snapshot_timeout,
-                tfa_source=tfa_source,
-                tfa_type=tfa_type,
-                tfa_host=tfa_host,
-                tfa_username=tfa_username,
-                tfa_password=tfa_password,
-                tfa_timeout=tfa_timeout,
-                tfa_total_timeout=tfa_total_timeout,
-                library_days=library_days,
-                serial_ids=serial_ids,
-                stream_snapshot=stream_snapshot,
-                stream_snapshot_stop=stream_snapshot_stop,
-                save_updates_to=save_updates_to,
-                user_stream_delay=user_stream_delay,
-                no_unicode_squash=no_unicode_squash,
-                save_media_to=save_media_to,
-                save_session=save_session,
-                backend=backend,
-                cipher_list=cipher_list,
-                wait_for_initial_setup=False,
-                verbose_debug=verbose_debug,
-                mqtt_host=mqtt_host,
-                mqtt_hostname_check=mqtt_hostname_check,
-                mqtt_transport=mqtt_transport,
-            )
-
+            arlo = PyArlo(**PyaarloCfg.create_options(hass, conf))
             if arlo.is_connected:
                 _LOGGER.debug(f"login succeeded, attempt={attempt}")
                 return arlo
@@ -394,30 +352,6 @@ def login(hass, conf):
             return None
         time.sleep(sleep)
         sleep = min(300, sleep * 2)
-
-
-def is_homekit():
-    for frame in reversed(extract_stack()):
-        try:
-            frame.filename.index("homeassistant/components/homekit")
-            _LOGGER.debug("homekit detected")
-            return True
-        except ValueError:
-            continue
-    _LOGGER.debug("not homekit detected")
-    return False
-
-
-def get_entity_from_domain(hass, domains, entity_id):
-    domains = domains if isinstance(domains, list) else [domains]
-    for domain in domains:
-        component = hass.data.get(domain)
-        if component is None:
-            raise HomeAssistantError("{} component not set up".format(domain))
-        entity = component.get_entity(entity_id)
-        if entity is not None:
-            return entity
-    raise HomeAssistantError("{} not found in {}".format(entity_id, ",".join(domains)))
 
 
 def aarlo_siren_on(hass, call):
@@ -484,29 +418,3 @@ def aarlo_inject_response(hass, call):
     if packet is not None:
         _LOGGER.debug("injecting->{}".format(pprint.pformat(packet)))
         hass.data[COMPONENT_DATA].inject_response(packet)
-
-
-class ArloCfg(object):
-    """Helper class to get at Arlo configuration options.
-
-    I got sick of adding in variables each time the config changed so I moved it all here. Config
-    is passed in a kwarg and parsed out by the property methods.
-
-    """
-
-    def __init__(self, **kwargs):
-        """The constructor.
-
-        Args:
-            kwargs (kwargs): Configuration options.
-
-        """
-        self._kw = kwargs
-
-    @property
-    def save_updates_to(self):
-        return self._kw.get("save_updates_to", "")
-
-    @property
-    def stream_snapshot(self):
-        return self._kw.get("stream_snapshot", False)
