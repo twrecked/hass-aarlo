@@ -31,11 +31,12 @@ quick note inline.
 
 #### What pieces need doing
 
-- _integration creation_; you can go through the motions but it won't set up
-  the account yet, upgrade only for now
-- _reload/reconfigure_; you can change settings but the changes will need you
-  to restart
+- _integration creation_; you can create new integrations but you will need 
+  to reconfigure them to get all the sensors working
+- _reload/reconfigure_; works, but I need to deal with orphans when devices 
+  are turned off
 - _unique ids_; create better one for new integrations
+- _config_; maybe work out which config pieces are really needed
 
 #### What if it goes wrong?
 
@@ -228,6 +229,9 @@ access to any devices you want to share and give the _Aarlo_ user admin access.
 
 <a name="configuration-main"></a>
 ### Main Configuration
+
+**This is now handled from the Integration Page**
+
 The following configuration is the minimum needed.
 
 ```yaml
@@ -238,6 +242,8 @@ aarlo:
 
 <a name="configuration-alarm"></a>
 ### Alarm Configuration
+
+** This is now handled from the Integration Configure Pages **
 
 The following enables and configures the base stations.
 
@@ -279,6 +285,8 @@ information on mode names.
 <a name="configuration-camera"></a>
 ### Camera Configuration
 
+**This is now handled from the Integration Configure Pages**
+
 The following enables any cameras.
 
 ```yaml
@@ -315,6 +323,8 @@ The _Arlo_ backend sends the notifications on the event stream so they are
 
 <a name="configuration-sensor"></a>
 ### Sensor Configuration
+
+**This is now handled from the Integration Configure Pages**
 
 The following enables and configures the sensors.
 
@@ -358,6 +368,8 @@ _Note:_ It is important to note a limitation from [pyaarlo](https://github.com/t
 <a name="configuration-light"></a>
 ### Light Configuration
 
+**This is now handled from the Integration Configure Pages**
+
 The following enables any lights:
 
 ```yaml
@@ -374,6 +386,8 @@ web interface works.
 
 <a name="configuration-switch"></a>
 ### Switch Configuration
+
+**This is now handled from the Integration Configure Pages**
 
 The following enables and configures some pseudo switches:
 
@@ -403,6 +417,8 @@ is and how long, in seconds, it sounds.
 <a name="configuration-media"></a>
 ### Media Player Configuration
 
+**This is now handled from the Integration Configure Pages**
+
 The following enables media player for supported devices:
 
 ```yaml
@@ -427,6 +443,8 @@ by the _Arlo_ web interface camera view.
 ## 2FA
 
 _Aarlo_ supports 2-factor authentication.
+
+**This is now handled from the Integration Page**
 
 To check if you need to enable 2FA, log in to actual _Arlo_ website using your
 _Home Assistant_ account and see if it sends you a verification code. If it
