@@ -47,8 +47,10 @@ from .const import (
     ATTR_CHARGER_TYPE,
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
+    COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
+    CONF_ADD_AARLO_PREFIX,
 )
 from .utils import to_bool
 
@@ -72,30 +74,34 @@ async def async_setup_entry(
     if not arlo:
         return
 
+    aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
+
     lights = []
     for light in arlo.lights:
-        lights.append(ArloLight(light))
+        lights.append(ArloLight(light, aarlo_config))
     for camera in arlo.cameras:
         if camera.has_capability(NIGHTLIGHT_KEY):
-            lights.append(ArloNightLight(camera))
+            lights.append(ArloNightLight(camera, aarlo_config))
         if camera.has_capability(FLOODLIGHT_KEY):
-            lights.append(ArloFloodLight(camera))
+            lights.append(ArloFloodLight(camera, aarlo_config))
         if camera.has_capability(SPOTLIGHT_KEY):
-            lights.append(ArloSpotlight(camera))
+            lights.append(ArloSpotlight(camera, aarlo_config))
 
     async_add_entities(lights)
 
 
 class ArloLight(LightEntity):
 
-    def __init__(self, light):
+    def __init__(self, light, aarlo_config):
         """Initialize an Arlo light."""
 
         self._light = light
 
         self._attr_name = light.name
         self._attr_unique_id = light.entity_id
-        self.entity_id = f"{LIGHT_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
+            self.entity_id = f"{LIGHT_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        _LOGGER.debug(f"light-entity-id={self.entity_id}")
 
         self._attr_brightness = None
         self._attr_is_on = False
@@ -175,8 +181,8 @@ class ArloLight(LightEntity):
 
 
 class ArloNightLight(ArloLight):
-    def __init__(self, camera):
-        super().__init__(camera)
+    def __init__(self, camera, aarlo_config):
+        super().__init__(camera, aarlo_config)
 
         self._attr_brightness = None
         self._attr_color_temp = None
@@ -271,8 +277,8 @@ class ArloNightLight(ArloLight):
 
 
 class ArloFloodLight(ArloLight):
-    def __init__(self, camera):
-        super().__init__(camera)
+    def __init__(self, camera, aarlo_config):
+        super().__init__(camera, aarlo_config)
 
         self._mode = None
         self._duration = None
@@ -361,8 +367,8 @@ class ArloFloodLight(ArloLight):
 
 class ArloSpotlight(ArloLight):
 
-    def __init__(self, camera):
-        super().__init__(camera)
+    def __init__(self, camera, aarlo_config):
+        super().__init__(camera, aarlo_config)
 
         self._attr_brightness = None
         self._attr_effect = None

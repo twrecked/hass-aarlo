@@ -17,7 +17,8 @@
           "tfa_type": "Two Factor Mechanism",
           "tfa_host": "TFA Host",
           "tfa_username": "TFA Username",
-          "tfa_password": "TFA Password"
+          "tfa_password": "TFA Password",
+          "add_arlo_prefix": "Use `aarlo_` prefix for entities"
         }
       }
     }
@@ -29,6 +30,7 @@
         "title": "Alarm Settings",
         "description": "Set mode names and other alarm requirements.",
         "data": {
+          "alarm_control_panel_code": "Alarm/disarm code",
           "alarm_control_panel_disarmed_mode_name": "Disarmed mode name",
           "alarm_control_panel_home_mode_name": "Home mode name",
           "alarm_control_panel_away_mode_name": "Away mode name",

@@ -43,7 +43,9 @@ from . import (
     COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
+    CONF_ADD_AARLO_PREFIX
 )
+from homeassistant.util import slugify
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,6 +92,7 @@ async def async_setup_entry(
     if not arlo:
         return
 
+    aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
     config = hass.data[COMPONENT_CONFIG][BINARY_SENSOR_DOMAIN]
     _LOGGER.debug(f"binary-sensor={config}")
 
@@ -99,19 +102,19 @@ async def async_setup_entry(
         if sensor_type == "connectivity":
             for base in arlo.base_stations:
                 if base.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
-                    sensors.append(ArloBinarySensor(base, sensor_type, sensor_value))
+                    sensors.append(ArloBinarySensor(base, aarlo_config, sensor_type, sensor_value))
         for camera in arlo.cameras:
             if camera.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
-                sensors.append(ArloBinarySensor(camera, sensor_type, sensor_value))
+                sensors.append(ArloBinarySensor(camera, aarlo_config, sensor_type, sensor_value))
         for doorbell in arlo.doorbells:
             if doorbell.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
-                sensors.append(ArloBinarySensor(doorbell, sensor_type, sensor_value))
+                sensors.append(ArloBinarySensor(doorbell, aarlo_config, sensor_type, sensor_value))
         for light in arlo.lights:
             if light.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
-                sensors.append(ArloBinarySensor(light, sensor_type, sensor_value))
+                sensors.append(ArloBinarySensor(light, aarlo_config, sensor_type, sensor_value))
         for sensor in arlo.sensors:
             if sensor.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
-                sensors.append(ArloBinarySensor(sensor, sensor_type, sensor_value))
+                sensors.append(ArloBinarySensor(sensor, aarlo_config, sensor_type, sensor_value))
 
     async_add_entities(sensors)
 
@@ -119,7 +122,7 @@ async def async_setup_entry(
 class ArloBinarySensor(BinarySensorEntity):
     """An implementation of a Netgear Arlo IP sensor."""
 
-    def __init__(self, device, sensor_type, sensor_value):
+    def __init__(self, device, aarlo_config, sensor_type, sensor_value):
         """Initialize an Arlo sensor."""
 
         self._device = device
@@ -127,9 +130,11 @@ class ArloBinarySensor(BinarySensorEntity):
         self._main_attr = sensor_value[SENSOR_TYPES_MAIN_ATTR]
         self._other_attrs = sensor_value[SENSOR_TYPES_OTHER_ATTRS]
 
-        self._attr_name = "{0} {1}".format(sensor_value[SENSOR_TYPES_DESCRIPTION], device.name)
-        self._attr_unique_id = "{0}_{1}".format(sensor_value[SENSOR_TYPES_DESCRIPTION], device.entity_id).lower()
-        self.entity_id = f"{BINARY_SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        self._attr_name = f"{sensor_value[SENSOR_TYPES_DESCRIPTION]} {device.name}"
+        self._attr_unique_id = f"{sensor_value[SENSOR_TYPES_DESCRIPTION]}_{device.entity_id}"
+        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
+            self.entity_id = f"{BINARY_SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        _LOGGER.debug(f"binary-sensor-entity-id={self.entity_id}")
 
         self._attr_icon = sensor_value[SENSOR_TYPES_ICON]
         self._attr_is_on = False

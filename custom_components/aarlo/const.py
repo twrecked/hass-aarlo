@@ -13,6 +13,7 @@ NOTIFICATION_ID = "aarlo_notification"
 NOTIFICATION_TITLE = "aarlo Component Setup"
 
 # All config.
+CONF_ADD_AARLO_PREFIX = "add_aarlo_prefix"
 CONF_PACKET_DUMP = "packet_dump"
 CONF_CACHE_VIDEOS = "cache_videos"
 CONF_DB_MOTION_TIME = "db_motion_time"

@@ -26,6 +26,7 @@ from homeassistant.components.sensor import (
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.util import slugify
 
 from pyaarlo.constant import (
     AIR_QUALITY_KEY,
@@ -45,6 +46,7 @@ from .const import (
     COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
+    CONF_ADD_AARLO_PREFIX
 )
 
 
@@ -94,6 +96,7 @@ async def async_setup_entry(
     if not arlo:
         return
 
+    aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
     config = hass.data[COMPONENT_CONFIG][SENSOR_DOMAIN]
     _LOGGER.debug(f"sensor={config}")
 
@@ -101,20 +104,20 @@ async def async_setup_entry(
     for sensor_type in config.get(CONF_MONITORED_CONDITIONS):
         sensor_value = SENSOR_TYPES[sensor_type]
         if sensor_type == "total_cameras":
-            sensors.append(ArloSensor(arlo, None, sensor_type, sensor_value))
+            sensors.append(ArloSensor(arlo, None, aarlo_config, sensor_type, sensor_value))
         else:
             for camera in arlo.cameras:
                 if camera.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
-                    sensors.append(ArloSensor(arlo, camera, sensor_type, sensor_value))
+                    sensors.append(ArloSensor(arlo, camera, aarlo_config, sensor_type, sensor_value))
             for doorbell in arlo.doorbells:
                 if doorbell.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
-                    sensors.append(ArloSensor(arlo, doorbell, sensor_type, sensor_value))
+                    sensors.append(ArloSensor(arlo, doorbell, aarlo_config, sensor_type, sensor_value))
             for light in arlo.lights:
                 if light.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
-                    sensors.append(ArloSensor(arlo, light, sensor_type, sensor_value))
+                    sensors.append(ArloSensor(arlo, light, aarlo_config, sensor_type, sensor_value))
             for sensor in arlo.sensors:
                 if sensor.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
-                    sensors.append(ArloSensor(arlo, sensor, sensor_type, sensor_value))
+                    sensors.append(ArloSensor(arlo, sensor, aarlo_config, sensor_type, sensor_value))
 
     async_add_entities(sensors)
 
@@ -122,7 +125,7 @@ async def async_setup_entry(
 class ArloSensor(Entity):
     """An implementation of a Netgear Arlo IP sensor."""
 
-    def __init__(self, arlo, device, sensor_type, sensor_value):
+    def __init__(self, arlo, device, aarlo_config, sensor_type, sensor_value):
         """Initialize an Arlo sensor."""
 
         self._sensor_type = sensor_type
@@ -133,15 +136,12 @@ class ArloSensor(Entity):
             self._attr_unique_id = sensor_type
             self._device = arlo
         else:
-            self._attr_name = "{0} {1}".format(sensor_value[SENSOR_TYPES_DESCRIPTION], device.name)
-            self._attr_unique_id = (
-                "{0}_{1}".format(sensor_value[SENSOR_TYPES_DESCRIPTION], device.entity_id)
-                .lower()
-                .replace(" ", "_")
-            )
+            self._attr_name = f"{sensor_value[SENSOR_TYPES_DESCRIPTION]} {device.name}"
+            self._attr_unique_id = slugify(f"{sensor_value[SENSOR_TYPES_DESCRIPTION]}_{device.entity_id}")
             self._device = device
 
-        self.entity_id = f"{SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
+            self.entity_id = f"{SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
 
         self._attr_device_class = sensor_value[SENSOR_TYPES_CLASS]
         self._attr_icon = f"mdi:{sensor_value[SENSOR_TYPES_ICON]}"

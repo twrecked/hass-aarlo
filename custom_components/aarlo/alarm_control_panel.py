@@ -111,13 +111,14 @@ async def async_setup_entry(
     if not arlo.base_stations:
         return
 
+    aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
     config = hass.data[COMPONENT_CONFIG][ALARM_DOMAIN]
     _LOGGER.debug(f"alarm={config}")
 
     base_stations = []
     base_stations_with_sirens = False
     for base_station in arlo.base_stations:
-        base_stations.append(ArloBaseStation(base_station, config))
+        base_stations.append(ArloBaseStation(base_station, aarlo_config, config))
         if base_station.has_capability(SIREN_STATE_KEY):
             base_stations_with_sirens = True
 
@@ -127,7 +128,7 @@ async def async_setup_entry(
     locations = []
     for location in arlo.locations:
         _LOGGER.debug("Locations Iterator")
-        locations.append(ArloLocation(location, config))
+        locations.append(ArloLocation(location, aarlo_config, config))
 
     async_add_entities(locations)
 
@@ -164,7 +165,7 @@ async def async_setup_entry(
 
 def _code_format(code):
     """Return one or more digits/characters."""
-    if code is None:
+    if code is None or code == "":
         return None
     if isinstance(code, str) and re.search("^\\d+$", code):
         return FORMAT_NUMBER
@@ -173,10 +174,12 @@ def _code_format(code):
 
 def _code_validate(code, code_to_check, state):
     """Validate given code."""
-    check = code is None or code_to_check == code
-    if not check:
+    if code is None or code == "":
+        return True
+    if code_to_check != code:
         _LOGGER.warning(f"Wrong code entered for {state}")
-    return check
+        return False
+    return True
 
 
 def _get_base_from_entity_id(hass, entity_id):
@@ -208,7 +211,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
 
     _timer: Callable[[], None] | None = None
 
-    def __init__(self, device, config):
+    def __init__(self, device, aarlo_config, config):
         """Initialize the alarm control panel."""
         self._base = device
 
@@ -221,10 +224,13 @@ class ArloBaseStation(AlarmControlPanelEntity):
         self._trigger_till = None
         self._attr_state = None
         self._code = config.get(CONF_CODE)
+        _LOGGER.debug(f"alarm-code={self._code}")
 
         self._attr_name = device.name
         self._attr_unique_id = device.entity_id
-        self.entity_id = f"{ALARM_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
+            self.entity_id = f"{ALARM_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        _LOGGER.debug(f"alarm-entity-id={self.entity_id}")
 
         self._attr_code_format = _code_format(config.get(CONF_CODE))
         self._attr_code_arm_required = config.get(CONF_CODE_ARM_REQUIRED)
@@ -373,7 +379,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
 class ArloLocation(AlarmControlPanelEntity):
     """Representation of an Arlo Alarm Control Panel."""
 
-    def __init__(self, location, config):
+    def __init__(self, location, aarlo_config, config):
         """Initialize the alarm control panel."""
 
         self._location = location
@@ -383,6 +389,8 @@ class ArloLocation(AlarmControlPanelEntity):
 
         self._attr_name = location.name
         self._attr_unique_id = location.entity_id
+        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
+            self.entity_id = f"{ALARM_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
 
         self._attr_code_format = _code_format(config.get(CONF_CODE))
         self._attr_code_arm_required = config.get(CONF_CODE_ARM_REQUIRED)

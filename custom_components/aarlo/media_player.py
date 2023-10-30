@@ -33,8 +33,10 @@ from pyaarlo.constant import MEDIA_PLAYER_KEY
 from .const import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
+    COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
+    CONF_ADD_AARLO_PREFIX,
 )
 
 
@@ -75,11 +77,12 @@ async def async_setup_entry(
     if not arlo:
         return
 
+    aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
+
     players = []
     for camera in arlo.cameras:
         if camera.has_capability(MEDIA_PLAYER_KEY):
-            name = "{0}".format(camera.name)
-            players.append(ArloMediaPlayer(name, camera))
+            players.append(ArloMediaPlayer(camera, aarlo_config))
 
     async_add_entities(players)
 
@@ -87,7 +90,7 @@ async def async_setup_entry(
 class ArloMediaPlayer(MediaPlayerEntity):
     """Representation of an arlo media player."""
 
-    def __init__(self, name, device):
+    def __init__(self, device, aarlo_config):
         """Initialize an Arlo media player."""
 
         self._device = device
@@ -95,9 +98,11 @@ class ArloMediaPlayer(MediaPlayerEntity):
         self._track_id = None
         self._playlist = []
 
-        self._attr_name = name
+        self._attr_name = device.name
         self._attr_unique_id = device.entity_id
-        self.entity_id = f"{MEDIA_PLAYER_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
+            self.entity_id = f"{MEDIA_PLAYER_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        _LOGGER.debug(f"media-player-entity-id={self.entity_id}")
 
         self._attr_device_class = MediaPlayerDeviceClass.SPEAKER
         self._attr_icon = "mdi:speaker"

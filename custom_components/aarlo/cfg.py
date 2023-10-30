@@ -395,7 +395,12 @@ class UpgradeCfg(object):
         """
 
         data = {k: v for k, v in AARLO_FULL_SCHEMA(config.get(COMPONENT_DOMAIN, {})).items()
-                if k in AARLO_SCHEMA_ONLY_IN_CONFIG }
+                if k in AARLO_SCHEMA_ONLY_IN_CONFIG}
+
+        # Add in some upgrade defaults.
+        data.update({
+            CONF_ADD_AARLO_PREFIX: True
+        })
 
         _LOGGER.debug(f"aarlo-flow-data={data}")
         return data

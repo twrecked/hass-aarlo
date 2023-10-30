@@ -12,6 +12,7 @@ from homeassistant.helpers.selector import SelectOptionDict, \
 
 from .const import (
     COMPONENT_CONFIG,
+    CONF_ADD_AARLO_PREFIX,
     CONF_TFA_HOST,
     CONF_TFA_PASSWORD,
     CONF_TFA_SOURCE,
@@ -53,13 +54,15 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         """Create the options flow."""
         return ArloOptionsFlowHandler(config_entry)
 
+    _username: str = ""
+    _password: str = ""
+    _tfa_username: str = ""
+    _tfa_password: str = ""
+    _tfa_host: str = ""
+    _add_prefix: bool = True
+
     def __init__(self):
         """Initialize the config flow."""
-        self.username = ""
-        self.password = ""
-        self.tfa_username = ""
-        self.tfa_password = ""
-        self.tfa_host = ""
 
     async def async_step_user(self, info: dict = None):
         """Handle user initiated flow."""
@@ -120,12 +123,13 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
                 _LOGGER.debug(f"config={config}")
 
         data_schema = {
-            vol.Required(CONF_USERNAME, default=self.username): str,
-            vol.Required(CONF_PASSWORD, default=self.password): str,
+            vol.Required(CONF_USERNAME, default=self._username): str,
+            vol.Required(CONF_PASSWORD, default=self._password): str,
             vol.Required(CONF_TFA_TYPE, default="IMAP"): TFA_SELECTOR,
-            vol.Optional(CONF_TFA_USERNAME, default=self.tfa_username): str,
-            vol.Optional(CONF_TFA_PASSWORD, default=self.tfa_password): str,
-            vol.Optional(CONF_TFA_HOST, default=self.tfa_host): str,
+            vol.Optional(CONF_TFA_USERNAME, default=self._tfa_username): str,
+            vol.Optional(CONF_TFA_PASSWORD, default=self._tfa_password): str,
+            vol.Optional(CONF_TFA_HOST, default=self._tfa_host): str,
+            vol.Optional(CONF_ADD_AARLO_PREFIX, default=self._add_prefix): bool,
         }
 
         return self.async_show_form(
@@ -167,6 +171,11 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             _LOGGER.debug(f"user-input-alarm={user_input}")
+
+            # Yuck.
+            if user_input["alarm_control_panel_code"] == "no code needed":
+                user_input.pop("alarm_control_panel_code")
+
             self._config = user_input
             return await self.async_step_binary_sensor(None)
 
@@ -174,22 +183,24 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="alarm_control_panel",
             data_schema=vol.Schema({
-                vol.Required("alarm_control_panel_disarmed_mode_name",
-                             default=options.get("alarm_control_panel_disarmed_mode_name", True)): str,
-                vol.Required("alarm_control_panel_home_mode_name",
-                             default=options.get("alarm_control_panel_home_mode_name", True)): str,
-                vol.Required("alarm_control_panel_away_mode_name",
-                             default=options.get("alarm_control_panel_away_mode_name", True)): str,
-                vol.Required("alarm_control_panel_night_mode_name",
-                             default=options.get("alarm_control_panel_night_mode_name", True)): str,
-                vol.Required("alarm_control_panel_code_arm_required",
-                             default=options.get("alarm_control_panel_code_arm_required", True)): bool,
-                vol.Required("alarm_control_panel_code_disarm_required",
-                             default=options.get("alarm_control_panel_code_disarm_required", True)): bool,
-                vol.Required("alarm_control_panel_trigger_time",
-                             default=options.get("alarm_control_panel_trigger_time", True)): int,
-                vol.Required("alarm_control_panel_alarm_volume",
-                             default=options.get("alarm_control_panel_alarm_volume", True)): int,
+                vol.Optional("alarm_control_panel_code",
+                             default=options.get("alarm_control_panel_code", "no code needed")): str,
+                vol.Optional("alarm_control_panel_disarmed_mode_name",
+                             default=options.get("alarm_control_panel_disarmed_mode_name", "disarmed")): str,
+                vol.Optional("alarm_control_panel_home_mode_name",
+                             default=options.get("alarm_control_panel_home_mode_name", "home")): str,
+                vol.Optional("alarm_control_panel_away_mode_name",
+                             default=options.get("alarm_control_panel_away_mode_name", "away")): str,
+                vol.Optional("alarm_control_panel_night_mode_name",
+                             default=options.get("alarm_control_panel_night_mode_name", "night")): str,
+                vol.Optional("alarm_control_panel_code_arm_required",
+                             default=options.get("alarm_control_panel_code_arm_required", False)): bool,
+                vol.Optional("alarm_control_panel_code_disarm_required",
+                             default=options.get("alarm_control_panel_code_disarm_required", False)): bool,
+                vol.Optional("alarm_control_panel_trigger_time",
+                             default=options.get("alarm_control_panel_trigger_time", 60)): int,
+                vol.Optional("alarm_control_panel_alarm_volume",
+                             default=options.get("alarm_control_panel_alarm_volume", 3)): int,
                 # vol.Required("alarm_control_panel_command_template",
                 #              default=options.get("alarm_control_panel_command_template", True)): str,
             })
@@ -284,13 +295,13 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required("switch_siren_allow_off",
                              default=options.get("switch_siren_allow_off", True)): bool,
                 vol.Required("switch_siren_volume",
-                             default=options.get("switch_siren_volume", True)): int,
+                             default=options.get("switch_siren_volume", 3)): int,
                 vol.Required("switch_siren_duration",
-                             default=options.get("switch_siren_duration", True)): int,
+                             default=options.get("switch_siren_duration", 10)): int,
                 vol.Required("switch_snapshot",
                              default=options.get("switch_snapshot", True)): bool,
                 vol.Required("switch_snapshot_timeout",
-                             default=options.get("switch_snapshot_timeout", True)): int,
+                             default=options.get("switch_snapshot_timeout", 15)): int,
                 vol.Required("switch_doorbell_silence",
                              default=options.get("switch_doorbell_silence", True)): bool,
             })

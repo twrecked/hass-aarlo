@@ -67,6 +67,7 @@ from .const import (
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
+    CONF_ADD_AARLO_PREFIX,
     CONF_SAVE_UPDATES_TO,
     CONF_STREAM_SNAPSHOT,
     STATE_ALARM_ARLO_ARMED,
@@ -188,12 +189,12 @@ async def async_setup_entry(
     """Set up an Arlo IP Camera."""
 
     arlo = hass.data[COMPONENT_DATA]
-    arlo_cfg = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
+    aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
 
     cameras = []
     cameras_with_siren = False
     for camera in arlo.cameras:
-        cameras.append(ArloCam(camera, arlo, arlo_cfg, hass))
+        cameras.append(ArloCam(camera, aarlo_config, hass))
         if camera.has_capability(SIREN_STATE_KEY):
             cameras_with_siren = True
 
@@ -300,19 +301,21 @@ class ArloCam(Camera):
     _stream_snapshot: bool = False
     _save_updates_to: str | None = None
 
-    def __init__(self, camera, _arlo, arlo_cfg, hass):
+    def __init__(self, camera, aarlo_config, hass):
         """Initialize an Arlo camera."""
         super().__init__()
         
         self._camera = camera
         self._last_image_source = None
-        self._stream_snapshot = arlo_cfg.get(CONF_STREAM_SNAPSHOT)
-        self._save_updates_to = arlo_cfg.get(CONF_SAVE_UPDATES_TO)
+        self._stream_snapshot = aarlo_config.get(CONF_STREAM_SNAPSHOT)
+        self._save_updates_to = aarlo_config.get(CONF_SAVE_UPDATES_TO)
         self._ffmpeg = hass.data[DATA_FFMPEG]
 
         self._attr_name = camera.name
         self._attr_unique_id = camera.entity_id
-        self.entity_id = f"{CAMERA_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
+            self.entity_id = f"{CAMERA_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        _LOGGER.debug(f"camera-entity-id={self.entity_id}")
 
         self._attr_brand = COMPONENT_BRAND
         self._attr_frontend_stream_type = StreamType.HLS

@@ -69,6 +69,7 @@ async def async_setup_entry(
     if not arlo:
         return
 
+    aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
     config = hass.data[COMPONENT_CONFIG][SWITCH_DOMAIN]
     _LOGGER.debug(f"switch={config}")
 
@@ -89,24 +90,24 @@ async def async_setup_entry(
     # Create individual switches if asked for
     if config.get(CONF_SIRENS) is True:
         for adevice in adevices:
-            devices.append(AarloSirenSwitch(config, adevice))
+            devices.append(AarloSirenSwitch(aarlo_config, config, adevice))
 
     # Then create all_sirens if asked for.
     if config.get(CONF_ALL_SIRENS) is True:
         if len(adevices) != 0:
-            devices.append(AarloAllSirensSwitch(config, arlo, adevices))
+            devices.append(AarloAllSirensSwitch(aarlo_config, config, arlo, adevices))
 
     # Add snapshot for each camera
     if config.get(CONF_SNAPSHOT) is True:
         for camera in arlo.cameras:
-            devices.append(AarloSnapshotSwitch(config, camera))
+            devices.append(AarloSnapshotSwitch(aarlo_config, config, camera))
 
     if config.get(CONF_DOORBELL_SILENCE) is True:
         for doorbell in arlo.doorbells:
             if doorbell.has_capability(SILENT_MODE_KEY):
-                devices.append(AarloSilentModeSwitch(doorbell))
-                devices.append(AarloSilentModeChimeSwitch(doorbell))
-                devices.append(AarloSilentModeCallSwitch(doorbell))
+                devices.append(AarloSilentModeSwitch(aarlo_config, doorbell))
+                devices.append(AarloSilentModeChimeSwitch(aarlo_config, doorbell))
+                devices.append(AarloSilentModeCallSwitch(aarlo_config, doorbell))
 
     async_add_entities(devices)
 
@@ -114,14 +115,16 @@ async def async_setup_entry(
 class AarloSwitch(SwitchEntity):
     """Representation of an Aarlo switch."""
 
-    def __init__(self, device, name, identifier, icon):
+    def __init__(self, device, aarlo_config, name, identifier, icon):
         """Initialize the Aarlo switch device."""
         
         self._device = device
 
         self._attr_name = name
         self._attr_unique_id = identifier
-        self.entity_id = f"{SWITCH_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
+            self.entity_id = f"{SWITCH_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        _LOGGER.debug(f"switch-entity-id={self.entity_id}")
 
         self._attr_icon = f"mdi:{icon}"
         self._attr_is_on = False
@@ -163,9 +166,9 @@ class AarloSirenBaseSwitch(AarloSwitch):
     _on_until: datetime | None = None
     _timer: Callable[[], None] | None = None
 
-    def __init__(self, device, name, identifier, icon, on_for, allow_off):
+    def __init__(self, device, aarlo_config, name, identifier, icon, on_for, allow_off):
         """Initialize the Aarlo Momentary switch device."""
-        super().__init__(device, name, identifier, icon)
+        super().__init__(device, aarlo_config, name, identifier, icon)
 
         self._on_for = on_for
         self._allow_off = allow_off
@@ -206,10 +209,10 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
 
     _volume: int = 0
 
-    def __init__(self, config, device):
+    def __init__(self, aarlo_config, config, device):
         """Initialize the Aarlo siren switch device."""
         super().__init__(
-            device,
+            device, aarlo_config,
             f"{device.name} Siren",
             f"siren_{device.entity_id}",
             "alarm-bell",
@@ -245,10 +248,10 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
 class AarloAllSirensSwitch(AarloSirenBaseSwitch):
     """Representation of an Aarlo switch."""
 
-    def __init__(self, config, arlo, devices):
+    def __init__(self, aarlo_config, config, arlo, devices):
         """Initialize the Aarlo siren switch device."""
         super().__init__(
-            arlo,
+            arlo, aarlo_config,
             "All Sirens",
             "all_sirens",
             "alarm-light",
@@ -291,10 +294,10 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
 class AarloSnapshotSwitch(AarloSwitch):
     """Representation of an Aarlo switch."""
 
-    def __init__(self, config, camera):
+    def __init__(self, aarlo_config, config, camera):
         """Initialize the Aarlo snapshot switch device."""
         super().__init__(
-            camera,
+            camera, aarlo_config,
             f"{camera.name} Snapshot",
             f"snapshot_{camera.entity_id}",
             "camera",
@@ -333,9 +336,9 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
 
     _block: str = "all"
 
-    def __init__(self, name, identifier, doorbell, block):
+    def __init__(self, aarlo_config, name, identifier, doorbell, block):
         """Initialize the Aarlo silent mode switch device."""
-        super().__init__(doorbell, name, identifier, "doorbell")
+        super().__init__(doorbell, aarlo_config, name, identifier, "doorbell")
 
         self._block = block
 
@@ -367,9 +370,10 @@ class AarloSilentModeSwitch(AarloSilentModeBaseSwitch):
     This switch will mute everything!
     """
 
-    def __init__(self, doorbell):
+    def __init__(self, aarlo_config, doorbell):
         """Initialize the Aarlo silent mode switch device."""
         super().__init__(
+            aarlo_config,
             f"{doorbell.name} Silent Mode Chime Call",
             f"{doorbell.entity_id} Silent Mode Chime Call",
             doorbell,
@@ -387,9 +391,10 @@ class AarloSilentModeChimeSwitch(AarloSilentModeBaseSwitch):
     This switch will mute just chimes.
     """
 
-    def __init__(self, doorbell):
+    def __init__(self, aarlo_config, doorbell):
         """Initialize the Aarlo silent mode switch device."""
         super().__init__(
+            aarlo_config,
             f"{doorbell.name} Silent Mode Chime",
             f"{doorbell.entity_id} Silent Mode Chime",
             doorbell,
@@ -407,9 +412,10 @@ class AarloSilentModeCallSwitch(AarloSilentModeBaseSwitch):
     This switch will mute just calls.
     """
 
-    def __init__(self, doorbell):
+    def __init__(self, aarlo_config, doorbell):
         """Initialize the Aarlo silent mode switch device."""
         super().__init__(
+            aarlo_config,
             f"{doorbell.name} Silent Mode Call",
             f"{doorbell.entity_id} Silent Mode Call",
             doorbell,
