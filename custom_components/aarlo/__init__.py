@@ -272,7 +272,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
     unload_ok = await hass.config_entries.async_unload_platforms(entry, ARLO_PLATFORMS)
     if not unload_ok:
-        _LOGGER.warning(f"failed to recongure Aarlo {entry.title}")
+        _LOGGER.warning(f"failed to reconfigure Aarlo {entry.title}")
         return
 
     _LOGGER.debug("reconfiguring...")
