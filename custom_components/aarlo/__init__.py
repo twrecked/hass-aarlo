@@ -249,7 +249,43 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Create the entities.
     await hass.config_entries.async_forward_entry_setups(entry, ARLO_PLATFORMS)
 
+    # Make sure we pick up config changes.
+    entry.async_on_unload(entry.add_update_listener(update_listener))
+
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    _LOGGER.debug(f"unloading it {entry.title}")
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, ARLO_PLATFORMS)
+    if unload_ok:
+        hass.data[COMPONENT_DATA].stop(True)
+        hass.data.pop(COMPONENT_DATA)
+        hass.data.pop(COMPONENT_SERVICES)
+        hass.data.pop(COMPONENT_CONFIG)
+    _LOGGER.debug(f"ok={unload_ok}")
+
+    return unload_ok
+
+
+async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, ARLO_PLATFORMS)
+    if not unload_ok:
+        _LOGGER.warning(f"failed to recongure Aarlo {entry.title}")
+        return
+
+    _LOGGER.debug("reconfiguring...")
+    cfg = BlendedCfg(entry.data, entry.options)
+    hass.data[COMPONENT_CONFIG] = {
+        COMPONENT_DOMAIN: cfg.domain_config,
+        str(Platform.ALARM_CONTROL_PANEL): cfg.alarm_config,
+        str(Platform.BINARY_SENSOR): cfg.binary_sensor_config,
+        str(Platform.SENSOR): cfg.sensor_config,
+        str(Platform.SWITCH): cfg.switch_config,
+    }
+    # XXX remove orphaned entries
+    await hass.config_entries.async_forward_entry_setups(entry, ARLO_PLATFORMS)
 
 
 async def _async_get_or_create_momentary_device_in_registry(
