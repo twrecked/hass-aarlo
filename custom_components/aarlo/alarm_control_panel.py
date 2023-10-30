@@ -46,8 +46,8 @@ from pyaarlo.constant import (
     SIREN_STATE_KEY
 )
 
-from . import get_entity_from_domain
 from .const import *
+from .utils import get_entity_from_domain
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -162,7 +162,7 @@ async def async_setup_entry(
         )
 
 
-def code_format(code):
+def _code_format(code):
     """Return one or more digits/characters."""
     if code is None:
         return None
@@ -171,12 +171,36 @@ def code_format(code):
     return FORMAT_TEXT
 
 
-def code_validate(code, code_to_check, state):
+def _code_validate(code, code_to_check, state):
     """Validate given code."""
     check = code is None or code_to_check == code
     if not check:
         _LOGGER.warning(f"Wrong code entered for {state}")
     return check
+
+
+def _get_base_from_entity_id(hass, entity_id):
+    component = hass.data.get(ALARM_DOMAIN)
+    if component is None:
+        raise HomeAssistantError("base component not set up")
+
+    location = component.get_entity(entity_id)
+    if location is None:
+        raise HomeAssistantError("base not found")
+
+    return location
+
+
+def _get_location_from_entity_id(hass, entity_id):
+    component = hass.data.get(ALARM_DOMAIN)
+    if component is None:
+        raise HomeAssistantError("location component not set up")
+
+    location = component.get_entity(entity_id)
+    if location is None:
+        raise HomeAssistantError("location not found")
+
+    return location
 
 
 class ArloBaseStation(AlarmControlPanelEntity):
@@ -201,7 +225,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
         self._attr_name = device.name
         self._attr_unique_id = device.entity_id
 
-        self._attr_code_format = code_format(config.get(CONF_CODE))
+        self._attr_code_format = _code_format(config.get(CONF_CODE))
         self._attr_code_arm_required = config.get(CONF_CODE_ARM_REQUIRED)
         self._attr_code_disarm_required = config.get(CONF_CODE_DISARM_REQUIRED)
         self._attr_icon = ALARM_ICON
@@ -258,22 +282,22 @@ class ArloBaseStation(AlarmControlPanelEntity):
         return self._attr_state
 
     def alarm_disarm(self, code=None):
-        if self._attr_code_disarm_required and not code_validate(self._code, code, "disarming"):
+        if self._attr_code_disarm_required and not _code_validate(self._code, code, "disarming"):
             return
         self.set_mode_in_ha(self._disarmed_mode_name)
 
     def alarm_arm_away(self, code=None):
-        if self._attr_code_arm_required and not code_validate(self._code, code, "arming away"):
+        if self._attr_code_arm_required and not _code_validate(self._code, code, "arming away"):
             return
         self.set_mode_in_ha(self._away_mode_name)
 
     def alarm_arm_home(self, code=None):
-        if self._attr_code_arm_required and not code_validate(self._code, code, "arming home"):
+        if self._attr_code_arm_required and not _code_validate(self._code, code, "arming home"):
             return
         self.set_mode_in_ha(self._home_mode_name)
 
     def alarm_arm_night(self, code=None):
-        if self._attr_code_arm_required and not code_validate(self._code, code, "arming night"):
+        if self._attr_code_arm_required and not _code_validate(self._code, code, "arming night"):
             return
         self.set_mode_in_ha(self._night_mode_name)
 
@@ -359,7 +383,7 @@ class ArloLocation(AlarmControlPanelEntity):
         self._attr_name = location.name
         self._attr_unique_id = location.entity_id
 
-        self._attr_code_format = code_format(config.get(CONF_CODE))
+        self._attr_code_format = _code_format(config.get(CONF_CODE))
         self._attr_code_arm_required = config.get(CONF_CODE_ARM_REQUIRED)
         self._attr_code_disarm_required = config.get(CONF_CODE_DISARM_REQUIRED)
         self._attr_icon = ALARM_ICON
@@ -397,19 +421,19 @@ class ArloLocation(AlarmControlPanelEntity):
 
     def alarm_disarm(self, code=None):
         _LOGGER.debug(f"Location {self._attr_name} disarm.  Code: {code}")
-        if self._attr_code_disarm_required and not code_validate(self._code, code, "disarming"):
+        if self._attr_code_disarm_required and not _code_validate(self._code, code, "disarming"):
             return
         self._location.stand_by()
 
     def alarm_arm_away(self, code=None):
         _LOGGER.debug(f"Location {self._attr_name} arm away.  Code: {code}")
-        if self._attr_code_arm_required and not code_validate(self._code, code, "arming away"):
+        if self._attr_code_arm_required and not _code_validate(self._code, code, "arming away"):
             return
         self._location.arm_away()
 
     def alarm_arm_home(self, code=None):
         _LOGGER.debug(f"Location {self._attr_name} arm home.  Code: {code}")
-        if self._attr_code_arm_required and not code_validate(self._code, code, "arming home"):
+        if self._attr_code_arm_required and not _code_validate(self._code, code, "arming home"):
             return
         self._location.arm_home()
 
@@ -452,30 +476,6 @@ class ArloLocation(AlarmControlPanelEntity):
             "on_schedule": self._location.on_schedule,
             "siren": self._location.has_capability(SIREN_STATE_KEY),
         }
-
-
-def _get_base_from_entity_id(hass, entity_id):
-    component = hass.data.get(ALARM_DOMAIN)
-    if component is None:
-        raise HomeAssistantError("base component not set up")
-
-    location = component.get_entity(entity_id)
-    if location is None:
-        raise HomeAssistantError("base not found")
-
-    return location
-
-
-def _get_location_from_entity_id(hass, entity_id):
-    component = hass.data.get(ALARM_DOMAIN)
-    if component is None:
-        raise HomeAssistantError("location component not set up")
-
-    location = component.get_entity(entity_id)
-    if location is None:
-        raise HomeAssistantError("location not found")
-
-    return location
 
 
 @websocket_api.async_response

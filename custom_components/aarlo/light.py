@@ -41,7 +41,6 @@ from pyaarlo.constant import (
     SPOTLIGHT_KEY,
 )
 
-from . import to_bool
 from .const import (
     ATTR_BATTERY_TECH,
     ATTR_CHARGER_TYPE,
@@ -50,6 +49,7 @@ from .const import (
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
 )
+from .utils import to_bool
 
 
 _LOGGER = logging.getLogger(__name__)

@@ -58,7 +58,6 @@ from pyaarlo.constant import (
     SIREN_STATE_KEY,
 )
 
-from . import get_entity_from_domain
 from .const import (
     ATTR_BATTERY_TECH,
     ATTR_CHARGER_TYPE,
@@ -72,6 +71,7 @@ from .const import (
     CONF_STREAM_SNAPSHOT,
     STATE_ALARM_ARLO_ARMED,
 )
+from .utils import get_entity_from_domain
 
 
 _LOGGER = logging.getLogger(__name__)

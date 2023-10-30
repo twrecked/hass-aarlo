@@ -33,8 +33,8 @@ from pyaarlo.constant import (
     SIREN_STATE_KEY
 )
 
-from . import to_bool
 from .const import *
+from .utils import to_bool
 
 
 _LOGGER = logging.getLogger(__name__)
