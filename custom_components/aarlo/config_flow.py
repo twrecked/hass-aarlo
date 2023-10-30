@@ -77,7 +77,8 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             config = {
                 CONF_USERNAME: info[CONF_USERNAME],
                 CONF_PASSWORD: info[CONF_PASSWORD],
-                CONF_TFA_TYPE: "none"
+                CONF_TFA_TYPE: "none",
+                CONF_ADD_AARLO_PREFIX: info[CONF_ADD_AARLO_PREFIX]
             }
 
             # Lets look at what we have.
@@ -120,7 +121,19 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
 
             # Looks good, then create it.
             if not errors:
-                _LOGGER.debug(f"config={config}")
+                _LOGGER.debug(f"aarlo-config={config}")
+                return self.async_create_entry(
+                    title=f"Aarlo for ${self._username}",
+                    data=config
+                )
+
+            # Pass broken one into the GUI.
+            self._username: str = info[CONF_USERNAME]
+            self._password: str = info[CONF_PASSWORD]
+            self._tfa_username: str = info.get(CONF_TFA_USERNAME, "")
+            self._tfa_password: str = info.get(CONF_TFA_PASSWORD, "")
+            self._tfa_host: str = info.get(CONF_TFA_HOST, "")
+            self._add_prefix: bool = info[CONF_ADD_AARLO_PREFIX]
 
         data_schema = {
             vol.Required(CONF_USERNAME, default=self._username): str,
@@ -129,7 +142,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             vol.Optional(CONF_TFA_USERNAME, default=self._tfa_username): str,
             vol.Optional(CONF_TFA_PASSWORD, default=self._tfa_password): str,
             vol.Optional(CONF_TFA_HOST, default=self._tfa_host): str,
-            vol.Optional(CONF_ADD_AARLO_PREFIX, default=self._add_prefix): bool,
+            vol.Required(CONF_ADD_AARLO_PREFIX, default=self._add_prefix): bool,
         }
 
         return self.async_show_form(

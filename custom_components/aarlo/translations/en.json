@@ -18,7 +18,7 @@
           "tfa_host": "TFA Host",
           "tfa_username": "TFA Username",
           "tfa_password": "TFA Password",
-          "add_arlo_prefix": "Use `aarlo_` prefix for entities"
+          "add_aarlo_prefix": "Use `aarlo_` prefix for entities"
         }
       }
     }
