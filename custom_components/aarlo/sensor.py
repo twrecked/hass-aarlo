@@ -141,6 +141,8 @@ class ArloSensor(Entity):
             )
             self._device = device
 
+        self.entity_id = f"{SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+
         self._attr_device_class = sensor_value[SENSOR_TYPES_CLASS]
         self._attr_icon = f"mdi:{sensor_value[SENSOR_TYPES_ICON]}"
         self._attr_should_poll = False

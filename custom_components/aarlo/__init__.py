@@ -125,6 +125,11 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_MQTT_HOST, default=MQTT_HOST): cv.string,
                 vol.Optional(CONF_MQTT_HOSTNAME_CHECK, default=DEFAULT_MQTT_HOSTNAME_CHECK): cv.boolean,
                 vol.Optional(CONF_MQTT_TRANSPORT, default=DEFAULT_MQTT_TRANSPORT): cv.string,
+
+                # deprecated
+                vol.Optional(CONF_HIDE_DEPRECATED_SERVICES, default=True): cv.boolean,
+                vol.Optional(CONF_HTTP_CONNECTIONS, default=5): cv.positive_int,
+                vol.Optional(CONF_HTTP_MAX_SIZE, default=10): cv.positive_int,
             }
         ),
     },

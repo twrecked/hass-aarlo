@@ -224,6 +224,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
 
         self._attr_name = device.name
         self._attr_unique_id = device.entity_id
+        self.entity_id = f"{ALARM_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
 
         self._attr_code_format = _code_format(config.get(CONF_CODE))
         self._attr_code_arm_required = config.get(CONF_CODE_ARM_REQUIRED)

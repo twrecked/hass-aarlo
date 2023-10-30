@@ -1,14 +1,49 @@
 # hass-aarlo
 
 
-## Installed from HACS?
-**This is the _README_ for 0.8, if you installed from HACS you are using
-version 0.7; see
+## Version 0.7??
+**This is the _README_ for 0.8.1, if you are using version 0.7; see
 [here](https://github.com/twrecked/hass-aarlo/blob/version-0.7.x/README.md)
 for the correct _README_**
 
 
-## New Features in 0.8
+## New Features in 0.8.1
+
+### Config Flow
+
+Finally. Thanks to @NickM-27 for starting this. After sitting on it for far too
+long I decided to do the work I needed to, this integration now acts much like 
+every intergration, splitting down by entity, device and integration.
+
+This means a lot of this documentation is now out of date, I will upgrade it
+when all the option changes have been finalised, for now I will just add a
+quick note inline. 
+
+#### What pieces are done
+
+- _upgrade_; the code will upgrade a _0.7_ build to the _config flow_ system.
+  Your current configuration will be moved into 2 places. The username, 
+  password and 2FA setting will be moved into the code config regisrty, all
+  other config will be moved into a _aarlo.yaml_ file. For all other setting
+  they have been moved into the _Integration_ configure dialogs.
+- _device groupings_; for example, a camera battery will appear as
+  an entity under a camera device.
+
+#### What pieces need doing
+
+- _integration creation_; you can go through the motions but it won't set up
+  the account yet, upgrade only for now
+- _reload/reconfigure_; you can change settings but the changes will need you
+  to restart
+- _unique ids_; create better one for new integrations
+
+#### What if it goes wrong?
+
+For now I recommend leaving your old configuration in place so you can revert
+back to a _0.7_ release if you encounter an issue.
+
+
+## New Features in 0.8.0
 
 ### Split Out Pyaarlo
 The code now uses _Pyaalo_ by installing it via _pip_ rather than maintaining
@@ -25,7 +60,6 @@ not work for you send me some logs showing the error and restart with
 ### Saner Defaults
 You will now have less to configure... for example, device refresh and stream
 timeouts are enabled by default.
-
 
 ## Breaking Changes in 0.8
 The following options have been removed:

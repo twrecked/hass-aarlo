@@ -129,6 +129,8 @@ class ArloBinarySensor(BinarySensorEntity):
 
         self._attr_name = "{0} {1}".format(sensor_value[SENSOR_TYPES_DESCRIPTION], device.name)
         self._attr_unique_id = "{0}_{1}".format(sensor_value[SENSOR_TYPES_DESCRIPTION], device.entity_id).lower()
+        self.entity_id = f"{BINARY_SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+
         self._attr_icon = sensor_value[SENSOR_TYPES_ICON]
         self._attr_is_on = False
         self._attr_should_poll = False

@@ -11,6 +11,13 @@ details.
 
 ## NB!: This is an Alpha version!
 
+## New Features in 0.8.1
+
+### Config Flow
+Finally. Thanks to @NickM-27 for starting this. After sitting on it for far too
+long I decided to do the work I needed to, this integration now acts much like
+every intergration, splitting down by entity, device and integration.
+
 ## New Features in 0.8
 
 ### Split Out Pyaarlo

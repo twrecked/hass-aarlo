@@ -56,6 +56,11 @@ CONF_MQTT_HOST = "mqtt_host"
 CONF_MQTT_HOSTNAME_CHECK = "mqtt_hostname_check"
 CONF_MQTT_TRANSPORT = "mqtt_transport"
 
+# Deprecated
+CONF_HIDE_DEPRECATED_SERVICES = "hide_deprecated_services"
+CONF_HTTP_CONNECTIONS = "http_connections"
+CONF_HTTP_MAX_SIZE = "http_max_size"
+
 # All defaults
 
 SCAN_INTERVAL = timedelta(seconds=60)

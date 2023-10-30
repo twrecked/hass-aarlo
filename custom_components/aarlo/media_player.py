@@ -10,6 +10,7 @@ import logging
 from collections.abc import Callable
 
 from homeassistant.components.media_player import (
+    DOMAIN as MEDIA_PLAYER_DOMAIN,
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
     MediaPlayerEntityFeature
@@ -96,6 +97,7 @@ class ArloMediaPlayer(MediaPlayerEntity):
 
         self._attr_name = name
         self._attr_unique_id = device.entity_id
+        self.entity_id = f"{MEDIA_PLAYER_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
 
         self._attr_device_class = MediaPlayerDeviceClass.SPEAKER
         self._attr_icon = "mdi:speaker"

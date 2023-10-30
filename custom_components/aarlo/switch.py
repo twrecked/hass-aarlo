@@ -121,6 +121,7 @@ class AarloSwitch(SwitchEntity):
 
         self._attr_name = name
         self._attr_unique_id = identifier
+        self.entity_id = f"{SWITCH_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
 
         self._attr_icon = f"mdi:{icon}"
         self._attr_is_on = False

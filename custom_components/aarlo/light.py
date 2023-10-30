@@ -17,6 +17,7 @@ from homeassistant.components.light import (
     ATTR_EFFECT,
     ATTR_HS_COLOR,
     ColorMode,
+    DOMAIN as LIGHT_DOMAIN,
     LightEntity,
     LightEntityFeature,
 )
@@ -94,6 +95,7 @@ class ArloLight(LightEntity):
 
         self._attr_name = light.name
         self._attr_unique_id = light.entity_id
+        self.entity_id = f"{LIGHT_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
 
         self._attr_brightness = None
         self._attr_is_on = False

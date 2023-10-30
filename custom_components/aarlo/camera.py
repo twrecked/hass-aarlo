@@ -312,6 +312,7 @@ class ArloCam(Camera):
 
         self._attr_name = camera.name
         self._attr_unique_id = camera.entity_id
+        self.entity_id = f"{CAMERA_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
 
         self._attr_brand = COMPONENT_BRAND
         self._attr_frontend_stream_type = StreamType.HLS

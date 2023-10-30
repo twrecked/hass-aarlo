@@ -135,6 +135,11 @@ AARLO_SCHEMA = vol.Schema({
     vol.Optional(CONF_MQTT_HOST, default=MQTT_HOST): cv.string,
     vol.Optional(CONF_MQTT_HOSTNAME_CHECK, default=DEFAULT_MQTT_HOSTNAME_CHECK): cv.boolean,
     vol.Optional(CONF_MQTT_TRANSPORT, default=DEFAULT_MQTT_TRANSPORT): cv.string,
+
+    # Deprecated
+    vol.Optional(CONF_HIDE_DEPRECATED_SERVICES, default=True): cv.boolean,
+    vol.Optional(CONF_HTTP_CONNECTIONS, default=5): cv.positive_int,
+    vol.Optional(CONF_HTTP_MAX_SIZE, default=10): cv.positive_int,
 })
 
 AARLO_FULL_SCHEMA = AARLO_SCHEMA.extend({
@@ -155,6 +160,19 @@ AARLO_SCHEMA_ONLY_IN_CONFIG = [
     CONF_TFA_HOST,
     CONF_TFA_USERNAME,
     CONF_TFA_PASSWORD
+]
+
+AARLO_SCHEMA_DONT_SAVE = [
+    CONF_USERNAME,
+    CONF_PASSWORD,
+    CONF_TFA_SOURCE,
+    CONF_TFA_TYPE,
+    CONF_TFA_HOST,
+    CONF_TFA_USERNAME,
+    CONF_TFA_PASSWORD,
+    CONF_HIDE_DEPRECATED_SERVICES,
+    CONF_HTTP_CONNECTIONS,
+    CONF_HTTP_MAX_SIZE,
 ]
 
 # This is the default alarm schema.
@@ -351,12 +369,12 @@ class UpgradeCfg(object):
         })
 
         # We need to
-        # - strip out the config flow items from this
+        # - strip out the config flow and deprecated items from this
         # - remove defaults
         # - replace timedelta with strings
         file_config = {k: _fix_value(v)
                        for k, v in config.get(COMPONENT_DOMAIN, {}).items()
-                       if k not in AARLO_SCHEMA_ONLY_IN_CONFIG and default_aarlo_config[k] != v}
+                       if k not in AARLO_SCHEMA_DONT_SAVE and default_aarlo_config[k] != v}
         _LOGGER.debug(f"aarlo-file-config={file_config}")
 
         # For now, we move all the other configs into the options, if we need
