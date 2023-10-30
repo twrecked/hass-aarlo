@@ -1,4 +1,14 @@
 aarlo
+0.8.1a1
+  New Alpha build.
+  Better config flow support.
+  Better entity <-> device <-> integration support, you can now see Arlo device
+   subclassed by device.
+  Tidied up classes to better use Home Assistant base classes.
+  Removed deprecated files.
+  Fixed up translation files.
+  Start of a general code tidy.
+
 0.8.0a16:
   Bump pyaarlo revision.
 0.8.0a15:
