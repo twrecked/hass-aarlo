@@ -131,7 +131,7 @@ class ArloBinarySensor(BinarySensorEntity):
         self._other_attrs = sensor_value[SENSOR_TYPES_OTHER_ATTRS]
 
         self._attr_name = f"{sensor_value[SENSOR_TYPES_DESCRIPTION]} {device.name}"
-        self._attr_unique_id = f"{sensor_value[SENSOR_TYPES_DESCRIPTION]}_{device.entity_id}"
+        self._attr_unique_id = slugify(f"{sensor_value[SENSOR_TYPES_DESCRIPTION]}_{device.entity_id}")
         if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
             self.entity_id = f"{BINARY_SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
         _LOGGER.debug(f"binary-sensor-entity-id={self.entity_id}")

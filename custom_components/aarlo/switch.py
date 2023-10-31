@@ -32,6 +32,7 @@ from pyaarlo.constant import (
     SILENT_MODE_KEY,
     SIREN_STATE_KEY
 )
+from homeassistant.util import slugify
 
 from .const import *
 from .utils import to_bool
@@ -121,7 +122,7 @@ class AarloSwitch(SwitchEntity):
         self._device = device
 
         self._attr_name = name
-        self._attr_unique_id = identifier
+        self._attr_unique_id = slugify(identifier)
         if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
             self.entity_id = f"{SWITCH_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
         _LOGGER.debug(f"switch-entity-id={self.entity_id}")

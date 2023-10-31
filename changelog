@@ -1,4 +1,6 @@
 aarlo
+0.8.1a2
+  Fix a slugify issue.
 0.8.1a1
   New Alpha build.
   Better config flow support.
