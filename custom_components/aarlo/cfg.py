@@ -308,8 +308,10 @@ class BlendedCfg(object):
         except Exception as e:
             _LOGGER.debug(f"failed to read aarlo config {str(e)}")
 
-        # Fix up the pieces to standard defaults..
-        self._main_config = AARLO_SCHEMA(config.get(COMPONENT_DOMAIN, {}))
+        # Bring in all the defaults then overwrite them. I'm trying to decouple
+        # the pyaarlo config from this config.
+        self._main_config = AARLO_SCHEMA({})
+        self._main_config.update(config.get(COMPONENT_DOMAIN, {}))
 
         _LOGGER.debug(f"l-config-file={AARLO_CONFIG_FILE}")
         _LOGGER.debug(f"l-main-config={self._main_config}")
@@ -437,56 +439,23 @@ class PyaarloCfg(object):
 
     @staticmethod
     def create_options(hass, config):
-        options = {
-            "auth_host": config.get(CONF_AUTH_HOST),
-            "backend": config.get(CONF_BACKEND),
-            "cache_videos": config.get(CONF_CACHE_VIDEOS),
-            "cipher_list": config.get(CONF_CIPHER_LIST),
-            "db_ding_time": config.get(CONF_DB_DING_TIME).total_seconds(),
-            "db_motion_time": config.get(CONF_DB_MOTION_TIME).total_seconds(),
-            "dump": config.get(CONF_PACKET_DUMP),
-            "host": config.get(CONF_HOST),
-            "last_format": config.get(CONF_LAST_FORMAT),
-            "library_days": config.get(CONF_LIBRARY_DAYS),
-            "media_retry": config.get(CONF_MEDIA_RETRY),
-            "mode_api": config.get(CONF_MODE_API),
-            "mqtt_host": config.get(CONF_MQTT_HOST),
-            "mqtt_hostname_check": config.get(CONF_MQTT_HOSTNAME_CHECK),
-            "mqtt_transport": config.get(CONF_MQTT_TRANSPORT),
-            "no_media_upload": config.get(CONF_NO_MEDIA_UP),
-            "no_unicode_squash": config.get(CONF_NO_UNICODE_SQUASH),
-            "password": config.get(CONF_PASSWORD),
-            "recent_time": config.get(CONF_RECENT_TIME).total_seconds(),
-            "reconnect_every": config.get(CONF_RECONNECT_EVERY),
-            "refresh_devices_every": config.get(CONF_DEVICE_REFRESH),
-            "refresh_modes_every": config.get(CONF_MODE_REFRESH),
-            "request_timeout": config.get(CONF_REQ_TIMEOUT).total_seconds(),
-            "save_media_to": config.get(CONF_SAVE_MEDIA_TO),
-            "save_session": config.get(CONF_SAVE_SESSION),
-            "save_updates_to": config.get(CONF_SAVE_UPDATES_TO),
-            "serial_ids": config.get(CONF_SERIAL_IDS),
-            "snapshot_checks": config.get(CONF_SNAPSHOT_CHECKS),
-            "snapshot_timeout": config.get(CONF_SNAPSHOT_TIMEOUT).total_seconds(),
-            "storage_dir": config.get(CONF_CONF_DIR),
-            "stream_snapshot": config.get(CONF_STREAM_SNAPSHOT),
-            "stream_snapshot_stop": config.get(CONF_STREAM_SNAPSHOT_STOP),
-            "stream_timeout": config.get(CONF_STR_TIMEOUT).total_seconds(),
-            "tfa_host": config.get(CONF_TFA_HOST),
-            "tfa_password": config.get(CONF_TFA_PASSWORD),
-            "tfa_source": config.get(CONF_TFA_SOURCE),
-            "tfa_timeout": int(config.get(CONF_TFA_TIMEOUT).total_seconds()),
-            "tfa_total_timeout": int(config.get(CONF_TFA_TOTAL_TIMEOUT).total_seconds()),
-            "tfa_type": config.get(CONF_TFA_TYPE),
-            "tfa_username": config.get(CONF_TFA_USERNAME),
-            "user_agent": config.get(CONF_USER_AGENT),
-            "user_stream_delay": config.get(CONF_USER_STREAM_DELAY),
-            "username": config.get(CONF_USERNAME),
-            "verbose_debug": config.get(CONF_VERBOSE_DEBUG),
-            "wait_for_initial_setup": False
-        }
 
-        # Fix up an options.
+        # Copy over and convert time deltas.
+        options = {k: _fix_value(v) for k, v in config.items()}
+
+        # Fix up known naming inconsistencies. And add a needed setting.
+        options.update({
+            "dump": config.get(CONF_PACKET_DUMP),
+            "storage_dir": config.get(CONF_CONF_DIR),
+
+            "wait_for_initial_setup": False
+        })
+
+        # Fix up defaults.
         if options["storage_dir"] == "":
             options["storage_dir"] = hass.config.config_dir + "/.aarlo"
+
+        _LOGGER.debug(f"config={config}")
+        _LOGGER.debug(f"options={options}")
 
         return options
