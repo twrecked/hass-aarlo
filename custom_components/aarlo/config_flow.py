@@ -22,6 +22,7 @@ from .const import (
 )
 from .cfg import UpgradeCfg
 
+
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_IMPORTED_NAME = "imported"
@@ -123,7 +124,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             if not errors:
                 _LOGGER.debug(f"aarlo-config={config}")
                 return self.async_create_entry(
-                    title=f"Aarlo for ${self._username}",
+                    title=f"Aarlo for {info[CONF_USERNAME]}",
                     data=config
                 )
 
