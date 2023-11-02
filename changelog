@@ -1,4 +1,7 @@
 aarlo
+0.8.1a4
+  Fix initial options to create devices.
+  Fix integration naming.
 0.8.1a3
   Allow pyaarlo config to be passed from `/config/aarlo.yaml`
   Bump pyaarlo revision.

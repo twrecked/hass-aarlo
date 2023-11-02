@@ -249,6 +249,43 @@ SWITCH_SCHEMA = vol.Schema({
 
 AARLO_CONFIG_FILE = "/config/aarlo.yaml"
 
+DEFAULT_OPTIONS = {
+    "alarm_control_panel_disarmed_mode_name": "disarmed",
+    "alarm_control_panel_home_mode_name": "home",
+    "alarm_control_panel_away_mode_name": "away",
+    "alarm_control_panel_night_mode_name": "night",
+    "alarm_control_panel_code_arm_required": False,
+    "alarm_control_panel_code_disarm_required": False,
+    "alarm_control_panel_trigger_time": 60,
+    "alarm_control_panel_alarm_volume": 3,
+    "binary_sensor_sound": True,
+    "binary_sensor_motion": True,
+    "binary_sensor_ding": True,
+    "binary_sensor_cry": True,
+    "binary_sensor_connectivity": True,
+    "binary_sensor_contact": True,
+    "binary_sensor_light": True,
+    "binary_sensor_tamper": True,
+    "binary_sensor_leak": True,
+    "sensor_last_capture": True,
+    "sensor_total_cameras": True,
+    "sensor_recent_activity": True,
+    "sensor_captured_today": True,
+    "sensor_battery_level": True,
+    "sensor_signal_strength": True,
+    "sensor_temperature": True,
+    "sensor_humidity": True,
+    "sensor_air_quality": True,
+    "switch_siren": True,
+    "switch_all_sirens": True,
+    "switch_siren_allow_off": True,
+    "switch_siren_volume": 3,
+    "switch_siren_duration": 10,
+    "switch_snapshot": True,
+    "switch_snapshot_timeout": 15,
+    "switch_doorbell_silence": True
+}
+
 
 def _fix_config(config):
     """Find and return the aarlo entry from any platform config.
@@ -318,6 +355,10 @@ class BlendedCfg(object):
 
     def _merge(self, data, options):
         """Rebuild config from flow data and options."""
+
+        if not options:
+            _LOGGER.debug("empty options, using defaults")
+            options = DEFAULT_OPTIONS
 
         self._main_config = {**data, **self._main_config}
         self._alarm_config = ALARM_SCHEMA(_extract_platform_config(options, "alarm_control_panel_"))
