@@ -1,4 +1,6 @@
 aarlo
+0.8.1a5
+  Bump pyaarlo revision to handle `synced` state devices.
 0.8.1a4
   Fix initial options to create devices.
   Fix integration naming.
