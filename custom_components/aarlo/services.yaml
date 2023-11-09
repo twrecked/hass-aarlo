@@ -1,97 +1,165 @@
 # Describes the format for available virtual services
 
 camera_request_snapshot:
+  name: Request a Snapshot
   description: Request a camera takes a snapshot
-  fields:
-    entity_id:
-      description: Name(s) of entities to use
-      example: 'camera.aarlo_front_camera'
+  target:
+    entity:
+      integration: aarlo
+      domain: camera
 
 camera_request_snapshot_to_file:
+  name: Request a Snapshot to a File
   description: Request a camera takes a snapshot and write it to a file
+  target:
+    entity:
+      integration: aarlo
+      domain: camera
   fields:
-    entity_id:
-      description: Name(s) of entities to use
-      example: 'camera.aarlo_front_camera'
     filename:
-      description: string (required) where to save the snapshot
-      example: 'snapshot.jpg'
+      name: Filename
+      description: Where to save the snapshot
+      required: true
+      example: '/config/snapshot.jpg'
+      selector:
+        text:
 
 camera_request_video_to_file:
+  name: Record a Video to a File
   description: Request a camera records a video and write it to a file
+  target:
+    entity:
+      integration: aarlo
+      domain: camera
   fields:
-    entity_id:
-      description: Name(s) of entities to use
-      example: 'camera.aarlo_front_camera'
     filename:
-      description: string (required) where to save the video
-      example: 'snapshot.mp4'
+      name: Filename
+      description: Where to save the video
+      required: true
+      example: '/config/snapshot.mp4'
+      selector:
+        text:
 
 camera_stop_activity:
+  name: Stop All Camera Activity
   description: Stop all stream activity on a camera
-  fields:
-    entity_id:
-      description: Name(s) of entities to use
-      example: 'camera.aarlo_front_camera'
+  target:
+    entity:
+      integration: aarlo
+      domain: camera
 
 camera_start_recording:
+  name: Record to the Cloud
   description: Request a camera start recording to cloud
+  target:
+    entity:
+      integration: aarlo
+      domain: camera
   fields:
-    entity_id:
-      description: Name(s) of entities to use
-      example: 'camera.aarlo_front_camera'
     duration:
-      description: duration to record for in seconds
-      example: 30
+      name: Duration
+      description: Duration to record for in seconds
+      default: 30
+      required: true
+      selector:
+        number:
+          min: 10
+          max: 3600
+          unit_of_measurement: seconds
 
 camera_stop_recording:
+  name: Stop Recording to the Cloud
   description: Request a camera stop recording to cloud
-  fields:
-    entity_id:
-      description: Name(s) of entities to use
-      example: 'camera.aarlo_front_camera'
+  target:
+    entity:
+      integration: aarlo
+      domain: camera
+
+restart_device:
+  name: Attempt to Restart a Device
+  description: Ask a device to restart (requires admin permissions)
+  target:
+    entity:
+      integration: aarlo
 
 alarm_set_mode:
+  name: Set Base Station Mode
   description: Set the mode of a base station.
+  target:
+    entity:
+      integration: aarlo
+      domain: alarm_control_panel
   fields:
-    entity_id:
-      description: Name(s) of entities to use
-      example: 'alarm_control_panel.aarlo_front'
     mode:
-      description: mode or schedule to change to
+      name: Mode
+      description: Mode or Schedule to Change To
+      required: true
       example: 'home'
+      selector:
+        text:
 
 siren_on:
+  name: Turn on a Siren
   description: Turn on a siren.
+  target:
+    entity:
+      integration: aarlo
+      domain: alarm_control_panel
   fields:
-    entity_id:
-      description: name(s) of entities to use
-      example: 'alarm_control_panel.aarlo_front'
     volume:
-      description: volume to use
-      example: 6
+      name: Volume
+      description: Volume to sound sirens at
+      required: true
+      default: 6
+      selector:
+        number:
+          min: 1
+          max: 11
     duration:
-      description: duration to turn on for in seconds
-      example: 30
+      name: Duration
+      description: Duration to sound sirens for
+      default: 10
+      required: true
+      selector:
+        number:
+          min: 5
+          max: 60
+          unit_of_measurement: seconds
 
 sirens_on:
+  name: Sirens On
   description: Turn on all sirens.
   fields:
     volume:
-      description: volume to use
-      example: 6
+      name: Volume
+      description: Volume to sound sirens at
+      required: true
+      default: 6
+      selector:
+        number:
+          min: 1
+          max: 11
     duration:
-      description: duration to turn on for in seconds
-      example: 30
+      name: Duration
+      description: Duration to sound sirens for
+      default: 10
+      required: true
+      selector:
+        number:
+          min: 5
+          max: 60
+          unit_of_measurement: seconds
 
 siren_off:
+  name: Turn off a Siren
   description: Turn off a siren.
-  fields:
-    entity_id:
-      description: Name(s) of entities to turn off
-      example: 'alarm_control_panel.aarlo_front'
+  target:
+    entity:
+      integration: aarlo
+      domain: alarm_control_panel
 
 sirens_off:
+  name: Sirens Off
   description: Turn off all sirens.
 
 inject_response:

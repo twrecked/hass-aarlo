@@ -1,7 +1,7 @@
 {
   "config": {
     "abort": {
-      "single_instance_allowed": "Only one instance of Aarlo is allowed."
+      "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
     },
     "error": {
       "missing_imap_fields": "Please fill in all the TFA fields for IMAP.",
@@ -12,8 +12,8 @@
         "title": "Arlo Login Details",
         "description": "Enter your Home Assistant Arlo account details.\nIf needed, enter your Two Factor Authentication details.\nTo fine tune settings, look into '/config/aarlo.yaml'.",
         "data": {
-          "username": "Username",
-          "password": "Password",
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]",
           "tfa_type": "Two Factor Mechanism",
           "tfa_host": "TFA Host",
           "tfa_username": "TFA Username",
@@ -91,22 +91,12 @@
   "services": {
     "camera_request_snapshot": {
       "name": "Camera Request Snapshot",
-      "description": "Ask a camera to take a snapshot.",
-      "fields": {
-        "entity_id": {
-          "name": "Entity",
-          "description": "Camera to use."
-        }
-      }
+      "description": "Ask a camera to take a snapshot."
     },
     "camera_request_snapshot_to_file": {
       "name": "Camera Request Snapshot to File",
       "description": "Ask a camera to take a snapshot and save it to a file.",
       "fields": {
-        "entity_id": {
-          "name": "Entity",
-          "description": "Camera to use."
-        },
         "filename": {
           "name": "File Name",
           "description": "File name to save to."
@@ -117,10 +107,6 @@
       "name": "Camera Request Video to File",
       "description": "Ask a camera to take a video and save it to a file.",
       "fields": {
-        "entity_id": {
-          "name": "Entity",
-          "description": "Camera to use."
-        },
         "filename": {
           "name": "File Name",
           "description": "File name to save to."
@@ -129,23 +115,12 @@
     },
     "camera_stop_activity": {
       "name": "Camera Stop Activity",
-      "description": "Ask a camera to stop doing whatever it is doing.",
-      "fields": {
-        "entity_id": {
-          "name": "Entity",
-          "description": "Camera to use."
-        }
-      }
+      "description": "Ask a camera to stop doing whatever it is doing."
     },
-
     "camera_start_recording": {
       "name": "Camera Start Recording",
       "description": "Ask a camera start recording to library.",
       "fields": {
-        "entity_id": {
-          "name": "Entity",
-          "description": "Camera to use."
-        },
         "duration": {
           "name": "Duration",
           "description": "How long to record for."
@@ -154,23 +129,16 @@
     },
     "camera_stop_recording": {
       "name": "Camera Stop Recording",
-      "description": "Ask a camera to stop recording.",
-      "fields": {
-        "entity_id": {
-          "name": "Entity",
-          "description": "Camera to use."
-        }
-      }
+      "description": "Ask a camera to stop recording."
     },
-
+    "restart_device": {
+      "name": "Attempt to Restart a Device",
+      "description": "Ask a device to restart (requires admin permissions)."
+    },
     "alarm_set_mode": {
       "name": "Alarm Set Mode",
       "description": "Change Basestation Mode.",
       "fields": {
-        "entity_id": {
-          "name": "Entity",
-          "description": "Basestation to use."
-        },
         "mode": {
           "name": "Mode",
           "description": "Mode to change to."
@@ -182,10 +150,6 @@
       "name": "Siren One",
       "description": "Turn a siren on at a given volume and for a given duration.",
       "fields": {
-        "entity_id": {
-          "name": "Entity",
-          "description": "Siren to use."
-        },
         "volume": {
           "name": "Volume",
           "description": "How loud to sound at."
@@ -198,13 +162,7 @@
     },
     "siren_off": {
       "name": "Siren Off",
-      "description": "Turn a siren off.",
-      "fields": {
-        "entity_id": {
-          "name": "Entity",
-          "description": "Siren to use."
-        }
-      }
+      "description": "Turn a siren off."
     },
 
     "sirens_on": {

@@ -325,13 +325,13 @@ class BlendedCfg(object):
     them with flow data and options.
     """
 
-    _main_config = {}
-    _alarm_config = {}
-    _binary_sensor_config = {}
-    _sensor_config = {}
-    _switch_config = {}
-
     def __init__(self, data, options):
+        self._main_config = {}
+        self._alarm_config = {}
+        self._binary_sensor_config = {}
+        self._sensor_config = {}
+        self._switch_config = {}
+
         self._load()
         self._merge(data, options)
 

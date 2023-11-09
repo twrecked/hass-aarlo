@@ -306,6 +306,8 @@ class ArloCam(Camera):
         super().__init__()
         
         self._camera = camera
+        self._state: None
+        self._recent: False
         self._last_image_source = None
         self._stream_snapshot = aarlo_config.get(CONF_STREAM_SNAPSHOT)
         self._save_updates_to = aarlo_config.get(CONF_SAVE_UPDATES_TO)
