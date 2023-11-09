@@ -1,6 +1,8 @@
 aarlo
 0.8.1a6
   Make some instance variables explicit
+  Fix service entries
+  Fix some translations to use defaults
 0.8.1a5
   Bump pyaarlo revision to handle `synced` state devices.
 0.8.1a4

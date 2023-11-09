@@ -215,6 +215,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Get the blended config.
     cfg = BlendedCfg(entry.data, entry.options)
     domain_config = cfg.domain_config
+    injection_service = domain_config.get(CONF_INJECTION_SERVICE, False)
 
     # Try to login to aarlo.
     arlo = await hass.async_add_executor_job(login, hass, domain_config)
@@ -251,6 +252,70 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Make sure we pick up config changes.
     entry.async_on_unload(entry.add_update_listener(update_listener))
+
+    # Component services
+    has_sirens = False
+    for device in arlo.cameras + arlo.base_stations:
+        if device.has_capability(SIREN_STATE_KEY):
+            has_sirens = True
+
+    def service_callback(call):
+        """Call aarlo service handler."""
+        _LOGGER.info("{} service called".format(call.service))
+        if has_sirens:
+            if call.service == SERVICE_SIREN_ON:
+                aarlo_siren_on(hass, call)
+            if call.service == SERVICE_SIRENS_ON:
+                aarlo_sirens_on(hass, call)
+            if call.service == SERVICE_SIREN_OFF:
+                aarlo_siren_off(hass, call)
+            if call.service == SERVICE_SIRENS_OFF:
+                aarlo_sirens_off(hass, call)
+        if call.service == SERVICE_RESTART:
+            aarlo_restart_device(hass, call)
+        if call.service == SERVICE_INJECT_RESPONSE:
+            aarlo_inject_response(hass, call)
+
+    async def async_service_callback(call):
+        await hass.async_add_executor_job(service_callback, call)
+
+    hass.services.async_register(
+        COMPONENT_DOMAIN,
+        SERVICE_SIREN_ON,
+        async_service_callback,
+        schema=SIREN_ON_SCHEMA,
+    )
+    hass.services.async_register(
+        COMPONENT_DOMAIN,
+        SERVICE_SIRENS_ON,
+        async_service_callback,
+        schema=SIRENS_ON_SCHEMA,
+    )
+    hass.services.async_register(
+        COMPONENT_DOMAIN,
+        SERVICE_SIREN_OFF,
+        async_service_callback,
+        schema=SIREN_OFF_SCHEMA,
+    )
+    hass.services.async_register(
+        COMPONENT_DOMAIN,
+        SERVICE_SIRENS_OFF,
+        async_service_callback,
+        schema=SIRENS_OFF_SCHEMA,
+    )
+    hass.services.async_register(
+        COMPONENT_DOMAIN,
+        SERVICE_RESTART,
+        async_service_callback,
+        schema=RESTART_SCHEMA,
+    )
+    if injection_service:
+        hass.services.async_register(
+            COMPONENT_DOMAIN,
+            SERVICE_INJECT_RESPONSE,
+            async_service_callback,
+            schema=INJECT_RESPONSE_SCHEMA,
+        )
 
     return True
 
