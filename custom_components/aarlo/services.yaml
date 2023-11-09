@@ -65,7 +65,7 @@ camera_start_recording:
         number:
           min: 10
           max: 3600
-          unit_of_measurment: seconds
+          unit_of_measurement: seconds
 
 camera_stop_recording:
   name: Stop Recording to the Cloud
@@ -124,7 +124,7 @@ siren_on:
         number:
           min: 5
           max: 60
-          unit_of_measurment: seconds
+          unit_of_measurement: seconds
 
 sirens_on:
   name: Sirens On
@@ -148,7 +148,7 @@ sirens_on:
         number:
           min: 5
           max: 60
-          unit_of_measurment: seconds
+          unit_of_measurement: seconds
 
 siren_off:
   name: Turn off a Siren
