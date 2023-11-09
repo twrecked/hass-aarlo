@@ -224,6 +224,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
         self._trigger_till = None
         self._attr_state = None
         self._code = config.get(CONF_CODE)
+        self._timer = None
         _LOGGER.debug(f"alarm-code={self._code}")
 
         self._attr_name = device.name
