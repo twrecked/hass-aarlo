@@ -21,7 +21,7 @@ every intergration, splitting down by entity, device and integration.
 ## New Features in 0.8
 
 ### Split Out Pyaarlo
-The code now uses `pyaalo` by installing it via `pip` rather than maintaining 
+The code now uses `pyaarlo` by installing it via `pip` rather than maintaining 
 its own version.
 
 ### Authentication Caching
