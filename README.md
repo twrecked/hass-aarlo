@@ -47,7 +47,7 @@ back to a _0.7_ release if you encounter an issue.
 ## New Features in 0.8.0
 
 ### Split Out Pyaarlo
-The code now uses _Pyaalo_ by installing it via _pip_ rather than maintaining
+The code now uses _Pyaarlo_ by installing it via _pip_ rather than maintaining
 its own version. If you run into a problem check the [Pyaarlo
 README](https://github.com/twrecked/pyaarlo/blob/master/README.md) file,it may
 have a fix not mentioned here.
