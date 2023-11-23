@@ -6,6 +6,7 @@ https://home-assistant.io/components/camera.arlo/
 """
 from __future__ import annotations
 
+import asyncio
 import base64
 import logging
 
@@ -380,6 +381,8 @@ class ArloCam(Camera):
                 elif value == "unavailable":
                     self._state = "Unavailable"
                     self.clear_stream()
+                elif value == "startUserStream":
+                    pass
                 else:
                     self._state = STATE_IDLE
                     self.clear_stream()
@@ -474,7 +477,9 @@ class ArloCam(Camera):
         if hasattr(self, "stream"):
             if self.stream:
                 _LOGGER.debug("clearing out stream variable")
-                self.stream.stop()
+                asyncio.run_coroutine_threadsafe(
+                    self.stream.stop(), self.hass.loop
+                )
                 self.stream = None
 
     @property
@@ -641,7 +646,7 @@ class ArloCam(Camera):
             CONF_DURATION: duration,
             CONF_LOOKBACK: 0,
         }
-        self.hass.services.call(DOMAIN, SERVICE_RECORD, data, blocking=True)
+        self.hass.services.call(DOMAIN, SERVICE_RECORD, data, blocking=False)
 
         _LOGGER.debug("waiting on stream connect")
         return self._camera.wait_for_user_stream()
@@ -703,12 +708,22 @@ class ArloCam(Camera):
         return await self.hass.async_add_executor_job(self.siren_off)
 
     def start_recording(self, duration=30):
+        """ Create a recording in the Arlo library.
+
+        Has to do 3 things:
+        - start a stream on the camera
+        - attach a dummy local stream to tell Arlo to really start the stream
+        - send a "record-this-stream" request.
+
+        We force the "arlo" user agent to get an rtsp stream.
+        """
         source = self._camera.start_recording_stream(user_agent="arlo")
         if source:
+            _LOGGER.debug(f"stream-url={source}")
             active = self._attach_hidden_stream(duration + 10)
             if active:
-                # source = self._camera.start_recording_stream()
-                self._camera.start_recording(duration=duration)
+                _LOGGER.debug("attached, recording")
+                source = self._camera.start_recording(duration=duration)
                 return source
         _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
         return None
