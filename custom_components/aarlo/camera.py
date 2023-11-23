@@ -663,7 +663,7 @@ class ArloCam(Camera):
             active = self._attach_hidden_stream(duration + 10)
             if active:
                 _LOGGER.debug("attached, recording")
-                source = self._camera.start_recording(duration=duration)
+                self._camera.start_recording(duration=duration)
                 return source
         _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
         return None
