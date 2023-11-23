@@ -1,4 +1,7 @@
 aarlo
+0.8.1a7
+  Fix camera recording.
+  Tidy up a docs issue.
 0.8.1a6
   Make some instance variables explicit
   Fix service entries

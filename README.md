@@ -899,7 +899,7 @@ The logs will now include dumps of packets sent by _Arlo_. The following
 is an example of a subscription response:
 
 ```json
-{"status": "connected"},
+{ "status": "connected"},
 { "action": "is",
     "from": "XXXXXXXXXXXXX",
     "resource": "subscriptions/XXXXXX-XXX-XXXXXXX_web",
@@ -1104,7 +1104,7 @@ The component provides the following services:
 | `aarlo.sirens_on`                       | `entity_id` - name(s) of entities to use <br>`duration` - amount of time in seconds to record<br/>`volume` - how loud to set siren | Turns all sirens on.                                                                                                           |
 | `aarlo.siren_off`                       | `entity_id` - name(s) of entities to use                                                                                           | Turns a siren off.                                                                                                             |
 | `aarlo.sirens_off`                      |                                                                                                                                    | Turns all sirens off.                                                                                                          |
-| `aarlo.restart_device`                  | `entity_id` - name(s) of entities to reboot                                                                                        | Turns a siren off.                                                                                                             |
+| `aarlo.restart_device`                  | `entity_id` - name(s) of entities to reboot                                                                                        | Restarts a base station. You need admin access to do this.                                                                     |
 | `aarlo.inject_response`                 | `filename` - file to read packet from                                                                                              | Inject a packet into the event stream.                                                                                         |
 
 For recordings longer than 30 seconds you will need to white list the `/tmp`
