@@ -483,7 +483,6 @@ class ArloLocation(AlarmControlPanelEntity):
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
             "name": self._attr_name,
             "device_brand": COMPONENT_BRAND,
-            "on_schedule": self._location.on_schedule,
             "siren": self._location.has_capability(SIREN_STATE_KEY),
         }
 
