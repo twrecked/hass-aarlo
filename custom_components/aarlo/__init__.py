@@ -173,6 +173,7 @@ ARLO_PLATFORMS = [
     Platform.LIGHT,
     Platform.MEDIA_PLAYER,
     Platform.SENSOR,
+    Platform.SIREN,
     Platform.SWITCH,
 ]
 
