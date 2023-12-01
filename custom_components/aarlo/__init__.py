@@ -33,7 +33,7 @@ from .pyaarlo.constant import (
     SIREN_STATE_KEY
 )
 
-__version__ = "0.7.4.1"
+__version__ = "0.7.4.2"
 
 _LOGGER = logging.getLogger(__name__)
 
