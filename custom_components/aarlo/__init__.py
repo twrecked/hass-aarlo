@@ -25,9 +25,17 @@ from homeassistant.const import (
     CONF_USERNAME,
     Platform
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import (
+    DOMAIN as HOMEASSISTANT_DOMAIN,
+    HomeAssistant,
+    callback
+)
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.issue_registry import (
+    async_create_issue,
+    IssueSeverity
+)
 from homeassistant.helpers.typing import ConfigType
 import homeassistant.helpers.device_registry as dr
 
@@ -195,6 +203,21 @@ def setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 data=config
             )
         )
+
+        async_create_issue(
+            hass,
+            HOMEASSISTANT_DOMAIN,
+            f"deprecated_yaml_{COMPONENT_DOMAIN}",
+            is_fixable=False,
+            issue_domain=COMPONENT_DOMAIN,
+            severity=IssueSeverity.WARNING,
+            translation_key="deprecated_yaml",
+            translation_placeholders={
+                "domain": COMPONENT_DOMAIN,
+                "integration_title": "Aarlo Cameras",
+            },
+        )
+
         return True
 
     _LOGGER.debug('ignoring a YAML setup')
