@@ -45,6 +45,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
 
+import pyaarlo
 from pyaarlo.constant import (
     ACTIVITY_STATE_KEY,
     CHARGER_KEY,
@@ -295,6 +296,7 @@ async def async_setup_entry(
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
+    _camera: pyaarlo.ArloCamera | None = None
     _state: str | None = None
     _recent: bool = False
     _last_image_source: str | None = None
@@ -432,7 +434,7 @@ class ArloCam(Camera):
             _LOGGER.error(error_msg)
             return
 
-        stream = CameraMjpeg(self._ffmpeg.binary)
+        stream = CameraMjpeg(self._ffmpeg.binary, loop=self.hass.loop)
         await stream.open_camera(video.video_url, extra_cmd=self._ffmpeg_arguments)
 
         try:
@@ -446,8 +448,8 @@ class ArloCam(Camera):
         finally:
             try:
                 await stream.close()
-            except:
-                _LOGGER.debug(f"problem with stream close for {self._attr_name}")
+            except Exception as e:
+                _LOGGER.debug(f"problem with stream close for {self._attr_name} {str(e)}")
 
     def clear_stream(self):
         """Clear out inactive stream.

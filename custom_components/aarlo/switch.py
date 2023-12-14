@@ -26,13 +26,13 @@ from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.util import slugify
 
 from pyaarlo.constant import (
     ACTIVITY_STATE_KEY,
     SILENT_MODE_KEY,
     SIREN_STATE_KEY
 )
-from homeassistant.util import slugify
 
 from .const import *
 from .utils import to_bool

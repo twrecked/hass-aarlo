@@ -25,9 +25,17 @@ from homeassistant.const import (
     CONF_USERNAME,
     Platform
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import (
+    DOMAIN as HOMEASSISTANT_DOMAIN,
+    HomeAssistant,
+    callback
+)
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.issue_registry import (
+    async_create_issue,
+    IssueSeverity
+)
 from homeassistant.helpers.typing import ConfigType
 import homeassistant.helpers.device_registry as dr
 
@@ -45,7 +53,7 @@ from .utils import get_entity_from_domain
 from .cfg import BlendedCfg, PyaarloCfg
 
 
-__version__ = "0.8.1a9"
+__version__ = "0.8.1a10"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -173,6 +181,7 @@ ARLO_PLATFORMS = [
     Platform.LIGHT,
     Platform.MEDIA_PLAYER,
     Platform.SENSOR,
+    Platform.SIREN,
     Platform.SWITCH,
 ]
 
@@ -194,6 +203,21 @@ def setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 data=config
             )
         )
+
+        async_create_issue(
+            hass,
+            HOMEASSISTANT_DOMAIN,
+            f"deprecated_yaml_{COMPONENT_DOMAIN}",
+            is_fixable=False,
+            issue_domain=COMPONENT_DOMAIN,
+            severity=IssueSeverity.WARNING,
+            translation_key="deprecated_yaml",
+            translation_placeholders={
+                "domain": COMPONENT_DOMAIN,
+                "integration_title": "Aarlo Cameras",
+            },
+        )
+
         return True
 
     _LOGGER.debug('ignoring a YAML setup')
