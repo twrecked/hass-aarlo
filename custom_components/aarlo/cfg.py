@@ -36,7 +36,7 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
     STATE_ALARM_TRIGGERED,
-    TEMP_CELSIUS,
+    UnitOfTemperature
 )
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util.yaml import load_yaml, save_yaml
@@ -220,7 +220,7 @@ SENSOR_TYPES = {
     "captured_today": ["Captured Today", None, "file-video", CAPTURED_TODAY_KEY],
     "battery_level": ["Battery Level", "%", "battery-50", BATTERY_KEY],
     "signal_strength": ["Signal Strength", None, "signal", SIGNAL_STR_KEY],
-    "temperature": ["Temperature", TEMP_CELSIUS, "thermometer", TEMPERATURE_KEY],
+    "temperature": ["Temperature", UnitOfTemperature.CELSIUS, "thermometer", TEMPERATURE_KEY],
     "humidity": ["Humidity", "%", "water-percent", HUMIDITY_KEY],
     "air_quality": ["Air Quality", "ppm", "biohazard", AIR_QUALITY_KEY],
 }

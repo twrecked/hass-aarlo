@@ -1,4 +1,6 @@
 aarlo
+0.8.1a11
+  Remove deprecated constants.
 0.8.1a10
   Add import notice
   Add siren support.

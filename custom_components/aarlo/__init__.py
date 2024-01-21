@@ -53,7 +53,7 @@ from .utils import get_entity_from_domain
 from .cfg import BlendedCfg, PyaarloCfg
 
 
-__version__ = "0.8.1a10"
+__version__ = "0.8.1a11"
 
 _LOGGER = logging.getLogger(__name__)
 
