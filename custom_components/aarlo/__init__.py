@@ -53,7 +53,7 @@ from .utils import get_entity_from_domain
 from .cfg import BlendedCfg, PyaarloCfg
 
 
-__version__ = "0.8.1a10"
+__version__ = "0.8.1a11"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -186,7 +186,7 @@ ARLO_PLATFORMS = [
 ]
 
 
-def setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up an momentary component.
     """
 
@@ -237,7 +237,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug(f'async setup for aarlo')
 
     # Get the blended config.
-    cfg = BlendedCfg(entry.data, entry.options)
+    cfg = BlendedCfg(hass, entry.data, entry.options)
     domain_config = cfg.domain_config
     injection_service = domain_config.get(CONF_INJECTION_SERVICE, False)
 
@@ -365,7 +365,7 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
         return
 
     _LOGGER.debug("reconfiguring...")
-    cfg = BlendedCfg(entry.data, entry.options)
+    cfg = BlendedCfg(hass, entry.data, entry.options)
     hass.data[COMPONENT_CONFIG] = {
         COMPONENT_DOMAIN: cfg.domain_config,
         str(Platform.ALARM_CONTROL_PANEL): cfg.alarm_config,

@@ -17,10 +17,9 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.components.alarm_control_panel import (
     DOMAIN as ALARM_DOMAIN,
-    FORMAT_NUMBER,
-    FORMAT_TEXT,
     AlarmControlPanelEntity,
     AlarmControlPanelEntityFeature,
+    CodeFormat
 )
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
@@ -168,8 +167,8 @@ def _code_format(code):
     if code is None or code == "":
         return None
     if isinstance(code, str) and re.search("^\\d+$", code):
-        return FORMAT_NUMBER
-    return FORMAT_TEXT
+        return CodeFormat.NUMBER
+    return CodeFormat.TEXT
 
 
 def _code_validate(code, code_to_check, state):

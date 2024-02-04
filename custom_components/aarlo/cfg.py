@@ -16,12 +16,10 @@ There are 2 pieces:
 
 import copy
 import logging
-from datetime import timedelta
 
 import voluptuous as vol
 
 from homeassistant.const import (
-    ATTR_ENTITY_ID,
     CONF_CODE,
     CONF_HOST,
     CONF_MONITORED_CONDITIONS,
@@ -31,12 +29,8 @@ from homeassistant.const import (
     CONF_TRIGGER_TIME,
     CONF_USERNAME,
     Platform,
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
-    STATE_ALARM_TRIGGERED,
-    TEMP_CELSIUS,
+    UnitOfTemperature
 )
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util.yaml import load_yaml, save_yaml
@@ -220,7 +214,7 @@ SENSOR_TYPES = {
     "captured_today": ["Captured Today", None, "file-video", CAPTURED_TODAY_KEY],
     "battery_level": ["Battery Level", "%", "battery-50", BATTERY_KEY],
     "signal_strength": ["Signal Strength", None, "signal", SIGNAL_STR_KEY],
-    "temperature": ["Temperature", TEMP_CELSIUS, "thermometer", TEMPERATURE_KEY],
+    "temperature": ["Temperature", UnitOfTemperature.CELSIUS, "thermometer", TEMPERATURE_KEY],
     "humidity": ["Humidity", "%", "water-percent", HUMIDITY_KEY],
     "air_quality": ["Air Quality", "ppm", "biohazard", AIR_QUALITY_KEY],
 }
@@ -246,8 +240,6 @@ SWITCH_SCHEMA = vol.Schema({
     ),
     vol.Optional(CONF_DOORBELL_SILENCE, default=SILENT_MODE_DEFAULT): cv.boolean,
 })
-
-AARLO_CONFIG_FILE = "/config/aarlo.yaml"
 
 DEFAULT_OPTIONS = {
     "alarm_control_panel_disarmed_mode_name": "disarmed",
@@ -285,6 +277,10 @@ DEFAULT_OPTIONS = {
     "switch_snapshot_timeout": 15,
     "switch_doorbell_silence": True
 }
+
+
+def _default_config_file(hass) -> str:
+    return hass.config.path("aarlo.yaml")
 
 
 def _fix_config(config):
@@ -325,7 +321,8 @@ class BlendedCfg(object):
     them with flow data and options.
     """
 
-    def __init__(self, data, options):
+    def __init__(self, hass, data, options):
+        self._hass = hass
         self._main_config = {}
         self._alarm_config = {}
         self._binary_sensor_config = {}
@@ -341,7 +338,7 @@ class BlendedCfg(object):
         # Read in current config
         config = {}
         try:
-            config = load_yaml(AARLO_CONFIG_FILE)
+            config = load_yaml(_default_config_file(self._hass))
         except Exception as e:
             _LOGGER.debug(f"failed to read aarlo config {str(e)}")
 
@@ -350,7 +347,7 @@ class BlendedCfg(object):
         self._main_config = AARLO_SCHEMA({})
         self._main_config.update(config.get(COMPONENT_DOMAIN, {}))
 
-        _LOGGER.debug(f"l-config-file={AARLO_CONFIG_FILE}")
+        _LOGGER.debug(f"l-config-file={_default_config_file(self._hass)}")
         _LOGGER.debug(f"l-main-config={self._main_config}")
 
     def _merge(self, data, options):
@@ -397,13 +394,15 @@ class UpgradeCfg(object):
     """
 
     @staticmethod
-    def create_file_config(config):
+    def create_file_config(hass, config):
         """ Take the current aarlo config and make the new yaml file.
 
         Aarlo seems to need a lot of fine tuning so rather than get rid of
         the options or clutter up the config flow system I'm adding a text file
         where the user can configure things.
         """
+
+        _LOGGER.debug(f"new-config-file={_default_config_file(hass)}")
 
         # A default config.
         default_aarlo_config = AARLO_FULL_SCHEMA({
@@ -425,7 +424,7 @@ class UpgradeCfg(object):
 
         # Save it out.
         try:
-            save_yaml(AARLO_CONFIG_FILE, {
+            save_yaml(_default_config_file(hass), {
                 "version": 1,
                 COMPONENT_DOMAIN: file_config,
             })
