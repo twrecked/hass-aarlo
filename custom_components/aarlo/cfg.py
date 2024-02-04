@@ -16,12 +16,10 @@ There are 2 pieces:
 
 import copy
 import logging
-# from datetime import timedelta
 
 import voluptuous as vol
 
 from homeassistant.const import (
-    # ATTR_ENTITY_ID,
     CONF_CODE,
     CONF_HOST,
     CONF_MONITORED_CONDITIONS,
@@ -31,11 +29,7 @@ from homeassistant.const import (
     CONF_TRIGGER_TIME,
     CONF_USERNAME,
     Platform,
-    # STATE_ALARM_ARMED_AWAY,
-    # STATE_ALARM_ARMED_HOME,
-    # STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
-    # STATE_ALARM_TRIGGERED,
     UnitOfTemperature
 )
 from homeassistant.helpers import config_validation as cv
@@ -246,8 +240,6 @@ SWITCH_SCHEMA = vol.Schema({
     ),
     vol.Optional(CONF_DOORBELL_SILENCE, default=SILENT_MODE_DEFAULT): cv.boolean,
 })
-
-# AARLO_CONFIG_FILE = "/config/aarlo.yaml"
 
 DEFAULT_OPTIONS = {
     "alarm_control_panel_disarmed_mode_name": "disarmed",
