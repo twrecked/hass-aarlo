@@ -1,4 +1,6 @@
 aarlo
+0.8.1a12
+  Bump pyaarlo revision
 0.8.1a11
   Remove deprecated constants.
   Fixed setup code.
