@@ -92,7 +92,6 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, props):
             _LOGGER.info("callback:" + self._name + ":" + attr + ":" + str(props)[:80])
             if attr == "status":
@@ -117,7 +116,7 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
             elif attr == "playlist":
                 self._playlist = props
 
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._device.add_attr_callback("config", update_state)
         self._device.add_attr_callback("speaker", update_state)

@@ -235,11 +235,10 @@ class ArloBaseStation(AlarmControlPanelEntity):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value))
             self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY))
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()()
 
         self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY, ARMED))
         self._base.add_attr_callback(MODE_KEY, update_state)
@@ -316,7 +315,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
                     duration=self._trigger_time.total_seconds(),
                     volume=self._alarm_volume,
                 )
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
             track_point_in_time(
                 self.hass,
                 self.async_update_ha_state,
@@ -428,11 +427,10 @@ class ArloLocation(AlarmControlPanelEntity):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value))
             self._state = self._get_state_from_ha(self._location.attribute(MODE_KEY))
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._state = self._get_state_from_ha(self._location.attribute(MODE_KEY, "Stand By"))
         self._location.add_attr_callback(MODE_KEY, update_state)

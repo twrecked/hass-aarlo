@@ -83,14 +83,13 @@ class ArloLight(LightEntity):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_light, attr, value):
             _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value)[:80])
             if attr == LAMP_STATE_KEY:
                 self._state = value
             if attr == BRIGHTNESS_KEY:
                 self._brightness = value
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         _LOGGER.info("ArloLight: %s registering callbacks", self._name)
         self._state = self._light.attribute(LAMP_STATE_KEY, default="off")
@@ -205,14 +204,13 @@ class ArloNightLight(ArloLight):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_attr(_light, attr, value):
             _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value)[:80])
             if attr == LIGHT_BRIGHTNESS_KEY:
                 self._brightness = value
             if attr == LIGHT_MODE_KEY:
                 self._set_light_mode(value)
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         _LOGGER.info("ArloNightLight: %s registering callbacks", self._name)
 
@@ -331,11 +329,10 @@ class ArloFloodLight(ArloLight):
                 self._sleep_time = None
                 self._sleep_time_rel = None
 
-        @callback
         def update_attr(_light, attr, value):
             _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value)[:80])
             set_states(value)
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         _LOGGER.info("ArloFloodLight: %s registering callbacks", self._name)
         floodlight = self._light.attribute(FLOODLIGHT_KEY, default={})
@@ -400,14 +397,13 @@ class ArloSpotlight(ArloLight):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_attr(_light, attr, value):
             _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value)[:80])
             if attr == SPOTLIGHT_KEY:
                 self._state = value
             if attr == SPOTLIGHT_BRIGHTNESS_KEY:
                 self._brightness = value / 100 * 255
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         _LOGGER.info("ArloSpotlight: %s registering callbacks", self._name)
 

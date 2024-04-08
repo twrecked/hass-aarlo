@@ -232,13 +232,12 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(
                 "siren-callback:" + self._name + ":" + attr + ":" + str(value)[:80]
             )
             self._state = value
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         _LOGGER.debug("register siren callbacks for {}".format(self._device.name))
         self._device.add_attr_callback(SIREN_STATE_KEY, update_state)
@@ -280,7 +279,6 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(
                 "all-siren-callback:" + self._name + ":" + attr + ":" + str(value)[:80]
@@ -292,7 +290,7 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
                     state = "on"
             self._state = state
 
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         for device in self._devices:
             _LOGGER.debug("register all siren callbacks for {}".format(device.name))
@@ -331,10 +329,9 @@ class AarloSnapshotSwitch(AarloSwitch):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug("callback:" + self._name + ":" + attr + ":" + str(value)[:80])
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._device.add_attr_callback(ACTIVITY_STATE_KEY, update_state)
 
@@ -381,7 +378,6 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(
                 "silent-callback:" + self._name + ":" + attr + ":" + str(value)[:100]
@@ -393,7 +389,7 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
             else:
                 self._state = self._doorbell.is_silenced
 
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._doorbell.add_attr_callback(SILENT_MODE_KEY, update_state)
 
