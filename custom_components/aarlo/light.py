@@ -119,14 +119,13 @@ class ArloLight(LightEntity):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_light, attr, value):
             _LOGGER.debug(f"callback:{self._attr_name}:attr:{str(value)[:80]}")
             if attr == LAMP_STATE_KEY:
                 self._attr_is_on = to_bool(value)
             if attr == BRIGHTNESS_KEY:
                 self._attr_brightness = value
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._attr_is_on = to_bool(self._light.attribute(LAMP_STATE_KEY, default="off"))
         self._attr_brightness = self._light.attribute(BRIGHTNESS_KEY, default=255)
@@ -229,14 +228,13 @@ class ArloNightLight(ArloLight):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_attr(_light, attr, value):
             _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:80]}")
             if attr == LIGHT_BRIGHTNESS_KEY:
                 self._attr_brightness = value
             if attr == LIGHT_MODE_KEY:
                 self._set_light_mode(value)
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._attr_brightness = self._light.attribute(LIGHT_BRIGHTNESS_KEY, default=255)
         self._set_light_mode(self._light.attribute(LIGHT_MODE_KEY))
@@ -317,11 +315,10 @@ class ArloFloodLight(ArloLight):
                 self._sleep_time = None
                 self._sleep_time_rel = None
 
-        @callback
         def update_attr(_light, attr, value):
             _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:80]}")
             set_states(value)
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         floodlight = self._light.attribute(FLOODLIGHT_KEY, default={})
         set_states(floodlight)
@@ -384,14 +381,13 @@ class ArloSpotlight(ArloLight):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_attr(_light, attr, value):
             _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:80]}")
             if attr == SPOTLIGHT_KEY:
                 self._attr_is_on = to_bool(value)
             if attr == SPOTLIGHT_BRIGHTNESS_KEY:
                 self._attr_brightness = value / 100 * 255
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._attr_is_on = to_bool(self._light.attribute(SPOTLIGHT_KEY, default="off"))
         self._attr_brightness = self._light.attribute(SPOTLIGHT_BRIGHTNESS_KEY, default=255)

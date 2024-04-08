@@ -337,7 +337,6 @@ class ArloCam(Camera):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:120]}")
 
@@ -407,7 +406,7 @@ class ArloCam(Camera):
                 self._attr_is_on = not value
 
             # Signal changes.
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._camera.add_attr_callback(ACTIVITY_STATE_KEY, update_state)
         self._camera.add_attr_callback(CHARGER_KEY, update_state)

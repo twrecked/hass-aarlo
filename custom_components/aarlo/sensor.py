@@ -160,11 +160,10 @@ class ArloSensor(Entity):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug("callback:" + self._attr_name + ":" + attr + ":" + str(value)[:80])
             self._attr_state = value
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         if self._main_attr is not None:
             self._attr_state = self._device.attribute(self._main_attr)
