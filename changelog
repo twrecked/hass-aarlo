@@ -1,4 +1,6 @@
 aarlo
+0.8.1b14
+  Fix callback threading issues. Thanks @bdraco
 0.8.1b13
   Bump pyaarlo revision
 0.8.1a12

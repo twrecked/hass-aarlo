@@ -15,5 +15,5 @@
     "unidecode",
     "pyaarlo>=0.8.0.4"
   ],
-  "version": "0.8.1b13"
+  "version": "0.8.1b14"
 }
