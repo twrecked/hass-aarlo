@@ -97,11 +97,10 @@ class AarloSirenBase(SirenEntity):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(f"siren-callback:{self._attr_name}:{attr}:{str(value)[:80]}")
             self._attr_is_on = any(to_bool(siren.siren_state) for siren in self._sirens)
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         for siren in self._sirens:
             _LOGGER.debug(f"register siren callbacks for {siren.name}")
@@ -117,7 +116,7 @@ class AarloSirenBase(SirenEntity):
 
         # Flip us on. update_state should confirm this.
         self._attr_is_on = True
-        self.async_schedule_update_ha_state()
+        self.schedule_update_ha_state()
 
     def turn_off(self, **kwargs):
         """Turn the sirens off."""

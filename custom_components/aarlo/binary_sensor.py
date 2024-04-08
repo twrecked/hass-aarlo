@@ -155,12 +155,11 @@ class ArloBinarySensor(BinarySensorEntity):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug("callback:" + self._attr_name + ":" + attr + ":" + str(value)[:80])
             if self._main_attr == attr:
                 self._attr_is_on = self._map_value(attr, value)
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         if self._main_attr is not None:
             self._attr_is_on = self._map_value(self._main_attr, self._device.attribute(self._main_attr))
