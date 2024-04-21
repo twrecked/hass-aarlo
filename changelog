@@ -1,4 +1,6 @@
 aarlo
+0.8.1b15
+  Bump pyaarlo revision to bring in MQTT server detection.
 0.8.1b14
   Fix callback threading issues. Thanks @bdraco
 0.8.1b13
