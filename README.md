@@ -11,12 +11,6 @@ _Aarlo_ provides, amongst other things:
 - Enhanced state notifications.
 - Media player support for select devices.
 
-# Table of Contents
-
-- [Introduction](#Introduction)
-- [Requirements](#Requirements)
-- [Installation](#Installation)
-
 # Introduction
 
 _Aarlo_ is a custom component for [Home  Assistant](https://www.home-assistant.io/), that provides access to  the [Arlo](https://www.arlo.com/en-us/) system.
@@ -62,19 +56,16 @@ You need to enable two factor authentication. Set up an email address to receive
 
 **You only need to use one of these installation mechanisms. I recommend HACS.**
 
-<a name="installation-hacs"></a>
 ## HACS
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
 _Aarlo is part of the default HACS store. If you're not interested in using development branches this is the easiest way to install._
 
-<a name="installation-manually"></a>
 ## Manually
 
 Copy the `aarlo` directory into your `/config/custom_components` directory.
 
-<a name="installation-from-script"></a>
 ## From Script
 
 Run the installation script. Run it once to make sure the operations look sane and run it a second time with the `go` parameter to do the actual work. If you update just rerun the script, it will overwrite all installed files.
@@ -87,6 +78,8 @@ install go /config
 # Adding and Configuring the Integration
 
 However you install the source code you know need to add the integration into _Home Assistant_. From the home page select `Settings -> Devices & Services`, from here click `ADD INTEGRATION` and search for `Aarlo`. On the first screen enter your account details.
+
+![The Image View](/images/config-flow-01.png?raw=true)
 
 | Field                | Value                                    |
 | ---                  | ---                                      |
@@ -101,6 +94,8 @@ If you leave `Use aarlo prefix` checked all your devices will be of the format `
 
 Click `SUBMIT`. The integration will log into _Arlo_ and retrieve the list of devices associated with it. If it all works you will be able to assign the devices to rooms on the the next screen.
 
+![The Image View](/images/config-flow-02.png?raw=true)
+
 ## Further Configuration
 
 You can fine tune the settings further. From the Integration page click `CONFIGURE`.
@@ -108,6 +103,8 @@ You can fine tune the settings further. From the Integration page click `CONFIGU
 ### Alarm Setting Screen
 
 Fine tune the alarm settings:
+
+![The Image View](/images/config-flow-03.png?raw=true)
 
 | Field                | Value                                                    |
 | ---                  | ---                                                      |
@@ -128,6 +125,8 @@ _Night Mode_; _Arlo_ will not have one of these unless you create it
 
 Determine which binary sensors are available:
 
+![The Image View](/images/config-flow-04.png?raw=true)
+
 | Field               | Value                                   |
 | ---                 | ---                                     |
 | Sound detection     | Enable microphones on cameras           |
@@ -146,6 +145,8 @@ Not all sensors are available on all devices.
 
 Determine which sensors are available:
 
+![The Image View](/images/config-flow-05.png?raw=true)
+
 | Field                                     | Value                                                           |
 | ---                                       | ---                                                             |
 | Last capture time                         | A per camera sensor indicating when the last recording was made |
@@ -161,6 +162,10 @@ Determine which sensors are available:
 Not all sensors are available on all devices.  And _recent activity_ should probably be a _binary_sensor_.
 
 ### Switches Screen
+
+Enable miscellaneous switches:
+
+![The Image View](/images/config-flow-06.png?raw=true)
 
 | Field                                       | Value                                                |
 | ---                                         | ---                                                  |
@@ -222,7 +227,6 @@ Removing the setting make it automatic.
 
 # FAQ
 
-<a name="known-limitations"></a>
 # Known Limitations
 This component was written by reverse engineering the _APIs_ used on the [Arlo Camera](https://my.arlo.com/#/home) web page.
 
