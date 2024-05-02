@@ -200,8 +200,7 @@ I wasn't willing to move some of the more esoteric configuration items into the 
 
 ## Back Ends
 
-_Arlo_ will use either [SSE](https://en.wikipedia.
-org/wiki/Server-sent_events) or [MQTT](https://en.wikipedia.org/wiki/MQTT) to signal events to _Aarlo_. I'm not fully sure of the mechanism which determines which gets chosen but I know adding or removing a `user_agent` will switch between the two.
+_Arlo_ will use either [SSE](https://en.wikipedia.org/wiki/Server-sent_events) or [MQTT](https://en.wikipedia.org/wiki/MQTT) to signal events to _Aarlo_. I'm not fully sure of the mechanism which determines which gets chosen but I know adding or removing a `user_agent` will switch between the two.
 
 ### Configuration
 
