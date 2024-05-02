@@ -202,6 +202,20 @@ I wasn't willing to move some of the more esoteric configuration items into the 
 
 _Arlo_ will use either [SSE](https://en.wikipedia.org/wiki/Server-sent_events) or [MQTT](https://en.wikipedia.org/wiki/MQTT) to signal events to _Aarlo_. I'm not fully sure of the mechanism which determines which gets chosen but I know adding or removing a `user_agent` will switch between the two.
 
+### How it Works
+
+_Arlo_ recently updated the response they send to the `session/v3` API requests to indicate which back end to choose. _Aarlo_ will parse that out when using `auto`.
+
+```yaml
+# This is the MQTT backend. We use the host and port.
+'mqttUrl': 'ssl://mqtt-cluster-z1.arloxcld.com:8883'
+
+# This is the SSE backend. We use a fixed host and port.
+'mqttUrl': 'wss://mqtt-cluster-z1.arloxcld.com:8084'
+```
+
+If you enable verbose debugging your should be able to find this value in the _Home Assistant_ logs.
+
 ### Configuration
 
 Starting with the `0.8` release _Aarlo_ should be smart enough to work out which back end to use. But if you find yourself running into problems, like missing motion detection events or missing sensor value updates you can manually override the setting. Change this setting in `/config/aarlo.yaml`.
@@ -228,20 +242,6 @@ aarlo:
 ```
 
 Note, removing the setting is equivalent to `auto`.
-
-### How it Works
-
-_Arlo_ recently updated the response they send to the `session/v3` API requests to indicate which back end to choose. _Aarlo_ will parse that out when using `auto`.
-
-```yaml
-# This is the MQTT backend. We use the host and port.
-'mqttUrl': 'ssl://mqtt-cluster-z1.arloxcld.com:8883'
-
-# This is the SSE backend. We use a fixed host and port.
-'mqttUrl': 'wss://mqtt-cluster-z1.arloxcld.com:8084'
-```
-
-If you enable verbose debugging your should be able to find this value in the _Home Assistant_ logs.
 
 ## Cloud Flare
 
@@ -287,6 +287,15 @@ aarlo:
   send_source: true
 ```
 
+You can disable session caching with the following:
+
+```yaml
+aarlo:
+  # This will force a full login on every restart
+  save_session: false
+
+```
+
 You can select different _ecdh_ curves to use. This topic is out of the scope of this document, see [here](https://github.com/venomous/cloudscraper#cryptography) for an explanation.
 
 ```yaml
@@ -301,10 +310,54 @@ You can modify `/etc/hosts` to point to a specific _Arlo_ web server
 # Remove the # to force the request to go to a particular cloudflare server
 #104.18.30.98 ocapi-app.arlo.com  
 #104.18.31.98 ocapi-app.arlo.com  
-```  
+```
 
 ## Two Factor Authentication
 
+_Arlo_ calls this _Two-step Verification_. You are going to need to enable this for your _Home Assistant_ specific account. _Aarlo_ support _IMAP_ and _PUSH_ mechanisms but I recommend using _IMAP_, with _PUSH_ you need to manually respond to the login request.
+
+You will find instructions for setting up two factor authentication here [Arlo provide here](https://kb.arlo.com/000062289/How-do-I-edit-Arlo-two-step-verification-settings)
+
+You enter two factor authentication when you add the integration.
+
+### IMAP
+
+Follow the two factor authentication instructions and add and set up an _Email_ verification method. You can test this by logging into the [main Arlo web page](https://my.arlo.com/#/home) and making sure it sends you an email.
+
+#### Application Passwords
+
+For _GMail_ and _Yahoo_ (and other web based email client) you can't log in with your usual password, you will have to create an application specific password. Explaining why this is necessary is out of the scope of this document so see the following pages.
+
+- [Gmail App Password](https://support.google.com/mail/answer/185833?hl=en)
+- [Yahoo App Password](https://help.yahoo.com/kb/SLN15241.html)
+
+If you find you can't log in to your _IMAP_ account check the application password requirement.
+
+#### IMAP Servers
+
+The following servers are known to work:
+
+| Service | Host Name           |
+| ---     | ---                 |
+| GMail   | imap.gmail.com      |
+| Yahoo!  | imap.mail.yahoo.com |
+
+### PUSH
+
+Follow the two factor authentication instructions and add and set up a _PUSH_ verification method.
+
+## Configuration
+
+If you need to change the cipher list passed to the IMAP client you specify it with the following option. You shouldn't need to do this. see [the openssl man page](https://www.openssl.org/docs/man1.1.1/man1/ciphers.html) for more information.
+
+```yaml
+aarlo:
+  # specify cipher list to use
+  cipher_list: "HIGH:!DH:!aNULL"
+
+  # Use DEFAULT for the cipher list
+  default_ciphers: True
+```
 
 # Bug Reports
 
@@ -314,7 +367,7 @@ You can modify `/etc/hosts` to point to a specific _Arlo_ web server
 
 ## Encrypting the Output
 
-# Expanding the Support Devices
+# Adding New Devices
 
 # FAQ
 
