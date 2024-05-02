@@ -20,6 +20,7 @@ The integration uses the _APIs_ provided by the [Arlo Camera Website](https://my
 If you encounter an issue then look at the [FAQ](#faq) section to see if it has a known problem and has a workaround or fix. If not, look at the [Bug Report](#bug-report) section for information on how to generate debug logs and create a debug report.
 
 ## Notes
+
 This document assumes you are familiar with _Home Assistant_ setup and configuration.
 
 Wherever you see `/config` in this document it refers to your _Home Assistant_ configuration directory. For example, for my installation it's `/home/steve/ha` which is mapped to `/config` by my docker container.
@@ -29,6 +30,7 @@ Wherever you see _Arlo_ it refers to any piece of the _Arlo_ system.
 Wherever you see _Aarlo_ I'm referring to this component.
 
 ## Thanks
+
 Many thanks to:
 - [Pyarlo](https://github.com/tchellomello/python-arlo) and  [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard work figuring the API out and the free Python lesson!
 - [sseclient](https://github.com/btubbs/sseclient) for reading from the event stream
@@ -38,6 +40,7 @@ Many thanks to:
 [![JetBrains](images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
 
 ## See Also
+
 _Aarlo_ also provides a custom [_Lovelace Card_](https://github.com/twrecked/lovelace-hass-aarlo), which overlays a camera's last snapshot with its current status and allows access to the cameras recording library and live-streaming.
 
 If you aren't familiar with _Home Assistant_ I recommend visiting the  [Community Website](https://community.home-assistant.io/). It's full of helpful people and there is always someone who's encountered the problem you are trying to fix.
@@ -50,7 +53,7 @@ The dedicated _Aarlo_ account needs admin access to set the alarm levels and rea
 
 See [the _Arlo_ documentation](https://kb.arlo.com/000062933/How-do-I-add-friends-on-my-Arlo-Secure-app-Arlo-Secure-4-0#:~:text=To%20add%20a%20friend%20to%20your%20Arlo%20account%3A&text=Tap%20or%20click%20to%20add,grant%20the%20user%20additional%20privileges.) for further instructions.
 
-You need to enable two factor authentication. Set up an email address to receive the verification code. _Aarlo_ supports other _TFA_ mechanisms but email is the easiest to use. See the [TFA][#tfa] section later for more details.
+You need to enable two factor authentication. Set up an email address to receive the verification code. _Aarlo_ supports other _TFA_ mechanisms but email is the easiest to use. See the [Two Factor Authentication](#two%20factor%20authentication) section later for more details.
 
 # Installing the Integration
 
@@ -106,6 +109,7 @@ Fine tune the alarm settings:
 
 ![The Image View](/images/config-flow-03.png?raw=true)
 
+
 | Field                | Value                                                    |
 | ---                  | ---                                                      |
 | Alarm/disarm Code    | Enter a code if needed, otherwise leave as default       |
@@ -143,9 +147,9 @@ Not all sensors are available on all devices.
 
 ### Sensors Screen
 
-Determine which sensors are available:
-
 ![The Image View](/images/config-flow-05.png?raw=true)
+
+Determine which sensors are available:
 
 | Field                                     | Value                                                           |
 | ---                                       | ---                                                             |
@@ -184,7 +188,7 @@ If you are coming from an early there are several things to note:
 
 - Your configuration will be imported into the `config flow` mechanism. All your devices will appear on the integration page.
 - You will not be able to change your login or TFA settings without deleting the Intergration.
-- You will be able to fine tune with the [Further Configuration](#fursther-) settings.
+- You will be able to fine tune with the [Further Configuration](#Further%20Configuration) settings.
 - You can comment out the original `yaml` entries.
 - The import enables the `prefix with _aarlo` to keep the naming identical.
 - All component services are now in the `aarlo` domain.
@@ -196,7 +200,9 @@ I wasn't willing to move some of the more esoteric configuration items into the 
 
 ## Back Ends
 
-Starting with `0.8` the Integration should be smart enough to work out which back end to use. But if you find yourself running into problems like missing motion detection events or missing sensor settings you can manually override the setting. Change this setting in `/config/aarlo.yaml`.
+_Arlo_ will use either [SSE](https://en.wikipedia.org/wiki/Server-sent_events) or [MQTT](https://en.wikipedia.org/wiki/MQTT) to signal events to _Aarlo_. I'm not fully sure of the mechanism which determine which gets chosen but I know adding or removing a `user_agent` will switch between the two.
+
+Starting with the `0.8` release _Aarlo_ should be smart enough to work out which back end to use. But if you find yourself running into problems, like missing motion detection events or missing sensor value updates you can manually override the setting. Change this setting in `/config/aarlo.yaml`.
 
 ```yaml
 aarlo:
@@ -208,9 +214,32 @@ aarlo:
 aarlo:
   # This forces the MQTT backend
   backend: mqtt
+  # These might also be needed
+  mqtt_hostname_check: false
+  mqtt_host: mqtt-cluster-z1.arloxcld.com
 ```
 
-Removing the setting make it automatic.
+```yaml
+aarlo:
+  # This forces the Aarlo to choose
+  backend: auto
+```
+
+Note, removing the setting is equivalent to `auto`.
+
+### How it Works
+
+_Arlo_ recently updated the response they send to the `session/v3` API requests to indicate which back end to choose. _Aarlo_ will parse that out when using `auto`.
+
+```yaml
+# This is the MQTT backend. We use the host and port.
+'mqttUrl': 'ssl://mqtt-cluster-z1.arloxcld.com:8883'
+
+# This is the SSE backend. We use a fixed host and port.
+'mqttUrl': 'wss://mqtt-cluster-z1.arloxcld.com:8084'
+```
+
+If you enable verbose debugging your should be able to find this value in the _Home Assistant_ logs.
 
 ## Cloud Flare
 
@@ -224,6 +253,8 @@ Removing the setting make it automatic.
 ## What to Include
 
 ## Encrypting the Output
+
+# Expanding the Support Devices
 
 # FAQ
 
