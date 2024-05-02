@@ -66,6 +66,8 @@ The integration uses the _APIs_ provided by the [Arlo Camera Website](https://my
 
 If you encounter an issue then look at the [FAQ](#faq) section to see if it has a known problem and has a workaround or fix. If not, look at the [Bug Report](#bug-reports) section for information on how to generate debug logs and create a debug report.
 
+The old _README_ is still available [here](https://github.com/twrecked/hass-aarlo/blob/doc-updates/README-202405.md).
+
 ## Notes
 
 This document assumes you are familiar with _Home Assistant_ setup and configuration.
