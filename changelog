@@ -1,4 +1,6 @@
 aarlo
+0.8.1
+  Move out of beta. It has been long enough...
 0.8.1b15
   Bump pyaarlo revision to bring in MQTT server detection.
 0.8.1b14
