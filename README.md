@@ -11,6 +11,50 @@ _Aarlo_ provides, amongst other things:
 - Enhanced state notifications.
 - Media player support for select devices.
 
+<!-- TOC -->
+* [**An Arlo Home Assistant Integration**](#an-arlo-home-assistant-integration)
+* [Introduction](#introduction)
+  * [Notes](#notes)
+  * [Thanks](#thanks)
+  * [See Also](#see-also)
+* [Requirements](#requirements)
+* [Installing the Integration](#installing-the-integration)
+  * [HACS](#hacs)
+  * [Manually](#manually)
+  * [From Script](#from-script)
+* [Adding and Configuring the Integration](#adding-and-configuring-the-integration)
+  * [Further Configuration](#further-configuration)
+    * [Alarm Setting Screen](#alarm-setting-screen)
+    * [Binary Sensors Screen](#binary-sensors-screen)
+    * [Sensors Screen](#sensors-screen)
+    * [Switches Screen](#switches-screen)
+* [Coming From Earlier Versions](#coming-from-earlier-versions)
+* [Advanced Configuration](#advanced-configuration)
+  * [Back Ends](#back-ends)
+    * [How it Works](#how-it-works)
+    * [Configuration](#configuration)
+  * [Cloud Flare](#cloud-flare)
+    * [How We Work Around This](#how-we-work-around-this)
+    * [Configuration](#configuration-1)
+  * [Two Factor Authentication](#two-factor-authentication)
+    * [IMAP](#imap)
+      * [Application Passwords](#application-passwords)
+      * [IMAP Servers](#imap-servers)
+    * [PUSH](#push)
+  * [Configuration](#configuration-2)
+* [Bug Reports](#bug-reports)
+  * [What to Include](#what-to-include)
+  * [Enabling Debug](#enabling-debug)
+  * [Encrypting the Output](#encrypting-the-output)
+* [Reverse Engineering](#reverse-engineering)
+  * [Figuring out what Aarlo Needs to Do](#figuring-out-what-aarlo-needs-to-do)
+  * [MQTT Stream](#mqtt-stream)
+  * [SSE Stream](#sse-stream)
+  * [Supporting New Features](#supporting-new-features)
+* [FAQ](#faq)
+* [Known Limitations](#known-limitations)
+<!-- TOC -->
+
 # Introduction
 
 _Aarlo_ is a custom component for [Home  Assistant](https://www.home-assistant.io/), that provides access to  the [Arlo](https://www.arlo.com/en-us/) system.
