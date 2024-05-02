@@ -326,7 +326,7 @@ Follow the two factor authentication instructions and add and set up an _Email_ 
 
 #### Application Passwords
 
-For _GMail_ and _Yahoo_ (and other web based email client) you can't log in with your usual password, you will have to create an application specific password. Explaining why this is necessary is out of the scope of this document so see the following pages.
+For _Gmail_ and _Yahoo_ (and other web based email client) you can't log in with your usual password, you will have to create an application specific password. Explaining why this is necessary is out of the scope of this document so see the following pages.
 
 - [Gmail App Password](https://support.google.com/mail/answer/185833?hl=en)
 - [Yahoo App Password](https://help.yahoo.com/kb/SLN15241.html)
@@ -339,7 +339,7 @@ The following servers are known to work:
 
 | Service | Host Name           |
 | ---     | ---                 |
-| GMail   | imap.gmail.com      |
+| Gmail   | imap.gmail.com      |
 | Yahoo!  | imap.mail.yahoo.com |
 
 ### PUSH
@@ -361,11 +361,42 @@ aarlo:
 
 # Bug Reports
 
-## Enabling Debug
-
 ## What to Include
 
+If you run into problems please create a [bug report](https://github.com/twrecked/hass-aarlo/issues), include the following information in the bug report to help debugging. If you don't I'll just pester you until you do.
+
+- The version of _Home Assistant_ you are running.
+- The version of _Aarlo_ you are running, just saying _latest_ isn't adequate.
+- Make of cameras or device you are having problems.
+- What you were doing or expecting.
+- Include debug logs if available.
+
+## Enabling Debug
+
+You turn on basic  _Aarlo_ debugging by changing the logging setting in `configuration.yaml`.
+
+```yaml
+logger:
+  default: info
+  logs:
+    pyaarlo: debug
+    custom_components.aarlo: debug
+```
+
+You can turn on verbose debugging by enabling logging and adding the following to `/config/aarlo.yaml` as well. Verbose debug will generate a lot of logs so it's best to enable only while needed.
+
+```yaml
+aarlo:
+  verbose_debug: true
+```
+
 ## Encrypting the Output
+
+Before you send me the debug you should encrypt it.  You can encrypt your output on this [web page](https://pyaarlo-tfa.appspot.com/). You can upload the file or copy and paste it into the buffer then press `Submit`.
+
+**This page doesn't forward automatically the output to me, so you will have to copy and paste it into a file and attach it to the bug report.**
+
+This page will obscure the logs so only I can read them, I'm the sole possessor of the private key to decrypt it, but be wary, along with serial number it might include your account and password information. You can obscure those before encrypting, I never need them.
 
 # Adding New Devices
 
@@ -387,6 +418,7 @@ These are limitations versus the mobile application:
 - _Timeouts_; the website doesn't feel like it was designed for persistent connections so _Aarlo_ has a lot of code inside to try to mitigate this. But occasionally you might miss an event. There are settings in the _advanced configuration_ you can change to help with this.
 
 The last two can be summed up as `if the WEB API doesn't support it, neither can the component.` Bear that in mine when asking for new feature requests.
+
 
 
 
