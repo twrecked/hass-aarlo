@@ -226,11 +226,10 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(f"siren-callback:{self._attr_name}:{attr}:{str(value)[:80]}")
             self._attr_is_on = to_bool(value)
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         _LOGGER.debug(f"register siren callbacks for {self._device.name}")
         self._device.add_attr_callback(SIREN_STATE_KEY, update_state)
@@ -266,7 +265,6 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(f"all-siren-callback:{self._attr_name}:{attr}:{str(value)[:80]}")
 
@@ -275,7 +273,7 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
                 if device.siren_state == "on":
                     is_on = True
             self._attr_is_on = is_on
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         for device in self._devices:
             _LOGGER.debug(f"register all siren callbacks for {device.name}")
@@ -309,13 +307,12 @@ class AarloSnapshotSwitch(AarloSwitch):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(f"snapshot-callback:{self._attr_name}:{attr}:{str(value)[:80]}")
             # XXX beef this check up in pyaarlo; idle == not taking a snapshot
             # self._attr_is_on = self._device.is_taking_snapshot
             self._attr_is_on = "snapshot" in value.lower()
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._device.add_attr_callback(ACTIVITY_STATE_KEY, update_state)
 
@@ -351,7 +348,6 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
     async def async_added_to_hass(self):
         """Register callbacks."""
 
-        @callback
         def update_state(_device, attr, value):
             _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:100]}")
             if self._block == "calls":
@@ -360,7 +356,7 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
                 self._attr_is_on = self._device.chimes_are_silenced
             else:
                 self._attr_is_on = self._device.is_silenced
-            self.async_schedule_update_ha_state()
+            self.schedule_update_ha_state()
 
         self._device.add_attr_callback(SILENT_MODE_KEY, update_state)
 
