@@ -1,3 +1,269 @@
+# **An Arlo Home Assistant Integration**
+
+_Aarlo_ is a custom component for [Home  Assistant](https://www.home-assistant.io/), that provides access to  the [Arlo](https://www.arlo.com/en-us/) system.
+
+_Aarlo_ provides, amongst other things:
+- Access to cameras, base stations, sirens, doorbells and lights.
+- Asynchronous, almost immediate, notification of motion, sound and button press events.
+- Ability to view library recordings, take snapshots and direct stream from cameras.
+- Tracking of environmental stats from certain base station types.
+- Special switches to trip alarms and take snapshots from cameras.
+- Enhanced state notifications.
+- Media player support for select devices.
+
+# Table of Contents
+
+- [Introduction](#Introduction)
+- [Requirements](#Requirements)
+- [Installation](#Installation)
+
+# Introduction
+
+_Aarlo_ is a custom component for [Home  Assistant](https://www.home-assistant.io/), that provides access to  the [Arlo](https://www.arlo.com/en-us/) system.
+
+The integration uses the _APIs_ provided by the [Arlo Camera Website](https://my.arlo.com/#/home) and there are several limitations to this. See the [Known Limitations](#known-limitatons) section for further details.
+
+If you encounter an issue then look at the [FAQ](#faq) section to see if it has a known problem and has a workaround or fix. If not, look at the [Bug Report](#bug-report) section for information on how to generate debug logs and create a debug report.
+
+## Notes
+This document assumes you are familiar with _Home Assistant_ setup and configuration.
+
+Wherever you see `/config` in this document it refers to your _Home Assistant_ configuration directory. For example, for my installation it's `/home/steve/ha` which is mapped to `/config` by my docker container.
+
+Wherever you see _Arlo_ it refers to any piece of the _Arlo_ system.
+
+Wherever you see _Aarlo_ I'm referring to this component.
+
+## Thanks
+Many thanks to:
+- [Pyarlo](https://github.com/tchellomello/python-arlo) and  [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard work figuring the API out and the free Python lesson!
+- [sseclient](https://github.com/btubbs/sseclient) for reading from the event stream
+- [Button Card](https://github.com/kuuji/button-card/blob/master/button-card.js) for a working Lovelace card I could understand
+- [JetBrains](https://www.jetbrains.com/?from=hass-aarlo) for the excellent **PyCharm IDE** and providing me with an open source licence to speed up the project development.
+
+[![JetBrains](images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
+
+## See Also
+_Aarlo_ also provides a custom [_Lovelace Card_](https://github.com/twrecked/lovelace-hass-aarlo), which overlays a camera's last snapshot with its current status and allows access to the cameras recording library and live-streaming.
+
+If you aren't familiar with _Home Assistant_ I recommend visiting the  [Community Website](https://community.home-assistant.io/). It's full of helpful people and there is always someone who's encountered the problem you are trying to fix.
+
+# Requirements
+
+_Aarlo_ needs a dedicated _Arlo_ account. If you try to reuse an existing account, for example, the one you use on the _Arlo_ app on your phone, the app and this integration will constantly fight to log in. This is an _Arlo_ limitation.
+
+The dedicated _Aarlo_ account needs admin access to set the alarm levels and read certain status values.
+
+See [the _Arlo_ documentation](https://kb.arlo.com/000062933/How-do-I-add-friends-on-my-Arlo-Secure-app-Arlo-Secure-4-0#:~:text=To%20add%20a%20friend%20to%20your%20Arlo%20account%3A&text=Tap%20or%20click%20to%20add,grant%20the%20user%20additional%20privileges.) for further instructions.
+
+You need to enable two factor authentication. Set up an email address to receive the verification code. _Aarlo_ supports other _TFA_ mechanisms but email is the easiest to use. See the [TFA][#tfa] section later for more details.
+
+# Installing the Integration
+
+**You only need to use one of these installation mechanisms. I recommend HACS.**
+
+<a name="installation-hacs"></a>
+## HACS
+
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
+
+_Aarlo is part of the default HACS store. If you're not interested in using development branches this is the easiest way to install._
+
+<a name="installation-manually"></a>
+## Manually
+
+Copy the `aarlo` directory into your `/config/custom_components` directory.
+
+<a name="installation-from-script"></a>
+## From Script
+
+Run the installation script. Run it once to make sure the operations look sane and run it a second time with the `go` parameter to do the actual work. If you update just rerun the script, it will overwrite all installed files.
+
+```sh  
+install /config # check output looks good  
+install go /config
+```
+
+# Adding and Configuring the Integration
+
+However you install the source code you know need to add the integration into _Home Assistant_. From the home page select `Settings -> Devices & Services`, from here click `ADD INTEGRATION` and search for `Aarlo`. On the first screen enter your account details.
+
+| Field                | Value                                    |
+| ---                  | ---                                      |
+| Username             | Your _Arlo_ account username             |
+| Password             | Your _Arlo_ account password             |
+| Two Factor Mechanism | Select IMAP                              |
+| TFA Username         | The email account you registered for TFA |
+| TFA Password         | The email account password               |
+| TFA Host             | The IMAP server to look for the email on |
+
+If you leave `Use aarlo prefix` checked all your devices will be of the format `type.aarlo_*`.
+
+Click `SUBMIT`. The integration will log into _Arlo_ and retrieve the list of devices associated with it. If it all works you will be able to assign the devices to rooms on the the next screen.
+
+## Further Configuration
+
+You can fine tune the settings further. From the Integration page click `CONFIGURE`.
+
+### Alarm Setting Screen
+
+Fine tune the alarm settings:
+
+| Field                | Value                                                    |
+| ---                  | ---                                                      |
+| Alarm/disarm Code    | Enter a code if needed, otherwise leave as default       |
+| Disarmed mode name   | Change if your Arlo account has a custom disarmed name   |
+| Home mode name       | Change if your Arlo account has a custom home mode name  |
+| Away mode name       | Change if your Arlo account has a custom away mode name  |
+| Night mode name      | Change if your Arlo account has a custom night mode name |
+| Arm code required    | Select if Alarm/disarm code is needed to arm             |
+| Disarm code required | Select if Alarm/disarm code is needed to disarm          |
+| Trigger time         | How long to wait when arming                             |
+| Alarm volume         | Default volume for the alarm sirens                      |
+
+_Night Mode_; _Arlo_ will not have one of these unless you create it
+
+
+### Binary Sensors Screen
+
+Determine which binary sensors are available:
+
+| Field               | Value                                   |
+| ---                 | ---                                     |
+| Sound detection     | Enable microphones on cameras           |
+| Motion detection    | Enable motion detection on cameras      |
+| Doorbell presses    | Enable doorbell buttons                 |
+| Cry detection       | For Arlo baby, enable cry detection     |
+| Device connectivity | Be notified when a device disconnects   |
+| Open/Close sensors  | Enable door and window sensors          |
+| Brightness sensors  | Enable light detection                  |
+| Tamper detection    | Enable notification if device is opened |
+| Leak detection      | Enable leak monitoring devices          |
+
+Not all sensors are available on all devices.
+
+### Sensors Screen
+
+Determine which sensors are available:
+
+| Field                                     | Value                                                           |
+| ---                                       | ---                                                             |
+| Last capture time                         | A per camera sensor indicating when the last recording was made |
+| Total number of cameras detected          | Integer value of camera count                                   |
+| Recent activity detected                  | Was the camera recently active                                  |
+| Number of videos/snapshots captured today | Integer value of recording made today                           |
+| Device battery level                      | Percentage of battery left                                      |
+| WiFi signal strength                      | WiFi strength, has a range of 1 to 5                            |
+| Room temperature                          | Room conditions                                                 |
+| Room humidity                             | Room conditions                                                 |
+| Air quality                               | Room conditions                                                 |
+
+Not all sensors are available on all devices.  And _recent activity_ should probably be a _binary_sensor_.
+
+### Switches Screen
+
+| Field                                       | Value                                                |
+| ---                                         | ---                                                  |
+| Switches to turn sirens on                  | Provide a switch to turn individual sirens on        |
+| A switch turn all sirens on                 | Provide a switch to turn all sirens on               |
+| Allow sirens to be turned off               | Allow sirens to be turned off by switch              |
+| Siren switch volume                         | Default volume level, from 1 to 10                   |
+| Siren Switch duration                       | Default time to run the alarm                        |
+| Switches to request cameras take a snapshot | Provide a switch to take a camera snapshot           |
+| Camera snapshot timeout                     | How long to wait for badly behaved cameras to finish |
+| Switches to silence doorbell chimes         | Provide a switch to silence doorbells.               |
+
+# Coming From Earlier Versions
+
+If you are coming from an early there are several things to note:
+
+- Your configuration will be imported into the `config flow` mechanism. All your devices will appear on the integration page.
+- You will not be able to change your login or TFA settings without deleting the Intergration.
+- You will be able to fine tune with the [Further Configuration](#fursther-) settings.
+- You can comment out the original `yaml` entries.
+- The import enables the `prefix with _aarlo` to keep the naming identical.
+- All component services are now in the `aarlo` domain.
+- The `pyaarlo` component is now installed via `pip` and not included with the Integration.
+
+I wasn't willing to move some of the more esoteric configuration items into the `config flow` mechanisms, if you had any configured they will appear in the `/config/aarlo.yaml` file.
+
+# Advanced Configuration
+
+## Back Ends
+
+Starting with `0.8` the Integration should be smart enough to work out which back end to use. But if you find yourself running into problems like missing motion detection events or missing sensor settings you can manually override the setting. Change this setting in `/config/aarlo.yaml`.
+
+```yaml
+aarlo:
+  # This forces the SSE backend
+  backend: sse
+```
+
+```yaml
+aarlo:
+  # This forces the MQTT backend
+  backend: mqtt
+```
+
+Removing the setting make it automatic.
+
+## Cloud Flare
+
+## Two Factor Authentication
+
+
+# Bug Reports
+
+## Enabling Debug
+
+## What to Include
+
+## Encrypting the Output
+
+# FAQ
+
+<a name="known-limitations"></a>
+# Known Limitations
+This component was written by reverse engineering the _APIs_ used on the [Arlo Camera](https://my.arlo.com/#/home) web page.
+
+These are general limitations:
+- _There is no Documentation_; I, and others, have had to reverse engineer the protocol, and for the most part this is easy enough once I get the packets...
+- _but I don't have access to all the equipment_; so I rely on users to provide the device information and packets for me. The _Reverse Engineering_ section gives you instructions on how to get these packets. Or, if you are feeling brave, you can temporarily share the device with me.
+- _and Arlo likes to Change Things_; this all becomes more problematic when _Arlo_ decides to change how things work, one minute things work and the next minute things break, unfortunately it has to break before I can fix it.
+
+These are limitations verses the website:
+- _Cloud Flare_; _Aarlo_ has to bypass the 'not-a-robot' checks of _Cloud Flare_ to login, this works most of the time but _Arlo_ will change their back-end occasionally and break it. There are settings in the _advanced configuration_ you can change to help with this. *And yes, this can be a pain to get working*.
+
+These are limitations versus the mobile application:
+- _Object Detection_; the mobile application will let you know almost immediately what triggered the motion event, this is not possible with the website _APIs_.
+- _Timeouts_; the website doesn't feel like it was designed for persistent connections so _Aarlo_ has a lot of code inside to try to mitigate this. But occasionally you might miss an event. There are settings in the _advanced configuration_ you can change to help with this.
+
+The last two can be summed up as `if the API doesn't support it, neither can the component.` Bear that in mine when asking for new feature requests.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # hass-aarlo
 
 ---
