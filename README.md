@@ -17,7 +17,7 @@ _Aarlo_ is a custom component for [Home  Assistant](https://www.home-assistant.i
 
 The integration uses the _APIs_ provided by the [Arlo Camera Website](https://my.arlo.com/#/home) and there are several limitations to this. See the [Known Limitations](#known-limitatons) section for further details.
 
-If you encounter an issue then look at the [FAQ](#faq) section to see if it has a known problem and has a workaround or fix. If not, look at the [Bug Report](#bug-report) section for information on how to generate debug logs and create a debug report.
+If you encounter an issue then look at the [FAQ](#faq) section to see if it has a known problem and has a workaround or fix. If not, look at the [Bug Report](#bug-reports) section for information on how to generate debug logs and create a debug report.
 
 ## Notes
 
@@ -53,7 +53,7 @@ The dedicated _Aarlo_ account needs admin access to set the alarm levels and rea
 
 See [the _Arlo_ documentation](https://kb.arlo.com/000062933/How-do-I-add-friends-on-my-Arlo-Secure-app-Arlo-Secure-4-0#:~:text=To%20add%20a%20friend%20to%20your%20Arlo%20account%3A&text=Tap%20or%20click%20to%20add,grant%20the%20user%20additional%20privileges.) for further instructions.
 
-You need to enable two factor authentication. Set up an email address to receive the verification code. _Aarlo_ supports other _TFA_ mechanisms but email is the easiest to use. See the [Two Factor Authentication](#two%20factor%20authentication) section later for more details.
+You need to enable two factor authentication. Set up an email address to receive the verification code. _Aarlo_ supports other _TFA_ mechanisms but email is the easiest to use. See the [Two Factor Authentication](#two-factor-authentication) section later for more details.
 
 # Installing the Integration
 
@@ -188,7 +188,7 @@ If you are coming from an early there are several things to note:
 
 - Your configuration will be imported into the `config flow` mechanism. All your devices will appear on the integration page.
 - You will not be able to change your login or TFA settings without deleting the Intergration.
-- You will be able to fine tune with the [Further Configuration](#Further%20Configuration) settings.
+- You will be able to fine tune with the [Further Configuration](#further-configuration) settings.
 - You can comment out the original `yaml` entries.
 - The import enables the `prefix with _aarlo` to keep the naming identical.
 - All component services are now in the `aarlo` domain.
@@ -200,7 +200,10 @@ I wasn't willing to move some of the more esoteric configuration items into the 
 
 ## Back Ends
 
-_Arlo_ will use either [SSE](https://en.wikipedia.org/wiki/Server-sent_events) or [MQTT](https://en.wikipedia.org/wiki/MQTT) to signal events to _Aarlo_. I'm not fully sure of the mechanism which determine which gets chosen but I know adding or removing a `user_agent` will switch between the two.
+_Arlo_ will use either [SSE](https://en.wikipedia.
+org/wiki/Server-sent_events) or [MQTT](https://en.wikipedia.org/wiki/MQTT) to signal events to _Aarlo_. I'm not fully sure of the mechanism which determines which gets chosen but I know adding or removing a `user_agent` will switch between the two.
+
+### Configuration
 
 Starting with the `0.8` release _Aarlo_ should be smart enough to work out which back end to use. But if you find yourself running into problems, like missing motion detection events or missing sensor value updates you can manually override the setting. Change this setting in `/config/aarlo.yaml`.
 
@@ -221,7 +224,7 @@ aarlo:
 
 ```yaml
 aarlo:
-  # This forces the Aarlo to choose
+  # This forces Aarlo to choose
   backend: auto
 ```
 
@@ -242,6 +245,64 @@ _Arlo_ recently updated the response they send to the `session/v3` API requests 
 If you enable verbose debugging your should be able to find this value in the _Home Assistant_ logs.
 
 ## Cloud Flare
+
+_Arlo_ uses _Cloud Flare_ anti-bot protection to the _Arlo_ website login. This service doesn't work well with the _Python Requests_ package (or how _Aarlo_ uses those requests, I'm not too sure).
+
+If you see the following errors you are running into _Cloud Flare_ issues.
+
+```  
+2021-06-03 13:28:32 WARNING (SyncWorker_4) [pyaarlo] request-error=CloudflareChallengeError  
+```  
+
+This problem affects me, and I'm constantly trying to refine the code.
+
+### How We Work Around This
+
+_Aarlo_ does several things to work around this:
+
+- It uses the [cloudscraper](https://pypi.org/project/cloudscraper/) module to wrap the login requests to _Arlo_. After the login is complete _cloudscraper_ is not needed.
+- It mimics the official website requests as closely as possible, down to the `Header` level.
+- It will cache successful login credentials for up to 2 weeks so when you restart _Home Assistant_ _Aarlo_ won't need to login again.
+
+### Configuration
+
+But, if you are still seeing login issues there are several configuration items you can try.
+
+You can try a different user agent. This is configured in `/config/aarlo.yaml`:
+
+```yaml
+aarlo:
+  # Change the user agent. It can be either arlo, iphone, ipad, mac, firefox or linux
+  #  or random. random will change it each time it tries to login
+  user_agent: linux
+
+  # Or use a custom user agent, everything after the ! will be used
+  user_agent: !this-is-a-custom-user-agent
+```
+
+You can add a `Source` header along with the login request. I have one site that needs this and one that doesn't. _I think it might be user agent related._
+
+```yaml
+aarlo:
+  # This adds the following header "Source: arloCamWeb"
+  send_source: true
+```
+
+You can select different _ecdh_ curves to use. This topic is out of the scope of this document, see [here](https://github.com/venomous/cloudscraper#cryptography) for an explanation.
+
+```yaml
+aarlo:
+  # Make this curve the first choice. You can only enter 1 choice.
+  ecdh_curve: secp384r1
+```
+
+You can modify `/etc/hosts` to point to a specific _Arlo_ web server
+
+```
+# Remove the # to force the request to go to a particular cloudflare server
+#104.18.30.98 ocapi-app.arlo.com  
+#104.18.31.98 ocapi-app.arlo.com  
+```  
 
 ## Two Factor Authentication
 
@@ -273,7 +334,8 @@ These are limitations versus the mobile application:
 - _Object Detection_; the mobile application will let you know almost immediately what triggered the motion event, this is not possible with the website _APIs_.
 - _Timeouts_; the website doesn't feel like it was designed for persistent connections so _Aarlo_ has a lot of code inside to try to mitigate this. But occasionally you might miss an event. There are settings in the _advanced configuration_ you can change to help with this.
 
-The last two can be summed up as `if the API doesn't support it, neither can the component.` Bear that in mine when asking for new feature requests.
+The last two can be summed up as `if the WEB API doesn't support it, neither can the component.` Bear that in mine when asking for new feature requests.
+
 
 
 
