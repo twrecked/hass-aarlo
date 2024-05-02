@@ -11,8 +11,11 @@ _Aarlo_ provides, amongst other things:
 - Enhanced state notifications.
 - Media player support for select devices.
 
+# Table Of Contents
+
 <!-- TOC -->
 * [**An Arlo Home Assistant Integration**](#an-arlo-home-assistant-integration)
+* [Table Of Contents](#table-of-contents)
 * [Introduction](#introduction)
   * [Notes](#notes)
   * [Thanks](#thanks)
