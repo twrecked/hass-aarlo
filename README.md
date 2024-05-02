@@ -398,7 +398,39 @@ Before you send me the debug you should encrypt it.  You can encrypt your output
 
 This page will obscure the logs so only I can read them, I'm the sole possessor of the private key to decrypt it, but be wary, along with serial number it might include your account and password information. You can obscure those before encrypting, I never need them.
 
-# Adding New Devices
+# Reverse Engineering
+
+## Figuring out what Aarlo Needs to Do
+
+I don't own every piece _Arlo_ of equipment so sometimes, when things go wrong or new equipment is released, I need to see what _Arlo_ actually expects this code to send and what this code can expect back from _Arlo_. _Aarlo_ simulates a web browser connection so you can find out what is expected by using the browser _Developer Tools_.
+
+_This instructions are for Chrome but most browsers (I hope!) have similar functionality._
+
+- Open your browser.
+- Go to [the Arlo camera website](https://my.arlo.com/#/home).
+- With the _Arlo_ website open enable you browser's developer tools. On Chrome you click the three dots in the upper right corner, then select `More Tools` and finally select `Developer Tools`. You can also use the shortcut `CTRL+SHIFT+I`.
+- Select the `Network` tab in the newly opened window.
+- Now log in to the _Arlo_ website.
+
+When you log in the data passed between the browser and _Arlo_ website will start to appear, and keep appearing, in this tab. If you click on an entry under `Name` you can examine the packets in more detail.
+
+- The `Headers` tab shows you what was sent in the headers of the request.
+- The `Payload` tabs shows you what was sent in the body of the request
+- The `Preview` tab shows the reply sent back from _Arlo_.
+
+![Network TAB](images/chrome-2.png)
+
+If you hover over the field under `name` a pop up will display the full URL the request was sent to.
+
+## SSE Stream
+
+Look for a URL containing the word `subscribe`, this will be the even stream _Arlo_ sends back to the web page. As you click buttons on the web page more items will appear in this list. I can use this information to determine how to parse response packets for cases I don't yet handle.
+
+## Supporting New Features
+
+For example, _Arlo_ creates a new device with a `WOOHOO` button, I don't posses such a device but you'd like the `WOOHOO` functionality implementing in _Aarlo_. What I need is the sequence of packets and their replies when you press the button. The only real way to do this is to press the button and see what new packets appear in the `Name` tab.
+
+You will then need to copy and paste them into a bug report on _GitHub_. See [the previous section](#encrypting-the-output) on how to hide sensitive data.
 
 # FAQ
 
@@ -418,6 +450,7 @@ These are limitations versus the mobile application:
 - _Timeouts_; the website doesn't feel like it was designed for persistent connections so _Aarlo_ has a lot of code inside to try to mitigate this. But occasionally you might miss an event. There are settings in the _advanced configuration_ you can change to help with this.
 
 The last two can be summed up as `if the WEB API doesn't support it, neither can the component.` Bear that in mine when asking for new feature requests.
+
 
 
 
