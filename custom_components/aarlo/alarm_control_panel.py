@@ -32,13 +32,12 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
     STATE_ALARM_TRIGGERED,
 )
-from homeassistant.core import callback, HassJob
+from homeassistant.core import HomeAssistant, HassJob
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import HomeAssistantType
 
 from pyaarlo.constant import (
     MODE_KEY,
@@ -100,7 +99,7 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
 
 
 async def async_setup_entry(
-        hass: HomeAssistantType,
+        hass: HomeAssistant,
         _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:
@@ -154,11 +153,11 @@ async def async_setup_entry(
 
     # Websockets.
     if base_stations_with_sirens:
-        hass.components.websocket_api.async_register_command(
-            WS_TYPE_SIREN_ON, websocket_siren_on, SCHEMA_WS_SIREN_ON
+        websocket_api.async_register_command(
+            hass, WS_TYPE_SIREN_ON, websocket_siren_on, SCHEMA_WS_SIREN_ON
         )
-        hass.components.websocket_api.async_register_command(
-            WS_TYPE_SIREN_OFF, websocket_siren_off, SCHEMA_WS_SIREN_OFF
+        websocket_api.async_register_command(
+            hass, WS_TYPE_SIREN_OFF, websocket_siren_off, SCHEMA_WS_SIREN_OFF
         )
 
 

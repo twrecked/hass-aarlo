@@ -26,10 +26,9 @@ from homeassistant.const import (
     ATTR_BATTERY_CHARGING,
     ATTR_BATTERY_LEVEL,
 )
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import HomeAssistantType
 
 from pyaarlo.constant import (
     BRIGHTNESS_KEY,
@@ -64,7 +63,7 @@ LIGHT_EFFECT_NONE = "none"
 
 
 async def async_setup_entry(
-        hass: HomeAssistantType,
+        hass: HomeAssistant,
         _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:
