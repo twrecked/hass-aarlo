@@ -11,7 +11,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     CONF_MONITORED_CONDITIONS,
-    TEMP_CELSIUS,
+    UnitOfTemperature,
 )
 from homeassistant.core import callback
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
@@ -49,7 +49,7 @@ SENSOR_TYPES = {
     "captured_today": ["Captured Today", None, "file-video", CAPTURED_TODAY_KEY],
     "battery_level": ["Battery Level", "%", "battery-50", BATTERY_KEY],
     "signal_strength": ["Signal Strength", None, "signal", SIGNAL_STR_KEY],
-    "temperature": ["Temperature", TEMP_CELSIUS, "thermometer", TEMPERATURE_KEY],
+    "temperature": ["Temperature", UnitOfTemperature.CELSIUS, "thermometer", TEMPERATURE_KEY],
     "humidity": ["Humidity", "%", "water-percent", HUMIDITY_KEY],
     "air_quality": ["Air Quality", "ppm", "biohazard", AIR_QUALITY_KEY],
 }

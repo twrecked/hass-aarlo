@@ -200,11 +200,11 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
     # Websockets.
     if base_stations_with_sirens:
-        hass.components.websocket_api.async_register_command(
-            WS_TYPE_SIREN_ON, websocket_siren_on, SCHEMA_WS_SIREN_ON
+        websocket_api.async_register_command(
+            hass, WS_TYPE_SIREN_ON, websocket_siren_on, SCHEMA_WS_SIREN_ON
         )
-        hass.components.websocket_api.async_register_command(
-            WS_TYPE_SIREN_OFF, websocket_siren_off, SCHEMA_WS_SIREN_OFF
+        websocket_api.async_register_command(
+            hass, WS_TYPE_SIREN_OFF, websocket_siren_off, SCHEMA_WS_SIREN_OFF
         )
 
 

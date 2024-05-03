@@ -312,33 +312,33 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         )
 
     # Websockets
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_VIDEO_URL, websocket_video_url, SCHEMA_WS_VIDEO_URL
+    websocket_api.async_register_command(
+        hass, WS_TYPE_VIDEO_URL, websocket_video_url, SCHEMA_WS_VIDEO_URL
     )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_LIBRARY, websocket_library, SCHEMA_WS_LIBRARY
+    websocket_api.async_register_command(
+        hass, WS_TYPE_LIBRARY, websocket_library, SCHEMA_WS_LIBRARY
     )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_STREAM_URL, websocket_stream_url, SCHEMA_WS_STREAM_URL
+    websocket_api.async_register_command(
+        hass, WS_TYPE_STREAM_URL, websocket_stream_url, SCHEMA_WS_STREAM_URL
     )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_SNAPSHOT_IMAGE, websocket_snapshot_image, SCHEMA_WS_SNAPSHOT_IMAGE
+    websocket_api.async_register_command(
+        hass, WS_TYPE_SNAPSHOT_IMAGE, websocket_snapshot_image, SCHEMA_WS_SNAPSHOT_IMAGE
     )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_REQUEST_SNAPSHOT, websocket_request_snapshot, SCHEMA_WS_REQUEST_SNAPSHOT
+    websocket_api.async_register_command(
+        hass, WS_TYPE_REQUEST_SNAPSHOT, websocket_request_snapshot, SCHEMA_WS_REQUEST_SNAPSHOT
     )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_VIDEO_DATA, websocket_video_data, SCHEMA_WS_VIDEO_DATA
+    websocket_api.async_register_command(
+        hass, WS_TYPE_VIDEO_DATA, websocket_video_data, SCHEMA_WS_VIDEO_DATA
     )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_STOP_ACTIVITY, websocket_stop_activity, SCHEMA_WS_STOP_ACTIVITY
+    websocket_api.async_register_command(
+        hass, WS_TYPE_STOP_ACTIVITY, websocket_stop_activity, SCHEMA_WS_STOP_ACTIVITY
     )
     if cameras_with_siren:
-        hass.components.websocket_api.async_register_command(
-            WS_TYPE_SIREN_ON, websocket_siren_on, SCHEMA_WS_SIREN_ON
+        websocket_api.async_register_command(
+            hass, WS_TYPE_SIREN_ON, websocket_siren_on, SCHEMA_WS_SIREN_ON
         )
-        hass.components.websocket_api.async_register_command(
-            WS_TYPE_SIREN_OFF, websocket_siren_off, SCHEMA_WS_SIREN_OFF
+        websocket_api.async_register_command(
+            hass, WS_TYPE_SIREN_OFF, websocket_siren_off, SCHEMA_WS_SIREN_OFF
         )
 
 
