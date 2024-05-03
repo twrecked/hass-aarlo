@@ -67,7 +67,9 @@ The integration uses the _APIs_ provided by the [Arlo Camera Website](https://my
 
 If you encounter an issue then look at the [FAQ](#faq) section to see if it has a known problem and has a workaround or fix. If not, look at the [Bug Report](#bug-reports) section for information on how to generate debug logs and create a debug report.
 
-The old _README_ is still available [here](https://github.com/twrecked/hass-aarlo/blob/doc-updates/README-202405.md).
+You can read about advanced topics [here](README-advanced.md)
+
+The old _README_ is still available [here](README-202405.md).
 
 ## Notes
 
@@ -135,7 +137,7 @@ However you install the source code you know need to add the integration into _H
 ![The Image View](/images/config-flow-01.png?raw=true)
 
 | Field                | Value                                    |
-| ---                  | ---                                      |
+|----------------------|------------------------------------------|
 | Username             | Your _Arlo_ account username             |
 | Password             | Your _Arlo_ account password             |
 | Two Factor Mechanism | Select IMAP                              |
@@ -161,7 +163,7 @@ Fine tune the alarm settings:
 
 
 | Field                | Value                                                    |
-| ---                  | ---                                                      |
+|----------------------|----------------------------------------------------------|
 | Alarm/disarm Code    | Enter a code if needed, otherwise leave as default       |
 | Disarmed mode name   | Change if your Arlo account has a custom disarmed name   |
 | Home mode name       | Change if your Arlo account has a custom home mode name  |
@@ -182,7 +184,7 @@ Determine which binary sensors are available:
 ![The Image View](/images/config-flow-04.png?raw=true)
 
 | Field               | Value                                   |
-| ---                 | ---                                     |
+|---------------------|-----------------------------------------|
 | Sound detection     | Enable microphones on cameras           |
 | Motion detection    | Enable motion detection on cameras      |
 | Doorbell presses    | Enable doorbell buttons                 |
@@ -202,7 +204,7 @@ Not all sensors are available on all devices.
 Determine which sensors are available:
 
 | Field                                     | Value                                                           |
-| ---                                       | ---                                                             |
+|-------------------------------------------|-----------------------------------------------------------------|
 | Last capture time                         | A per camera sensor indicating when the last recording was made |
 | Total number of cameras detected          | Integer value of camera count                                   |
 | Recent activity detected                  | Was the camera recently active                                  |
@@ -222,7 +224,7 @@ Enable miscellaneous switches:
 ![The Image View](/images/config-flow-06.png?raw=true)
 
 | Field                                       | Value                                                |
-| ---                                         | ---                                                  |
+|---------------------------------------------|------------------------------------------------------|
 | Switches to turn sirens on                  | Provide a switch to turn individual sirens on        |
 | A switch turn all sirens on                 | Provide a switch to turn all sirens on               |
 | Allow sirens to be turned off               | Allow sirens to be turned off by switch              |
@@ -388,7 +390,7 @@ If you find you can't log in to your _IMAP_ account check the application passwo
 The following servers are known to work:
 
 | Service | Host Name           |
-| ---     | ---                 |
+|---------|---------------------|
 | Gmail   | imap.gmail.com      |
 | Yahoo!  | imap.mail.yahoo.com |
 
@@ -396,7 +398,7 @@ The following servers are known to work:
 
 Follow the two factor authentication instructions and add and set up a _PUSH_ verification method.
 
-## Configuration
+### Configuration
 
 If you need to change the cipher list passed to the IMAP client you specify it with the following option. You shouldn't need to do this. see [the openssl man page](https://www.openssl.org/docs/man1.1.1/man1/ciphers.html) for more information.
 
@@ -488,14 +490,23 @@ You will then need to copy and paste them into a bug report on _GitHub_. See [th
 
 # FAQ
 
-_I need to fill this out_
+### My device doesn't appear...
+Are you sure you've shared the device? Log in to the [Arlo Web Page](https://my.arlo.com/#/home) and make sure it appears there. If it does then turn on debug logs and raise a bug report with them.
+
+### I'm not getting status updates...
+Make sure you have given the account you share the devices with _Admin Access_, it is needed for things like battery or signal strength updates.
+
+### I'm not seeing my base stations
+Make sure you have given the account you share the devices with _Admin Access_, it is needed to share the base stations.
+
+Are you using the new _Arlo_ location based interface, in this case you can only arm or disarm locations and not individual devices.
 
 # Supported Devices
 
 This is a list of devices that are known to work. Most _Arlo_ devices will work even if not explicitly mentioned in this list although they might have limited functionality.
 
 | Model   | Name                     | Features                               |
-| ---     | ---                      | ---                                    |
+|---------|--------------------------|----------------------------------------|
 | ABC1000 | Baby                     | motion, audio, environment, cry        |
 | AVD1001 | Wired Video Doorbell     | motion                                 |
 | AVD2001 | Essential Video Doorbell | motion, siren                          |
