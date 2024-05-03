@@ -16,10 +16,9 @@ from homeassistant.components.siren import (
 from homeassistant.components.siren.const import (
     SirenEntityFeature
 )
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import slugify
 
 from pyaarlo.constant import (
@@ -36,7 +35,7 @@ DEPENDENCIES = [COMPONENT_DOMAIN]
 
 
 async def async_setup_entry(
-        hass: HomeAssistantType,
+        hass: HomeAssistant,
         _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:

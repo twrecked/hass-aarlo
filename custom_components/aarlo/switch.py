@@ -20,12 +20,11 @@ from homeassistant.components.switch import (
     SwitchEntity
 )
 from homeassistant.const import ATTR_ATTRIBUTION
-from homeassistant.core import callback, HassJob
+from homeassistant.core import HomeAssistant, HassJob
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.util import slugify
 
 from pyaarlo.constant import (
@@ -61,7 +60,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 
 async def async_setup_entry(
-        hass: HomeAssistantType,
+        hass: HomeAssistant,
         _entry: ConfigEntry,
         async_add_entities: Callable[[list], None]
 ) -> None:
