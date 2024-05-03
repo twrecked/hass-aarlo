@@ -55,6 +55,7 @@ _Aarlo_ provides, amongst other things:
   * [SSE Stream](#sse-stream)
   * [Supporting New Features](#supporting-new-features)
 * [FAQ](#faq)
+* [Supported Devices](#supported-devices)
 * [Known Limitations](#known-limitations)
 <!-- TOC -->
 
@@ -488,6 +489,33 @@ You will then need to copy and paste them into a bug report on _GitHub_. See [th
 # FAQ
 
 _I need to fill this out_
+
+# Supported Devices
+
+This is a list of devices that are known to work. Most _Arlo_ devices will work even if not explicitly mentioned in this list although they might have limited functionality.
+
+| Model   | Name                     | Notes |
+| ---     | ---                      | ---   |
+| ABC1000 | Baby                     |       |
+| AVD1001 | Wired Video Doorbell     |       |
+| AVD2001 | Essential Video Doorbell |       |
+| AVD3001 | Wired Video Doorbell HD  |       |
+| AVD4001 | Wired Video Doorbell 2K  |       |
+| FB1001  | Pro 3 Floodlight         |       |
+| MS1001  | All in 1 Sensor          |       |
+| VMB3010 | Base Station             |       |
+| VMB4000 | Base Station 2           |       |
+| VMC2030 | Essential                |       |
+| VMC2040 | Essential Indoor         |       |
+| VMC3030 | HD                       |       |
+| VMC3052 | Essential XL             |       |
+| VMC4030 | Pro 2                    |       |
+| VMC4040 | Pro 3                    |       |
+| VMC4041 | Pro 4                    |       |
+| VMC4060 | Pro 5                    |       |
+| VMC5040 | Ultra                    |       |
+| VML2030 | Go 2                     |       |
+| VML4030 | Go                       |       |
 
 # Known Limitations
 This component was written by reverse engineering the _APIs_ used on the [Arlo Camera](https://my.arlo.com/#/home) web page.
