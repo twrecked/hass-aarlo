@@ -17,11 +17,10 @@ from homeassistant.components.binary_sensor import (
     DOMAIN as BINARY_SENSOR_DOMAIN
 )
 from homeassistant.const import ATTR_ATTRIBUTION, CONF_MONITORED_CONDITIONS
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import HomeAssistantType
 
 from pyaarlo.constant import (
     ALS_STATE_KEY,
@@ -82,7 +81,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 
 async def async_setup_entry(
-        hass: HomeAssistantType,
+        hass: HomeAssistant,
         _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:

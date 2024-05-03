@@ -23,10 +23,9 @@ from homeassistant.components.media_player.const import (
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
 )
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import HomeAssistantType
 
 from pyaarlo.constant import MEDIA_PLAYER_KEY
 
@@ -67,7 +66,7 @@ SUPPORT_ARLO = MediaPlayerEntityFeature(
 
 
 async def async_setup_entry(
-        hass: HomeAssistantType,
+        hass: HomeAssistant,
         _entry: ConfigEntry,
         async_add_entities: Callable[[list], None],
 ) -> None:
