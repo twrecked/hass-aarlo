@@ -494,28 +494,30 @@ _I need to fill this out_
 
 This is a list of devices that are known to work. Most _Arlo_ devices will work even if not explicitly mentioned in this list although they might have limited functionality.
 
-| Model   | Name                     | Notes |
-| ---     | ---                      | ---   |
-| ABC1000 | Baby                     |       |
-| AVD1001 | Wired Video Doorbell     |       |
-| AVD2001 | Essential Video Doorbell |       |
-| AVD3001 | Wired Video Doorbell HD  |       |
-| AVD4001 | Wired Video Doorbell 2K  |       |
-| FB1001  | Pro 3 Floodlight         |       |
-| MS1001  | All in 1 Sensor          |       |
-| VMB3010 | Base Station             |       |
-| VMB4000 | Base Station 2           |       |
-| VMC2030 | Essential                |       |
-| VMC2040 | Essential Indoor         |       |
-| VMC3030 | HD                       |       |
-| VMC3052 | Essential XL             |       |
-| VMC4030 | Pro 2                    |       |
-| VMC4040 | Pro 3                    |       |
-| VMC4041 | Pro 4                    |       |
-| VMC4060 | Pro 5                    |       |
-| VMC5040 | Ultra                    |       |
-| VML2030 | Go 2                     |       |
-| VML4030 | Go                       |       |
+| Model   | Name                     | Features                               |
+| ---     | ---                      | ---                                    |
+| ABC1000 | Baby                     | motion, audio, environment, cry        |
+| AVD1001 | Wired Video Doorbell     | motion                                 |
+| AVD2001 | Essential Video Doorbell | motion, siren                          |
+| AVD3001 | Wired Video Doorbell HD  | motion, siren                          |
+| AVD4001 | Wired Video Doorbell 2K  | motion, siren                          |
+| FB1001  | Pro 3 Floodlight         | floodlight                             |
+| MS1001  | All in 1 Sensor          | motion, open, wet, tamper, temperature |
+| VMB3010 | Base Station             |                                        |
+| VMB4000 | Base Station 2           | siren                                  |
+| VMB4500 | Pro Base Station         | siren                                  |
+| VMC2030 | Essential Camera         | motion, audio, siren, spotlight        |
+| VMC2040 | Essential Indoor Camera  | motion, audio, siren no battery        |
+| VMC3030 | HD Camera                | motion, audio                          |
+| VMC3040 | Q Camera                 | motion, audio                          |
+| VMC3052 | Essential XL Camera      | motion, audio, spotlight               |
+| VMC4030 | Pro 2 Camera             | motion, audio                          |
+| VMC4040 | Pro 3 Camera             | motion, audio, siren, spotlight        |
+| VMC4041 | Pro 4 Camera             | motion, audio, siren, spotlight        |
+| VMC4060 | Pro 5 Camera             | motion, audio, siren, spotlight        |
+| VMC5040 | Ultra Camera             | motion, audio, siren, spotlight        |
+| VML2030 | Go 2 Camera              | motion, audio                          |
+| VML4030 | Go Camera                | motion                                 |
 
 # Known Limitations
 This component was written by reverse engineering the _APIs_ used on the [Arlo Camera](https://my.arlo.com/#/home) web page.
