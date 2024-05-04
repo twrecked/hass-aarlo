@@ -44,7 +44,7 @@ _Aarlo_ provides, amongst other things:
       * [Application Passwords](#application-passwords)
       * [IMAP Servers](#imap-servers)
     * [PUSH](#push)
-  * [Configuration](#configuration-2)
+    * [Configuration](#configuration-2)
 * [Bug Reports](#bug-reports)
   * [What to Include](#what-to-include)
   * [Enabling Debug](#enabling-debug)
@@ -55,6 +55,9 @@ _Aarlo_ provides, amongst other things:
   * [SSE Stream](#sse-stream)
   * [Supporting New Features](#supporting-new-features)
 * [FAQ](#faq)
+    * [My device doesn't appear...](#my-device-doesnt-appear)
+    * [I'm not getting status updates...](#im-not-getting-status-updates)
+    * [I'm not seeing my base stations](#im-not-seeing-my-base-stations)
 * [Supported Devices](#supported-devices)
 * [Known Limitations](#known-limitations)
 <!-- TOC -->
