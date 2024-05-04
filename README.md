@@ -176,6 +176,7 @@ Fine tune the alarm settings:
 
 _Night Mode_; _Arlo_ will not have one of these unless you create it
 
+If you need to clear the alarm code enter `no code needed`. _I will look to make this accept a blank entry..._
 
 ### Binary Sensors Screen
 
