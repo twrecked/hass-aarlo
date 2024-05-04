@@ -242,10 +242,10 @@ SWITCH_SCHEMA = vol.Schema({
 })
 
 DEFAULT_OPTIONS = {
-    "alarm_control_panel_disarmed_mode_name": "disarmed",
-    "alarm_control_panel_home_mode_name": "home",
-    "alarm_control_panel_away_mode_name": "away",
-    "alarm_control_panel_night_mode_name": "night",
+    "alarm_control_panel_disarmed_mode_name": STATE_ALARM_DISARMED,
+    "alarm_control_panel_home_mode_name": STATE_ALARM_ARLO_HOME,
+    "alarm_control_panel_away_mode_name": STATE_ALARM_ARLO_ARMED,
+    "alarm_control_panel_night_mode_name": STATE_ALARM_ARLO_NIGHT,
     "alarm_control_panel_code_arm_required": False,
     "alarm_control_panel_code_disarm_required": False,
     "alarm_control_panel_trigger_time": 60,

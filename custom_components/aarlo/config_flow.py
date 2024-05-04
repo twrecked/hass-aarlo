@@ -5,7 +5,11 @@ import voluptuous as vol
 from typing import Any
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    STATE_ALARM_DISARMED
+)
 from homeassistant.core import callback
 from homeassistant.helpers.selector import SelectOptionDict, \
     SelectSelector, SelectSelectorConfig, SelectSelectorMode
@@ -19,6 +23,9 @@ from .const import (
     CONF_TFA_TYPE,
     CONF_TFA_USERNAME,
     COMPONENT_DOMAIN,
+    STATE_ALARM_ARLO_ARMED,
+    STATE_ALARM_ARLO_HOME,
+    STATE_ALARM_ARLO_NIGHT
 )
 from .cfg import UpgradeCfg
 
@@ -200,13 +207,17 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional("alarm_control_panel_code",
                              default=options.get("alarm_control_panel_code", "no code needed")): str,
                 vol.Optional("alarm_control_panel_disarmed_mode_name",
-                             default=options.get("alarm_control_panel_disarmed_mode_name", "disarmed")): str,
+                             default=options.get("alarm_control_panel_disarmed_mode_name",
+                                                 STATE_ALARM_DISARMED)): str,
                 vol.Optional("alarm_control_panel_home_mode_name",
-                             default=options.get("alarm_control_panel_home_mode_name", "home")): str,
+                             default=options.get("alarm_control_panel_home_mode_name",
+                                                 STATE_ALARM_ARLO_HOME)): str,
                 vol.Optional("alarm_control_panel_away_mode_name",
-                             default=options.get("alarm_control_panel_away_mode_name", "away")): str,
+                             default=options.get("alarm_control_panel_away_mode_name",
+                                                 STATE_ALARM_ARLO_ARMED)): str,
                 vol.Optional("alarm_control_panel_night_mode_name",
-                             default=options.get("alarm_control_panel_night_mode_name", "night")): str,
+                             default=options.get("alarm_control_panel_night_mode_name",
+                                                 STATE_ALARM_ARLO_NIGHT)): str,
                 vol.Optional("alarm_control_panel_code_arm_required",
                              default=options.get("alarm_control_panel_code_arm_required", False)): bool,
                 vol.Optional("alarm_control_panel_code_disarm_required",
