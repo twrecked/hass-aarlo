@@ -246,9 +246,7 @@ If you are coming from an early there are several things to note:
 - All component services are now in the `aarlo` domain.
 - The `pyaarlo` component is now installed via `pip` and not included with the Integration.
 
-I wasn't willing to move some of the more esoteric configuration items into the `config flow` mechanisms, if you had any configured they will appear in the `/config/aarlo.yaml` file.
-
-See [here](README-advanced.md) for more on these options.
+I wasn't willing to move some of the more esoteric configuration items into the `config flow` mechanisms, if you had any configured they will appear in the `/config/aarlo.yaml` file. See [here](README-advanced.md) for more on these options.
 
 # Advanced Configuration
 
