@@ -55,9 +55,6 @@ _Aarlo_ provides, amongst other things:
   * [SSE Stream](#sse-stream)
   * [Supporting New Features](#supporting-new-features)
 * [FAQ](#faq)
-    * [My device doesn't appear...](#my-device-doesnt-appear)
-    * [I'm not getting status updates...](#im-not-getting-status-updates)
-    * [I'm not seeing my base stations](#im-not-seeing-my-base-stations)
 * [Supported Devices](#supported-devices)
 * [Known Limitations](#known-limitations)
 <!-- TOC -->
@@ -493,6 +490,9 @@ You will then need to copy and paste them into a bug report on _GitHub_. See [th
 
 # FAQ
 
+### Can't I just share an account with the App
+No. They spend all their timing arguing about who has control. This is an _Arlo_ limitation.
+
 ### My device doesn't appear...
 Are you sure you've shared the device? Log in to the [Arlo Web Page](https://my.arlo.com/#/home) and make sure it appears there. If it does then turn on debug logs and raise a bug report with them.
 
@@ -503,6 +503,20 @@ Make sure you have given the account you share the devices with _Admin Access_, 
 Make sure you have given the account you share the devices with _Admin Access_, it is needed to share the base stations.
 
 Are you using the new _Arlo_ location based interface, in this case you can only arm or disarm locations and not individual devices.
+
+### Do I need a subscription
+I'm not sure. I've always had one associated with the cameras I share so I don't know what works and doesn't.
+
+_Anybody know for sure?_
+
+### Streams take a Long Time
+They sure do. _Arlo_ doesn't work like _IP_ cameras and only records when motion is detected so asking it to start a stream involves talking to the _Arlo_ servers that talk to the camera at your house... it can take a few seconds to get things running. Streaming works something like this:
+
+```
+Camera ---> Arlo Cloud Servers --> Home Assistant --> Your Home Assistant Client
+```
+
+The video traffic has to travel out of your house and then back into it...
 
 # Supported Devices
 
@@ -535,6 +549,7 @@ This is a list of devices that are known to work. Most _Arlo_ devices will work 
 | VML4030 | Go Camera                 | motion                                 |
 
 # Known Limitations
+
 This component was written by reverse engineering the _APIs_ used on the [Arlo Camera](https://my.arlo.com/#/home) web page.
 
 These are general limitations:
