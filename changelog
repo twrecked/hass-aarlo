@@ -1,6 +1,7 @@
 aarlo
 0.8.1.2
   Fix alarm mode upgrade issue.
+  Bump pyaarlo revision
 0.8.1.1
   Fix some deprecated warnings.
 0.8.1
