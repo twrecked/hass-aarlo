@@ -426,7 +426,7 @@ If you run into problems please create a [bug report](https://github.com/twrecke
 
 ## Enabling Debug
 
-You turn on basic  _Aarlo_ debugging by changing the logging setting in `configuration.yaml`.
+You turn on basic _Aarlo_ debugging by changing the logging setting in `configuration.yaml`.
 
 ```yaml
 logger:
@@ -442,6 +442,8 @@ You can turn on verbose debugging by enabling logging and adding the following t
 aarlo:
   verbose_debug: true
 ```
+
+_Aarlo_ will write the debug logs to the standard _Home Assistant_ log file `config/home-assistant.log`.
 
 ## Encrypting the Output
 
