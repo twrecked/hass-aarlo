@@ -443,7 +443,7 @@ aarlo:
   verbose_debug: true
 ```
 
-_Aarlo_ will write the debug logs to the standard _Home Assistant_ log file `config/home-assistant.log`.
+_Aarlo_ will write the debug logs to the standard _Home Assistant_ log file `/config/home-assistant.log`.
 
 ## Encrypting the Output
 
