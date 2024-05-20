@@ -508,9 +508,9 @@ Make sure you have given the account you share the devices with _Admin Access_, 
 Are you using the new _Arlo_ location based interface, in this case you can only arm or disarm locations and not individual devices.
 
 ### Do I need a subscription
-I'm not sure. I've always had one associated with the cameras I share so I don't know what works and doesn't.
+No subscription is needed to see the feeds, but you will need one to see recording. 
 
-_Anybody know for sure?_
+At the time of writing (May 2024), there is no option to read local recordings. All others features works well.
 
 ### Streams take a Long Time
 They sure do. _Arlo_ doesn't work like _IP_ cameras and only records when motion is detected so asking it to start a stream involves talking to the _Arlo_ servers that talk to the camera at your house... it can take a few seconds to get things running. Streaming works something like this:
