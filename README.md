@@ -509,6 +509,7 @@ Are you using the new _Arlo_ location based interface, in this case you can only
 
 ### Do I need a subscription
 No subscription is needed to see the feeds, but you will need one to see recording. 
+
 At the time of writing (May 2024), there is no option to read local recordings. All others features works well.
 
 ### Streams take a Long Time
