@@ -101,7 +101,7 @@ If you aren't familiar with _Home Assistant_ I recommend visiting the  [Communit
 
 _Aarlo_ needs a dedicated _Arlo_ account. If you try to reuse an existing account, for example, the one you use on the _Arlo_ app on your phone, the app and this integration will constantly fight to log in. This is an _Arlo_ limitation.
 
-The dedicated _Aarlo_ account needs admin access to set the alarm levels and read certain status values.
+The dedicated _Aarlo_ account needs `Allow Access Rights` to be enabled to set the alarm levels and read certain status values.
 
 See [the _Arlo_ documentation](https://kb.arlo.com/000062933/How-do-I-add-friends-on-my-Arlo-Secure-app-Arlo-Secure-4-0#:~:text=To%20add%20a%20friend%20to%20your%20Arlo%20account%3A&text=Tap%20or%20click%20to%20add,grant%20the%20user%20additional%20privileges.) for further instructions.
 
@@ -246,6 +246,7 @@ If you are coming from an early there are several things to note:
 - The import enables the `prefix with _aarlo` to keep the naming identical.
 - All component services are now in the `aarlo` domain.
 - The `pyaarlo` component is now installed via `pip` and not included with the Integration.
+- You may experience log in difficulties, if you do try deleting `.aarlo/session.pickle`.
 
 I wasn't willing to move some of the more esoteric configuration items into the `config flow` mechanisms, if you had any configured they will appear in the `/config/aarlo.yaml` file. See [here](README-advanced.md) for more on these options.
 
