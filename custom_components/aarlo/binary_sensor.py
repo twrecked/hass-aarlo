@@ -54,7 +54,8 @@ DEPENDENCIES = [COMPONENT_DOMAIN]
 #  sensor_type: Home Assistant sensor type
 #    description: What the sensor does.
 #    class: Home Assistant sensor this represents
-#    main attribute: Pyaarlo capability that indicates this device provides this sensor
+#    main attributes: Pyaarlo capability that indicates this device provides this sensor, the
+#      first one is used for the capability check
 #    extra_attributes: Another attributes to watch for this sensor
 #    icon: Default ICON to use.
 SENSOR_TYPES_DESCRIPTION = 0
@@ -63,15 +64,15 @@ SENSOR_TYPES_MAIN_ATTR = 2
 SENSOR_TYPES_OTHER_ATTRS = 3
 SENSOR_TYPES_ICON = 4
 SENSOR_TYPES = {
-    "sound": ["Sound", BinarySensorDeviceClass.SOUND, AUDIO_DETECTED_KEY, [], None],
-    "motion": ["Motion", BinarySensorDeviceClass.MOTION, MOTION_DETECTED_KEY, [MOTION_STATE_KEY], None],
-    "ding": ["Ding", None, BUTTON_PRESSED_KEY, [SILENT_MODE_KEY], "mdi:doorbell"],
-    "cry": ["Cry", BinarySensorDeviceClass.SOUND, CRY_DETECTION_KEY, [], None],
-    "connectivity": ["Connected", BinarySensorDeviceClass.CONNECTIVITY, CONNECTION_KEY, [], None],
-    "contact": ["Open/Close", BinarySensorDeviceClass.OPENING, CONTACT_STATE_KEY, [], None],
-    "light": ["Light On", BinarySensorDeviceClass.LIGHT, ALS_STATE_KEY, [], None],
-    "tamper": ["Tamper", BinarySensorDeviceClass.TAMPER, TAMPER_STATE_KEY, [], None],
-    "leak": ["Moisture", BinarySensorDeviceClass.MOISTURE, WATER_STATE_KEY, [], None],
+    "sound": ["Sound", BinarySensorDeviceClass.SOUND, [AUDIO_DETECTED_KEY], [], None],
+    "motion": ["Motion", BinarySensorDeviceClass.MOTION, [MOTION_DETECTED_KEY, MOTION_STATE_KEY], [], None],
+    "ding": ["Ding", None, [BUTTON_PRESSED_KEY], [SILENT_MODE_KEY], "mdi:doorbell"],
+    "cry": ["Cry", BinarySensorDeviceClass.SOUND, [CRY_DETECTION_KEY], [], None],
+    "connectivity": ["Connected", BinarySensorDeviceClass.CONNECTIVITY, [CONNECTION_KEY], [], None],
+    "contact": ["Open/Close", BinarySensorDeviceClass.OPENING, [CONTACT_STATE_KEY], [], None],
+    "light": ["Light On", BinarySensorDeviceClass.LIGHT, [ALS_STATE_KEY], [], None],
+    "tamper": ["Tamper", BinarySensorDeviceClass.TAMPER, [TAMPER_STATE_KEY], [], None],
+    "leak": ["Moisture", BinarySensorDeviceClass.MOISTURE, [WATER_STATE_KEY], [], None],
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -100,19 +101,19 @@ async def async_setup_entry(
         sensor_value = SENSOR_TYPES[sensor_type]
         if sensor_type == "connectivity":
             for base in arlo.base_stations:
-                if base.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
+                if base.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
                     sensors.append(ArloBinarySensor(base, aarlo_config, sensor_type, sensor_value))
         for camera in arlo.cameras:
-            if camera.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
+            if camera.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
                 sensors.append(ArloBinarySensor(camera, aarlo_config, sensor_type, sensor_value))
         for doorbell in arlo.doorbells:
-            if doorbell.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
+            if doorbell.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
                 sensors.append(ArloBinarySensor(doorbell, aarlo_config, sensor_type, sensor_value))
         for light in arlo.lights:
-            if light.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
+            if light.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
                 sensors.append(ArloBinarySensor(light, aarlo_config, sensor_type, sensor_value))
         for sensor in arlo.sensors:
-            if sensor.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
+            if sensor.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
                 sensors.append(ArloBinarySensor(sensor, aarlo_config, sensor_type, sensor_value))
 
     async_add_entities(sensors)
@@ -126,7 +127,7 @@ class ArloBinarySensor(BinarySensorEntity):
 
         self._device = device
         self._sensor_type = sensor_type
-        self._main_attr = sensor_value[SENSOR_TYPES_MAIN_ATTR]
+        self._main_attrs = sensor_value[SENSOR_TYPES_MAIN_ATTR]
         self._other_attrs = sensor_value[SENSOR_TYPES_OTHER_ATTRS]
 
         self._attr_name = f"{sensor_value[SENSOR_TYPES_DESCRIPTION]} {device.name}"
@@ -156,13 +157,15 @@ class ArloBinarySensor(BinarySensorEntity):
 
         def update_state(_device, attr, value):
             _LOGGER.debug("callback:" + self._attr_name + ":" + attr + ":" + str(value)[:80])
-            if self._main_attr == attr:
+            if attr in self._main_attrs:
                 self._attr_is_on = self._map_value(attr, value)
             self.schedule_update_ha_state()
 
-        if self._main_attr is not None:
-            self._attr_is_on = self._map_value(self._main_attr, self._device.attribute(self._main_attr))
-            self._device.add_attr_callback(self._main_attr, update_state)
+        for main_attr in self._main_attrs:
+            value = self._device.attribute(main_attr)
+            if value is not None:
+                self._attr_is_on = self._map_value(main_attr, value)
+            self._device.add_attr_callback(main_attr, update_state)
         for other_attr in self._other_attrs:
             self._device.add_attr_callback(other_attr, update_state)
 
