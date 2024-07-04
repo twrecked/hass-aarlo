@@ -53,7 +53,7 @@ from .utils import get_entity_from_domain
 from .cfg import BlendedCfg, PyaarloCfg
 
 
-__version__ = "0.8.1.3"
+__version__ = "0.8.1.4"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -237,7 +237,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug(f'async setup for aarlo')
 
     # Get the blended config.
-    cfg = BlendedCfg(hass, entry.data, entry.options)
+    cfg = BlendedCfg(hass)
+    await cfg.async_load_and_merge(entry.data, entry.options)
     domain_config = cfg.domain_config
     injection_service = domain_config.get(CONF_INJECTION_SERVICE, False)
 

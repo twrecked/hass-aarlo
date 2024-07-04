@@ -14,6 +14,7 @@ There are 2 pieces:
   layout.
 """
 
+import aiofiles
 import copy
 import logging
 
@@ -33,7 +34,7 @@ from homeassistant.const import (
     UnitOfTemperature
 )
 from homeassistant.helpers import config_validation as cv
-from homeassistant.util.yaml import load_yaml, save_yaml
+from homeassistant.util.yaml import parse_yaml, dump
 
 from pyaarlo.constant import (
     AIR_QUALITY_KEY,
@@ -283,6 +284,29 @@ def _default_config_file(hass) -> str:
     return hass.config.path("aarlo.yaml")
 
 
+async def _async_load_yaml(file_name):
+    _LOGGER.debug("_async_load_yaml1 file_name for %s", file_name)
+    try:
+        async with aiofiles.open(file_name, 'r') as yaml_file:
+            _LOGGER.debug("_async_load_yaml2 file_name for %s", file_name)
+            contents = await yaml_file.read()
+            _LOGGER.debug("_async_load_yaml3 file_name for %s", file_name)
+            return parse_yaml(contents)
+    except Exception as e:
+        _LOGGER.debug("_async_load_yaml3 file_name for %s", file_name)
+        return {}
+
+
+async def _async_save_yaml(file_name, data):
+    _LOGGER.debug("_async_save_yaml1 file_name for %s", file_name)
+    try:
+        async with aiofiles.open(file_name, 'w') as yaml_file:
+            data = dump(data)
+            await yaml_file.write(data)
+    except Exception as e:
+        _LOGGER.debug("_async_load_yaml3 file_name for %s", file_name)
+
+
 def _fix_config(config):
     """Find and return the aarlo entry from any platform config.
     """
@@ -321,7 +345,7 @@ class BlendedCfg(object):
     them with flow data and options.
     """
 
-    def __init__(self, hass, data, options):
+    def __init__(self, hass):
         self._hass = hass
         self._main_config = {}
         self._alarm_config = {}
@@ -329,18 +353,11 @@ class BlendedCfg(object):
         self._sensor_config = {}
         self._switch_config = {}
 
-        self._load()
-        self._merge(data, options)
-
-    def _load(self):
+    async def _async_load(self):
         """Load extra config from aarlo.yaml file."""
 
         # Read in current config
-        config = {}
-        try:
-            config = load_yaml(_default_config_file(self._hass))
-        except Exception as e:
-            _LOGGER.debug(f"failed to read aarlo config {str(e)}")
+        config = await _async_load_yaml(_default_config_file(self._hass))
 
         # Bring in all the defaults then overwrite them. I'm trying to decouple
         # the pyaarlo config from this config.
@@ -368,6 +385,10 @@ class BlendedCfg(object):
         _LOGGER.debug(f"m-sensor-config={self._sensor_config}")
         _LOGGER.debug(f"m-switch-config={self._switch_config}")
 
+    async def async_load_and_merge(self, data, options):
+        await self._async_load()
+        self._merge(data, options)
+
     @property
     def domain_config(self):
         return self._main_config
@@ -394,7 +415,7 @@ class UpgradeCfg(object):
     """
 
     @staticmethod
-    def create_file_config(hass, config):
+    async def create_file_config(hass, config):
         """ Take the current aarlo config and make the new yaml file.
 
         Aarlo seems to need a lot of fine tuning so rather than get rid of
@@ -423,13 +444,10 @@ class UpgradeCfg(object):
         # to move any into the file we can read it from here.
 
         # Save it out.
-        try:
-            save_yaml(_default_config_file(hass), {
-                "version": 1,
-                COMPONENT_DOMAIN: file_config,
-            })
-        except Exception as e:
-            _LOGGER.debug(f"couldn't save user data {str(e)}")
+        await _async_save_yaml(_default_config_file(hass), {
+            "version": 1,
+            COMPONENT_DOMAIN: file_config,
+        })
 
     @staticmethod
     def create_flow_data(config):
