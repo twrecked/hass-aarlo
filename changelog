@@ -1,4 +1,7 @@
 aarlo
+0.8.1.4
+  Fix IO in event loop issue.
+  Possible light warning fix.
 0.8.1.3
   Fix missing motion event for all-in-one sensor
 0.8.1.2

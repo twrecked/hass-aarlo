@@ -161,7 +161,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         """Import momentary config from configuration.yaml."""
 
         _LOGGER.info("importing aarlo YAML")
-        UpgradeCfg.create_file_config(self.hass, import_data)
+        await UpgradeCfg.create_file_config(self.hass, import_data)
         data = UpgradeCfg.create_flow_data(import_data)
         options = UpgradeCfg.create_flow_options(import_data)
 
