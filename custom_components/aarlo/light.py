@@ -105,6 +105,7 @@ class ArloLight(LightEntity):
         self._attr_brightness = None
         self._attr_is_on = False
         self._attr_should_poll = False
+        self._attr_color_mode = ColorMode.BRIGHTNESS
         self._attr_supported_color_modes = {
             ColorMode.BRIGHTNESS
         }
@@ -189,8 +190,9 @@ class ArloNightLight(ArloLight):
         self._attr_hs_color = None
         self._attr_max_mireds = color_util.color_temperature_kelvin_to_mired(9000)
         self._attr_min_mireds = color_util.color_temperature_kelvin_to_mired(2500)
+        self._attr_color_mode = ColorMode.COLOR_TEMP
         self._attr_supported_color_modes = {
-            ColorMode.BRIGHTNESS, ColorMode.COLOR_TEMP, ColorMode.HS
+            ColorMode.COLOR_TEMP, ColorMode.HS
         }
         self._attr_supported_features = LightEntityFeature(
             LightEntityFeature.EFFECT
@@ -216,12 +218,15 @@ class ArloNightLight(ArloLight):
                 rgb.get("red"), rgb.get("green"), rgb.get("blue")
             )
             self._attr_effect = LIGHT_EFFECT_NONE
+            self._attr_color_mode = ColorMode.HS
         elif mode == "temperature":
             temperature = light_mode.get("temperature")
             self._attr_color_temp = color_util.color_temperature_kelvin_to_mired(temperature)
             self._attr_hs_color = color_util.color_temperature_to_hs(temperature)
             self._attr_effect = LIGHT_EFFECT_NONE
+            self._attr_color_mode = ColorMode.COLOR_TEMP
         elif mode == LIGHT_EFFECT_RAINBOW:
+            self._attr_color_mode = ColorMode.HS
             self._attr_effect = LIGHT_EFFECT_RAINBOW
 
     async def async_added_to_hass(self):
@@ -285,6 +290,7 @@ class ArloFloodLight(ArloLight):
         self._sleep_time_rel = None
 
         self._attr_brightness = None
+        self._attr_color_mode = ColorMode.BRIGHTNESS
         self._attr_supported_color_modes = {
             ColorMode.BRIGHTNESS
         }
@@ -368,6 +374,7 @@ class ArloSpotlight(ArloLight):
 
         self._attr_brightness = None
         self._attr_effect = None
+        self._attr_color_mode = ColorMode.BRIGHTNESS
         self._attr_supported_color_modes = {
             ColorMode.BRIGHTNESS
         }
