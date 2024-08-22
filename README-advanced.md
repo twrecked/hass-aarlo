@@ -74,6 +74,7 @@ You can use `save_media_to` option to specify a file naming scheme. If you do _A
 
 - `SN`; the device serial number
 - `N`; the device name
+- `NN`; the device name, lower case with _ replacing spaces
 - `Y`; the year of the recording, include century
 - `m`; the month of the year as a number (range 01 to 12)
 - `d`; the day of the month as a number (range 01 to 31)
