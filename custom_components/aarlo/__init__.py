@@ -53,7 +53,7 @@ from .utils import get_entity_from_domain
 from .cfg import BlendedCfg, PyaarloCfg
 
 
-__version__ = "0.8.1.4"
+__version__ = "0.8.1.5"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -366,7 +366,8 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
         return
 
     _LOGGER.debug("reconfiguring...")
-    cfg = BlendedCfg(hass, entry.data, entry.options)
+    cfg = BlendedCfg(hass)
+    await cfg.async_load_and_merge(entry.data, entry.options)
     hass.data[COMPONENT_CONFIG] = {
         COMPONENT_DOMAIN: cfg.domain_config,
         str(Platform.ALARM_CONTROL_PANEL): cfg.alarm_config,

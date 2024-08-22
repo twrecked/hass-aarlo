@@ -1,4 +1,6 @@
 aarlo
+0.8.1.5
+  Bump pyaarlo version
 0.8.1.4
   Fix IO in event loop issue.
   Possible light warning fix.
