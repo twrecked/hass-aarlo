@@ -16,6 +16,9 @@ from haffmpeg.camera import CameraMjpeg
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components import websocket_api
+from homeassistant.components.camera.const import (
+    CameraState
+)
 from homeassistant.components.camera import (
     ATTR_FILENAME,
     CONF_DURATION,
@@ -24,9 +27,6 @@ from homeassistant.components.camera import (
     CameraEntityFeature,
     DOMAIN as CAMERA_DOMAIN,
     SERVICE_RECORD,
-    STATE_IDLE,
-    STATE_RECORDING,
-    STATE_STREAMING,
     StreamType
 )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
@@ -35,7 +35,6 @@ from homeassistant.const import (
     ATTR_BATTERY_LEVEL,
     ATTR_ENTITY_ID,
     CONF_FILENAME,
-    STATE_ALARM_DISARMED
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -72,6 +71,7 @@ from .const import (
     CONF_SAVE_UPDATES_TO,
     CONF_STREAM_SNAPSHOT,
     STATE_ALARM_ARLO_ARMED,
+    STATE_ALARM_ARLO_DISARMED,
 )
 from .utils import get_entity_from_domain
 
@@ -345,10 +345,10 @@ class ArloCam(Camera):
                     self._state = "Offline, Too Cold"
                     self.clear_stream()
                 elif value == "userStreamActive":
-                    self._state = STATE_STREAMING
+                    self._state = CameraState.STREAMING
                     self._attr_is_streaming = True
                 elif value == "alertStreamActive":
-                    self._state = STATE_RECORDING
+                    self._state = CameraState.RECORDING
                     self._attr_is_recording = True
                 elif value == "unavailable":
                     self._state = "Unavailable"
@@ -358,7 +358,7 @@ class ArloCam(Camera):
                 elif value == "startUserStream":
                     pass
                 else:
-                    self._state = STATE_IDLE
+                    self._state = CameraState.IDLE
                     self._attr_is_streaming = False
                     self._attr_is_recording = False
                     self.clear_stream()
@@ -575,7 +575,7 @@ class ArloCam(Camera):
     def disable_motion_detection(self):
         """Disable the motion detection in base station (Disarm)."""
         self._attr_motion_detection_enabled = False
-        self.set_base_station_mode(STATE_ALARM_DISARMED)
+        self.set_base_station_mode(STATE_ALARM_ARLO_DISARMED)
 
     def _attach_hidden_stream(self, duration):
         _LOGGER.info(f"{self._attr_unique_id} attaching hidden stream for duration {duration}")

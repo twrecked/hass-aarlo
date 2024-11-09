@@ -30,7 +30,6 @@ from homeassistant.const import (
     CONF_TRIGGER_TIME,
     CONF_USERNAME,
     Platform,
-    STATE_ALARM_DISARMED,
     UnitOfTemperature
 )
 from homeassistant.helpers import config_validation as cv
@@ -176,7 +175,7 @@ ALARM_SCHEMA = vol.Schema({
     vol.Optional(CONF_CODE_ARM_REQUIRED, default=True): cv.boolean,
     vol.Optional(CONF_CODE_DISARM_REQUIRED, default=True): cv.boolean,
     vol.Optional(CONF_COMMAND_TEMPLATE, default=DEFAULT_COMMAND_TEMPLATE): cv.string,
-    vol.Optional(CONF_DISARMED_MODE_NAME, default=STATE_ALARM_DISARMED): cv.string,
+    vol.Optional(CONF_DISARMED_MODE_NAME, default=STATE_ALARM_ARLO_DISARMED): cv.string,
     vol.Optional(CONF_HOME_MODE_NAME, default=STATE_ALARM_ARLO_HOME): cv.string,
     vol.Optional(CONF_AWAY_MODE_NAME, default=STATE_ALARM_ARLO_ARMED): cv.string,
     vol.Optional(CONF_NIGHT_MODE_NAME, default=STATE_ALARM_ARLO_NIGHT): cv.string,
@@ -243,7 +242,7 @@ SWITCH_SCHEMA = vol.Schema({
 })
 
 DEFAULT_OPTIONS = {
-    "alarm_control_panel_disarmed_mode_name": STATE_ALARM_DISARMED,
+    "alarm_control_panel_disarmed_mode_name": STATE_ALARM_ARLO_DISARMED,
     "alarm_control_panel_home_mode_name": STATE_ALARM_ARLO_HOME,
     "alarm_control_panel_away_mode_name": STATE_ALARM_ARLO_ARMED,
     "alarm_control_panel_night_mode_name": STATE_ALARM_ARLO_NIGHT,
