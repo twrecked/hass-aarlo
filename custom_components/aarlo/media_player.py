@@ -18,7 +18,6 @@ from homeassistant.components.media_player import (
 from homeassistant.components.media_player.const import (
     MediaPlayerState,
     MediaType,
-    MEDIA_TYPE_MUSIC,
 )
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
@@ -197,11 +196,11 @@ class ArloMediaPlayer(MediaPlayerEntity):
 
     def play_media(self, media_type, media_id, **kwargs):
         """Play media from a URL or file."""
-        if not media_type == MEDIA_TYPE_MUSIC:
+        if not media_type == MediaType.MUSIC:
             _LOGGER.error(
                 "Invalid media type %s. Only %s is supported",
                 media_type,
-                MEDIA_TYPE_MUSIC,
+                MediaType.MUSIC,
             )
             return
         self._device.play_track()

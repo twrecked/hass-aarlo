@@ -21,16 +21,14 @@ from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntityFeature,
     CodeFormat
 )
+from homeassistant.components.alarm_control_panel.const import (
+    AlarmControlPanelState
+)
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     ATTR_ENTITY_ID,
     CONF_CODE,
     CONF_TRIGGER_TIME,
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_NIGHT,
-    STATE_ALARM_DISARMED,
-    STATE_ALARM_TRIGGERED,
 )
 from homeassistant.core import HomeAssistant, HassJob
 from homeassistant.exceptions import HomeAssistantError
@@ -56,7 +54,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_CODE_ARM_REQUIRED, default=True): cv.boolean,
     vol.Optional(CONF_CODE_DISARM_REQUIRED, default=True): cv.boolean,
     vol.Optional(CONF_COMMAND_TEMPLATE, default=DEFAULT_COMMAND_TEMPLATE): cv.template,
-    vol.Optional(CONF_DISARMED_MODE_NAME, default=STATE_ALARM_DISARMED): cv.string,
+    vol.Optional(CONF_DISARMED_MODE_NAME, default=AlarmControlPanelState.DISARMED): cv.string,
     vol.Optional(CONF_HOME_MODE_NAME, default=STATE_ALARM_ARLO_HOME): cv.string,
     vol.Optional(CONF_AWAY_MODE_NAME, default=STATE_ALARM_ARLO_ARMED): cv.string,
     vol.Optional(CONF_NIGHT_MODE_NAME, default=STATE_ALARM_ARLO_NIGHT): cv.string,
@@ -220,7 +218,6 @@ class ArloBaseStation(AlarmControlPanelEntity):
         self._alarm_volume = config.get(CONF_ALARM_VOLUME)
         self._trigger_time = config.get(CONF_TRIGGER_TIME)
         self._trigger_till = None
-        self._attr_state = None
         self._code = config.get(CONF_CODE)
         self._timer = None
         _LOGGER.debug(f"alarm-code={self._code}")
@@ -250,15 +247,15 @@ class ArloBaseStation(AlarmControlPanelEntity):
         """Convert Arlo mode to Home Assistant state."""
         lmode = mode.lower()
         if lmode == self._disarmed_mode_name:
-            return STATE_ALARM_DISARMED
+            return AlarmControlPanelState.DISARMED
         if lmode == self._away_mode_name:
-            return STATE_ALARM_ARMED_AWAY
+            return AlarmControlPanelState.ARMED_AWAY
         if lmode == self._home_mode_name:
-            return STATE_ALARM_ARMED_HOME
+            return AlarmControlPanelState.ARMED_HOME
         if lmode == self._night_mode_name:
-            return STATE_ALARM_ARMED_NIGHT
+            return AlarmControlPanelState.ARMED_NIGHT
         if lmode == STATE_ALARM_ARLO_ARMED:
-            return STATE_ALARM_ARMED_AWAY
+            return AlarmControlPanelState.ARMED_AWAY
         return mode
 
     async def _async_stop_trigger(self, *_args: Any) -> None:
@@ -273,18 +270,18 @@ class ArloBaseStation(AlarmControlPanelEntity):
 
         def update_state(_device, _attr, _value):
             _LOGGER.debug("callback:{self._attr_name}:{attr}:{str(value)}")
-            self._attr_state = self._get_state_from_ha(self._base.attribute(MODE_KEY))
+            self._attr_alarm_state = self._get_state_from_ha(self._base.attribute(MODE_KEY))
             self.schedule_update_ha_state()
 
-        self._attr_state = self._get_state_from_ha(self._base.attribute(MODE_KEY, STATE_ALARM_ARLO_ARMED))
+        self._attr_alarm_state = self._get_state_from_ha(self._base.attribute(MODE_KEY, STATE_ALARM_ARLO_ARMED))
         self._base.add_attr_callback(MODE_KEY, update_state)
 
     @property
-    def state(self):
+    def alarm_state(self) -> AlarmControlPanelState | None:
         """Return the state of the device."""
         if self._trigger_till is not None:
-            return STATE_ALARM_TRIGGERED
-        return self._attr_state
+            return AlarmControlPanelState.TRIGGERED
+        return self._attr_alarm_state
 
     def alarm_disarm(self, code=None):
         if self._attr_code_disarm_required and not _code_validate(self._code, code, "disarming"):
@@ -382,7 +379,6 @@ class ArloLocation(AlarmControlPanelEntity):
 
         self._location = location
 
-        self._attr_state = None
         self._code = config.get(CONF_CODE)
 
         self._attr_name = location.name
@@ -409,21 +405,25 @@ class ArloLocation(AlarmControlPanelEntity):
         """Convert Arlo mode to Home Assistant state."""
         _LOGGER.info(f"{self._attr_name}: mode check: mode={mode}")
         if self._location.is_armed_away:
-            return STATE_ALARM_ARMED_AWAY
+            return AlarmControlPanelState.ARMED_AWAY
         if self._location.is_armed_home:
-            return STATE_ALARM_ARMED_HOME
-        return STATE_ALARM_DISARMED
+            return AlarmControlPanelState.ARMED_HOME
+        return AlarmControlPanelState.DISARMED
 
     async def async_added_to_hass(self):
         """Register callbacks."""
 
         def update_state(_device, attr, value):
             _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)}")
-            self._attr_state = self._get_state_from_ha(self._location.attribute(MODE_KEY))
+            self._attr_alarm_state = self._get_state_from_ha(self._location.attribute(MODE_KEY))
             self.schedule_update_ha_state()
 
-        self._attr_state = self._get_state_from_ha(self._location.attribute(MODE_KEY, "Stand By"))
+        self._attr_alarm_state = self._get_state_from_ha(self._location.attribute(MODE_KEY, "Stand By"))
         self._location.add_attr_callback(MODE_KEY, update_state)
+
+    @property
+    def alarm_state(self) -> AlarmControlPanelState | None:
+        return self._attr_alarm_state
 
     def alarm_disarm(self, code=None):
         _LOGGER.debug(f"Location {self._attr_name} disarm.  Code: {code}")

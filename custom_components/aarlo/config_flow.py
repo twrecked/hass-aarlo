@@ -8,7 +8,6 @@ from homeassistant import config_entries
 from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
-    STATE_ALARM_DISARMED
 )
 from homeassistant.core import callback
 from homeassistant.helpers.selector import SelectOptionDict, \
@@ -24,6 +23,7 @@ from .const import (
     CONF_TFA_USERNAME,
     COMPONENT_DOMAIN,
     STATE_ALARM_ARLO_ARMED,
+    STATE_ALARM_ARLO_DISARMED,
     STATE_ALARM_ARLO_HOME,
     STATE_ALARM_ARLO_NIGHT
 )
@@ -208,7 +208,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
                              default=options.get("alarm_control_panel_code", "no code needed")): str,
                 vol.Optional("alarm_control_panel_disarmed_mode_name",
                              default=options.get("alarm_control_panel_disarmed_mode_name",
-                                                 STATE_ALARM_DISARMED)): str,
+                                                 STATE_ALARM_ARLO_DISARMED)): str,
                 vol.Optional("alarm_control_panel_home_mode_name",
                              default=options.get("alarm_control_panel_home_mode_name",
                                                  STATE_ALARM_ARLO_HOME)): str,
