@@ -1,0 +1,198 @@
+{
+  "config": {
+    "abort": {
+      "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
+    },
+    "error": {
+      "missing_imap_fields": "Veuillez remplir tous les champs TFA pour IMAP.",
+      "missing_restapi_fields": "Veuillez remplir tous les champs TFA pour RESTAPI."
+    },
+    "step": {
+      "user": {
+        "title": "Détails de Connexion Arlo",
+        "description": "Entrez les informations de votre compte Home Assistant Arlo.\nSi nécessaire, entrez les détails de votre authentification à deux facteurs.\nPour ajuster les paramètres, consultez '/config/aarlo.yaml'.",
+        "data": {
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "tfa_type": "Authentification à Deux Facteurs",
+          "tfa_host": "Hôte TFA",
+          "tfa_username": "Nom d'utilisateur TFA",
+          "tfa_password": "Mot de passe TFA",
+          "add_aarlo_prefix": "Utiliser le préfixe `aarlo_` pour les entités"
+        }
+      }
+    }
+  },
+
+  "options": {
+    "step": {
+      "alarm_control_panel": {
+        "title": "Paramètres de l'Alarme",
+        "description": "Définir les noms des modes et autres exigences de l'alarme.",
+        "data": {
+          "alarm_control_panel_code": "Code d'armement/désarmement",
+          "alarm_control_panel_disarmed_mode_name": "Nom du mode désarmé",
+          "alarm_control_panel_home_mode_name": "Nom du mode présent",
+          "alarm_control_panel_away_mode_name": "Nom du mode absent",
+          "alarm_control_panel_night_mode_name": "Nom du mode nuit",
+          "alarm_control_panel_command_template": "Modèle de commande",
+          "alarm_control_panel_trigger_time": "Temps de déclenchement",
+          "alarm_control_panel_alarm_volume": "Volume de l'alarme",
+          "alarm_control_panel_code_arm_required": "Code d'armement requis",
+          "alarm_control_panel_code_disarm_required": "Code de désarmement requis"
+        }
+      },
+      "binary_sensor": {
+        "title": "Capteurs Binaires",
+        "description": "Activer quels capteurs binaires ?\n\nNOTE : tous les capteurs ne seront pas disponibles sur chaque appareil.",
+        "data": {
+          "binary_sensor_sound": "Détection de son",
+          "binary_sensor_motion": "Détection de mouvement",
+          "binary_sensor_ding": "Pressions sur la sonnette",
+          "binary_sensor_cry": "Détection de pleurs",
+          "binary_sensor_connectivity": "Connectivité de l'appareil",
+          "binary_sensor_contact": "Capteurs d'ouverture/fermeture",
+          "binary_sensor_light": "Capteurs de luminosité",
+          "binary_sensor_tamper": "Détection de sabotage",
+          "binary_sensor_leak": "Détection de fuite"
+        }
+      },
+      "sensor": {
+        "title": "Capteurs",
+        "description": "Activer quels capteurs ?\nNOTE : tous les capteurs ne seront pas disponibles sur chaque appareil.",
+        "data": {
+          "sensor_last_capture": "Dernière heure de capture",
+          "sensor_total_cameras": "Nombre total de caméras détectées",
+          "sensor_recent_activity": "Activité récente détectée",
+          "sensor_captured_today": "Nombre de vidéos/captures d'écran capturées aujourd'hui",
+          "sensor_battery_level": "Niveau de batterie de l'appareil",
+          "sensor_signal_strength": "Force du signal WiFi",
+          "sensor_temperature": "Température de la pièce",
+          "sensor_humidity": "Humidité de la pièce",
+          "sensor_air_quality": "Qualité de l'air"
+        }
+      },
+      "switch": {
+        "title": "Interrupteurs",
+        "description": "Activer quels interrupteurs ?\nNOTE : tous les interrupteurs ne seront pas disponibles pour chaque appareil.",
+        "data": {
+          "switch_siren": "Activer les sirènes",
+          "switch_all_sirens": "Activer toutes les sirènes",
+          "switch_siren_allow_off": "Autoriser l'arrêt des sirènes.",
+          "switch_siren_volume": "Volume de l'interrupteur de sirène",
+          "switch_siren_duration": "Durée de l'interrupteur de sirène",
+          "switch_snapshot": "Prendre une photo sur toutes les caméras",
+          "switch_snapshot_timeout": "Délai d'attente de la capture d'écran de la caméra",
+          "switch_doorbell_silence": "Désactiver les carillons de la sonnette"
+        }
+      }
+    }
+  },
+  "services": {
+    "camera_request_snapshot": {
+      "name": "Prendre une photo à partir de cette Caméra",
+      "description": "Demander à la caméra de prendre une capture d'écran."
+    },
+    "camera_request_snapshot_to_file": {
+      "name": "Prendre et sauvegarder une photo à partir de cette Caméra",
+      "description": "Demander à une caméra de prendre une capture d'écran et de l'enregistrer dans un fichier.",
+      "fields": {
+        "filename": {
+          "name": "Nom du Fichier",
+          "description": "Nom du fichier à enregistrer."
+        }
+      }
+    },
+    "camera_request_video_to_file": {
+      "name": "Prendre et sauvegarder une vidéo à partir de cette Caméra",
+      "description": "Demander à la caméra de prendre une vidéo et de l'enregistrer dans un fichier.",
+      "fields": {
+        "filename": {
+          "name": "Nom du Fichier",
+          "description": "Nom du fichier à enregistrer."
+        }
+      }
+    },
+    "camera_stop_activity": {
+      "name": "Arrêter l'Activité de la Caméra",
+      "description": "Demander à une caméra d'arrêter ce qu'elle est en train de faire."
+    },
+    "camera_start_recording": {
+      "name": "Débuter l'Enregistrement de la Caméra",
+      "description": "Demander à une caméra de commencer l'enregistrement dans la bibliothèque.",
+      "fields": {
+        "duration": {
+          "name": "Durée",
+          "description": "Durée de l'enregistrement."
+        }
+      }
+    },
+    "camera_stop_recording": {
+      "name": "Arrêter l'Enregistrement de la Caméra",
+      "description": "Demander à une caméra d'arrêter l'enregistrement."
+    },
+    "restart_device": {
+      "name": "Tenter de Redémarrer un Appareil",
+      "description": "Demander à un appareil de redémarrer (nécessite des autorisations administrateur)."
+    },
+    "alarm_set_mode": {
+      "name": "Définir le Mode de l'Alarme",
+      "description": "Changer le mode de la station de base.",
+      "fields": {
+        "mode": {
+          "name": "Mode",
+          "description": "Mode à changer."
+        }
+      }
+    },
+
+    "siren_on": {
+      "name": "Sirène Activée",
+      "description": "Activer une sirène à un volume donné et pour une durée donnée.",
+      "fields": {
+        "volume": {
+          "name": "Volume",
+          "description": "Volume sonore."
+        },
+        "duration": {
+          "name": "Durée",
+          "description": "Durée du son."
+        }
+      }
+    },
+    "siren_off": {
+      "name": "Sirène Désactivée",
+      "description": "Désactiver une sirène."
+    },
+
+    "sirens_on": {
+      "name": "Sirènes Activées",
+      "description": "Activer toutes les sirènes à un volume donné et pour une durée donnée.",
+      "fields": {
+        "volume": {
+          "name": "Volume",
+          "description": "Volume sonore."
+        },
+        "duration": {
+          "name": "Durée",
+          "description": "Durée du son."
+        }
+      }
+    },
+    "sirens_off": {
+      "name": "Sirènes Désactivées",
+      "description": "Désactiver toutes les sirènes."
+    },
+
+    "inject_response": {
+      "name": "Injecter un Paquet Factice",
+      "description": "Pour les tests, injecter un paquet factice dans le flux d'événements.",
+      "fields": {
+        "filename": {
+          "name": "Nom du Fichier",
+          "description": "Nom du fichier contenant le paquet."
+        }
+      }
+    }
+  }
+}
