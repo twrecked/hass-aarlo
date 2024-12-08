@@ -322,7 +322,8 @@ class ArloCam(Camera):
         _LOGGER.debug(f"camera-entity-id={self.entity_id}")
 
         self._attr_brand = COMPONENT_BRAND
-        self._attr_frontend_stream_type = StreamType.HLS
+        # removed for issue #1019
+        # self._attr_frontend_stream_type = StreamType.HLS
         self._attr_is_on = camera.is_on
         self._attr_model = camera.model_id
         self._attr_should_poll = False
