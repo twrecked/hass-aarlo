@@ -1,4 +1,7 @@
 aarlo
+0.8.1.11
+  Fix issue caused by new camera API
+  Add aiofiles as requirement
 0.8.1.10
   Add French translations Thanks @SocrateMobile
 0.8.1.9
