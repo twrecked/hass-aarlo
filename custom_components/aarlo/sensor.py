@@ -57,27 +57,59 @@ DEPENDENCIES = [COMPONENT_DOMAIN]
 #  sensor_type: Home Assistant sensor type
 #    description: What the sensor does.
 #    class: Home Assistant sensor this represents
-#    unit: Measurement unit.
+#    units: Measurement unit.
 #    icon: Default ICON to use.
-#    attribute: Pyaarlo capability that indicates this device provides this sensor
-# sensor_type [ description, unit, icon, attribute ]
-SENSOR_TYPES_DESCRIPTION = 0
-SENSOR_TYPES_CLASS = 1
-SENSOR_TYPES_UNIT = 2
-SENSOR_TYPES_ICON = 3
-SENSOR_TYPES_MAIN_ATTR = 4
+#    key: Pyaarlo capability that indicates this device provides this sensor
 SENSOR_TYPES = {
-    "last_capture": ["Last", None, None, "run-fast", LAST_CAPTURE_KEY],
-    "total_cameras": ["Arlo Cameras", None, None, "video", TOTAL_CAMERAS_KEY],
-    "recent_activity": ["Recent Activity", None, None, "run-fast", RECENT_ACTIVITY_KEY],
-    "captured_today": ["Captured Today", None, None, "file-video", CAPTURED_TODAY_KEY],
-    "battery_level": ["Battery Level", SensorDeviceClass.BATTERY, "%", "battery-50", BATTERY_KEY],
-    "signal_strength": ["Signal Strength", None, None, "signal", SIGNAL_STR_KEY],
-    "temperature": ["Temperature", SensorDeviceClass.TEMPERATURE,
-                    UnitOfTemperature.CELSIUS,
-                    "thermometer", TEMPERATURE_KEY],
-    "humidity": ["Humidity", SensorDeviceClass.HUMIDITY, "%", "water-percent", HUMIDITY_KEY],
-    "air_quality": ["Air Quality", SensorDeviceClass.AQI, "ppm", "biohazard", AIR_QUALITY_KEY],
+    "last_capture": {
+        "description": "Last",
+        "key": LAST_CAPTURE_KEY,
+        "icon": "mdi:run-fast",
+    },
+    "total_cameras": {
+        "description": "Arlo Cameras",
+        "key": TOTAL_CAMERAS_KEY,
+        "icon": "mdi:video",
+    },
+    "recent_activity": {
+        "description": "Recent Activity",
+        "key": RECENT_ACTIVITY_KEY,
+        "icon": "mdi:run-fast",
+    },
+    "captured_today": {
+        "description": "Captured Today",
+        "key": CAPTURED_TODAY_KEY,
+        "icon": "mdi:file-video",
+    },
+    "battery_level": {
+        "description": "Battery Level",
+        "key": BATTERY_KEY,
+        "class": SensorDeviceClass.BATTERY,
+        "units": "%",
+    },
+    "signal_strength": {
+        "description": "Signal Strength",
+        "key": SIGNAL_STR_KEY,
+        "class": SensorDeviceClass.SIGNAL_STRENGTH, 
+    },
+    "temperature": {
+        "description": "Temperature",
+        "key": TEMPERATURE_KEY,
+        "class": SensorDeviceClass.TEMPERATURE,
+        "units": UnitOfTemperature.CELSIUS, 
+    },
+    "humidity": {
+        "description": "Humidity",
+        "key": HUMIDITY_KEY,
+        "class": SensorDeviceClass.HUMIDITY, 
+        "units": "%",
+    },
+    "air_quality": {
+        "description": "Air Quality",
+        "key": AIR_QUALITY_KEY,
+        "class": SensorDeviceClass.AQI,
+        "units": "ppm", 
+    },
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -108,16 +140,16 @@ async def async_setup_entry(
             sensors.append(ArloSensor(arlo, None, aarlo_config, sensor_type, sensor_value))
         else:
             for camera in arlo.cameras:
-                if camera.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
+                if camera.has_capability(sensor_value["key"]):
                     sensors.append(ArloSensor(arlo, camera, aarlo_config, sensor_type, sensor_value))
             for doorbell in arlo.doorbells:
-                if doorbell.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
+                if doorbell.has_capability(sensor_value["key"]):
                     sensors.append(ArloSensor(arlo, doorbell, aarlo_config, sensor_type, sensor_value))
             for light in arlo.lights:
-                if light.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
+                if light.has_capability(sensor_value["key"]):
                     sensors.append(ArloSensor(arlo, light, aarlo_config, sensor_type, sensor_value))
             for sensor in arlo.sensors:
-                if sensor.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR]):
+                if sensor.has_capability(sensor_value["key"]):
                     sensors.append(ArloSensor(arlo, sensor, aarlo_config, sensor_type, sensor_value))
 
     async_add_entities(sensors)
@@ -130,25 +162,26 @@ class ArloSensor(Entity):
         """Initialize an Arlo sensor."""
 
         self._sensor_type = sensor_type
-        self._main_attr = sensor_value[SENSOR_TYPES_MAIN_ATTR]
+        self._main_attr = sensor_value["key"]
 
         if device is None:
-            self._attr_name = sensor_value[SENSOR_TYPES_DESCRIPTION]
+            self._attr_name = sensor_value["description"]
             self._attr_unique_id = sensor_type
             self._device = arlo
         else:
-            self._attr_name = f"{sensor_value[SENSOR_TYPES_DESCRIPTION]} {device.name}"
-            self._attr_unique_id = slugify(f"{sensor_value[SENSOR_TYPES_DESCRIPTION]}_{device.entity_id}")
+            self._attr_name = f"{sensor_value['description']} {device.name}"
+            self._attr_unique_id = slugify(f"{sensor_value['description']}_{device.entity_id}")
             self._device = device
 
         if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
             self.entity_id = f"{SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
 
-        self._attr_device_class = sensor_value[SENSOR_TYPES_CLASS]
-        self._attr_icon = f"mdi:{sensor_value[SENSOR_TYPES_ICON]}"
+        self._attr_device_class = sensor_value.get("class", None)
+        self._attr_icon = sensor_value.get("icon", None)
+        self._attr_unit_of_measurement = sensor_value.get("units", None)
         self._attr_should_poll = False
         self._attr_state = None
-        self._attr_unit_of_measurement = sensor_value[SENSOR_TYPES_UNIT]
+
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
             manufacturer=COMPONENT_BRAND,

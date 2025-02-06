@@ -54,25 +54,57 @@ DEPENDENCIES = [COMPONENT_DOMAIN]
 #  sensor_type: Home Assistant sensor type
 #    description: What the sensor does.
 #    class: Home Assistant sensor this represents
-#    main attributes: Pyaarlo capability that indicates this device provides this sensor, the
+#    keys: Pyaarlo capability that indicates this device provides this sensor, the
 #      first one is used for the capability check
-#    extra_attributes: Another attributes to watch for this sensor
+#    other_keys: Another attributes to watch for this sensor
 #    icon: Default ICON to use.
-SENSOR_TYPES_DESCRIPTION = 0
-SENSOR_TYPES_CLASS = 1
-SENSOR_TYPES_MAIN_ATTR = 2
-SENSOR_TYPES_OTHER_ATTRS = 3
-SENSOR_TYPES_ICON = 4
 SENSOR_TYPES = {
-    "sound": ["Sound", BinarySensorDeviceClass.SOUND, [AUDIO_DETECTED_KEY], [], None],
-    "motion": ["Motion", BinarySensorDeviceClass.MOTION, [MOTION_DETECTED_KEY, MOTION_STATE_KEY], [], None],
-    "ding": ["Ding", None, [BUTTON_PRESSED_KEY], [SILENT_MODE_KEY], "mdi:doorbell"],
-    "cry": ["Cry", BinarySensorDeviceClass.SOUND, [CRY_DETECTION_KEY], [], None],
-    "connectivity": ["Connected", BinarySensorDeviceClass.CONNECTIVITY, [CONNECTION_KEY], [], None],
-    "contact": ["Open/Close", BinarySensorDeviceClass.OPENING, [CONTACT_STATE_KEY], [], None],
-    "light": ["Light On", BinarySensorDeviceClass.LIGHT, [ALS_STATE_KEY], [], None],
-    "tamper": ["Tamper", BinarySensorDeviceClass.TAMPER, [TAMPER_STATE_KEY], [], None],
-    "leak": ["Moisture", BinarySensorDeviceClass.MOISTURE, [WATER_STATE_KEY], [], None],
+    "sound": {
+        "description": "Sound",
+        "keys": [AUDIO_DETECTED_KEY],
+        "class": BinarySensorDeviceClass.SOUND,
+    },
+    "motion": {
+        "description": "Motion",
+        "keys": [MOTION_DETECTED_KEY, MOTION_STATE_KEY],
+        "class": BinarySensorDeviceClass.MOTION,
+    },
+    "ding": {
+        "description": "Ding", 
+        "keys": [BUTTON_PRESSED_KEY],
+        "other_keys": [SILENT_MODE_KEY],
+        "icons": "mdi:doorbell",
+    },
+    "cry": {
+        "description": "Cry",
+        "keys": [CRY_DETECTION_KEY],
+        "class": BinarySensorDeviceClass.SOUND,
+    },
+    "connectivity": {
+        "description": "Connected",
+        "keys": [CONNECTION_KEY],
+        "class": BinarySensorDeviceClass.CONNECTIVITY,
+    },
+    "contact": {
+        "description": "Open/Close",
+        "keys": [CONTACT_STATE_KEY],
+        "class": BinarySensorDeviceClass.OPENING,
+    },
+    "light": {
+        "description": "Light On",
+        "keys": [ALS_STATE_KEY],
+        "class": BinarySensorDeviceClass.LIGHT,
+    },
+    "tamper": {
+        "description": "Tamper",
+        "keys": [TAMPER_STATE_KEY],
+        "class": BinarySensorDeviceClass.TAMPER,
+    },
+    "leak": {
+        "description": "Moisture",
+        "keys": [WATER_STATE_KEY],
+        "class": BinarySensorDeviceClass.MOISTURE,
+    },
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -101,19 +133,19 @@ async def async_setup_entry(
         sensor_value = SENSOR_TYPES[sensor_type]
         if sensor_type == "connectivity":
             for base in arlo.base_stations:
-                if base.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
+                if base.has_capability(sensor_value["keys"][0]):
                     sensors.append(ArloBinarySensor(base, aarlo_config, sensor_type, sensor_value))
         for camera in arlo.cameras:
-            if camera.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
+            if camera.has_capability(sensor_value["keys"][0]):
                 sensors.append(ArloBinarySensor(camera, aarlo_config, sensor_type, sensor_value))
         for doorbell in arlo.doorbells:
-            if doorbell.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
+            if doorbell.has_capability(sensor_value["keys"][0]):
                 sensors.append(ArloBinarySensor(doorbell, aarlo_config, sensor_type, sensor_value))
         for light in arlo.lights:
-            if light.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
+            if light.has_capability(sensor_value["keys"][0]):
                 sensors.append(ArloBinarySensor(light, aarlo_config, sensor_type, sensor_value))
         for sensor in arlo.sensors:
-            if sensor.has_capability(sensor_value[SENSOR_TYPES_MAIN_ATTR][0]):
+            if sensor.has_capability(sensor_value["keys"][0]):
                 sensors.append(ArloBinarySensor(sensor, aarlo_config, sensor_type, sensor_value))
 
     async_add_entities(sensors)
@@ -127,19 +159,20 @@ class ArloBinarySensor(BinarySensorEntity):
 
         self._device = device
         self._sensor_type = sensor_type
-        self._main_attrs = sensor_value[SENSOR_TYPES_MAIN_ATTR]
-        self._other_attrs = sensor_value[SENSOR_TYPES_OTHER_ATTRS]
+        self._main_attrs = sensor_value["keys"]
 
-        self._attr_name = f"{sensor_value[SENSOR_TYPES_DESCRIPTION]} {device.name}"
-        self._attr_unique_id = slugify(f"{sensor_value[SENSOR_TYPES_DESCRIPTION]}_{device.entity_id}")
+        self._attr_name = f"{sensor_value['description']} {device.name}"
+        self._attr_unique_id = slugify(f"{sensor_value['description']}_{device.entity_id}")
         if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
             self.entity_id = f"{BINARY_SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
         _LOGGER.debug(f"binary-sensor-entity-id={self.entity_id}")
 
-        self._attr_icon = sensor_value[SENSOR_TYPES_ICON]
+        self._other_attrs = sensor_value.get("other_keys", [])
+        self._attr_icon = sensor_value.get("icon", None)
+        self._attr_device_class = sensor_value.get("class", None)
         self._attr_is_on = False
         self._attr_should_poll = False
-        self._attr_device_class = sensor_value[SENSOR_TYPES_CLASS]
+
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
             manufacturer=COMPONENT_BRAND,
