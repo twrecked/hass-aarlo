@@ -77,7 +77,7 @@ STR_TIMEOUT = timedelta(seconds=120)
 NO_MEDIA_UP = False
 MEDIA_RETRY = [5, 15, 25]
 SNAPSHOT_CHECKS = None
-USER_AGENT = "arlo"
+USER_AGENT = "linux"
 MODE_API = "auto"
 DEVICE_REFRESH = 2
 MODE_REFRESH = 0

@@ -16,5 +16,5 @@
     "pyaarlo>=0.8.0.12",
     "aiofiles"
   ],
-  "version": "0.8.1.11"
+  "version": "0.8.1.12"
 }

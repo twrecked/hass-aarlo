@@ -1,4 +1,6 @@
 aarlo
+0.8.1.12
+  Change default user agent
 0.8.1.11
   Fix issue caused by new camera API
   Add aiofiles as requirement
