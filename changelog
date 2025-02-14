@@ -1,4 +1,6 @@
 aarlo
+0.8.1.15
+  Use pyaarlo with "trusted browser" support
 0.8.1.14
   Fix python version; purely to let people fall back to this version
   if the pyaarlo version breaks on them
