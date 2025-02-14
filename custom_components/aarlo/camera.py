@@ -13,6 +13,7 @@ import logging
 import voluptuous as vol
 from collections.abc import Callable
 from haffmpeg.camera import CameraMjpeg
+from urllib.parse import urlparse, parse_qs
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components import websocket_api
@@ -70,6 +71,7 @@ from .const import (
     CONF_ADD_AARLO_PREFIX,
     CONF_SAVE_UPDATES_TO,
     CONF_STREAM_SNAPSHOT,
+    CONF_STREAM_USER_AGENT,
     STATE_ALARM_ARLO_ARMED,
     STATE_ALARM_ARLO_DISARMED,
 )
@@ -302,6 +304,7 @@ class ArloCam(Camera):
     _ffmpeg_arguments: str = DEFAULT_FFMPEG_ARGUMENTS
     _stream_snapshot: bool = False
     _save_updates_to: str | None = None
+    _stream_user_agent: str | None = None
 
     def __init__(self, camera, aarlo_config, hass):
         """Initialize an Arlo camera."""
@@ -314,6 +317,10 @@ class ArloCam(Camera):
         self._stream_snapshot = aarlo_config.get(CONF_STREAM_SNAPSHOT)
         self._save_updates_to = aarlo_config.get(CONF_SAVE_UPDATES_TO)
         self._ffmpeg = hass.data[DATA_FFMPEG]
+
+        # Pick a user agent to use for streaming.
+        self._stream_user_agent = aarlo_config.get(CONF_STREAM_USER_AGENT)
+        _LOGGER.debug(f"set stream_user_agent to {self._stream_user_agent}")
 
         self._attr_name = camera.name
         self._attr_unique_id = camera.entity_id
@@ -517,6 +524,23 @@ class ArloCam(Camera):
 
         return attrs
 
+    def _stream_source(self, user_agent):
+        """Return the source of the stream.
+
+        This set stream_options if the stream is https so we can pass egress
+        token on.
+        """
+        self.stream_options = {}
+        stream_url = self._camera.get_stream(user_agent)
+        if stream_url is not None:
+            if stream_url.startswith("https"):
+                url = urlparse(stream_url)
+                egress_token = parse_qs(url.query)["egressToken"][0]
+                self.stream_options = {
+                    "headers": f"Egress-Token: {egress_token}\r\n"
+                }
+        return stream_url
+
     async def stream_source(self):
         """Return the source of the stream.
 
@@ -524,11 +548,11 @@ class ArloCam(Camera):
         to the original Arlo one. This means we get a `rtsps` stream back which the stream
         component can handle.
         """
-        return await self.hass.async_add_executor_job(self._camera.get_stream, "arlo")
+        return await self.hass.async_add_executor_job(self._stream_source, self._stream_user_agent)
 
     async def async_stream_source(self, user_agent=None):
         return await self.hass.async_add_executor_job(
-            self._camera.get_stream, user_agent
+            self._stream_source, user_agent
         )
 
     def camera_image(
@@ -656,9 +680,10 @@ class ArloCam(Camera):
         - attach a dummy local stream to tell Arlo to really start the stream
         - send a "record-this-stream" request.
 
-        We force the "arlo" user agent to get an rtsp stream.
+        We use the override stream user agent here. By default we use 'arlo'
+        which returns an RTSP stream but we will support mpeg-dash as well.
         """
-        source = self._camera.start_recording_stream(user_agent="arlo")
+        source = self._camera.start_recording_stream(user_agent=self._stream_user_agent)
         if source:
             _LOGGER.debug(f"stream-url={source}")
             active = self._attach_hidden_stream(duration + 10)
