@@ -1,4 +1,6 @@
 aarlo
+0.8.1.16
+  Use pyaarlo with "trusted browser" support, fix for push
 0.8.1.15
   Use pyaarlo with "trusted browser" support
 0.8.1.14
