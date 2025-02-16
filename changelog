@@ -1,4 +1,6 @@
 aarlo
+0.8.1.17
+  workaround a self-inflicted pypi issue
 0.8.1.16
   Use pyaarlo with "trusted browser" support, fix for push
 0.8.1.15
