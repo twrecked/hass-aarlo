@@ -13,6 +13,7 @@ import voluptuous as vol
 from traceback import extract_stack
 from requests.exceptions import ConnectTimeout, HTTPError
 
+from homeassistant.components import persistent_notification
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
@@ -53,7 +54,7 @@ from .utils import get_entity_from_domain
 from .cfg import BlendedCfg, PyaarloCfg
 
 
-__version__ = "0.8.1.16"
+__version__ = "0.8.1.18"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -412,8 +413,9 @@ def login(hass, conf):
             arlo.stop()
 
             if attempt == 1:
-                hass.components.persistent_notification.create(
-                    "Error: {}<br />If error persists you might need to change config and restart.".format(
+                persistent_notification.create(
+                    hass=hass,
+                    message="Error: {}<br />If error persists you might need to change config and restart.".format(
                         arlo.last_error
                     ),
                     title=NOTIFICATION_TITLE,
@@ -425,8 +427,9 @@ def login(hass, conf):
 
         except (ConnectTimeout, HTTPError) as ex:
             if attempt == 1:
-                hass.components.persistent_notification.create(
-                    "Error: {}<br />If error persists you might need to change config and restart.".format(
+                persistent_notification.create(
+                    hass=hass,
+                    message="Error: {}<br />If error persists you might need to change config and restart.".format(
                         ex
                     ),
                     title=NOTIFICATION_TITLE,
