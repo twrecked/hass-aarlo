@@ -1,4 +1,6 @@
 aarlo
+0.8.1.18
+  fix deprecated warning
 0.8.1.17
   workaround a self-inflicted pypi issue
 0.8.1.16
