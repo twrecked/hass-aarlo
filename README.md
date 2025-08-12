@@ -87,9 +87,6 @@ Many thanks to:
 - [Pyarlo](https://github.com/tchellomello/python-arlo) and  [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard work figuring the API out and the free Python lesson!
 - [sseclient](https://github.com/btubbs/sseclient) for reading from the event stream
 - [Button Card](https://github.com/kuuji/button-card/blob/master/button-card.js) for a working Lovelace card I could understand
-- [JetBrains](https://www.jetbrains.com/?from=hass-aarlo) for the excellent **PyCharm IDE** and providing me with an open source licence to speed up the project development.
-
-[![JetBrains](images/jetbrains.svg)](https://www.jetbrains.com/?from=hass-aarlo)
 
 ## See Also
 

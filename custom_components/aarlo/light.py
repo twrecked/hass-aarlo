@@ -13,10 +13,12 @@ from collections.abc import Callable
 import homeassistant.util.color as color_util
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
-    ATTR_COLOR_TEMP,
+    ATTR_COLOR_TEMP_KELVIN,
     ATTR_EFFECT,
     ATTR_HS_COLOR,
     ColorMode,
+    DEFAULT_MAX_KELVIN,
+    DEFAULT_MIN_KELVIN,
     DOMAIN as LIGHT_DOMAIN,
     LightEntity,
     LightEntityFeature,
@@ -90,6 +92,9 @@ async def async_setup_entry(
 
 
 class ArloLight(LightEntity):
+
+    _attr_min_color_temp_kelvin = DEFAULT_MIN_KELVIN
+    _attr_max_color_temp_kelvin = DEFAULT_MAX_KELVIN
 
     def __init__(self, light, aarlo_config):
         """Initialize an Arlo light."""
@@ -185,6 +190,7 @@ class ArloNightLight(ArloLight):
 
         self._attr_brightness = None
         self._attr_color_temp = None
+        self._attr_color_temp_kelvin = None
         self._attr_effect = None
         self._attr_effect_list = [LIGHT_EFFECT_NONE, LIGHT_EFFECT_RAINBOW]
         self._attr_hs_color = None
@@ -221,6 +227,7 @@ class ArloNightLight(ArloLight):
             self._attr_color_mode = ColorMode.HS
         elif mode == "temperature":
             temperature = light_mode.get("temperature")
+            self._attr_color_temp_kevin = temperature
             self._attr_color_temp = color_util.color_temperature_kelvin_to_mired(temperature)
             self._attr_hs_color = color_util.color_temperature_to_hs(temperature)
             self._attr_effect = LIGHT_EFFECT_NONE
@@ -259,11 +266,8 @@ class ArloNightLight(ArloLight):
             rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
             self._light.set_nightlight_rgb(red=rgb[0], green=rgb[1], blue=rgb[2])
 
-        if ATTR_COLOR_TEMP in kwargs:
-            kelvin = color_util.color_temperature_mired_to_kelvin(
-                kwargs.get(ATTR_COLOR_TEMP)
-            )
-            self._light.set_nightlight_color_temperature(kelvin)
+        if ATTR_COLOR_TEMP_KELVIN in kwargs:
+            self._light.set_nightlight_color_temperature(kwargs.get(ATTR_COLOR_TEMP_KELVIN))
 
         if ATTR_EFFECT in kwargs:
             effect = kwargs[ATTR_EFFECT]
