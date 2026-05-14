@@ -13,7 +13,7 @@
   "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
   "requirements": [
     "unidecode",
-    "pyaarlo==0.8.0.17",
+    "pyaarlo@ git+https://github.com/GuiPoM/pyaarlo.git@fix/v3-custom-modes",
     "aiofiles"
   ],
   "version": "0.8.1.19"
