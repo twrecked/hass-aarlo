@@ -329,13 +329,12 @@ class ArloBaseStation(AlarmControlPanelEntity):
 
     def set_mode_in_ha(self, mode):
         """convert Home Assistant state to Arlo mode."""
-        lmode = mode.lower()
-        if lmode == self._disarmed_mode_name:
+        if mode.lower() == self._disarmed_mode_name.lower():
             if self._trigger_till is not None:
                 _LOGGER.debug(f"{self._attr_name} disarming/silencing")
                 self.alarm_clear()
-        _LOGGER.debug(f"{self._attr_name} set mode to {lmode}")
-        self._base.mode = lmode
+        _LOGGER.debug(f"{self._attr_name} set mode to {mode}")
+        self._base.mode = mode
 
     def siren_on(self, duration=30, volume=10):
         if self._base.has_capability(SIREN_STATE_KEY):
