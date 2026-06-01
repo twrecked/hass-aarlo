@@ -1,4 +1,7 @@
 aarlo
+0.8.1.21
+  Switch pyaarlo dependency to shouldbecommitted fork via git+https (pinned to 0.8.0.21)
+  Add curl_cffi backend support and http_backend / curl_cffi_impersonate config options
 0.8.1.20
   fix custom mode naming in v3 [thanks @GuiPom]
 0.8.1.19
