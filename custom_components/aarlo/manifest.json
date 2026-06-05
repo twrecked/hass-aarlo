@@ -13,10 +13,8 @@
   "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
   "requirements": [
     "unidecode",
-    "curl_cffi",
-    "cloudscraper",
-    "aiofiles",
-    "git+https://github.com/twrecked/pyaarlo@master#egg=pyaarlo"
+    "pyaarlo==0.8.0.21",
+    "aiofiles"
   ],
   "version": "0.8.1.21"
 }
