@@ -106,6 +106,8 @@ AARLO_SCHEMA = vol.Schema({
         cv.ensure_list, [cv.positive_int]
     ),
     vol.Optional(CONF_USER_AGENT, default=USER_AGENT): cv.string,
+    vol.Optional(CONF_HTTP_BACKEND, default=HTTP_BACKEND): cv.string,
+    vol.Optional(CONF_CURL_CFFI_IMPERSONATE, default=CURL_CFFI_IMPERSONATE): cv.string,
     vol.Optional(CONF_MODE_API, default=MODE_API): cv.string,
     vol.Optional(CONF_DEVICE_REFRESH, default=DEVICE_REFRESH): cv.positive_int,
     vol.Optional(CONF_MODE_REFRESH, default=MODE_REFRESH): cv.positive_int,
