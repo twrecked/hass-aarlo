@@ -13,8 +13,8 @@
   "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
   "requirements": [
     "unidecode",
-    "pyaarlo==0.8.0.20",
+    "pyaarlo==0.8.0.21",
     "aiofiles"
   ],
-  "version": "0.8.1.20"
+  "version": "0.8.1.21"
 }
