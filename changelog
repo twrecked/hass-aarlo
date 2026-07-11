@@ -1,6 +1,9 @@
 aarlo
+0.8.1.22
+  [pyaarlo] Add pro 6 support. [thanks @edwin-anne]
+  Defaut to cloudscraper for all requests (for now).
 0.8.1.21
-  Add curl_cffi backend support [thanks @shouldbecommitted]
+  [pyaarlo] Add curl_cffi backend support [thanks @shouldbecommitted]
 0.8.1.20
   fix custom mode naming in v3 [thanks @GuiPom]
 0.8.1.19
