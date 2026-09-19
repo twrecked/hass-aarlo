@@ -624,7 +624,25 @@ class ArloCam(Camera):
         return self._camera.stop_activity()
 
     async def async_stop_activity(self):
-        return await self.hass.async_add_executor_job(self.stop_activity)
+        # Serialize with HA's stream creation so reopening cannot reuse a
+        # decoder whose Arlo source is about to be stopped.
+        if self._create_stream_lock is None:
+            self._create_stream_lock = asyncio.Lock()
+        async with self._create_stream_lock:
+            stream = self.stream
+            try:
+                if stream is not None:
+                    # Stop this worker even when preloading is enabled. This
+                    # changes the discarded stream, not saved camera options.
+                    stream.dynamic_stream_settings.preload_stream = False
+                    await stream.stop()
+                    if self.stream is stream:
+                        self.stream = None
+            finally:
+                # A local decoder failure must not prevent the requested
+                # camera/cloud stop. Preserve errors instead of hiding them.
+                stopped = await self.hass.async_add_executor_job(self.stop_activity)
+            return stopped
 
     def siren_on(self, duration=30, volume=10):
         if self._camera.has_capability(SIREN_STATE_KEY):
