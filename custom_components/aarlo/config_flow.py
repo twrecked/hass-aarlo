@@ -14,7 +14,6 @@ from homeassistant.helpers.selector import SelectOptionDict, \
     SelectSelector, SelectSelectorConfig, SelectSelectorMode
 
 from .const import (
-    COMPONENT_CONFIG,
     CONF_ADD_AARLO_PREFIX,
     CONF_TFA_HOST,
     CONF_TFA_PASSWORD,
@@ -75,7 +74,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
     async def async_step_user(self, info: dict = None):
         """Handle user initiated flow."""
 
-        if self.hass.data.get(COMPONENT_CONFIG):
+        if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
 
         errors = {}
@@ -159,6 +158,9 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
 
     async def async_step_import(self, import_data):
         """Import momentary config from configuration.yaml."""
+
+        if self._async_current_entries():
+            return self.async_abort(reason="single_instance_allowed")
 
         _LOGGER.info("importing aarlo YAML")
         await UpgradeCfg.create_file_config(self.hass, import_data)

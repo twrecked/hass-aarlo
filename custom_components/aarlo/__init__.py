@@ -351,10 +351,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug(f"unloading it {entry.title}")
     unload_ok = await hass.config_entries.async_unload_platforms(entry, ARLO_PLATFORMS)
     if unload_ok:
-        await hass.async_add_executor_job(hass.data[COMPONENT_DATA].stop, True)
-        hass.data.pop(COMPONENT_DATA)
-        hass.data.pop(COMPONENT_SERVICES)
-        hass.data.pop(COMPONENT_CONFIG)
+        arlo = hass.data.get(COMPONENT_DATA)
+        if arlo is not None:
+            await hass.async_add_executor_job(arlo.stop, True)
+        hass.data.pop(COMPONENT_DATA, None)
+        hass.data.pop(COMPONENT_SERVICES, None)
+        hass.data.pop(COMPONENT_CONFIG, None)
     _LOGGER.debug(f"ok={unload_ok}")
 
     return unload_ok
