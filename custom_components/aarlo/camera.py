@@ -344,16 +344,25 @@ class ArloCam(Camera):
             if attr == ACTIVITY_STATE_KEY or attr == CONNECTION_KEY:
                 if value == "thermalShutdownCold":
                     self._state = "Offline, Too Cold"
+                    self._attr_is_streaming = False
+                    self._attr_is_recording = False
                     self.clear_stream()
+                elif value == "unavailable":
+                    self._state = "Unavailable"
+                    self._attr_is_streaming = False
+                    self._attr_is_recording = False
+                    self.clear_stream()
+                elif attr == CONNECTION_KEY:
+                    # Connectivity notifications do not end camera activity.
+                    pass
                 elif value == "userStreamActive":
                     self._state = CameraState.STREAMING
                     self._attr_is_streaming = True
+                    self._attr_is_recording = False
                 elif value == "alertStreamActive":
                     self._state = CameraState.RECORDING
+                    self._attr_is_streaming = False
                     self._attr_is_recording = True
-                elif value == "unavailable":
-                    self._state = "Unavailable"
-                    self.clear_stream()
                 elif value == "fullFrameSnapshot":
                     self._attr_is_recording = True
                 elif value == "startUserStream":
