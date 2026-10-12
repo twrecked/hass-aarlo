@@ -1,4 +1,11 @@
 aarlo
+0.8.1.25
+  This release incorporates several community bug fixes to improve streaming reliability, connection handling, and integration lifecycle management.
+  - Stream Teardown & Decoder Cleanup: Stop Home Assistant's stream decoder before terminating Arlo cloud activities during aarlo_stop_activity, avoiding stale decoder reuse on reopen. (#1161 by @Tosko4)
+  - Connection Event Handling: Preserve active camera streams across non-terminal connectivity notifications (connectionState=available) and maintain mutually consistent recording and streaming flags. (#1160 by @Tosko4)
+  - Lifecycle & Config Entry Hardening: Prevent duplicate configuration entries by validating persisted entries during setup/import, and handle missing runtime keys gracefully during integration unload to prevent unrecoverable failed_unload states. (#1159 by @Tosko4)
+
+aarlo
 0.8.1.24
   Bump pyaarlo version.
 0.8.1.23
