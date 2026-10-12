@@ -128,9 +128,9 @@ AARLO_SCHEMA = vol.Schema({
     vol.Optional(CONF_SAVE_SESSION, default=SAVE_SESSION): cv.boolean,
     vol.Optional(CONF_BACKEND, default=DEFAULT_BACKEND): cv.string,
     vol.Optional(CONF_CIPHER_LIST, default=DEFAULT_CIPHER_LIST): cv.string,
-    vol.Optional(CONF_MQTT_HOST, default=MQTT_HOST): cv.string,
+    vol.Optional(CONF_MQTT_HOST): cv.string,
     vol.Optional(CONF_MQTT_HOSTNAME_CHECK, default=DEFAULT_MQTT_HOSTNAME_CHECK): cv.boolean,
-    vol.Optional(CONF_MQTT_TRANSPORT, default=DEFAULT_MQTT_TRANSPORT): cv.string,
+    vol.Optional(CONF_MQTT_TRANSPORT): cv.string,
 
     # Deprecated
     vol.Optional(CONF_HIDE_DEPRECATED_SERVICES, default=True): cv.boolean,
