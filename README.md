@@ -457,37 +457,64 @@ This page will obscure the logs so only I can read them, I'm the sole possessor 
 
 I don't own every piece _Arlo_ of equipment so sometimes, when things go wrong or new equipment is released, I need to see what _Arlo_ actually expects this code to send and what this code can expect back from _Arlo_. _Aarlo_ simulates a web browser connection so you can find out what is expected by using the browser _Developer Tools_.
 
-_This instructions are for Chrome but most browsers (I hope!) have similar functionality._
+### Capturing a Network Archive (.har)
 
-- Open your browser.
-- Go to [the Arlo camera website](https://my.arlo.com/#/home).
-- With the _Arlo_ website open enable you browser's developer tools. On Chrome you click the three dots in the upper right corner, then select `More Tools` and finally select `Developer Tools`. You can also use the shortcut `CTRL+SHIFT+I`.
-- Select the `Network` tab in the newly opened window.
-- Now log in to the _Arlo_ website.
+The most helpful way to see what _Arlo_ actually expects to happen is to export a `.har` (HTTP Archive) file from `my.arlo.com`. Because the official Arlo web interface works correctly, capturing an action on the website gives us the authoritative packet trace, endpoints, and responses that our code needs to emulate.
 
-When you log in the data passed between the browser and _Arlo_ website will start to appear, and keep appearing, in this tab. If you click on an entry under `Name` you can examine the packets in more detail.
+#### Chrome, Edge, and Chromium-based browsers:
+1. Open your browser and go to [the Arlo camera website](https://my.arlo.com/#/home).
+2. Open Developer Tools: press `F12` (or `CTRL+SHIFT+I` on Windows/Linux, `Cmd+Option+I` on macOS), or click the menu (three dots) -> `More Tools` -> `Developer Tools`.
+3. Select the **Network** tab.
+4. Check the **Preserve log** checkbox in the top toolbar so logs aren't cleared across page reloads.
+5. Perform the action you want to capture (e.g. view a live stream, stop the stream, arm/disarm, or interact with a device feature).
+6. To export:
+   - Click the **Export HAR** icon (the downward-pointing arrow in the Network toolbar), OR
+   - Right-click anywhere on the list of network requests and select **Save all as HAR with content**.
 
+#### Firefox:
+1. Open [the Arlo camera website](https://my.arlo.com/#/home) and press `F12` (or `Ctrl+Shift+I` / `Cmd+Option+I`) to open Developer Tools.
+2. Select the **Network** tab.
+3. Click the gear icon on the right side of the Network toolbar and ensure **Persist Logs** is checked.
+4. Perform the action on the webpage.
+5. Right-click anywhere in the list of requests and select **Save All As HAR**.
+
+#### Safari:
+1. If the Develop menu is not enabled, go to *Safari Settings -> Advanced* and check *Show features for web developers*.
+2. Open [the Arlo camera website](https://my.arlo.com/#/home) and press `Option+Cmd+I` to open Web Inspector.
+3. Click the **Network** tab and check **Preserve Log**.
+4. Perform the action on the webpage.
+5. Click the **Export** icon at the top right of the Network tab to save the HAR file.
+
+> **Privacy Warning:** `.har` files contain everything sent and received during the recording, including session tokens and authentication cookies. **Never post raw HAR files publicly.** Always encrypt the file before sharing it using the [encryption webpage](https://pyaarlo-tfa.appspot.com/) or the `pyaarlo encrypt` command described in [Encrypting the Output](#encrypting-the-output).
+
+### Inspecting Individual Requests
+
+You can also examine requests directly in the Developer Tools **Network** tab:
+
+- Click on an entry under `Name` to examine the packet details.
 - The `Headers` tab shows you what was sent in the headers of the request.
-- The `Payload` tabs shows you what was sent in the body of the request
+- The `Payload` tab shows you what was sent in the body of the request.
 - The `Preview` tab shows the reply sent back from _Arlo_.
 
 ![Network TAB](images/chrome-2.png)
 
-If you hover over the field under `name` a pop up will display the full URL the request was sent to.
+If you hover over the field under `Name`, a tooltip will display the full URL the request was sent to.
 
 ## MQTT Stream
 
-_I need to document this._
+_Arlo_ uses MQTT over WebSockets for real-time events. In your browser's Developer Tools under the **Network** tab:
+1. Filter requests by clicking the **WS** (WebSockets) filter button.
+2. Look for a connection with `mqtt` in the URL (such as `mqtt-cluster.arloxcld.com`).
+3. Click on the connection and select the **Messages** tab.
+4. You will see real-time incoming and outgoing MQTT packets (including notifications when cameras go idle, motion starts, or streams connect).
 
 ## SSE Stream
 
-Look for a URL containing the word `subscribe`, this will be the even stream _Arlo_ sends back to the web page. As you click buttons on the web page more items will appear in this list. I can use this information to determine how to parse response packets for cases I don't yet handle.
+On older setups or specific regions, Arlo uses Server-Sent Events (SSE). Look for a URL containing the word `subscribe`; this is the event stream _Arlo_ sends back to the web page. As you click buttons on the web page more items will appear in this list. I can use this information to determine how to parse response packets for cases I don't yet handle.
 
 ## Supporting New Features
 
-For example, _Arlo_ creates a new device with a `WOOHOO` button, I don't posses such a device but you'd like the `WOOHOO` functionality implementing in _Aarlo_. What I need is the sequence of packets and their replies when you press the button. The only real way to do this is to press the button and see what new packets appear in the `Name` tab.
-
-You will then need to copy and paste them into a bug report on _GitHub_. See [the previous section](#encrypting-the-output) on how to hide sensitive data.
+For example, _Arlo_ creates a new device with a `WOOHOO` button, I don't possess such a device but you'd like the `WOOHOO` functionality implemented in _Aarlo_. What I need is the sequence of packets and their replies when you press the button. The best way to provide this is to capture a `.har` file during the interaction, encrypt it, and attach it to a bug report on _GitHub_. See [the previous section](#encrypting-the-output) on how to encrypt sensitive data.
 
 # FAQ
 
