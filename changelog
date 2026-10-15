@@ -1,4 +1,15 @@
 aarlo
+0.8.1.26
+  - Bump pyaarlo to 0.8.0.27:
+    - Adds automatic MQTT session reconnect and token renewal to prevent 2-hour disconnects.
+    - Adds automatic HTTP 401 session recovery for mode changes and device checks.
+    - Synchronizes camera and base station entity states on refresh.
+  - Async Camera Stop Activity: Handle stop activity service calls asynchronously
+    so camera streams terminate promptly without blocking executor threads.
+  - HAR Capture Guide: Added documentation for capturing and encrypting browser
+    network traces when reporting device or stream issues.
+
+aarlo
 0.8.1.25
   This release incorporates several community bug fixes to improve streaming reliability, connection handling, and integration lifecycle management.
   - Stream Teardown & Decoder Cleanup: Stop Home Assistant's stream decoder before terminating Arlo cloud activities during aarlo_stop_activity, avoiding stale decoder reuse on reopen. (#1161 by @Tosko4)
