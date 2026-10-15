@@ -219,7 +219,10 @@ async def async_setup_entry(
             camera_stop_recording_service(hass, call)
 
     async def async_service_callback(call):
-        await hass.async_add_executor_job(service_callback, call)
+        if call.service == SERVICE_STOP_ACTIVITY:
+            await async_camera_stop_activity_service(hass, call)
+        else:
+            await hass.async_add_executor_job(service_callback, call)
 
     if not hasattr(hass.data[COMPONENT_SERVICES], CAMERA_DOMAIN):
         _LOGGER.info("installing handlers")
@@ -1021,11 +1024,25 @@ def camera_video_to_file_service(hass, call):
         _LOGGER.debug("{0} video to file finished".format(entity_id))
 
 
+async def async_camera_stop_activity_service(hass, call):
+    for entity_id in call.data["entity_id"]:
+        try:
+            _LOGGER.info("{} stop activity".format(entity_id))
+            camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
+            if hasattr(camera, "async_stop_activity"):
+                await camera.async_stop_activity()
+            else:
+                await hass.async_add_executor_job(camera.stop_activity)
+        except HomeAssistantError:
+            _LOGGER.warning("{} stop activity service failed".format(entity_id))
+
+
 def camera_stop_activity_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             _LOGGER.info("{} stop activity".format(entity_id))
-            get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id).stop_activity()
+            camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
+            camera.stop_activity()
         except HomeAssistantError:
             _LOGGER.warning("{} stop activity service failed".format(entity_id))
 

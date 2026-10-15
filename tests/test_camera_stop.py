@@ -114,3 +114,20 @@ async def test_explicit_stop_terminates_a_preloaded_worker(camera):
     assert await camera.async_stop_activity() is True
     old._stop.assert_awaited_once_with()
     assert camera.stream is None
+
+
+@pytest.mark.asyncio
+async def test_async_camera_stop_activity_service(camera, monkeypatch):
+    from custom_components.aarlo.camera import async_camera_stop_activity_service
+
+    camera.async_stop_activity = AsyncMock(return_value=True)
+    monkeypatch.setattr(
+        "custom_components.aarlo.camera.get_entity_from_domain",
+        lambda _hass, _domain, _entity_id: camera,
+    )
+
+    call = SimpleNamespace(data={"entity_id": ["camera.test"]})
+    await async_camera_stop_activity_service(camera.hass, call)
+
+    camera.async_stop_activity.assert_awaited_once()
+
