@@ -1,4 +1,6 @@
-aarlo
+0.8.1.27
+  - Fix tagging issue.
+
 0.8.1.26
   - Bump pyaarlo to 0.8.0.27:
     - Adds automatic MQTT session reconnect and token renewal to prevent 2-hour disconnects.
