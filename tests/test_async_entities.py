@@ -160,3 +160,31 @@ async def test_async_login_success():
         client = await async_login(hass, {"username": "test@example.com", "password": "pw"})
         assert client is mock_client
         mock_create.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_options_flow_general_step_first():
+    from custom_components.aarlo.config_flow import ArloOptionsFlowHandler
+
+    mock_entry = SimpleNamespace(
+        options={"backend": "auto", "save_media_to": "/test/media"},
+        entry_id="test_entry",
+    )
+    handler = ArloOptionsFlowHandler(mock_entry)
+    handler.hass = SimpleNamespace(config=SimpleNamespace(path=lambda p: f"/tmp/{p}"))
+
+    # Initial step should show 'general'
+    result = await handler.async_step_init()
+    assert result["type"] == "form"
+    assert result["step_id"] == "general"
+
+    # Submitting general should proceed to 'alarm_control_panel'
+    next_step = await handler.async_step_general({
+        "backend": "mqtt",
+        "http_backend": "curl_cffi",
+        "save_media_to": "/config/media/test",
+    })
+    assert next_step["type"] == "form"
+    assert next_step["step_id"] == "alarm_control_panel"
+    assert handler._config["backend"] == "mqtt"
+    assert handler._config["save_media_to"] == "/config/media/test"

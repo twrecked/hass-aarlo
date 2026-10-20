@@ -26,7 +26,7 @@ from .const import (
     STATE_ALARM_ARLO_HOME,
     STATE_ALARM_ARLO_NIGHT
 )
-from .cfg import UpgradeCfg
+from .cfg import UpgradeCfg, _async_load_yaml, _default_config_file
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,6 +43,30 @@ TFA_TYPES = [
 TFA_SELECTOR = SelectSelector(
     SelectSelectorConfig(
         options=TFA_TYPES,
+        mode=SelectSelectorMode.DROPDOWN,
+    )
+)
+
+BACKEND_TYPES = [
+    SelectOptionDict(value="auto", label="Auto (MQTT with fallback)"),
+    SelectOptionDict(value="mqtt", label="MQTT (WebSockets)"),
+    SelectOptionDict(value="sse", label="SSE (Server-Sent Events)"),
+]
+BACKEND_SELECTOR = SelectSelector(
+    SelectSelectorConfig(
+        options=BACKEND_TYPES,
+        mode=SelectSelectorMode.DROPDOWN,
+    )
+)
+
+HTTP_BACKEND_TYPES = [
+    SelectOptionDict(value="curl_cffi", label="curl_cffi (Chrome TLS fingerprint)"),
+    SelectOptionDict(value="cloudscraper", label="cloudscraper (Cloudflare scraper)"),
+    SelectOptionDict(value="requests", label="requests (Standard HTTP)"),
+]
+HTTP_BACKEND_SELECTOR = SelectSelector(
+    SelectSelectorConfig(
+        options=HTTP_BACKEND_TYPES,
         mode=SelectSelectorMode.DROPDOWN,
     )
 )
@@ -189,7 +213,33 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
             self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         """Manage the options."""
-        return await self.async_step_alarm_control_panel(user_input)
+        return await self.async_step_general(user_input)
+
+    async def async_step_general(
+            self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Manage backend and media options."""
+        if user_input is not None:
+            _LOGGER.debug(f"user-input-general={user_input}")
+            self._config.update(user_input)
+            return await self.async_step_alarm_control_panel(None)
+
+        options = dict(self._config_entry.options)
+        yaml_config = await _async_load_yaml(_default_config_file(self.hass))
+        aarlo_yaml = yaml_config.get(COMPONENT_DOMAIN, {})
+
+        backend_default = options.get("backend", aarlo_yaml.get("backend", "auto"))
+        http_backend_default = options.get("http_backend", aarlo_yaml.get("http_backend", "curl_cffi"))
+        save_media_default = options.get("save_media_to", aarlo_yaml.get("save_media_to", ""))
+
+        return self.async_show_form(
+            step_id="general",
+            data_schema=vol.Schema({
+                vol.Required("backend", default=backend_default): BACKEND_SELECTOR,
+                vol.Required("http_backend", default=http_backend_default): HTTP_BACKEND_SELECTOR,
+                vol.Optional("save_media_to", default=save_media_default): str,
+            })
+        )
 
     async def async_step_alarm_control_panel(
             self, user_input: dict[str, Any] | None = None
@@ -199,10 +249,10 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
             _LOGGER.debug(f"user-input-alarm={user_input}")
 
             # Yuck.
-            if user_input["alarm_control_panel_code"] == "no code needed":
+            if user_input.get("alarm_control_panel_code") == "no code needed":
                 user_input.pop("alarm_control_panel_code")
 
-            self._config = user_input
+            self._config.update(user_input)
             return await self.async_step_binary_sensor(None)
 
         options = self._config_entry.options

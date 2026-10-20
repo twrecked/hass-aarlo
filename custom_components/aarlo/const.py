@@ -77,7 +77,7 @@ CONF_DIR = ""
 REQ_TIMEOUT = timedelta(seconds=15)
 STR_TIMEOUT = timedelta(seconds=120)
 NO_MEDIA_UP = False
-MEDIA_RETRY = []
+MEDIA_RETRY: list[int] = []
 SNAPSHOT_CHECKS = None
 USER_AGENT = "linux"
 HTTP_BACKEND = "curl_cffi"

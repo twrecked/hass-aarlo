@@ -277,7 +277,10 @@ DEFAULT_OPTIONS = {
     "switch_siren_duration": 10,
     "switch_snapshot": True,
     "switch_snapshot_timeout": 15,
-    "switch_doorbell_silence": True
+    "switch_doorbell_silence": True,
+    "backend": "auto",
+    "http_backend": "curl_cffi",
+    "save_media_to": "",
 }
 
 
@@ -286,26 +289,21 @@ def _default_config_file(hass) -> str:
 
 
 async def _async_load_yaml(file_name):
-    _LOGGER.debug("_async_load_yaml1 file_name for %s", file_name)
     try:
         async with aiofiles.open(file_name, 'r') as yaml_file:
-            _LOGGER.debug("_async_load_yaml2 file_name for %s", file_name)
             contents = await yaml_file.read()
-            _LOGGER.debug("_async_load_yaml3 file_name for %s", file_name)
             return parse_yaml(contents)
-    except Exception as e:
-        _LOGGER.debug("_async_load_yaml3 file_name for %s", file_name)
+    except Exception:
         return {}
 
 
 async def _async_save_yaml(file_name, data):
-    _LOGGER.debug("_async_save_yaml1 file_name for %s", file_name)
     try:
         async with aiofiles.open(file_name, 'w') as yaml_file:
             data = dump(data)
             await yaml_file.write(data)
-    except Exception as e:
-        _LOGGER.debug("_async_load_yaml3 file_name for %s", file_name)
+    except Exception:
+        pass
 
 
 def _fix_config(config):
@@ -376,6 +374,9 @@ class BlendedCfg(object):
             options = DEFAULT_OPTIONS
 
         self._main_config = {**data, **self._main_config}
+        for opt_key in ("backend", "http_backend", "save_media_to"):
+            if opt_key in options:
+                self._main_config[opt_key] = options[opt_key]
         self._alarm_config = ALARM_SCHEMA(_extract_platform_config(options, "alarm_control_panel_"))
         self._binary_sensor_config = _extract_monitored_conditions(options, "binary_sensor_")
         self._sensor_config = _extract_monitored_conditions(options, "sensor_")

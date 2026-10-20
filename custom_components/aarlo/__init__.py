@@ -241,6 +241,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     domain_config = cfg.domain_config
     injection_service = domain_config.get(CONF_INJECTION_SERVICE, False)
 
+    # Seed entry.options from aarlo.yaml if missing
+    if any(k not in entry.options for k in ("backend", "http_backend", "save_media_to")):
+        new_options = dict(entry.options)
+        updated = False
+        for k in ("backend", "http_backend", "save_media_to"):
+            if k not in new_options and k in domain_config:
+                new_options[k] = domain_config[k]
+                updated = True
+        if updated and hasattr(hass.config_entries, "async_update_entry"):
+            hass.config_entries.async_update_entry(entry, options=new_options)
+
     # Try to login to aarlo.
     arlo = await async_login(hass, domain_config)
     if arlo is None:

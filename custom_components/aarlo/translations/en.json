@@ -26,6 +26,15 @@
 
   "options": {
     "step": {
+      "general": {
+        "title": "Backend & Media Settings",
+        "description": "Configure event stream protocol, HTTP client, and local recording storage.\nLeave media directory blank to stream on demand.",
+        "data": {
+          "backend": "Event Stream Backend",
+          "http_backend": "HTTP Client Backend",
+          "save_media_to": "Save Media Path Template"
+        }
+      },
       "alarm_control_panel": {
         "title": "Alarm Settings",
         "description": "Set mode names and other alarm requirements.",

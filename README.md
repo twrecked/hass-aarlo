@@ -36,7 +36,7 @@ _Aarlo_ provides, amongst other things:
   - [Manual Installation](#manual-installation)
 - [Adding and Configuring the Integration](#adding-and-configuring-the-integration)
   - [Two-Factor Authentication (2FA)](#two-factor-authentication-2fa)
-  - [Entity Configuration](#entity-configuration)
+  - [Options & Configuration Flow](#options--configuration-flow)
 - [Event Stream Backends (MQTT vs. SSE)](#event-stream-backends-mqtt-vs-sse)
 - [Cloudflare & Network Resiliency](#cloudflare--network-resiliency)
 - [Diagnostics & Bug Reports](#diagnostics--bug-reports)
@@ -87,6 +87,9 @@ In v0.9, the integration has been streamlined so that **`/config/aarlo.yaml` is 
 5. **Modern Sub-Logger (`pyaarlo.packet`)**:
    - High-volume packet and protocol tracing is routed through the `pyaarlo.packet` logger.
    - The legacy `verbose_debug: true` setting in `aarlo.yaml` is deprecated.
+6. **UI Configuration for Backend & Media**:
+   - Event stream protocol (`auto`, `mqtt`, `sse`), HTTP client (`curl_cffi`, `cloudscraper`), and local recording download templates (`save_media_to`) can now be managed directly in Home Assistant via **Configure**.
+   - Any existing settings in `/config/aarlo.yaml` are automatically imported on startup.
 
 ---
 
@@ -149,10 +152,15 @@ Requires manual verification code entry.
 
 ---
 
-## Entity Configuration
+## Options & Configuration Flow
 
-From the Integration page, click **Configure** on Aarlo to customize which entities Home Assistant creates:
+From the Integration page, click **Configure** on Aarlo to customize integration settings and entities:
 
+- **Backend & Media Settings Screen (New):**
+  - **Event Stream Backend:** Select `auto` (MQTT WebSocket, recommended), `mqtt`, or `sse`.
+  - **HTTP Client Backend:** Select `curl_cffi` (Chrome TLS fingerprinting, recommended), `cloudscraper`, or `requests`.
+  - **Save Media Path Template:** Specify a directory template to download MP4 video recordings locally (e.g. `/config/media/${SN}/${Y}/${m}/${d}/${T}`). Leave blank to stream on demand without saving files to disk.
+  - *Automatic Import:* If you have existing settings in `/config/aarlo.yaml`, they are automatically imported into this screen on startup.
 - **Alarm Setting Screen:** Customize home/away/night mode names, disarm codes, and siren trigger duration.
 - **Binary Sensors Screen:** Enable or disable motion, sound, doorbell press, cry, contact, light, and leak sensors.
 - **Sensors Screen:** Enable battery level, signal strength, capture history, and environmental sensors.
@@ -173,11 +181,7 @@ Arlo supports two streaming protocols for pushing real-time events to Home Assis
    - Retained as a fallback if your account or devices do not push events over MQTT.
    - *Limitation:* Arlo restricts SSE to a single connection per account.
 
-To override the backend, specify in `/config/aarlo.yaml`:
-```yaml
-aarlo:
-  backend: sse  # or mqtt / auto
-```
+To change or override the backend, click **Configure** on the Aarlo integration in Home Assistant and select your preferred backend on the first screen (or optionally specify `backend:` in `/config/aarlo.yaml`).
 
 ---
 
@@ -186,11 +190,7 @@ aarlo:
 Arlo protects its login endpoints with Cloudflare anti-bot checks.
 
 - In v0.9, _Aarlo_ defaults to **`curl_cffi`**, which impersonates authentic browser TLS fingerprints (`chrome131`) to pass Cloudflare verification cleanly.
-- If your environment requires it, you can fall back to `cloudscraper` in `/config/aarlo.yaml`:
-  ```yaml
-  aarlo:
-    http_backend: cloudscraper
-  ```
+- To switch the HTTP backend (e.g. to `cloudscraper` or `requests`), click **Configure** on the Aarlo integration in Home Assistant and adjust the **HTTP Client Backend** dropdown on the first screen (or optionally specify `http_backend:` in `/config/aarlo.yaml`).
 
 ---
 

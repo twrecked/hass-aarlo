@@ -19,6 +19,7 @@
     - Fixed schema validation issue on siren volume and corrected RESTAPI 2FA dictionary assignment.
     - Set default HTTP backend to curl_cffi, recent_time to 60s, and media_retry to [].
     - Deprecated verbose_debug option in favor of standard Home Assistant 'logger: logs: pyaarlo.packet: debug'.
+    - Add Backend & Media Settings as the first step in options flow, with automatic import from aarlo.yaml.
   - Requirements:
     - Updated requirement to target pyaarlo v0.9 async refactor.
 
