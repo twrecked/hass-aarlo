@@ -1,595 +1,263 @@
 # **An Arlo Home Assistant Integration**
 
-_Aarlo_ is a custom component for [Home  Assistant](https://www.home-assistant.io/), that provides access to  the [Arlo](https://www.arlo.com/en-us/) system.
+_Aarlo_ is a custom component for [Home Assistant](https://www.home-assistant.io/), providing asynchronous access to the [Arlo](https://www.arlo.com/en-us/) camera and security ecosystem.
 
 _Aarlo_ provides, amongst other things:
-- Access to cameras, base stations, sirens, doorbells and lights.
-- Asynchronous, almost immediate, notification of motion, sound and button press events.
-- Ability to view library recordings, take snapshots and direct stream from cameras.
-- Tracking of environmental stats from certain base station types.
-- Special switches to trip alarms and take snapshots from cameras.
-- Enhanced state notifications.
-- Media player support for select devices.
+- Access to cameras, base stations, sirens, doorbells, and lights.
+- Asynchronous, real-time notification of motion, sound, and doorbell press events via MQTT/WebSockets.
+- Media playback, snapshots, and direct camera streaming in Home Assistant.
+- Environmental sensors (temperature, humidity, air quality) from supported base stations.
+- Dedicated switches for alarms, camera snapshots, and doorbell muting.
+- Native async service calls and non-blocking integration lifecycle.
+
+---
+
+> ### ⚠️ Major Rewrite Notice (`v0.9.0-alpha.1`)
+>
+> **Aarlo v0.9 is a major rewrite transitioning the integration and underlying `pyaarlo` library to native Python `asyncio`.**
+>
+> **This is an active alpha release — please expect bugs, edge cases, and evolving improvements.**
+>
+> *Note on Hardware Testing:* The maintainer does not own or have access to every Arlo hardware model (such as all generations of cameras, floodlights, doorbells, chimes, and SmartHubs) and cannot test every permutation. Community testing and feedback are essential to stabilizing this release!
+>
+> If you encounter issues, regressions, or unexpected behavior with your hardware, please [open a GitHub issue](https://github.com/twrecked/hass-aarlo/issues). Please include your Home Assistant version, Arlo device models, and relevant logs.
+>
+> If you need the legacy v0.8 documentation, it is archived in [README_v8.md](README_v8.md).
+
+---
 
 # Table Of Contents
 
-<!-- TOC -->
-* [**An Arlo Home Assistant Integration**](#an-arlo-home-assistant-integration)
-* [Table Of Contents](#table-of-contents)
-* [Introduction](#introduction)
-  * [Notes](#notes)
-  * [Thanks](#thanks)
-  * [See Also](#see-also)
-* [Requirements](#requirements)
-* [Installing the Integration](#installing-the-integration)
-  * [HACS](#hacs)
-  * [Manually](#manually)
-  * [From Script](#from-script)
-* [Adding and Configuring the Integration](#adding-and-configuring-the-integration)
-  * [Further Configuration](#further-configuration)
-    * [Alarm Setting Screen](#alarm-setting-screen)
-    * [Binary Sensors Screen](#binary-sensors-screen)
-    * [Sensors Screen](#sensors-screen)
-    * [Switches Screen](#switches-screen)
-* [Coming From Earlier Versions](#coming-from-earlier-versions)
-* [Advanced Configuration](#advanced-configuration)
-  * [Back Ends](#back-ends)
-    * [How it Works](#how-it-works)
-    * [Configuration](#configuration)
-  * [Cloud Flare](#cloud-flare)
-    * [How We Work Around This](#how-we-work-around-this)
-    * [Configuration](#configuration-1)
-  * [Two Factor Authentication](#two-factor-authentication)
-    * [IMAP](#imap)
-      * [Application Passwords](#application-passwords)
-      * [IMAP Servers](#imap-servers)
-    * [PUSH](#push)
-    * [Configuration](#configuration-2)
-* [Bug Reports](#bug-reports)
-  * [What to Include](#what-to-include)
-  * [Enabling Debug](#enabling-debug)
-  * [Encrypting the Output](#encrypting-the-output)
-* [Reverse Engineering](#reverse-engineering)
-  * [Figuring out what Aarlo Needs to Do](#figuring-out-what-aarlo-needs-to-do)
-  * [MQTT Stream](#mqtt-stream)
-  * [SSE Stream](#sse-stream)
-  * [Supporting New Features](#supporting-new-features)
-* [FAQ](#faq)
-* [Supported Devices](#supported-devices)
-* [Known Limitations](#known-limitations)
-<!-- TOC -->
+- [Introduction](#introduction)
+- [Requirements](#requirements)
+- [What's New & Changed Defaults in v0.9](#whats-new--changed-defaults-in-v09)
+- [Installing the Integration](#installing-the-integration)
+  - [HACS](#hacs)
+  - [Manual Installation](#manual-installation)
+- [Adding and Configuring the Integration](#adding-and-configuring-the-integration)
+  - [Two-Factor Authentication (2FA)](#two-factor-authentication-2fa)
+  - [Entity Configuration](#entity-configuration)
+- [Event Stream Backends (MQTT vs. SSE)](#event-stream-backends-mqtt-vs-sse)
+- [Cloudflare & Network Resiliency](#cloudflare--network-resiliency)
+- [Diagnostics & Bug Reports](#diagnostics--bug-reports)
+  - [Configuring Logging](#configuring-logging)
+  - [Capturing a Network Archive (.har)](#capturing-a-network-archive-har)
+  - [Encrypting Diagnostic Output](#encrypting-diagnostic-output)
+- [FAQ](#faq)
+- [Supported Devices](#supported-devices)
+- [Known Limitations](#known-limitations)
+
+---
 
 # Introduction
 
-_Aarlo_ is a custom component for [Home  Assistant](https://www.home-assistant.io/), that provides access to  the [Arlo](https://www.arlo.com/en-us/) system.
+_Aarlo_ interacts with the [Arlo Web APIs](https://my.arlo.com/#/home) to provide full Home Assistant entity support.
 
-The integration uses the _APIs_ provided by the [Arlo Camera Website](https://my.arlo.com/#/home) and there are several limitations to this. See the [Known Limitations](#known-limitatons) section for further details.
+With v0.9, all network requests, event listeners, streaming handoffs, and entity controls run asynchronously on Home Assistant's event loop with zero thread-blocking calls.
 
-If you encounter an issue then look at the [FAQ](#faq) section to see if it has a known problem and has a workaround or fix. If not, look at the [Bug Report](#bug-reports) section for information on how to generate debug logs and create a debug report.
+For advanced configurations (such as customizing video download directories or raw entity naming), see [README-advanced.md](README-advanced.md).
 
-The advanced README is [here](README-advanced.md)
-
-The old _README_ is still available [here](README-202405.md).
-
-## Notes
-
-This document assumes you are familiar with _Home Assistant_ setup and configuration.
-
-Wherever you see `/config` in this document it refers to your _Home Assistant_ configuration directory. For example, for my installation it's `/home/steve/ha` which is mapped to `/config` by my docker container.
-
-Wherever you see _Arlo_ it refers to any piece of the _Arlo_ system.
-
-Wherever you see _Aarlo_ I'm referring to this component.
-
-## Thanks
-
-Many thanks to:
-- [Pyarlo](https://github.com/tchellomello/python-arlo) and  [Arlo](https://github.com/jeffreydwalter/arlo) for doing all the hard work figuring the API out and the free Python lesson!
-- [sseclient](https://github.com/btubbs/sseclient) for reading from the event stream
-- [Button Card](https://github.com/kuuji/button-card/blob/master/button-card.js) for a working Lovelace card I could understand
-
-## See Also
-
-_Aarlo_ also provides a custom [_Lovelace Card_](https://github.com/twrecked/lovelace-hass-aarlo), which overlays a camera's last snapshot with its current status and allows access to the cameras recording library and live-streaming.
-
-If you aren't familiar with _Home Assistant_ I recommend visiting the  [Community Website](https://community.home-assistant.io/). It's full of helpful people and there is always someone who's encountered the problem you are trying to fix.
+---
 
 # Requirements
 
-_Aarlo_ needs a dedicated _Arlo_ account. If you try to reuse an existing account, for example, the one you use on the _Arlo_ app on your phone, the app and this integration will constantly fight to log in. This is an _Arlo_ limitation.
+- **Dedicated Arlo Account:**
+  _Aarlo_ requires a dedicated Arlo account. If you attempt to reuse the same account you use on your mobile phone, the phone app and Home Assistant will constantly disconnect each other.
+- **Admin Access Rights:**
+  Grant the secondary account `Allow Access Rights` (Admin privileges) in your primary Arlo app settings (*Settings -> Grant Access*). This is required to control base station modes and receive battery/signal updates.
+- **Two-Factor Authentication (2FA):**
+  Arlo mandates two-factor authentication. We strongly recommend configuring an **Email** 2FA factor using **IMAP**.
 
-The dedicated _Aarlo_ account needs `Allow Access Rights` to be enabled to set the alarm levels and read certain status values.
+---
 
-See [the _Arlo_ documentation](https://kb.arlo.com/000062933/How-do-I-add-friends-on-my-Arlo-Secure-app-Arlo-Secure-4-0#:~:text=To%20add%20a%20friend%20to%20your%20Arlo%20account%3A&text=Tap%20or%20click%20to%20add,grant%20the%20user%20additional%20privileges.) for further instructions.
+# What's New & Changed Defaults in v0.9
 
-You need to enable two factor authentication. Set up an email address to receive the verification code. _Aarlo_ supports other _TFA_ mechanisms but email is the easiest to use. See the [Two Factor Authentication](#two-factor-authentication) section later for more details.
+In v0.9, the integration has been streamlined so that **`/config/aarlo.yaml` is no longer needed for normal setups**. Sane, automated defaults now handle operation out of the box:
+
+1. **`http_backend: curl_cffi` (Default)**:
+   - Uses real browser TLS fingerprints (`chrome131`) to reliably pass Cloudflare anti-bot verification.
+   - `cloudscraper` remains available as a manual fallback option if needed.
+2. **Automated Token Expiry Renewal**:
+   - Reconnects and token renewals are now automatically scheduled to fire **5 minutes before the session token expires**.
+   - Manual periodic reconnect workarounds (e.g. `reconnect_every: 15`) are no longer needed.
+3. **`recent_time: 60` (Default)**:
+   - The camera "recently active" status window defaults to 60 seconds (1 minute), rather than the legacy 60-minute default.
+4. **`media_retry: []` (Default)**:
+   - Recordings now rely on real-time MQTT push events (`mediaUploadNotification`) rather than firing multiple duplicate HTTP polling requests for every video.
+5. **Modern Sub-Logger (`pyaarlo.packet`)**:
+   - High-volume packet and protocol tracing is routed through the `pyaarlo.packet` logger.
+   - The legacy `verbose_debug: true` setting in `aarlo.yaml` is deprecated.
+
+---
 
 # Installing the Integration
 
-**You only need to use one of these installation mechanisms. I recommend HACS.**
-
-## HACS
+### HACS (Recommended)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
-_Aarlo is part of the default HACS store. If you're not interested in using development branches this is the easiest way to install._
+_Aarlo_ is part of the default HACS store. Search for "Aarlo" under Integrations and download the latest release.
 
-## Manually
+### Manual Installation
 
-Copy the `aarlo` directory into your `/config/custom_components` directory.
+Copy the `custom_components/aarlo` directory into your Home Assistant `/config/custom_components/` directory and restart Home Assistant.
 
-## From Script
-
-Run the installation script. Run it once to make sure the operations look sane and run it a second time with the `go` parameter to do the actual work. If you update just rerun the script, it will overwrite all installed files.
-
-```sh  
-install /config # check output looks good  
-install go /config
-```
+---
 
 # Adding and Configuring the Integration
 
-However you install the source code you know need to add the integration into _Home Assistant_. From the home page select `Settings -> Devices & Services`, from here click `ADD INTEGRATION` and search for `Aarlo`. On the first screen enter your account details.
+From the Home Assistant UI:
+1. Navigate to **Settings -> Devices & Services**.
+2. Click **Add Integration** and search for **Aarlo**.
+3. Enter your dedicated Arlo account credentials and 2FA settings:
 
-![The Image View](/images/config-flow-01.png?raw=true)
+![Integration Setup](/images/config-flow-01.png?raw=true)
 
-| Field                | Value                                    |
-|----------------------|------------------------------------------|
-| Username             | Your _Arlo_ account username             |
-| Password             | Your _Arlo_ account password             |
-| Two Factor Mechanism | Select IMAP                              |
-| TFA Username         | The email account you registered for TFA |
-| TFA Password         | The email account password               |
-| TFA Host             | The IMAP server to look for the email on |
+| Field | Description |
+|---|---|
+| **Username** | Your dedicated Arlo account email address |
+| **Password** | Your dedicated Arlo account password |
+| **Two Factor Mechanism** | Select **IMAP** (recommended), **PUSH**, or **NONE** |
+| **TFA Username** | Your IMAP email username |
+| **TFA Password** | Your IMAP email password or app-specific password |
+| **TFA Host** | Your IMAP server hostname (e.g. `imap.gmail.com`) |
 
-If you leave `Use aarlo prefix` checked all your devices will be of the format `type.aarlo_*`.
+---
 
-Click `SUBMIT`. The integration will log into _Arlo_ and retrieve the list of devices associated with it. If it all works you will be able to assign the devices to rooms on the the next screen.
+## Two-Factor Authentication (2FA)
 
-![The Image View](/images/config-flow-02.png?raw=true)
+Arlo requires two-step verification. Three methods are supported:
 
-## Further Configuration
+### 1. IMAP (`email:imap`) — Strongly Recommended
+Automates two-factor authentication headlessly. When Arlo sends an email with a 6-digit code, _Aarlo_ checks your inbox over IMAP, extracts the code, and completes login without manual intervention.
 
-You can fine tune the settings further. From the Integration page click `CONFIGURE`.
+- **App Passwords Required:**
+  Webmail providers like Gmail and Yahoo require an **Application Specific Password** (not your regular account password) when accessing via IMAP:
+  - [Google App Passwords Guide](https://support.google.com/mail/answer/185833?hl=en)
+  - [Yahoo App Passwords Guide](https://help.yahoo.com/kb/SLN15241.html)
 
-### Alarm Setting Screen
+- **Common IMAP Hostnames:**
+  - Gmail: `imap.gmail.com`
+  - Yahoo: `imap.mail.yahoo.com`
+  - Outlook / Office 365: `outlook.office365.com`
 
-Fine tune the alarm settings:
+### 2. Push (`push`)
+Arlo sends a push notification to your phone. You must open the official Arlo app and approve the login request when Home Assistant restarts.
 
-![The Image View](/images/config-flow-03.png?raw=true)
+### 3. SMS (`sms`)
+Requires manual verification code entry.
 
+---
 
-| Field                | Value                                                    |
-|----------------------|----------------------------------------------------------|
-| Alarm/disarm Code    | Enter a code if needed, otherwise leave as default       |
-| Disarmed mode name   | Change if your Arlo account has a custom disarmed name   |
-| Home mode name       | Change if your Arlo account has a custom home mode name  |
-| Away mode name       | Change if your Arlo account has a custom away mode name  |
-| Night mode name      | Change if your Arlo account has a custom night mode name |
-| Arm code required    | Select if Alarm/disarm code is needed to arm             |
-| Disarm code required | Select if Alarm/disarm code is needed to disarm          |
-| Trigger time         | How long to wait when arming                             |
-| Alarm volume         | Default volume for the alarm sirens                      |
+## Entity Configuration
 
-_Night Mode_; _Arlo_ will not have one of these unless you create it
+From the Integration page, click **Configure** on Aarlo to customize which entities Home Assistant creates:
 
-If you need to clear the alarm code enter `no code needed`. _I will look to make this accept a blank entry..._
+- **Alarm Setting Screen:** Customize home/away/night mode names, disarm codes, and siren trigger duration.
+- **Binary Sensors Screen:** Enable or disable motion, sound, doorbell press, cry, contact, light, and leak sensors.
+- **Sensors Screen:** Enable battery level, signal strength, capture history, and environmental sensors.
+- **Switches Screen:** Add switches to trip sirens, request snapshots, or silence doorbell chimes.
 
-### Binary Sensors Screen
+---
 
-Determine which binary sensors are available:
+# Event Stream Backends (MQTT vs. SSE)
 
-![The Image View](/images/config-flow-04.png?raw=true)
+Arlo supports two streaming protocols for pushing real-time events to Home Assistant:
 
-| Field               | Value                                   |
-|---------------------|-----------------------------------------|
-| Sound detection     | Enable microphones on cameras           |
-| Motion detection    | Enable motion detection on cameras      |
-| Doorbell presses    | Enable doorbell buttons                 |
-| Cry detection       | For Arlo baby, enable cry detection     |
-| Device connectivity | Be notified when a device disconnects   |
-| Open/Close sensors  | Enable door and window sensors          |
-| Brightness sensors  | Enable light detection                  |
-| Tamper detection    | Enable notification if device is opened |
-| Leak detection      | Enable leak monitoring devices          |
+1. **`auto` / MQTT over WebSockets (Default):**
+   - The modern protocol used by Arlo's official web and mobile apps.
+   - Lightweight and supports concurrent connections.
+   - The broker URL is dynamically assigned by Arlo during authentication.
+2. **`sse` (Fallback):**
+   - HTTP Server-Sent Events stream (`/subscribe`).
+   - Retained as a fallback if your account or devices do not push events over MQTT.
+   - *Limitation:* Arlo restricts SSE to a single connection per account.
 
-Not all sensors are available on all devices.
-
-### Sensors Screen
-
-![The Image View](/images/config-flow-05.png?raw=true)
-
-Determine which sensors are available:
-
-| Field                                     | Value                                                           |
-|-------------------------------------------|-----------------------------------------------------------------|
-| Last capture time                         | A per camera sensor indicating when the last recording was made |
-| Total number of cameras detected          | Integer value of camera count                                   |
-| Recent activity detected                  | Was the camera recently active                                  |
-| Number of videos/snapshots captured today | Integer value of recording made today                           |
-| Device battery level                      | Percentage of battery left                                      |
-| WiFi signal strength                      | WiFi strength, has a range of 1 to 5                            |
-| Room temperature                          | Room conditions                                                 |
-| Room humidity                             | Room conditions                                                 |
-| Air quality                               | Room conditions                                                 |
-
-Not all sensors are available on all devices.  And _recent activity_ should probably be a _binary_sensor_.
-
-### Switches Screen
-
-Enable miscellaneous switches:
-
-![The Image View](/images/config-flow-06.png?raw=true)
-
-| Field                                       | Value                                                |
-|---------------------------------------------|------------------------------------------------------|
-| Switches to turn sirens on                  | Provide a switch to turn individual sirens on        |
-| A switch turn all sirens on                 | Provide a switch to turn all sirens on               |
-| Allow sirens to be turned off               | Allow sirens to be turned off by switch              |
-| Siren switch volume                         | Default volume level, from 1 to 10                   |
-| Siren Switch duration                       | Default time to run the alarm                        |
-| Switches to request cameras take a snapshot | Provide a switch to take a camera snapshot           |
-| Camera snapshot timeout                     | How long to wait for badly behaved cameras to finish |
-| Switches to silence doorbell chimes         | Provide a switch to silence doorbells.               |
-
-# Coming From Earlier Versions
-
-If you are coming from an early there are several things to note:
-
-- Your configuration will be imported into the `config flow` mechanism. All your devices will appear on the integration page.
-- You will not be able to change your login or TFA settings without deleting the Intergration.
-- You will be able to fine tune with the [Further Configuration](#further-configuration) settings.
-- You can comment out the original `yaml` entries.
-- The import enables the `prefix with _aarlo` to keep the naming identical.
-- All component services are now in the `aarlo` domain.
-- The `pyaarlo` component is now installed via `pip` and not included with the Integration.
-- You may experience log in difficulties, if you do try deleting `.aarlo/session.pickle`.
-
-I wasn't willing to move some of the more esoteric configuration items into the `config flow` mechanisms, if you had any configured they will appear in the `/config/aarlo.yaml` file. See [here](README-advanced.md) for more on these options.
-
-# Advanced Configuration
-
-## Back Ends
-
-_Arlo_ will use either [SSE](https://en.wikipedia.org/wiki/Server-sent_events) or [MQTT](https://en.wikipedia.org/wiki/MQTT) to signal events to _Aarlo_. I'm not fully sure of the mechanism which determines which gets chosen but I know adding or removing a `user_agent` will switch between the two.
-
-### How it Works
-
-_Arlo_ recently updated the response they send to the `session/v3` API requests to indicate which back end to choose. _Aarlo_ will parse that out when using `auto`.
-
-```yaml
-# This is the MQTT backend. We use the host and port.
-'mqttUrl': 'ssl://mqtt-cluster-z1.arloxcld.com:8883'
-
-# This is the SSE backend. We use a fixed host and port.
-'mqttUrl': 'wss://mqtt-cluster-z1.arloxcld.com:8084'
-```
-
-If you enable verbose debugging your should be able to find this value in the _Home Assistant_ logs.
-
-### Configuration
-
-Starting with the `0.8` release _Aarlo_ should be smart enough to work out which back end to use. But if you find yourself running into problems, like missing motion detection events or missing sensor value updates you can manually override the setting. Change this setting in `/config/aarlo.yaml`.
-
+To override the backend, specify in `/config/aarlo.yaml`:
 ```yaml
 aarlo:
-  # This forces the SSE backend
-  backend: sse
+  backend: sse  # or mqtt / auto
 ```
 
-```yaml
-aarlo:
-  # This forces the MQTT backend
-  backend: mqtt
-  # These might also be needed
-  mqtt_hostname_check: false
-  mqtt_host: mqtt-cluster-z1.arloxcld.com
-```
+---
 
-```yaml
-aarlo:
-  # This forces Aarlo to choose
-  backend: auto
-```
+# Cloudflare & Network Resiliency
 
-Note, removing the setting is equivalent to `auto`.
+Arlo protects its login endpoints with Cloudflare anti-bot checks.
 
-## Cloud Flare
+- In v0.9, _Aarlo_ defaults to **`curl_cffi`**, which impersonates authentic browser TLS fingerprints (`chrome131`) to pass Cloudflare verification cleanly.
+- If your environment requires it, you can fall back to `cloudscraper` in `/config/aarlo.yaml`:
+  ```yaml
+  aarlo:
+    http_backend: cloudscraper
+  ```
 
-_Arlo_ uses _Cloud Flare_ anti-bot protection to the _Arlo_ website login. This service doesn't work well with the _Python Requests_ package (or how _Aarlo_ uses those requests, I'm not too sure).
+---
 
-If you see the following errors you are running into _Cloud Flare_ issues.
+# Diagnostics & Bug Reports
 
-```  
-2021-06-03 13:28:32 WARNING (SyncWorker_4) [pyaarlo] request-error=CloudflareChallengeError  
-```  
+### Configuring Logging
 
-This problem affects me, and I'm constantly trying to refine the code.
-
-### How We Work Around This
-
-_Aarlo_ does several things to work around this:
-
-- It uses the [cloudscraper](https://pypi.org/project/cloudscraper/) module to wrap the login requests to _Arlo_. After the login is complete _cloudscraper_ is not needed.
-- It mimics the official website requests as closely as possible, down to the `Header` level.
-- It will cache successful login credentials for up to 2 weeks so when you restart _Home Assistant_ _Aarlo_ won't need to login again.
-
-### Configuration
-
-But, if you are still seeing login issues there are several configuration items you can try.
-
-You can try a different user agent. This is configured in `/config/aarlo.yaml`:
-
-```yaml
-aarlo:
-  # Change the user agent. It can be either arlo, iphone, ipad, mac, firefox or linux
-  #  or random. random will change it each time it tries to login
-  user_agent: linux
-
-  # Or use a custom user agent, everything after the ! will be used
-  user_agent: !this-is-a-custom-user-agent
-```
-
-You can add a `Source` header along with the login request. I have one site that needs this and one that doesn't. _I think it might be user agent related._
-
-```yaml
-aarlo:
-  # This adds the following header "Source: arloCamWeb"
-  send_source: true
-```
-
-You can disable session caching with the following:
-
-```yaml
-aarlo:
-  # This will force a full login on every restart
-  save_session: false
-
-```
-
-You can select different _ecdh_ curves to use. This topic is out of the scope of this document, see [here](https://github.com/venomous/cloudscraper#cryptography) for an explanation.
-
-```yaml
-aarlo:
-  # Make this curve the first choice. You can only enter 1 choice.
-  ecdh_curve: secp384r1
-```
-
-You can modify `/etc/hosts` to point to a specific _Arlo_ web server
-
-```
-# Remove the # to force the request to go to a particular cloudflare server
-#104.18.30.98 ocapi-app.arlo.com  
-#104.18.31.98 ocapi-app.arlo.com  
-```
-
-## Two Factor Authentication
-
-_Arlo_ calls this _Two-step Verification_. You are going to need to enable this for your _Home Assistant_ specific account. _Aarlo_ support _IMAP_ and _PUSH_ mechanisms but I recommend using _IMAP_, with _PUSH_ you need to manually respond to the login request.
-
-You will find instructions for setting up two factor authentication here [Arlo provide here](https://kb.arlo.com/000062289/How-do-I-edit-Arlo-two-step-verification-settings)
-
-You enter two factor authentication when you add the integration.
-
-### IMAP
-
-Follow the two factor authentication instructions and add and set up an _Email_ verification method. You can test this by logging into the [main Arlo web page](https://my.arlo.com/#/home) and making sure it sends you an email.
-
-#### Application Passwords
-
-For _Gmail_ and _Yahoo_ (and other web based email client) you can't log in with your usual password, you will have to create an application specific password. Explaining why this is necessary is out of the scope of this document so see the following pages.
-
-- [Gmail App Password](https://support.google.com/mail/answer/185833?hl=en)
-- [Yahoo App Password](https://help.yahoo.com/kb/SLN15241.html)
-
-If you find you can't log in to your _IMAP_ account check the application password requirement.
-
-#### IMAP Servers
-
-The following servers are known to work:
-
-| Service | Host Name           |
-|---------|---------------------|
-| Gmail   | imap.gmail.com      |
-| Yahoo!  | imap.mail.yahoo.com |
-
-### PUSH
-
-Follow the two factor authentication instructions and add and set up a _PUSH_ verification method.
-
-### Configuration
-
-If you need to change the cipher list passed to the IMAP client you specify it with the following option. You shouldn't need to do this. see [the openssl man page](https://www.openssl.org/docs/man1.1.1/man1/ciphers.html) for more information.
-
-```yaml
-aarlo:
-  # specify cipher list to use
-  cipher_list: "HIGH:!DH:!aNULL"
-
-  # Use DEFAULT for the cipher list
-  default_ciphers: True
-```
-
-# Bug Reports
-
-## What to Include
-
-If you run into problems please create a [bug report](https://github.com/twrecked/hass-aarlo/issues), include the following information in the bug report to help debugging. If you don't I'll just pester you until you do.
-
-- The version of _Home Assistant_ you are running.
-- The version of _Aarlo_ you are running, just saying _latest_ isn't adequate.
-- Make of cameras or device you are having problems.
-- What you were doing or expecting.
-- Include debug logs if available.
-
-## Enabling Debug
-
-You turn on basic _Aarlo_ debugging by changing the logging setting in `configuration.yaml`.
+Standard logging in `configuration.yaml` allows granular control over log output:
 
 ```yaml
 logger:
   default: info
   logs:
+    # Standard integration logs (device states, mode changes, connections)
     pyaarlo: debug
     custom_components.aarlo: debug
+
+    # Optional: Enable raw packet tracing (replaces verbose_debug)
+    pyaarlo.packet: debug
 ```
 
-You can turn on verbose debugging by enabling logging and adding the following to `/config/aarlo.yaml` as well. Verbose debug will generate a lot of logs so it's best to enable only while needed.
-
-```yaml
-aarlo:
-  verbose_debug: true
-```
-
-_Aarlo_ will write the debug logs to the standard _Home Assistant_ log file `/config/home-assistant.log`.
-
-## Encrypting the Output
-
-Before you send me the debug you should encrypt it.  You can encrypt your output on this [web page](https://pyaarlo-tfa.appspot.com/). You can upload the file or copy and paste it into the buffer then press `Submit`.
-
-**This page doesn't forward automatically the output to me, so you will have to copy and paste it into a file and attach it to the bug report.**
-
-This page will obscure the logs so only I can read them, I'm the sole possessor of the private key to decrypt it, but be wary, along with serial number it might include your account and password information. You can obscure those before encrypting, I never need them.
-
-# Reverse Engineering
-
-## Figuring out what Aarlo Needs to Do
-
-I don't own every piece _Arlo_ of equipment so sometimes, when things go wrong or new equipment is released, I need to see what _Arlo_ actually expects this code to send and what this code can expect back from _Arlo_. _Aarlo_ simulates a web browser connection so you can find out what is expected by using the browser _Developer Tools_.
+> **Tip:** You can toggle `pyaarlo.packet: debug` on and off dynamically without restarting Home Assistant via Developer Tools -> Actions -> `logger.set_level`.
 
 ### Capturing a Network Archive (.har)
 
-The most helpful way to see what _Arlo_ actually expects to happen is to export a `.har` (HTTP Archive) file from `my.arlo.com`. Because the official Arlo web interface works correctly, capturing an action on the website gives us the authoritative packet trace, endpoints, and responses that our code needs to emulate.
+If reporting an issue with an unsupported device or an unhandled packet:
+1. Open [my.arlo.com](https://my.arlo.com) in Chrome, Firefox, or Edge.
+2. Open Developer Tools (`F12`), go to the **Network** tab, and check **Preserve log**.
+3. Perform the action (e.g. view stream, arm device, toggle light).
+4. Right-click any network request and select **Save all as HAR with content**.
 
-#### Chrome, Edge, and Chromium-based browsers:
-1. Open your browser and go to [the Arlo camera website](https://my.arlo.com/#/home).
-2. Open Developer Tools: press `F12` (or `CTRL+SHIFT+I` on Windows/Linux, `Cmd+Option+I` on macOS), or click the menu (three dots) -> `More Tools` -> `Developer Tools`.
-3. Select the **Network** tab.
-4. Check the **Preserve log** checkbox in the top toolbar so logs aren't cleared across page reloads.
-5. Perform the action you want to capture (e.g. view a live stream, stop the stream, arm/disarm, or interact with a device feature).
-6. To export:
-   - Click the **Export HAR** icon (the downward-pointing arrow in the Network toolbar), OR
-   - Right-click anywhere on the list of network requests and select **Save all as HAR with content**.
+### Encrypting Diagnostic Output
 
-#### Firefox:
-1. Open [the Arlo camera website](https://my.arlo.com/#/home) and press `F12` (or `Ctrl+Shift+I` / `Cmd+Option+I`) to open Developer Tools.
-2. Select the **Network** tab.
-3. Click the gear icon on the right side of the Network toolbar and ensure **Persist Logs** is checked.
-4. Perform the action on the webpage.
-5. Right-click anywhere in the list of requests and select **Save All As HAR**.
+`.har` files and raw packet traces contain session tokens and device identifiers:
+- Anonymize and encrypt the file using the [encryption page](https://pyaarlo-tfa.appspot.com/) or via the `pyaarlo` CLI:
+  ```bash
+  cat trace.log | pyaarlo-utils anonymize | pyaarlo-utils encrypt > trace.log.enc
+  ```
+- Attach the encrypted output to a [GitHub Issue](https://github.com/twrecked/hass-aarlo/issues). Only maintainers holding the private key can decrypt it.
 
-#### Safari:
-1. If the Develop menu is not enabled, go to *Safari Settings -> Advanced* and check *Show features for web developers*.
-2. Open [the Arlo camera website](https://my.arlo.com/#/home) and press `Option+Cmd+I` to open Web Inspector.
-3. Click the **Network** tab and check **Preserve Log**.
-4. Perform the action on the webpage.
-5. Click the **Export** icon at the top right of the Network tab to save the HAR file.
-
-> **Privacy Warning:** `.har` files contain everything sent and received during the recording, including session tokens and authentication cookies. **Never post raw HAR files publicly.** Always encrypt the file before sharing it using the [encryption webpage](https://pyaarlo-tfa.appspot.com/) or the `pyaarlo encrypt` command described in [Encrypting the Output](#encrypting-the-output).
-
-### Inspecting Individual Requests
-
-You can also examine requests directly in the Developer Tools **Network** tab:
-
-- Click on an entry under `Name` to examine the packet details.
-- The `Headers` tab shows you what was sent in the headers of the request.
-- The `Payload` tab shows you what was sent in the body of the request.
-- The `Preview` tab shows the reply sent back from _Arlo_.
-
-![Network TAB](images/chrome-2.png)
-
-If you hover over the field under `Name`, a tooltip will display the full URL the request was sent to.
-
-## MQTT Stream
-
-_Arlo_ uses MQTT over WebSockets for real-time events. In your browser's Developer Tools under the **Network** tab:
-1. Filter requests by clicking the **WS** (WebSockets) filter button.
-2. Look for a connection with `mqtt` in the URL (such as `mqtt-cluster.arloxcld.com`).
-3. Click on the connection and select the **Messages** tab.
-4. You will see real-time incoming and outgoing MQTT packets (including notifications when cameras go idle, motion starts, or streams connect).
-
-## SSE Stream
-
-On older setups or specific regions, Arlo uses Server-Sent Events (SSE). Look for a URL containing the word `subscribe`; this is the event stream _Arlo_ sends back to the web page. As you click buttons on the web page more items will appear in this list. I can use this information to determine how to parse response packets for cases I don't yet handle.
-
-## Supporting New Features
-
-For example, _Arlo_ creates a new device with a `WOOHOO` button, I don't possess such a device but you'd like the `WOOHOO` functionality implemented in _Aarlo_. What I need is the sequence of packets and their replies when you press the button. The best way to provide this is to capture a `.har` file during the interaction, encrypt it, and attach it to a bug report on _GitHub_. See [the previous section](#encrypting-the-output) on how to encrypt sensitive data.
+---
 
 # FAQ
 
-### Can't I just share an account with the App
-No. They spend all their timing arguing about who has control. This is an _Arlo_ limitation.
+### Can I share an account with my mobile app?
+No. Arlo's servers do not support simultaneous logins on the same credentials. Create a free second Arlo account, grant it Admin access to your devices, and use those credentials in Home Assistant.
 
-### My device doesn't appear...
-Are you sure you've shared the device? Log in to the [Arlo Web Page](https://my.arlo.com/#/home) and make sure it appears there. If it does then turn on debug logs and raise a bug report with them.
+### Why do live streams take a few seconds to start?
+Arlo cameras are battery-optimized and stay in deep sleep until an event or stream is requested. Initiating a stream requires communicating through the cloud to wake the camera and establish an RTSP/HLS stream back to Home Assistant.
 
-### I'm not getting status updates...
-Make sure you have given the account you share the devices with _Admin Access_, it is needed for things like battery or signal strength updates.
+### Do I need an Arlo Smart subscription?
+No subscription is needed for live viewing, motion events, snapshots, or local RTSP streaming. Arlo requires a subscription to access cloud-stored video recordings.
 
-### I'm not seeing my base stations
-Make sure you have given the account you share the devices with _Admin Access_, it is needed to share the base stations.
-
-Are you using the new _Arlo_ location based interface, in this case you can only arm or disarm locations and not individual devices.
-
-### Do I need a subscription
-No subscription is needed to see the feeds, but you will need one to see recording. 
-
-At the time of writing (May 2024), there is no option to read local recordings. All others features works well.
-
-### Streams take a Long Time
-They sure do. _Arlo_ doesn't work like _IP_ cameras and only records when motion is detected so asking it to start a stream involves talking to the _Arlo_ servers that talk to the camera at your house... it can take a few seconds to get things running. Streaming works something like this:
-
-```
-Camera ---> Arlo Cloud Servers --> Home Assistant --> Your Home Assistant Client
-```
-
-The video traffic has to travel out of your house and then back into it...
+---
 
 # Supported Devices
 
-This is a list of devices that are known to work. Most _Arlo_ devices will work even if not explicitly mentioned in this list although they might have limited functionality.
+Most Arlo devices are supported, including:
+- **Cameras:** Arlo HD (VMC3030), Pro (VMC4030), Pro 2/3/4/5 (VMC4040/VMC4041/VMC4060), Ultra (VMC5040), Essential & Essential 2 (VMC2030/VMC2040/VMC3060), Go & Go 2 (VML4030/VML2030), Arlo Baby (ABC1000).
+- **Doorbells:** Audio Doorbell (AAD1001), Video Doorbell Wired & Wireless (AVD1001, AVD2001, AVD3001, AVD4001).
+- **Lights:** Arlo Light (AL1101), Pro 3 Floodlight (FB1001).
+- **Sensors & Base Stations:** All-in-One Sensor (MS1001), Base Station (VMB3000/VMB4000/VMB4500/VMB5000).
 
-| Model   | Name                      | Features                               |
-|---------|---------------------------|----------------------------------------|
-| ABC1000 | Baby                      | motion, audio, environment, cry        |
-| AVD1001 | Wired Video Doorbell      | motion                                 |
-| AVD2001 | Essential Video Doorbell  | motion, siren                          |
-| AVD3001 | Wired Video Doorbell HD   | motion, siren                          |
-| AVD4001 | Wired Video Doorbell 2K   | motion, siren                          |
-| FB1001  | Pro 3 Floodlight          | floodlight                             |
-| MS1001  | All in 1 Sensor           | motion, open, wet, tamper, temperature |
-| VMB3010 | Base Station              |                                        |
-| VMB4000 | Base Station 2            | siren                                  |
-| VMB4500 | Pro Base Station          | siren                                  |
-| VMC2030 | Essential Camera          | motion, audio, siren, spotlight        |
-| VMC2040 | Essential Indoor Camera   | motion, audio, siren no battery        |
-| VMC3030 | HD Camera                 | motion, audio                          |
-| VMC3040 | Q Camera                  | motion, audio                          |
-| VMC3060 | Essential Indoor Camera 2 | motion, _needs looking at_             |
-| VMC3052 | Essential XL Camera       | motion, audio, spotlight               |
-| VMC4030 | Pro 2 Camera              | motion, audio                          |
-| VMC4040 | Pro 3 Camera              | motion, audio, siren, spotlight        |
-| VMC4041 | Pro 4 Camera              | motion, audio, siren, spotlight        |
-| VMC4060 | Pro 5 Camera              | motion, audio, siren, spotlight        |
-| VMC5040 | Ultra Camera              | motion, audio, siren, spotlight        |
-| VML2030 | Go 2 Camera               | motion, audio                          |
-| VML4030 | Go Camera                 | motion                                 |
+---
 
 # Known Limitations
 
-This component was written by reverse engineering the _APIs_ used on the [Arlo Camera](https://my.arlo.com/#/home) web page.
-
-These are general limitations:
-- _There is no Documentation_; I, and others, have had to reverse engineer the protocol, and for the most part this is easy enough once I get the packets...
-- _but I don't have access to all the equipment_; so I rely on users to provide the device information and packets for me. The _Reverse Engineering_ section gives you instructions on how to get these packets. Or, if you are feeling brave, you can temporarily share the device with me.
-- _and Arlo likes to Change Things_; this all becomes more problematic when _Arlo_ decides to change how things work, one minute things work and the next minute things break, unfortunately it has to break before I can fix it.
-
-These are limitations verses the website:
-- _Cloud Flare_; _Aarlo_ has to bypass the 'not-a-robot' checks of _Cloud Flare_ to login, this works most of the time but _Arlo_ will change their back-end occasionally and break it. There are settings in the _advanced configuration_ you can change to help with this. *And yes, this can be a pain to get working*.
-
-These are limitations versus the mobile application:
-- _Object Detection_; the mobile application will let you know almost immediately what triggered the motion event, this is not possible with the website _APIs_.
-- _Timeouts_; the website doesn't feel like it was designed for persistent connections so _Aarlo_ has a lot of code inside to try to mitigate this. But occasionally you might miss an event. There are settings in the _advanced configuration_ you can change to help with this.
-
-The last two can be summed up as `if the WEB API doesn't support it, neither can the component.` Bear that in mine when asking for new feature requests.
+- **Cloud Dependency:** All authentication and stream negotiation routes through Arlo's cloud infrastructure.
+- **Cloudflare Verification:** Arlo periodically changes anti-bot challenges; `curl_cffi` keeps these working reliably.
+- **Hardware Permutations:** With dozens of camera models and firmware variations, unexpected packets occasionally appear. Please report unhandled events with debug logs so they can be incorporated.
