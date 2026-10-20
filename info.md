@@ -1,30 +1,15 @@
-# Asynchronous Arlo Component for Home Assistant.
+# Asynchronous Arlo Component for Home Assistant (v0.9)
 
-An (almost) drop in replacement for the standard [Arlo](https://my.arlo.com/#/cameras) package.
+An asynchronous Home Assistant custom integration providing full access to the [Arlo](https://www.arlo.com/) camera and security system.
 
-Please visit the [Readme](https://github.com/twrecked/hass-aarlo/blob/master/README.md) for more details.
+> **Note on v0.9:** Aarlo v0.9 is a major rewrite transitioning the integration and underlying `pyaarlo` library to native Python `asyncio`.
 
-# Features
+## Features
 
-_Aarlo_ is a custom component for [Home  Assistant](https://www.home-assistant.io/), that provides access to  the [Arlo](https://www.arlo.com/en-us/) system.
+- **Asynchronous & Non-Blocking:** All entity operations, streaming handoffs, and background event loops run natively on Home Assistant's event loop.
+- **Full Device Support:** Cameras, base stations, sirens, doorbells, lights, and environmental sensors.
+- **Instant Event Notifications:** Real-time push updates for motion, audio, and doorbell press events via MQTT over WebSockets.
+- **Media & Streaming:** Live camera streaming, snapshot requests, and optional local recording storage.
+- **Zero-Config Defaults:** Optimized Cloudflare TLS fingerprinting (`curl_cffi`), automatic session token renewals, and in-UI options configuration.
 
-_Aarlo_ provides, amongst other things:
-- Access to cameras, base stations, sirens, doorbells and lights.
-- Asynchronous, almost immediate, notification of motion, sound and button press events.
-- Ability to view library recordings, take snapshots and direct stream from cameras.
-- Tracking of environmental stats from certain base station types.
-- Special switches to trip alarms and take snapshots from cameras.
-- Enhanced state notifications.
-- Media player support for select devices.
-
-
-There is also a resource
-[`aarlo-glance`](https://github.com/twrecked/lovelace-hass-aarlo) which is based on `picture-glance` but tailored for the Arlo component.
-
-# Example
-
-![Aarlo Glance](https://github.com/twrecked/hass-aarlo/blob/master/images/aarlo-glance-02.png)
-
-## Documentation
-
-Please visit the [Readme](https://github.com/twrecked/hass-aarlo/blob/master/README.md) for full documentation.
+For full setup instructions, two-factor authentication configuration, and troubleshooting guides, please visit the [README](https://github.com/twrecked/hass-aarlo/blob/master/README.md).
