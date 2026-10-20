@@ -649,13 +649,13 @@ class ArloCam(Camera):
         return await self._camera.get_snapshot()
 
     def get_snapshot(self):
-        return self._camera.get_snapshot()
+        return self._camera.last_image_from_cache
 
     async def async_get_video(self):
         return await self._camera.get_video()
 
     def get_video(self):
-        return self._camera.get_video()
+        return self._camera.last_video
 
     def stop_activity(self):
         res = self._camera.stop_activity()

@@ -7,8 +7,8 @@
   - Native Async Entity Platforms:
     - Cameras: async_turn_on(), async_turn_off(), async_request_snapshot(), async_get_snapshot(), async_get_video(), async_start_recording(), async_stop_recording(), async_stop_activity(), async_siren_on(), async_siren_off(), and async_camera_image().
     - Alarm Control Panels: async_alarm_disarm(), async_alarm_arm_*(), async_alarm_trigger(), async_alarm_clear(), and async_set_mode_in_ha().
-    - Lights: async_turn_on() and async_turn_off() across standard lights, nightlights, floodlights, and spotlights.
-    - Sirens: async_turn_on() and async_turn_off().
+    - Lights: async_turn_on() and async_turn_off() across standard lights, nightlights, floodlights, and spotlights, with batched nightlight updates.
+    - Sirens: async_turn_on() and async_turn_off(), with parallel dispatch via asyncio.gather for multi-device sirens.
     - Switches: async_turn_on() and async_turn_off() for siren toggles, snapshot triggers, and doorbell silent mode switches.
     - Media Players: async_media_play(), async_media_pause(), async_set_volume_level(), and async_set_shuffle(), with corrected attribute properties (_attr_volume_level, _attr_is_volume_muted).
     - Sensors: Modernized ArloSensor to inherit from SensorEntity using _attr_native_value and _attr_native_unit_of_measurement.

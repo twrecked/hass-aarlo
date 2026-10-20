@@ -260,23 +260,36 @@ class ArloNightLight(ArloLight):
         """Turn the entity on."""
         _LOGGER.debug(f"turning on {self._attr_name} (with args {pprint.pformat(kwargs)})")
 
-        await self._light.nightlight_on()
-        if ATTR_BRIGHTNESS in kwargs:
-            await self._light.set_nightlight_brightness(kwargs[ATTR_BRIGHTNESS])
-
+        rgb = None
         if ATTR_HS_COLOR in kwargs:
             rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
-            await self._light.set_nightlight_rgb(red=rgb[0], green=rgb[1], blue=rgb[2])
 
-        if ATTR_COLOR_TEMP_KELVIN in kwargs:
-            await self._light.set_nightlight_color_temperature(kwargs.get(ATTR_COLOR_TEMP_KELVIN))
-
+        brightness = kwargs.get(ATTR_BRIGHTNESS)
+        temperature = kwargs.get(ATTR_COLOR_TEMP_KELVIN)
+        mode = None
         if ATTR_EFFECT in kwargs:
             effect = kwargs[ATTR_EFFECT]
-            if effect == LIGHT_EFFECT_RAINBOW:
-                await self._light.set_nightlight_mode("rainbow")
-            else:
-                await self._light.set_nightlight_mode("rgb")
+            mode = "rainbow" if effect == LIGHT_EFFECT_RAINBOW else "rgb"
+
+        if hasattr(self._light, "set_nightlight"):
+            await self._light.set_nightlight(
+                enabled=True,
+                brightness=brightness,
+                rgb=rgb,
+                temperature=temperature,
+                mode=mode,
+            )
+        else:
+            await self._light.nightlight_on()
+            if brightness is not None:
+                await self._light.set_nightlight_brightness(brightness)
+            if rgb is not None:
+                await self._light.set_nightlight_rgb(red=rgb[0], green=rgb[1], blue=rgb[2])
+            if temperature is not None:
+                await self._light.set_nightlight_color_temperature(temperature)
+            if mode is not None:
+                await self._light.set_nightlight_mode(mode)
+
         self._attr_is_on = True
         self.async_write_ha_state()
 

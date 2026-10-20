@@ -489,12 +489,15 @@ async def aarlo_sirens_on(hass: HomeAssistant, call) -> None:
     arlo = hass.data[COMPONENT_DATA]
     volume = call.data["volume"]
     duration = call.data["duration"]
+    tasks = []
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability(SIREN_STATE_KEY):
+            _LOGGER.info("%s siren on %s/%s", device.unique_id, volume, duration)
             res = device.siren_on(duration=duration, volume=volume)
             if asyncio.iscoroutine(res):
-                await res
-            _LOGGER.info("%s siren on %s/%s", device.unique_id, volume, duration)
+                tasks.append(res)
+    if tasks:
+        await asyncio.gather(*tasks)
 
 
 async def aarlo_siren_off(hass: HomeAssistant, call) -> None:
@@ -516,12 +519,15 @@ async def aarlo_siren_off(hass: HomeAssistant, call) -> None:
 
 async def aarlo_sirens_off(hass: HomeAssistant, _call) -> None:
     arlo = hass.data[COMPONENT_DATA]
+    tasks = []
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability(SIREN_STATE_KEY):
+            _LOGGER.info("%s siren off", device.unique_id)
             res = device.siren_off()
             if asyncio.iscoroutine(res):
-                await res
-            _LOGGER.info("%s siren off", device.unique_id)
+                tasks.append(res)
+    if tasks:
+        await asyncio.gather(*tasks)
 
 
 async def aarlo_restart_device(hass: HomeAssistant, call) -> None:

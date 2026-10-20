@@ -6,6 +6,7 @@ https://github.com/twrecked/hass-aarlo/blob/master/README.md
 https://www.home-assistant.io/integrations/light
 """
 
+import asyncio
 import logging
 from collections.abc import Callable
 
@@ -109,9 +110,11 @@ class AarloSirenBase(SirenEntity):
         """Turn the sirens on."""
         volume = int(kwargs.get("volume_level", 1.0) * 8)
         duration = kwargs.get("duration", 10)
-        for siren in self._sirens:
-            _LOGGER.debug("%s %s vol=%s, dur=%s", self._attr_name, siren.name, volume, duration)
-            await siren.siren_on(duration=duration, volume=volume)
+        _LOGGER.debug("%s sirens on vol=%s, dur=%s", self._attr_name, volume, duration)
+        await asyncio.gather(*(
+            siren.siren_on(duration=duration, volume=volume)
+            for siren in self._sirens
+        ))
 
         # Flip us on. update_state should confirm this.
         self._attr_is_on = True
@@ -119,9 +122,11 @@ class AarloSirenBase(SirenEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turn the sirens off."""
-        for siren in self._sirens:
-            _LOGGER.debug("%s %s off", self._attr_name, siren.name)
-            await siren.siren_off()
+        _LOGGER.debug("%s sirens off", self._attr_name)
+        await asyncio.gather(*(
+            siren.siren_off()
+            for siren in self._sirens
+        ))
         self._attr_is_on = False
         self.async_write_ha_state()
 

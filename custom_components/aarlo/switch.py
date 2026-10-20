@@ -6,6 +6,7 @@ https://github.com/twrecked/hass-aarlo/blob/master/README.md
 https://www.home-assistant.io/integrations/switch/
 """
 
+import asyncio
 import logging
 from collections.abc import Callable
 from typing import Any
@@ -279,14 +280,18 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
             device.add_attr_callback(SIREN_STATE_KEY, update_state)
 
     async def async_do_on(self):
-        for device in self._devices:
-            _LOGGER.debug(f"turned sirens on {device.name}")
-            await device.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
+        _LOGGER.debug("turned all sirens on")
+        await asyncio.gather(*(
+            device.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
+            for device in self._devices
+        ))
 
     async def async_do_off(self):
-        for device in self._devices:
-            _LOGGER.debug(f"turned sirens off {device.name}")
-            await device.siren_off()
+        _LOGGER.debug("turned all sirens off")
+        await asyncio.gather(*(
+            device.siren_off()
+            for device in self._devices
+        ))
 
 
 class AarloSnapshotSwitch(AarloSwitch):
