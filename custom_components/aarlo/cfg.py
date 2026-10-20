@@ -514,6 +514,12 @@ class PyaarloCfg(object):
         if options["storage_dir"] == "":
             options["storage_dir"] = hass.config.config_dir + "/.aarlo"
 
+        if options.get("verbose_debug"):
+            _LOGGER.warning(
+                "verbose_debug in aarlo configuration is deprecated; "
+                "enable packet tracing in configuration.yaml via 'logger: logs: pyaarlo.packet: debug'"
+            )
+
         _LOGGER.debug(f"config={config}")
         _LOGGER.debug(f"options={options}")
 

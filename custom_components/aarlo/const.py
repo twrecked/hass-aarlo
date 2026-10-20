@@ -71,16 +71,16 @@ PACKET_DUMP = False
 CACHE_VIDEOS = False
 DB_MOTION_TIME = timedelta(seconds=30)
 DB_DING_TIME = timedelta(seconds=10)
-RECENT_TIME = timedelta(minutes=60)
+RECENT_TIME = timedelta(seconds=60)
 LAST_FORMAT = "%m-%d %H:%M"
 CONF_DIR = ""
 REQ_TIMEOUT = timedelta(seconds=15)
 STR_TIMEOUT = timedelta(seconds=120)
 NO_MEDIA_UP = False
-MEDIA_RETRY = [5, 15, 25]
+MEDIA_RETRY = []
 SNAPSHOT_CHECKS = None
 USER_AGENT = "linux"
-HTTP_BACKEND = "cloudscraper"
+HTTP_BACKEND = "curl_cffi"
 CURL_CFFI_IMPERSONATE = "chrome131"
 MODE_API = "auto"
 DEVICE_REFRESH = 2
