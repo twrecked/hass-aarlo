@@ -30,13 +30,12 @@ async def test_unload_stops_client_before_removing_data():
     data = {COMPONENT_DATA: client, COMPONENT_CONFIG: {}, COMPONENT_SERVICES: {}}
     hass = make_hass(data)
 
-    async def run_executor(func, logout):
+    async def do_stop(logout=True):
         assert data[COMPONENT_DATA] is client
-        func(logout)
 
-    hass.async_add_executor_job.side_effect = run_executor
+    client.stop = AsyncMock(side_effect=do_stop)
     assert await async_unload_entry(hass, SimpleNamespace(title="Test"))
-    client.stop.assert_called_once_with(True)
+    client.stop.assert_awaited_once_with(logout=True)
     assert data == {}
 
 
@@ -56,31 +55,33 @@ async def test_unload_without_client_cleans_remaining_runtime_data(remaining):
 @pytest.mark.asyncio
 async def test_unload_with_client_and_missing_metadata():
     client = MagicMock()
+    client.stop = AsyncMock()
     hass = make_hass({COMPONENT_DATA: client})
     assert await async_unload_entry(hass, SimpleNamespace(title="Test"))
-    hass.async_add_executor_job.assert_awaited_once_with(client.stop, True)
+    client.stop.assert_awaited_once_with(logout=True)
     assert hass.data == {}
 
 
 @pytest.mark.asyncio
 async def test_failed_platform_unload_preserves_runtime():
     client = MagicMock()
+    client.stop = AsyncMock()
     data = {COMPONENT_DATA: client, COMPONENT_CONFIG: {}, COMPONENT_SERVICES: {}}
     hass = make_hass(data, unload_ok=False)
     original = data.copy()
 
     assert not await async_unload_entry(hass, SimpleNamespace(title="Test"))
     assert data == original
-    hass.async_add_executor_job.assert_not_awaited()
+    client.stop.assert_not_awaited()
 
 
 @pytest.mark.asyncio
 async def test_stop_error_is_not_hidden_and_preserves_runtime():
     client = MagicMock()
+    client.stop = AsyncMock(side_effect=RuntimeError("stop failed"))
     data = {COMPONENT_DATA: client, COMPONENT_CONFIG: {}, COMPONENT_SERVICES: {}}
     hass = make_hass(data)
     original = data.copy()
-    hass.async_add_executor_job.side_effect = RuntimeError("stop failed")
 
     with pytest.raises(RuntimeError, match="stop failed"):
         await async_unload_entry(hass, SimpleNamespace(title="Test"))
@@ -90,11 +91,12 @@ async def test_stop_error_is_not_hidden_and_preserves_runtime():
 @pytest.mark.asyncio
 async def test_repeated_unload_stops_client_only_once():
     client = MagicMock()
+    client.stop = AsyncMock()
     hass = make_hass({COMPONENT_DATA: client, COMPONENT_CONFIG: {}, COMPONENT_SERVICES: {}})
     entry = SimpleNamespace(title="Test")
     assert await async_unload_entry(hass, entry)
     assert await async_unload_entry(hass, entry)
-    hass.async_add_executor_job.assert_awaited_once_with(client.stop, True)
+    client.stop.assert_awaited_once_with(logout=True)
 
 
 @pytest.mark.asyncio

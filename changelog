@@ -1,3 +1,25 @@
+0.9.0-alpha.1
+  - Major modernization refactoring the integration to use pyaarlo v0.9 native asyncio.
+  - Asynchronous Setup & Lifecycle:
+    - Non-blocking integration setup with native PyArlo.create() on the main event loop.
+    - Clean async unload directly awaiting arlo.stop(logout=True).
+    - Eliminated legacy synchronous time.sleep() loops and executor wrappers.
+  - Native Async Entity Platforms:
+    - Cameras: async_turn_on(), async_turn_off(), async_request_snapshot(), async_get_snapshot(), async_get_video(), async_start_recording(), async_stop_recording(), async_stop_activity(), async_siren_on(), async_siren_off(), and async_camera_image().
+    - Alarm Control Panels: async_alarm_disarm(), async_alarm_arm_*(), async_alarm_trigger(), async_alarm_clear(), and async_set_mode_in_ha().
+    - Lights: async_turn_on() and async_turn_off() across standard lights, nightlights, floodlights, and spotlights.
+    - Sirens: async_turn_on() and async_turn_off().
+    - Switches: async_turn_on() and async_turn_off() for siren toggles, snapshot triggers, and doorbell silent mode switches.
+    - Media Players: async_media_play(), async_media_pause(), async_set_volume_level(), and async_set_shuffle(), with corrected attribute properties (_attr_volume_level, _attr_is_volume_muted).
+    - Sensors: Modernized ArloSensor to inherit from SensorEntity using _attr_native_value and _attr_native_unit_of_measurement.
+  - Component Services:
+    - Converted all services (camera_snapshot, camera_stop_activity, siren_on, sirens_on, siren_off, sirens_off, restart_device) to native async handlers.
+  - Configuration & Config Flow:
+    - Aligned 2FA options with pyaarlo v0.9 (tfa="none", tfa="push", tfa="email:imap", tfa="sms").
+    - Fixed schema validation issue on siren volume and corrected RESTAPI 2FA dictionary assignment.
+  - Requirements:
+    - Updated requirement to target pyaarlo v0.9 async refactor.
+
 0.8.1.27
   - Fix tagging issue.
 

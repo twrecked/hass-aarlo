@@ -5,13 +5,11 @@ For more details about this platform, please refer to the documentation at
 https://github.com/twrecked/hass-aarlo/blob/master/README.md
 """
 
+import asyncio
 import json
 import logging
 import pprint
-import time
 import voluptuous as vol
-from traceback import extract_stack
-from requests.exceptions import ConnectTimeout, HTTPError
 
 from homeassistant.components import persistent_notification
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
@@ -54,7 +52,7 @@ from .utils import get_entity_from_domain
 from .cfg import BlendedCfg, PyaarloCfg
 
 
-__version__ = "0.8.1.27"
+__version__ = "0.9.0-alpha.1"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -244,7 +242,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     injection_service = domain_config.get(CONF_INJECTION_SERVICE, False)
 
     # Try to login to aarlo.
-    arlo = await hass.async_add_executor_job(login, hass, domain_config)
+    arlo = await async_login(hass, domain_config)
     if arlo is None:
         return False
 
@@ -285,25 +283,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if device.has_capability(SIREN_STATE_KEY):
             has_sirens = True
 
-    def service_callback(call):
+    async def async_service_callback(call):
         """Call aarlo service handler."""
-        _LOGGER.info("{} service called".format(call.service))
+        _LOGGER.info("%s service called", call.service)
         if has_sirens:
             if call.service == SERVICE_SIREN_ON:
-                aarlo_siren_on(hass, call)
-            if call.service == SERVICE_SIRENS_ON:
-                aarlo_sirens_on(hass, call)
-            if call.service == SERVICE_SIREN_OFF:
-                aarlo_siren_off(hass, call)
-            if call.service == SERVICE_SIRENS_OFF:
-                aarlo_sirens_off(hass, call)
+                await aarlo_siren_on(hass, call)
+            elif call.service == SERVICE_SIRENS_ON:
+                await aarlo_sirens_on(hass, call)
+            elif call.service == SERVICE_SIREN_OFF:
+                await aarlo_siren_off(hass, call)
+            elif call.service == SERVICE_SIRENS_OFF:
+                await aarlo_sirens_off(hass, call)
         if call.service == SERVICE_RESTART:
-            aarlo_restart_device(hass, call)
+            await aarlo_restart_device(hass, call)
         if call.service == SERVICE_INJECT_RESPONSE:
-            aarlo_inject_response(hass, call)
-
-    async def async_service_callback(call):
-        await hass.async_add_executor_job(service_callback, call)
+            await aarlo_inject_response(hass, call)
 
     hass.services.async_register(
         COMPONENT_DOMAIN,
@@ -353,7 +348,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok:
         arlo = hass.data.get(COMPONENT_DATA)
         if arlo is not None:
-            await hass.async_add_executor_job(arlo.stop, True)
+            await arlo.stop(logout=True)
         hass.data.pop(COMPONENT_DATA, None)
         hass.data.pop(COMPONENT_SERVICES, None)
         hass.data.pop(COMPONENT_CONFIG, None)
@@ -396,61 +391,71 @@ async def _async_get_or_create_momentary_device_in_registry(
     )
 
 
-def login(hass, conf):
-
+async def async_login(hass: HomeAssistant, conf: dict):
     sleep = 15
     attempt = 1
     while True:
-
         try:
             from pyaarlo import PyArlo
 
             if attempt != 1:
-                _LOGGER.debug(f"login-attempt={attempt}")
+                _LOGGER.debug("login-attempt=%s", attempt)
 
-            arlo = PyArlo(**PyaarloCfg.create_options(hass, conf))
+            options = PyaarloCfg.create_options(hass, conf)
+            arlo = await PyArlo.create(**options)
             if arlo.is_connected:
-                _LOGGER.debug(f"login succeeded, attempt={attempt}")
+                _LOGGER.debug("login succeeded, attempt=%s", attempt)
                 return arlo
-            arlo.stop()
+            await arlo.stop()
 
             if attempt == 1:
-                persistent_notification.create(
+                persistent_notification.async_create(
                     hass=hass,
-                    message="Error: {}<br />If error persists you might need to change config and restart.".format(
-                        arlo.last_error
+                    message=(
+                        f"Error: {arlo.last_error}<br />"
+                        "If error persists you might need to change config and restart."
                     ),
                     title=NOTIFICATION_TITLE,
                     notification_id=NOTIFICATION_ID,
                 )
             _LOGGER.error(
-                f"unable to connect to Arlo: attempt={attempt},sleep={sleep},error={arlo.last_error}"
+                "unable to connect to Arlo: attempt=%s,sleep=%s,error=%s",
+                attempt,
+                sleep,
+                arlo.last_error,
             )
 
-        except (ConnectTimeout, HTTPError) as ex:
+        except Exception as ex:
             if attempt == 1:
-                persistent_notification.create(
+                persistent_notification.async_create(
                     hass=hass,
-                    message="Error: {}<br />If error persists you might need to change config and restart.".format(
-                        ex
+                    message=(
+                        f"Error: {ex}<br />"
+                        "If error persists you might need to change config and restart."
                     ),
                     title=NOTIFICATION_TITLE,
                     notification_id=NOTIFICATION_ID,
                 )
             _LOGGER.error(
-                f"unable to connect to Arlo: attempt={attempt},sleep={sleep},error={str(ex)}"
+                "unable to connect to Arlo: attempt=%s,sleep=%s,error=%s",
+                attempt,
+                sleep,
+                str(ex),
             )
 
         # line up a retry
         attempt = attempt + 1
         if attempt == 5:
-            _LOGGER.error(f"unable to connect to Arlo: stopping retries, too may failures")
+            _LOGGER.error("unable to connect to Arlo: stopping retries, too many failures")
             return None
-        time.sleep(sleep)
+        await asyncio.sleep(sleep)
         sleep = min(300, sleep * 2)
 
 
-def aarlo_siren_on(hass, call):
+login = async_login
+
+
+async def aarlo_siren_on(hass: HomeAssistant, call) -> None:
     for entity_id in call.data["entity_id"]:
         try:
             volume = call.data["volume"]
@@ -458,59 +463,87 @@ def aarlo_siren_on(hass, call):
             device = get_entity_from_domain(
                 hass, [ALARM_DOMAIN, CAMERA_DOMAIN], entity_id
             )
-            device.siren_on(duration=duration, volume=volume)
-            _LOGGER.info("{} siren on {}/{}".format(entity_id, volume, duration))
+            if hasattr(device, "async_siren_on"):
+                await device.async_siren_on(duration=duration, volume=volume)
+            else:
+                res = device.siren_on(duration=duration, volume=volume)
+                if asyncio.iscoroutine(res):
+                    await res
+            _LOGGER.info("%s siren on %s/%s", entity_id, volume, duration)
         except HomeAssistantError:
-            _LOGGER.info("{} siren device not found".format(entity_id))
+            _LOGGER.info("%s siren device not found", entity_id)
 
 
-def aarlo_sirens_on(hass, call):
+async def aarlo_sirens_on(hass: HomeAssistant, call) -> None:
     arlo = hass.data[COMPONENT_DATA]
     volume = call.data["volume"]
     duration = call.data["duration"]
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability(SIREN_STATE_KEY):
-            device.siren_on(duration=duration, volume=volume)
-            _LOGGER.info("{} siren on {}/{}".format(device.unique_id, volume, duration))
+            res = device.siren_on(duration=duration, volume=volume)
+            if asyncio.iscoroutine(res):
+                await res
+            _LOGGER.info("%s siren on %s/%s", device.unique_id, volume, duration)
 
 
-def aarlo_siren_off(hass, call):
+async def aarlo_siren_off(hass: HomeAssistant, call) -> None:
     for entity_id in call.data["entity_id"]:
         try:
             device = get_entity_from_domain(
                 hass, [ALARM_DOMAIN, CAMERA_DOMAIN], entity_id
             )
-            device.siren_off()
-            _LOGGER.info("{} siren off".format(entity_id))
+            if hasattr(device, "async_siren_off"):
+                await device.async_siren_off()
+            else:
+                res = device.siren_off()
+                if asyncio.iscoroutine(res):
+                    await res
+            _LOGGER.info("%s siren off", entity_id)
         except HomeAssistantError:
-            _LOGGER.info("{} siren not found".format(entity_id))
+            _LOGGER.info("%s siren not found", entity_id)
 
 
-def aarlo_sirens_off(hass, _call):
+async def aarlo_sirens_off(hass: HomeAssistant, _call) -> None:
     arlo = hass.data[COMPONENT_DATA]
     for device in arlo.cameras + arlo.base_stations:
         if device.has_capability(SIREN_STATE_KEY):
-            device.siren_off()
-            _LOGGER.info("{} siren off".format(device.unique_id))
+            res = device.siren_off()
+            if asyncio.iscoroutine(res):
+                await res
+            _LOGGER.info("%s siren off", device.unique_id)
 
 
-def aarlo_restart_device(hass, call):
+async def aarlo_restart_device(hass: HomeAssistant, call) -> None:
     for entity_id in call.data["entity_id"]:
         try:
             device = get_entity_from_domain(
                 hass, [ALARM_DOMAIN, CAMERA_DOMAIN], entity_id
             )
-            device.restart()
-            _LOGGER.info("{} restarted".format(entity_id))
+            if hasattr(device, "async_restart"):
+                await device.async_restart()
+            elif hasattr(device, "restart"):
+                res = device.restart()
+                if asyncio.iscoroutine(res):
+                    await res
+            _LOGGER.info("%s restarted", entity_id)
         except HomeAssistantError:
-            _LOGGER.info("{} device not found".format(entity_id))
+            _LOGGER.info("%s device not found", entity_id)
 
 
-def aarlo_inject_response(hass, call):
-    patch_file = hass.config.config_dir + "/" + call.data["filename"]
-    with open(patch_file) as file:
-        packet = json.load(file)
-
-    if packet is not None:
-        _LOGGER.debug("injecting->{}".format(pprint.pformat(packet)))
-        hass.data[COMPONENT_DATA].inject_response(packet)
+async def aarlo_inject_response(hass: HomeAssistant, call) -> None:
+    patch_file = hass.config.path(call.data["filename"])
+    if not hass.config.is_allowed_path(patch_file):
+        _LOGGER.error("Can't read %s, no access to path!", patch_file)
+        return
+    try:
+        def _read_json():
+            with open(patch_file, "r", encoding="utf-8") as file:
+                return json.load(file)
+        packet = await hass.async_add_executor_job(_read_json)
+        if packet is not None:
+            _LOGGER.debug("injecting->%s", pprint.pformat(packet))
+            res = hass.data[COMPONENT_DATA].inject_response(packet)
+            if asyncio.iscoroutine(res):
+                await res
+    except Exception as ex:
+        _LOGGER.error("inject response failed: %s", ex)

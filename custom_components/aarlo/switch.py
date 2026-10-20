@@ -73,7 +73,7 @@ async def async_setup_entry(
     config = hass.data[COMPONENT_CONFIG][SWITCH_DOMAIN]
     _LOGGER.debug(f"switch={config}")
 
-    devices = []
+    devices: list[SwitchEntity] = []
     adevices = []
 
     # See what cameras and bases have sirens.
@@ -137,11 +137,11 @@ class AarloSwitch(SwitchEntity):
 
         _LOGGER.info(f"AarloSwitch: {self._attr_name} created")
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
         _LOGGER.debug("implement turn on")
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
         _LOGGER.debug("implement turn off")
 
@@ -177,30 +177,30 @@ class AarloSirenBaseSwitch(AarloSwitch):
 
     async def _async_stop_activity(self, *_args: Any) -> None:
         if self._on_until is not None:
-            self.do_off()
+            await self.async_do_off()
             self._on_until = None
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
         if self._on_until is None:
-            self.do_on()
+            await self.async_do_on()
             self._on_until = dt_util.utcnow() + self._on_for
             self._timer = async_track_point_in_time(
                 self.hass, HassJob(self._async_stop_activity), self._on_until
             )
             _LOGGER.debug("turned on")
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
         if self._allow_off:
-            self.do_off()
+            await self.async_do_off()
             self._on_until = None
             _LOGGER.debug("forced off")
 
-    def do_on(self):
+    async def async_do_on(self):
         _LOGGER.debug("implement do on")
 
-    def do_off(self):
+    async def async_do_off(self):
         _LOGGER.debug("implement do off")
 
 
@@ -233,15 +233,15 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
         _LOGGER.debug(f"register siren callbacks for {self._device.name}")
         self._device.add_attr_callback(SIREN_STATE_KEY, update_state)
 
-    def do_on(self):
+    async def async_do_on(self):
         _LOGGER.debug(f"turned siren {self._attr_name} on")
-        self._device.siren_on(
+        await self._device.siren_on(
             duration=self._on_for.total_seconds(), volume=self._volume
         )
 
-    def do_off(self):
+    async def async_do_off(self):
         _LOGGER.debug(f"turned siren {self._attr_name} off")
-        self._device.siren_off()
+        await self._device.siren_off()
 
 
 class AarloAllSirensSwitch(AarloSirenBaseSwitch):
@@ -278,15 +278,15 @@ class AarloAllSirensSwitch(AarloSirenBaseSwitch):
             _LOGGER.debug(f"register all siren callbacks for {device.name}")
             device.add_attr_callback(SIREN_STATE_KEY, update_state)
 
-    def do_on(self):
+    async def async_do_on(self):
         for device in self._devices:
             _LOGGER.debug(f"turned sirens on {device.name}")
-            device.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
+            await device.siren_on(duration=self._on_for.total_seconds(), volume=self._volume)
 
-    def do_off(self):
+    async def async_do_off(self):
         for device in self._devices:
             _LOGGER.debug(f"turned sirens off {device.name}")
-            device.siren_off()
+            await device.siren_off()
 
 
 class AarloSnapshotSwitch(AarloSwitch):
@@ -315,17 +315,19 @@ class AarloSnapshotSwitch(AarloSwitch):
 
         self._device.add_attr_callback(ACTIVITY_STATE_KEY, update_state)
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         _LOGGER.debug(f"starting snapshot for {self._attr_name}")
         if not self._device.is_taking_snapshot:
-            self._device.request_snapshot()
+            await self._device.request_snapshot()
             self._attr_is_on = True
+            self.async_write_ha_state()
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         _LOGGER.debug(f"cancelling snapshot for {self._attr_name}")
         if self._device.is_taking_snapshot:
-            self._device.stop_activity()
-            self._attr_is_on = True
+            await self._device.stop_activity()
+            self._attr_is_on = False
+            self.async_write_ha_state()
 
 
 class AarloSilentModeBaseSwitch(AarloSwitch):
@@ -339,10 +341,12 @@ class AarloSilentModeBaseSwitch(AarloSwitch):
 
         self._block = block
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         # XXX pyaarlo needs looking at to stop traditional chimes
         _LOGGER.debug(f"Turning off silent mode for {self._attr_name}")
-        self._device.silence_off()
+        await self._device.silence_off()
+        self._attr_is_on = False
+        self.async_write_ha_state()
 
     async def async_added_to_hass(self):
         """Register callbacks."""
@@ -376,9 +380,11 @@ class AarloSilentModeSwitch(AarloSilentModeBaseSwitch):
             block="all",
         )
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         _LOGGER.debug(f"Turning on silent mode for {self._attr_name}")
-        self._device.silence_on()
+        await self._device.silence_on()
+        self._attr_is_on = True
+        self.async_write_ha_state()
 
 
 class AarloSilentModeChimeSwitch(AarloSilentModeBaseSwitch):
@@ -397,9 +403,11 @@ class AarloSilentModeChimeSwitch(AarloSilentModeBaseSwitch):
             block="chimes",
         )
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         _LOGGER.debug(f"Turning on silent chimes mode for {self._attr_name}")
-        self._device.silence_chimes()
+        await self._device.silence_chimes()
+        self._attr_is_on = True
+        self.async_write_ha_state()
 
 
 class AarloSilentModeCallSwitch(AarloSilentModeBaseSwitch):
@@ -418,6 +426,8 @@ class AarloSilentModeCallSwitch(AarloSilentModeBaseSwitch):
             block="calls",
         )
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         _LOGGER.debug(f"Turning on silent calls mode for {self._attr_name}")
-        self._device.silence_calls()
+        await self._device.silence_calls()
+        self._attr_is_on = True
+        self.async_write_ha_state()

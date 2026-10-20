@@ -12,6 +12,7 @@ import base64
 import logging
 import voluptuous as vol
 from collections.abc import Callable
+from typing import Any
 from haffmpeg.camera import CameraMjpeg
 
 import homeassistant.helpers.config_validation as cv
@@ -202,27 +203,21 @@ async def async_setup_entry(
     async_add_entities(cameras)
 
     # Component services
-    def service_callback(call):
-        """Call aarlo service handler."""
-        _LOGGER.info("{} service called".format(call.service))
-        if call.service == SERVICE_REQUEST_SNAPSHOT:
-            camera_snapshot_service(hass, call)
-        if call.service == SERVICE_REQUEST_SNAPSHOT_TO_FILE:
-            camera_snapshot_to_file_service(hass, call)
-        if call.service == SERVICE_REQUEST_VIDEO_TO_FILE:
-            camera_video_to_file_service(hass, call)
-        if call.service == SERVICE_STOP_ACTIVITY:
-            camera_stop_activity_service(hass, call)
-        if call.service == SERVICE_RECORD_START:
-            camera_start_recording_service(hass, call)
-        if call.service == SERVICE_RECORD_STOP:
-            camera_stop_recording_service(hass, call)
-
     async def async_service_callback(call):
-        if call.service == SERVICE_STOP_ACTIVITY:
+        """Call aarlo service handler."""
+        _LOGGER.info("%s service called", call.service)
+        if call.service == SERVICE_REQUEST_SNAPSHOT:
+            await async_camera_snapshot_service(hass, call)
+        elif call.service == SERVICE_REQUEST_SNAPSHOT_TO_FILE:
+            await async_camera_snapshot_to_file_service(hass, call)
+        elif call.service == SERVICE_REQUEST_VIDEO_TO_FILE:
+            await async_camera_video_to_file_service(hass, call)
+        elif call.service == SERVICE_STOP_ACTIVITY:
             await async_camera_stop_activity_service(hass, call)
-        else:
-            await hass.async_add_executor_job(service_callback, call)
+        elif call.service == SERVICE_RECORD_START:
+            await async_camera_start_recording_service(hass, call)
+        elif call.service == SERVICE_RECORD_STOP:
+            await async_camera_stop_recording_service(hass, call)
 
     if not hasattr(hass.data[COMPONENT_SERVICES], CAMERA_DOMAIN):
         _LOGGER.info("installing handlers")
@@ -298,7 +293,7 @@ async def async_setup_entry(
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
-    _camera: pyaarlo.ArloCamera | None = None
+    _camera: Any
     _state: str | None = None
     _recent: bool = False
     _last_image_source: str | None = None
@@ -311,8 +306,8 @@ class ArloCam(Camera):
         super().__init__()
         
         self._camera = camera
-        self._state: None
-        self._recent: False
+        self._state = None
+        self._recent = False
         self._last_image_source = None
         self._stream_snapshot = aarlo_config.get(CONF_STREAM_SNAPSHOT)
         self._save_updates_to = aarlo_config.get(CONF_SAVE_UPDATES_TO)
@@ -481,10 +476,20 @@ class ArloCam(Camera):
         return self._camera.device_id
 
     def turn_off(self) -> None:
-        self._camera.turn_off()
+        self.hass.async_create_task(self.async_turn_off())
 
     def turn_on(self) -> None:
-        self._camera.turn_on()
+        self.hass.async_create_task(self.async_turn_on())
+
+    async def async_turn_off(self) -> None:
+        await self._camera.turn_off()
+        self._attr_is_on = False
+        self.async_write_ha_state()
+
+    async def async_turn_on(self) -> None:
+        await self._camera.turn_on()
+        self._attr_is_on = True
+        self.async_write_ha_state()
 
     @property
     def extra_state_attributes(self):
@@ -536,12 +541,16 @@ class ArloCam(Camera):
         to the original Arlo one. This means we get a `rtsps` stream back which the stream
         component can handle.
         """
-        return await self.hass.async_add_executor_job(self._camera.get_stream, "arlo")
+        return await self._camera.get_stream("arlo")
 
     async def async_stream_source(self, user_agent=None):
-        return await self.hass.async_add_executor_job(
-            self._camera.get_stream, user_agent
-        )
+        return await self._camera.get_stream(user_agent)
+
+    async def async_camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
+        """Return a still image response from the camera."""
+        return self._camera.last_image_from_cache
 
     def camera_image(
         self, width: int | None = None, height: int | None = None
@@ -576,21 +585,29 @@ class ArloCam(Camera):
     def last_capture_date_format(self):
         return self._camera.last_capture_date_format
 
-    def set_base_station_mode(self, mode):
+    async def set_base_station_mode(self, mode):
         """Set the mode in the base station."""
-        self._camera.base_station.mode = mode
+        await self._camera.base_station.set_mode(mode)
 
-    def enable_motion_detection(self):
+    async def async_enable_motion_detection(self):
         """Enable the Motion detection in base station (Arm)."""
         self._attr_motion_detection_enabled = True
-        self.set_base_station_mode(STATE_ALARM_ARLO_ARMED)
+        await self.set_base_station_mode(STATE_ALARM_ARLO_ARMED)
+        self.async_write_ha_state()
 
-    def disable_motion_detection(self):
+    async def async_disable_motion_detection(self):
         """Disable the motion detection in base station (Disarm)."""
         self._attr_motion_detection_enabled = False
-        self.set_base_station_mode(STATE_ALARM_ARLO_DISARMED)
+        await self.set_base_station_mode(STATE_ALARM_ARLO_DISARMED)
+        self.async_write_ha_state()
 
-    def _attach_hidden_stream(self, duration):
+    def enable_motion_detection(self):
+        self.hass.async_create_task(self.async_enable_motion_detection())
+
+    def disable_motion_detection(self):
+        self.hass.async_create_task(self.async_disable_motion_detection())
+
+    async def _async_attach_hidden_stream(self, duration):
         _LOGGER.info(f"{self._attr_unique_id} attaching hidden stream for duration {duration}")
 
         data = {
@@ -599,41 +616,52 @@ class ArloCam(Camera):
             CONF_DURATION: duration,
             CONF_LOOKBACK: 0,
         }
-        self.hass.services.call(CAMERA_DOMAIN, SERVICE_RECORD, data, blocking=False)
+        await self.hass.services.async_call(CAMERA_DOMAIN, SERVICE_RECORD, data, blocking=False)
 
         _LOGGER.debug("waiting on stream connect")
-        return self._camera.wait_for_user_stream()
+        return await self._camera.wait_for_user_stream()
 
-    def _start_snapshot_stream(self):
+    def _attach_hidden_stream(self, duration):
+        return self.hass.async_create_task(self._async_attach_hidden_stream(duration))
+
+    async def _async_start_snapshot_stream(self):
         if self._stream_snapshot:
-            source = self._camera.start_snapshot_stream()
+            source = await self._camera.start_snapshot_stream()
             if source is not None:
-                self._camera.wait_for_user_stream()
+                await self._camera.wait_for_user_stream()
             return source
         return None
 
-    def request_snapshot(self):
-        self._start_snapshot_stream()
-        self._camera.request_snapshot()
+    def _start_snapshot_stream(self):
+        if self._stream_snapshot:
+            return self.hass.async_create_task(self._async_start_snapshot_stream())
+        return None
 
     async def async_request_snapshot(self):
-        return await self.hass.async_add_executor_job(self.request_snapshot)
+        await self._async_start_snapshot_stream()
+        await self._camera.request_snapshot()
 
-    def get_snapshot(self):
-        self._start_snapshot_stream()
-        return self._camera.get_snapshot()
+    def request_snapshot(self):
+        self.hass.async_create_task(self.async_request_snapshot())
 
     async def async_get_snapshot(self):
-        return await self.hass.async_add_executor_job(self.get_snapshot)
+        await self._async_start_snapshot_stream()
+        return await self._camera.get_snapshot()
+
+    def get_snapshot(self):
+        return self._camera.get_snapshot()
+
+    async def async_get_video(self):
+        return await self._camera.get_video()
 
     def get_video(self):
         return self._camera.get_video()
 
-    async def async_get_video(self):
-        return await self.hass.async_add_executor_job(self.get_video)
-
     def stop_activity(self):
-        return self._camera.stop_activity()
+        res = self._camera.stop_activity()
+        if asyncio.iscoroutine(res):
+            asyncio.create_task(res)
+        return True
 
     async def async_stop_activity(self):
         # Serialize with HA's stream creation so reopening cannot reuse a
@@ -653,60 +681,61 @@ class ArloCam(Camera):
             finally:
                 # A local decoder failure must not prevent the requested
                 # camera/cloud stop. Preserve errors instead of hiding them.
-                stopped = await self.hass.async_add_executor_job(self.stop_activity)
+                if hasattr(self._camera, "stop_activity"):
+                    res = self._camera.stop_activity()
+                    if asyncio.iscoroutine(res):
+                        stopped = await res
+                    else:
+                        stopped = res
+                else:
+                    stopped = await self.hass.async_add_executor_job(self.stop_activity)
             return stopped
 
-    def siren_on(self, duration=30, volume=10):
+    async def async_siren_on(self, duration=30, volume=10):
         if self._camera.has_capability(SIREN_STATE_KEY):
             _LOGGER.debug(
-                "{0} siren on {1}/{2}".format(self.unique_id, volume, duration)
+                f"{self.unique_id} siren on {volume}/{duration}"
             )
-            self._camera.siren_on(duration=duration, volume=volume)
+            await self._camera.siren_on(duration=duration, volume=volume)
             return True
         return False
-
-    def siren_off(self):
-        if self._camera.has_capability(SIREN_STATE_KEY):
-            _LOGGER.debug("{0} siren off".format(self.unique_id))
-            self._camera.siren_off()
-            return True
-        return False
-
-    async def async_siren_on(self, duration, volume):
-        return await self.hass.async_add_executor_job(self.siren_on, duration, volume)
 
     async def async_siren_off(self):
-        return await self.hass.async_add_executor_job(self.siren_off)
+        if self._camera.has_capability(SIREN_STATE_KEY):
+            _LOGGER.debug(f"{self.unique_id} siren off")
+            await self._camera.siren_off()
+            return True
+        return False
 
-    def start_recording(self, duration=30):
-        """ Create a recording in the Arlo library.
+    def siren_on(self, duration=30, volume=10):
+        self.hass.async_create_task(self.async_siren_on(duration=duration, volume=volume))
+        return True
 
-        Has to do 3 things:
-        - start a stream on the camera
-        - attach a dummy local stream to tell Arlo to really start the stream
-        - send a "record-this-stream" request.
+    def siren_off(self):
+        self.hass.async_create_task(self.async_siren_off())
+        return True
 
-        We force the "arlo" user agent to get an rtsp stream.
-        """
-        source = self._camera.start_recording_stream(user_agent="arlo")
+    async def async_start_recording(self, duration=30):
+        """Create a recording in the Arlo library."""
+        source = await self._camera.start_recording_stream(user_agent="arlo")
         if source:
             _LOGGER.debug(f"stream-url={source}")
-            active = self._attach_hidden_stream(duration + 10)
+            active = await self._async_attach_hidden_stream(duration + 10)
             if active:
                 _LOGGER.debug("attached, recording")
-                self._camera.start_recording(duration=duration)
+                await self._camera.start_recording(duration=duration)
                 return source
-        _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
+        _LOGGER.warning("failed to start recording for %s", self._camera.name)
         return None
 
-    def stop_recording(self):
-        self._camera.stop_recording_stream()
-
-    async def async_start_recording(self, duration):
-        return await self.hass.async_add_executor_job(self.start_recording, duration)
-
     async def async_stop_recording(self):
-        return await self.hass.async_add_executor_job(self.stop_recording)
+        await self._camera.stop_recording_stream()
+
+    def start_recording(self, duration=30):
+        self.hass.async_create_task(self.async_start_recording(duration=duration))
+
+    def stop_recording(self):
+        self.hass.async_create_task(self.async_stop_recording())
 
 
 @websocket_api.async_response
@@ -945,12 +974,15 @@ async def websocket_siren_off(hass, connection, msg):
         _LOGGER.warning("{} siren off websocket failed".format(msg["entity_id"]))
 
 
-def camera_snapshot_service(hass, call):
+async def async_camera_snapshot_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
-            _LOGGER.info("{} snapshot".format(entity_id))
+            _LOGGER.info("%s snapshot", entity_id)
             camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
-            camera.get_snapshot()
+            if hasattr(camera, "async_get_snapshot"):
+                await camera.async_get_snapshot()
+            else:
+                camera.get_snapshot()
             hass.bus.fire(
                 "aarlo_snapshot_ready",
                 {
@@ -959,17 +991,21 @@ def camera_snapshot_service(hass, call):
                 },
             )
         except HomeAssistantError:
-            _LOGGER.warning("{} snapshot service failed".format(entity_id))
+            _LOGGER.warning("%s snapshot service failed", entity_id)
 
 
-def camera_snapshot_to_file_service(hass, call):
+def camera_snapshot_service(hass, call):
+    hass.async_create_task(async_camera_snapshot_service(hass, call))
+
+
+async def async_camera_snapshot_to_file_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
             filename = call.data[ATTR_FILENAME]
             filename.hass = hass
             snapshot_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-            _LOGGER.info("{} snapshot(filename={})".format(entity_id, filename))
+            _LOGGER.info("%s snapshot(filename=%s)", entity_id, filename)
 
             # check if we allow to access to that file
             if not hass.config.is_allowed_path(snapshot_file):
@@ -977,9 +1013,16 @@ def camera_snapshot_to_file_service(hass, call):
                 return
 
             # Get and write snapshot
-            snapshot = camera.get_snapshot()
-            with open(snapshot_file, "wb") as out_file:
-                out_file.write(snapshot)
+            if hasattr(camera, "async_get_snapshot"):
+                snapshot = await camera.async_get_snapshot()
+            else:
+                snapshot = camera.get_snapshot()
+
+            def _write():
+                with open(snapshot_file, "wb") as out_file:
+                    out_file.write(snapshot)
+
+            await hass.async_add_executor_job(_write)
 
             hass.bus.fire(
                 "aarlo_snapshot_ready",
@@ -992,17 +1035,21 @@ def camera_snapshot_to_file_service(hass, call):
         except OSError as err:
             _LOGGER.error("Can't write snapshot to file: %s", err)
         except HomeAssistantError:
-            _LOGGER.warning("{} snapshot to file service failed".format(entity_id))
+            _LOGGER.warning("%s snapshot to file service failed", entity_id)
 
 
-def camera_video_to_file_service(hass, call):
+def camera_snapshot_to_file_service(hass, call):
+    hass.async_create_task(async_camera_snapshot_to_file_service(hass, call))
+
+
+async def async_camera_video_to_file_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
             filename = call.data[ATTR_FILENAME]
             filename.hass = hass
             video_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-            _LOGGER.info("{} video to file {}".format(entity_id, filename))
+            _LOGGER.info("%s video to file %s", entity_id, filename)
 
             # check if we allow to access to that file
             if not hass.config.is_allowed_path(video_file):
@@ -1010,9 +1057,16 @@ def camera_video_to_file_service(hass, call):
                 return
 
             # Get and write video
-            video = camera.get_video()
-            with open(video_file, "wb") as out_file:
-                out_file.write(video)
+            if hasattr(camera, "async_get_video"):
+                video = await camera.async_get_video()
+            else:
+                video = camera.get_video()
+
+            def _write():
+                with open(video_file, "wb") as out_file:
+                    out_file.write(video)
+
+            await hass.async_add_executor_job(_write)
 
             hass.bus.fire(
                 "aarlo_video_ready", {"entity_id": entity_id, "file": video_file}
@@ -1020,48 +1074,61 @@ def camera_video_to_file_service(hass, call):
         except OSError as err:
             _LOGGER.error("Can't write image to file: %s", err)
         except HomeAssistantError:
-            _LOGGER.warning("{} video to file service failed".format(entity_id))
-        _LOGGER.debug("{0} video to file finished".format(entity_id))
+            _LOGGER.warning("%s video to file service failed", entity_id)
+        _LOGGER.debug("%s video to file finished", entity_id)
+
+
+def camera_video_to_file_service(hass, call):
+    hass.async_create_task(async_camera_video_to_file_service(hass, call))
 
 
 async def async_camera_stop_activity_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
-            _LOGGER.info("{} stop activity".format(entity_id))
+            _LOGGER.info("%s stop activity", entity_id)
             camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
             if hasattr(camera, "async_stop_activity"):
                 await camera.async_stop_activity()
             else:
                 await hass.async_add_executor_job(camera.stop_activity)
         except HomeAssistantError:
-            _LOGGER.warning("{} stop activity service failed".format(entity_id))
+            _LOGGER.warning("%s stop activity service failed", entity_id)
 
 
 def camera_stop_activity_service(hass, call):
-    for entity_id in call.data["entity_id"]:
-        try:
-            _LOGGER.info("{} stop activity".format(entity_id))
-            camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
-            camera.stop_activity()
-        except HomeAssistantError:
-            _LOGGER.warning("{} stop activity service failed".format(entity_id))
+    hass.async_create_task(async_camera_stop_activity_service(hass, call))
 
 
-def camera_start_recording_service(hass, call):
+async def async_camera_start_recording_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             duration = call.data[ATTR_DURATION]
-            _LOGGER.info("{} start recording(duration={})".format(entity_id, duration))
+            _LOGGER.info("%s start recording(duration=%s)", entity_id, duration)
             camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
-            camera.start_recording(duration=duration)
+            if hasattr(camera, "async_start_recording"):
+                await camera.async_start_recording(duration=duration)
+            else:
+                camera.start_recording(duration=duration)
         except HomeAssistantError as e:
-            _LOGGER.warning(f"{entity_id} start recording service failed - {str(e)}")
+            _LOGGER.warning("%s start recording service failed - %s", entity_id, str(e))
+
+
+def camera_start_recording_service(hass, call):
+    hass.async_create_task(async_camera_start_recording_service(hass, call))
+
+
+async def async_camera_stop_recording_service(hass, call):
+    for entity_id in call.data["entity_id"]:
+        try:
+            _LOGGER.info("%s stop recording", entity_id)
+            camera = get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id)
+            if hasattr(camera, "async_stop_recording"):
+                await camera.async_stop_recording()
+            else:
+                camera.stop_recording()
+        except HomeAssistantError as e:
+            _LOGGER.warning("%s stop recording service failed - %s", entity_id, str(e))
 
 
 def camera_stop_recording_service(hass, call):
-    for entity_id in call.data["entity_id"]:
-        try:
-            _LOGGER.info("{} stop recording".format(entity_id))
-            get_entity_from_domain(hass, CAMERA_DOMAIN, entity_id).stop_recording()
-        except HomeAssistantError as e:
-            _LOGGER.warning(f"{entity_id} stop recording service failed - {str(e)}")
+    hass.async_create_task(async_camera_stop_recording_service(hass, call))

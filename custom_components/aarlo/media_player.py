@@ -105,12 +105,12 @@ class ArloMediaPlayer(MediaPlayerEntity):
         self._attr_device_class = MediaPlayerDeviceClass.SPEAKER
         self._attr_icon = "mdi:speaker"
         self._attr_media_content_type = MediaType.MUSIC
-        self._attr_muted = None
+        self._attr_is_volume_muted = None
         self._attr_should_poll = False
         self._attr_shuffle = None
         self._attr_state = None
         self._attr_supported_features = SUPPORT_ARLO
-        self._attr_volume = None
+        self._attr_volume_level = None
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
             manufacturer=COMPONENT_BRAND,
@@ -136,8 +136,8 @@ class ArloMediaPlayer(MediaPlayerEntity):
             elif attr == "speaker":
                 vol = props.get("volume")
                 if vol is not None:
-                    self._attr_volume = vol / 100
-                self._attr_muted = props.get("mute", self._attr_muted)
+                    self._attr_volume_level = vol / 100
+                self._attr_is_volume_muted = props.get("mute", self._attr_is_volume_muted)
             elif attr == "config":
                 config = props.get("config", {})
                 self._attr_shuffle = config.get("shuffleActive", self._attr_shuffle)
@@ -150,7 +150,9 @@ class ArloMediaPlayer(MediaPlayerEntity):
         self._device.add_attr_callback("speaker", update_state)
         self._device.add_attr_callback("status", update_state)
         self._device.add_attr_callback("playlist", update_state)
-        self._device.get_audio_playback_status()
+        res = self._device.get_audio_playback_status()
+        if asyncio.iscoroutine(res):
+            await res
 
     @property
     def media_title(self):
@@ -161,50 +163,56 @@ class ArloMediaPlayer(MediaPlayerEntity):
                     return track.get("title")
         return None
 
-    def set_shuffle(self, shuffle):
+    async def async_set_shuffle(self, shuffle: bool) -> None:
         """Enable/disable shuffle mode."""
-        self._device.set_shuffle(shuffle=shuffle)
+        await self._device.set_shuffle(shuffle=shuffle)
         self._attr_shuffle = shuffle
+        self.async_write_ha_state()
 
-    def media_previous_track(self):
+    async def async_media_previous_track(self) -> None:
+        """Send previous track command."""
+        await self._device.previous_track()
+
+    async def async_media_next_track(self) -> None:
         """Send next track command."""
-        self._device.previous_track()
+        await self._device.next_track()
 
-    def media_next_track(self):
-        """Send next track command."""
-        self._device.next_track()
-
-    def mute_volume(self, mute):
+    async def async_mute_volume(self, mute: bool) -> None:
         """Mute the volume."""
-        self._device.set_volume(mute=mute, volume=int(self._attr_volume * 100))
-        self._attr_muted = mute
+        await self._device.set_volume(mute=mute, volume=int((self._attr_volume_level or 0) * 100))
+        self._attr_is_volume_muted = mute
+        self.async_write_ha_state()
 
-    def set_volume_level(self, volume):
+    async def async_set_volume_level(self, volume: float) -> None:
         """Set volume level, range 0..1."""
-        self._device.set_volume(mute=False, volume=int(volume * 100))
-        self._attr_volume = volume
+        await self._device.set_volume(mute=False, volume=int(volume * 100))
+        self._attr_volume_level = volume
+        self.async_write_ha_state()
 
-    def media_play(self):
+    async def async_media_play(self) -> None:
         """Send play command."""
-        self._device.play_track()
+        await self._device.play_track()
         self._attr_state = MediaPlayerState.PLAYING
+        self.async_write_ha_state()
 
-    def media_pause(self):
+    async def async_media_pause(self) -> None:
         """Send pause command."""
-        self._device.pause_track()
+        await self._device.pause_track()
         self._attr_state = MediaPlayerState.PAUSED
+        self.async_write_ha_state()
 
-    def play_media(self, media_type, media_id, **kwargs):
+    async def async_play_media(self, media_type: MediaType | str, media_id: str, **kwargs) -> None:
         """Play media from a URL or file."""
-        if not media_type == MediaType.MUSIC:
+        if media_type != MediaType.MUSIC:
             _LOGGER.error(
                 "Invalid media type %s. Only %s is supported",
                 media_type,
                 MediaType.MUSIC,
             )
             return
-        self._device.play_track()
+        await self._device.play_track()
         self._attr_state = MediaPlayerState.PLAYING
+        self.async_write_ha_state()
 
     @property
     def extra_state_attributes(self):

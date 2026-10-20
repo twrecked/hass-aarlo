@@ -59,7 +59,7 @@ async def async_setup_entry(
 
     # We have at least one.
     if all_devices:
-        sirens = []
+        sirens: list[SirenEntity] = []
         for device in all_devices:
             sirens.append(AarloSiren(device))
 
@@ -105,23 +105,25 @@ class AarloSirenBase(SirenEntity):
             _LOGGER.debug(f"register siren callbacks for {siren.name}")
             siren.add_attr_callback(SIREN_STATE_KEY, update_state)
 
-    def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         """Turn the sirens on."""
         volume = int(kwargs.get("volume_level", 1.0) * 8)
         duration = kwargs.get("duration", 10)
         for siren in self._sirens:
-            _LOGGER.debug(f"{self._attr_name} {siren.name} vol={volume}, dur={duration}")
-            siren.siren_on(duration=duration, volume=volume)
+            _LOGGER.debug("%s %s vol=%s, dur=%s", self._attr_name, siren.name, volume, duration)
+            await siren.siren_on(duration=duration, volume=volume)
 
         # Flip us on. update_state should confirm this.
         self._attr_is_on = True
-        self.schedule_update_ha_state()
+        self.async_write_ha_state()
 
-    def turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         """Turn the sirens off."""
         for siren in self._sirens:
-            _LOGGER.debug(f"{self._attr_name} {siren.name} off")
-            siren.siren_off()
+            _LOGGER.debug("%s %s off", self._attr_name, siren.name)
+            await siren.siren_off()
+        self._attr_is_on = False
+        self.async_write_ha_state()
 
 
 class AarloSiren(AarloSirenBase):

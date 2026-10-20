@@ -18,8 +18,8 @@ def camera():
     device.entity_id = "test"
     device.device_id = "synthetic-device"
     device.model_id = "synthetic-model"
-    hass = SimpleNamespace(data={DATA_FFMPEG: MagicMock()},
-                           async_add_executor_job=AsyncMock(return_value=True))
+    device.stop_activity = AsyncMock(return_value=True)
+    hass = SimpleNamespace(data={DATA_FFMPEG: MagicMock()})
     camera = ArloCam(device, {}, hass)
     camera.hass = hass
     return camera
@@ -32,7 +32,7 @@ async def test_explicit_stop_discards_decoder_before_cloud_stop(camera):
     async def decoder_stop():
         order.append("decoder")
 
-    async def cloud_stop(_func):
+    async def cloud_stop():
         assert camera.stream is None
         order.append("cloud")
         return True
@@ -41,7 +41,7 @@ async def test_explicit_stop_discards_decoder_before_cloud_stop(camera):
         stop=AsyncMock(side_effect=decoder_stop),
         dynamic_stream_settings=SimpleNamespace(preload_stream=False),
     )
-    camera.hass.async_add_executor_job.side_effect = cloud_stop
+    camera._camera.stop_activity = AsyncMock(side_effect=cloud_stop)
     assert await camera.async_stop_activity() is True
     assert camera.stream is None
     old.stop.assert_awaited_once_with()
@@ -52,7 +52,7 @@ async def test_explicit_stop_discards_decoder_before_cloud_stop(camera):
 async def test_stop_without_decoder_still_stops_cloud(camera):
     camera.stream = None
     assert await camera.async_stop_activity() is True
-    camera.hass.async_add_executor_job.assert_awaited_once_with(camera.stop_activity)
+    camera._camera.stop_activity.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -64,7 +64,7 @@ async def test_decoder_stop_failure_still_attempts_cloud_stop(camera):
     with pytest.raises(RuntimeError, match="test"):
         await camera.async_stop_activity()
     assert camera.stream is old
-    camera.hass.async_add_executor_job.assert_awaited_once_with(camera.stop_activity)
+    camera._camera.stop_activity.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -82,7 +82,13 @@ async def test_reopen_waits_for_stop_and_gets_a_fresh_source(camera, monkeypatch
     new = SimpleNamespace(set_update_callback=MagicMock())
     camera.stream_source = AsyncMock(return_value="rtsps://example.invalid/fresh")
     monkeypatch.setattr("homeassistant.components.camera.create_stream", MagicMock(return_value=new))
-    monkeypatch.setattr("homeassistant.components.camera.get_dynamic_camera_stream_settings", AsyncMock(return_value={}))
+    import homeassistant.components.camera as camera_mod
+    if hasattr(camera_mod, "DATA_CAMERA_PREFS"):
+        camera.hass.data[camera_mod.DATA_CAMERA_PREFS] = SimpleNamespace(
+            get_dynamic_stream_settings=AsyncMock(return_value={})
+        )
+    if hasattr(camera_mod, "get_dynamic_camera_stream_settings"):
+        monkeypatch.setattr("homeassistant.components.camera.get_dynamic_camera_stream_settings", AsyncMock(return_value={}))
     stopping = asyncio.create_task(camera.async_stop_activity())
     reopening = None
     try:

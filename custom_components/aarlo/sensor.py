@@ -21,7 +21,8 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.entity import Entity
 from homeassistant.components.sensor import (
     DOMAIN as SENSOR_DOMAIN,
-    SensorDeviceClass
+    SensorDeviceClass,
+    SensorEntity,
 )
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
@@ -90,7 +91,7 @@ SENSOR_TYPES = {
     "signal_strength": {
         "description": "Signal Strength",
         "key": SIGNAL_STR_KEY,
-        "class": SensorDeviceClass.SIGNAL_STRENGTH, 
+        "icon": "mdi:signal",
     },
     "temperature": {
         "description": "Temperature",
@@ -155,7 +156,7 @@ async def async_setup_entry(
     async_add_entities(sensors)
 
 
-class ArloSensor(Entity):
+class ArloSensor(SensorEntity):
     """An implementation of a Netgear Arlo IP sensor."""
 
     def __init__(self, arlo, device, aarlo_config, sensor_type, sensor_value):
@@ -178,9 +179,9 @@ class ArloSensor(Entity):
 
         self._attr_device_class = sensor_value.get("class", None)
         self._attr_icon = sensor_value.get("icon", None)
-        self._attr_unit_of_measurement = sensor_value.get("units", None)
+        self._attr_native_unit_of_measurement = sensor_value.get("units", None)
         self._attr_should_poll = False
-        self._attr_state = None
+        self._attr_native_value = None
 
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
@@ -193,12 +194,12 @@ class ArloSensor(Entity):
         """Register callbacks."""
 
         def update_state(_device, attr, value):
-            _LOGGER.debug("callback:" + self._attr_name + ":" + attr + ":" + str(value)[:80])
-            self._attr_state = value
+            _LOGGER.debug("callback:%s:%s:%s", self._attr_name, attr, str(value)[:80])
+            self._attr_native_value = value
             self.schedule_update_ha_state()
 
         if self._main_attr is not None:
-            self._attr_state = self._device.attribute(self._main_attr)
+            self._attr_native_value = self._device.attribute(self._main_attr)
             self._device.add_attr_callback(self._main_attr, update_state)
 
     @property

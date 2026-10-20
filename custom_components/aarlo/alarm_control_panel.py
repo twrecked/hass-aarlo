@@ -129,15 +129,11 @@ async def async_setup_entry(
     async_add_entities(locations)
 
     # Component services
-    def service_callback(call):
-        """Call aarlo service handler."""
-        _LOGGER.debug(f"{call.service} service called")
-        if call.service == SERVICE_MODE:
-            alarm_mode_service(hass, call)
-
     async def async_service_callback(call):
-        # pass off to background thread
-        await hass.async_add_executor_job(service_callback, call)
+        """Call aarlo service handler."""
+        _LOGGER.debug("%s service called", call.service)
+        if call.service == SERVICE_MODE:
+            await async_alarm_mode_service(hass, call)
 
     if not hasattr(hass.data[COMPONENT_SERVICES], ALARM_DOMAIN):
         _LOGGER.debug("installing handlers")
@@ -261,7 +257,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
     async def _async_stop_trigger(self, *_args: Any) -> None:
         if self._trigger_till is not None:
             _LOGGER.info(f"{self._attr_name}: untriggered")
-            self.alarm_clear()
+            await self.async_alarm_clear()
             self._trigger_till = None
             self.async_schedule_update_ha_state()
 
@@ -283,31 +279,31 @@ class ArloBaseStation(AlarmControlPanelEntity):
             return AlarmControlPanelState.TRIGGERED
         return self._attr_alarm_state
 
-    def alarm_disarm(self, code=None):
+    async def async_alarm_disarm(self, code=None):
         if self._attr_code_disarm_required and not _code_validate(self._code, code, "disarming"):
             return
-        self.set_mode_in_ha(self._disarmed_mode_name)
+        await self.async_set_mode_in_ha(self._disarmed_mode_name)
 
-    def alarm_arm_away(self, code=None):
+    async def async_alarm_arm_away(self, code=None):
         if self._attr_code_arm_required and not _code_validate(self._code, code, "arming away"):
             return
-        self.set_mode_in_ha(self._away_mode_name)
+        await self.async_set_mode_in_ha(self._away_mode_name)
 
-    def alarm_arm_home(self, code=None):
+    async def async_alarm_arm_home(self, code=None):
         if self._attr_code_arm_required and not _code_validate(self._code, code, "arming home"):
             return
-        self.set_mode_in_ha(self._home_mode_name)
+        await self.async_set_mode_in_ha(self._home_mode_name)
 
-    def alarm_arm_night(self, code=None):
+    async def async_alarm_arm_night(self, code=None):
         if self._attr_code_arm_required and not _code_validate(self._code, code, "arming night"):
             return
-        self.set_mode_in_ha(self._night_mode_name)
+        await self.async_set_mode_in_ha(self._night_mode_name)
 
-    def alarm_trigger(self, code=None):
+    async def async_alarm_trigger(self, code=None):
         if self._trigger_till is None:
             _LOGGER.info(f"{self._attr_name}: triggered")
             if int(self._alarm_volume) != 0:
-                self._base.siren_on(
+                await self._base.siren_on(
                     duration=self._trigger_time.total_seconds(),
                     volume=self._alarm_volume,
                 )
@@ -315,46 +311,41 @@ class ArloBaseStation(AlarmControlPanelEntity):
             self._timer = async_track_point_in_time(
                 self.hass, HassJob(self._async_stop_trigger), self._trigger_till
             )
-            self.schedule_update_ha_state()
+            self.async_write_ha_state()
 
-    def alarm_clear(self):
+    async def async_alarm_clear(self):
         self._trigger_till = None
-        self._base.siren_off()
+        await self._base.siren_off()
+        self.async_write_ha_state()
 
-    def alarm_arm_custom_bypass(self, code=None):
+    async def async_alarm_arm_custom_bypass(self, code=None):
         pass
 
-    def restart(self):
-        self._base.restart()
+    async def async_restart(self):
+        await self._base.restart()
 
-    def set_mode_in_ha(self, mode):
+    async def async_set_mode_in_ha(self, mode):
         """convert Home Assistant state to Arlo mode."""
         if mode.lower() == self._disarmed_mode_name.lower():
             if self._trigger_till is not None:
                 _LOGGER.debug(f"{self._attr_name} disarming/silencing")
-                self.alarm_clear()
+                await self.async_alarm_clear()
         _LOGGER.debug(f"{self._attr_name} set mode to {mode}")
-        self._base.mode = mode
+        await self._base.set_mode(mode)
 
-    def siren_on(self, duration=30, volume=10):
+    async def async_siren_on(self, duration=30, volume=10):
         if self._base.has_capability(SIREN_STATE_KEY):
             _LOGGER.debug(f"{self._attr_name} siren on {volume}/{duration}")
-            self._base.siren_on(duration=duration, volume=volume)
+            await self._base.siren_on(duration=duration, volume=volume)
             return True
         return False
-
-    def siren_off(self):
-        if self._base.has_capability(SIREN_STATE_KEY):
-            _LOGGER.debug(f"{self._attr_name} siren off")
-            self._base.siren_off()
-            return True
-        return False
-
-    async def async_siren_on(self, duration, volume):
-        return await self.hass.async_add_executor_job(self.siren_on, duration, volume)
 
     async def async_siren_off(self):
-        return await self.hass.async_add_executor_job(self.siren_off)
+        if self._base.has_capability(SIREN_STATE_KEY):
+            _LOGGER.debug(f"{self._attr_name} siren off")
+            await self._base.siren_off()
+            return True
+        return False
 
     @property
     def extra_state_attributes(self):
@@ -424,48 +415,42 @@ class ArloLocation(AlarmControlPanelEntity):
     def alarm_state(self) -> AlarmControlPanelState | None:
         return self._attr_alarm_state
 
-    def alarm_disarm(self, code=None):
+    async def async_alarm_disarm(self, code=None):
         _LOGGER.debug(f"Location {self._attr_name} disarm.  Code: {code}")
         if self._attr_code_disarm_required and not _code_validate(self._code, code, "disarming"):
             return
-        self._location.stand_by()
+        await self._location.stand_by()
 
-    def alarm_arm_away(self, code=None):
+    async def async_alarm_arm_away(self, code=None):
         _LOGGER.debug(f"Location {self._attr_name} arm away.  Code: {code}")
         if self._attr_code_arm_required and not _code_validate(self._code, code, "arming away"):
             return
-        self._location.arm_away()
+        await self._location.arm_away()
 
-    def alarm_arm_home(self, code=None):
+    async def async_alarm_arm_home(self, code=None):
         _LOGGER.debug(f"Location {self._attr_name} arm home.  Code: {code}")
         if self._attr_code_arm_required and not _code_validate(self._code, code, "arming home"):
             return
-        self._location.arm_home()
+        await self._location.arm_home()
 
-    def alarm_trigger(self, code=None):
+    async def async_alarm_trigger(self, code=None):
         pass
 
-    def alarm_clear(self):
+    async def async_alarm_clear(self):
         pass
 
-    def alarm_arm_custom_bypass(self, code=None):
+    async def async_alarm_arm_custom_bypass(self, code=None):
         pass
 
-    def restart(self):
+    async def async_restart(self):
         pass
 
-    def set_mode_in_ha(self, mode):
+    async def async_set_mode_in_ha(self, mode):
         """convert Home Assistant state to Arlo mode."""
         _LOGGER.debug(f"{self._attr_name} set mode to {mode}")
-        self._location.mode = mode
+        await self._location.set_mode(mode)
 
-    def siren_on(self, duration=30, volume=10):
-        pass
-
-    def siren_off(self):
-        pass
-
-    async def async_siren_on(self, duration, volume):
+    async def async_siren_on(self, duration=30, volume=10):
         pass
 
     async def async_siren_off(self):
@@ -501,24 +486,48 @@ async def websocket_siren_off(hass, connection, msg):
 
 async def aarlo_mode_service_handler(base, service):
     mode = service.data[ATTR_MODE]
-    base.set_mode_in_ha(mode)
+    if hasattr(base, "async_set_mode_in_ha"):
+        await base.async_set_mode_in_ha(mode)
+    else:
+        res = base.set_mode_in_ha(mode)
+        if asyncio.iscoroutine(res):
+            await res
 
 
 async def aarlo_siren_on_service_handler(base, service):
     volume = service.data[ATTR_VOLUME]
     duration = service.data[ATTR_DURATION]
-    base.siren_on(duration=duration, volume=volume)
+    if hasattr(base, "async_siren_on"):
+        await base.async_siren_on(duration=duration, volume=volume)
+    else:
+        res = base.siren_on(duration=duration, volume=volume)
+        if asyncio.iscoroutine(res):
+            await res
 
 
 async def aarlo_siren_off_service_handler(base, _service):
-    base.siren_off()
+    if hasattr(base, "async_siren_off"):
+        await base.async_siren_off()
+    else:
+        res = base.siren_off()
+        if asyncio.iscoroutine(res):
+            await res
 
 
-def alarm_mode_service(hass, call):
+async def async_alarm_mode_service(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
             mode = call.data["mode"]
-            get_entity_from_domain(hass, ALARM_DOMAIN, entity_id).set_mode_in_ha(mode)
-            _LOGGER.debug(f"{entity_id} setting mode to {mode}")
+            entity = get_entity_from_domain(hass, ALARM_DOMAIN, entity_id)
+            if hasattr(entity, "async_set_mode_in_ha"):
+                await entity.async_set_mode_in_ha(mode)
+            else:
+                res = entity.set_mode_in_ha(mode)
+                if asyncio.iscoroutine(res):
+                    await res
+            _LOGGER.debug("%s setting mode to %s", entity_id, mode)
         except HomeAssistantError:
-            _LOGGER.warning(f"{entity_id} is not an aarlo alarm device")
+            _LOGGER.warning("%s is not an aarlo alarm device", entity_id)
+
+
+alarm_mode_service = async_alarm_mode_service

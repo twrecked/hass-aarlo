@@ -61,17 +61,16 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         """Create the options flow."""
         return ArloOptionsFlowHandler(config_entry)
 
-    _username: str = ""
-    _password: str = ""
-    _tfa_username: str = ""
-    _tfa_password: str = ""
-    _tfa_host: str = ""
-    _add_prefix: bool = True
-
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the config flow."""
+        self._username: str = ""
+        self._password: str = ""
+        self._tfa_username: str = ""
+        self._tfa_password: str = ""
+        self._tfa_host: str = ""
+        self._add_prefix: bool = True
 
-    async def async_step_user(self, info: dict = None):
+    async def async_step_user(self, info: dict | None = None):
         """Handle user initiated flow."""
 
         if self._async_current_entries():
@@ -92,39 +91,44 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             _LOGGER.debug(f"info={info}")
             if info[CONF_TFA_TYPE] == "NONE":
                 config.update({
-                    CONF_TFA_TYPE: "none"
+                    CONF_TFA_TYPE: "none",
+                    "tfa": "none",
                 })
 
             elif info[CONF_TFA_TYPE] == "PUSH":
                 config.update({
                     CONF_TFA_TYPE: "push",
                     CONF_TFA_SOURCE: "push",
+                    "tfa": "push",
                 })
 
             elif info[CONF_TFA_TYPE] == "IMAP":
-                if (not info[CONF_TFA_USERNAME] or not info[CONF_TFA_PASSWORD]
-                        or not info[CONF_TFA_HOST]):
+                if (not info.get(CONF_TFA_USERNAME) or not info.get(CONF_TFA_PASSWORD)
+                        or not info.get(CONF_TFA_HOST)):
                     errors["base"] = "missing_imap_fields"
                 else:
                     config.update({
                         CONF_TFA_TYPE: "email",
                         CONF_TFA_SOURCE: "imap",
+                        "tfa": "email:imap",
                         CONF_TFA_HOST: info[CONF_TFA_HOST],
                         CONF_TFA_USERNAME: info[CONF_TFA_USERNAME],
                         CONF_TFA_PASSWORD: info[CONF_TFA_PASSWORD],
                     })
 
             elif info[CONF_TFA_TYPE] == "RESTAPI":
-                if (not info[CONF_TFA_USERNAME] or not info[CONF_TFA_PASSWORD]
-                        or not info[CONF_TFA_HOST]):
+                if (not info.get(CONF_TFA_USERNAME) or not info.get(CONF_TFA_PASSWORD)
+                        or not info.get(CONF_TFA_HOST)):
                     errors["base"] = "missing_restapi_fields"
-                config.update({
-                    CONF_TFA_TYPE: "SMS",
-                    CONF_TFA_SOURCE: "rest-api",
-                    CONF_TFA_HOST: info[CONF_TFA_HOST],
-                    CONF_TFA_USERNAME: info[CONF_TFA_USERNAME],
-                    CONF_TFA_PASSWORD: info[CONF_TFA_PASSWORD],
-                })
+                else:
+                    config.update({
+                        CONF_TFA_TYPE: "sms",
+                        CONF_TFA_SOURCE: "rest-api",
+                        "tfa": "sms",
+                        CONF_TFA_HOST: info[CONF_TFA_HOST],
+                        CONF_TFA_USERNAME: info[CONF_TFA_USERNAME],
+                        CONF_TFA_PASSWORD: info[CONF_TFA_PASSWORD],
+                    })
 
             # Looks good, then create it.
             if not errors:
@@ -135,12 +139,12 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
                 )
 
             # Pass broken one into the GUI.
-            self._username: str = info[CONF_USERNAME]
-            self._password: str = info[CONF_PASSWORD]
-            self._tfa_username: str = info.get(CONF_TFA_USERNAME, "")
-            self._tfa_password: str = info.get(CONF_TFA_PASSWORD, "")
-            self._tfa_host: str = info.get(CONF_TFA_HOST, "")
-            self._add_prefix: bool = info[CONF_ADD_AARLO_PREFIX]
+            self._username = info[CONF_USERNAME]
+            self._password = info[CONF_PASSWORD]
+            self._tfa_username = info.get(CONF_TFA_USERNAME, "")
+            self._tfa_password = info.get(CONF_TFA_PASSWORD, "")
+            self._tfa_host = info.get(CONF_TFA_HOST, "")
+            self._add_prefix = info[CONF_ADD_AARLO_PREFIX]
 
         data_schema = {
             vol.Required(CONF_USERNAME, default=self._username): str,
@@ -176,21 +180,20 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
 
 class ArloOptionsFlowHandler(config_entries.OptionsFlow):
 
-    _config: dict[str, Any] = {}
-
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
         self._config_entry = config_entry
+        self._config: dict[str, Any] = {}
 
     async def async_step_init(
             self, user_input: dict[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Manage the options."""
         return await self.async_step_alarm_control_panel(user_input)
 
     async def async_step_alarm_control_panel(
             self, user_input: dict[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
 
         if user_input is not None:
             _LOGGER.debug(f"user-input-alarm={user_input}")
@@ -235,7 +238,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_binary_sensor(
             self, user_input: dict[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
 
         if user_input is not None:
             _LOGGER.debug(f"user-input-binary-sensor={user_input}")
@@ -269,7 +272,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_sensor(
             self, user_input: dict[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
 
         if user_input is not None:
             _LOGGER.debug(f"user-input-sensor={user_input}")
@@ -303,7 +306,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_switch(
             self, user_input: dict[str, Any] | None = None
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
 
         if user_input is not None:
             _LOGGER.debug(f"user-input-switch={user_input}")
