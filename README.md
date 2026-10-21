@@ -12,7 +12,7 @@ _Aarlo_ provides, amongst other things:
 
 ---
 
-> ### ⚠️ Major Rewrite Notice (`v0.9.0-alpha.1`)
+> ### ⚠️ Major Rewrite Notice (`v0.9.0-alpha.2`)
 >
 > **Aarlo v0.9 is a major rewrite transitioning the integration and underlying `pyaarlo` library to native Python `asyncio`.**
 >

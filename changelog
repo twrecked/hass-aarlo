@@ -1,3 +1,11 @@
+0.9.0-alpha.2
+  - Spotlight & Lighting:
+    - Aligned entity action calls with normalized pyaarlo API (spotlight_on(), spotlight_off()).
+  - Stream Teardown:
+    - Streamlined async_stop_activity() with direct async coroutine dispatch and non-blocking task creation.
+  - Requirements:
+    - Bumped pyaarlo to 0.9.0-alpha.2 (2cc4d133c85049938ef4a7af5f7c996e6a4a3189).
+
 0.9.0-alpha.1
   - Major modernization refactoring the integration to use pyaarlo v0.9 native asyncio.
   - Asynchronous Setup & Lifecycle:
