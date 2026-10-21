@@ -6,7 +6,7 @@
   - Configuration Cleanup:
     - Deprecated and ignored `reconnect_every`, relying solely on pyaarlo v0.9 dynamic token renewal.
   - Requirements:
-    - Bumped pyaarlo to 0.9.0-alpha.2 (55fa5f63b101f86ae946b9cb3dc5b6eff212d7e2).
+    - Bumped pyaarlo to 0.9.0-alpha.2 (ef9975ab13a56b340435228e67128a5a1ca8548b).
 
 0.9.0-alpha.1
   - Major modernization refactoring the integration to use pyaarlo v0.9 native asyncio.
