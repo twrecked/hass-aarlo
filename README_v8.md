@@ -445,7 +445,7 @@ _Aarlo_ will write the debug logs to the standard _Home Assistant_ log file `/co
 
 ## Encrypting the Output
 
-Before you send me the debug you should encrypt it.  You can encrypt your output on this [web page](https://pyaarlo-tfa.appspot.com/). You can upload the file or copy and paste it into the buffer then press `Submit`.
+Before you send me the debug you should encrypt it.  You can encrypt your output on this [web page](https://aarlo-dot-twrecked-tools.nn.r.appspot.com/). You can upload the file or copy and paste it into the buffer then press `Submit`.
 
 **This page doesn't forward automatically the output to me, so you will have to copy and paste it into a file and attach it to the bug report.**
 
@@ -485,7 +485,7 @@ The most helpful way to see what _Arlo_ actually expects to happen is to export 
 4. Perform the action on the webpage.
 5. Click the **Export** icon at the top right of the Network tab to save the HAR file.
 
-> **Privacy Warning:** `.har` files contain everything sent and received during the recording, including session tokens and authentication cookies. **Never post raw HAR files publicly.** Always encrypt the file before sharing it using the [encryption webpage](https://pyaarlo-tfa.appspot.com/) or the `pyaarlo encrypt` command described in [Encrypting the Output](#encrypting-the-output).
+> **Privacy Warning:** `.har` files contain everything sent and received during the recording, including session tokens and authentication cookies. **Never post raw HAR files publicly.** Always encrypt the file before sharing it using the [encryption webpage](https://aarlo-dot-twrecked-tools.nn.r.appspot.com/) or the `pyaarlo encrypt` command described in [Encrypting the Output](#encrypting-the-output).
 
 ### Inspecting Individual Requests
 

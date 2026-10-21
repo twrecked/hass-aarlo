@@ -225,7 +225,7 @@ If reporting an issue with an unsupported device or an unhandled packet:
 ### Encrypting Diagnostic Output
 
 `.har` files and raw packet traces contain session tokens and device identifiers:
-- Anonymize and encrypt the file using the [encryption page](https://pyaarlo-tfa.appspot.com/) or via the `pyaarlo` CLI:
+- Anonymize and encrypt the file using the [encryption page](https://aarlo-dot-twrecked-tools.nn.r.appspot.com/) or via the `pyaarlo` CLI:
   ```bash
   cat trace.log | pyaarlo-utils anonymize | pyaarlo-utils encrypt > trace.log.enc
   ```
