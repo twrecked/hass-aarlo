@@ -14,7 +14,7 @@
   "issue_tracker": "https://github.com/twrecked/hass-aarlo/issues",
   "requirements": [
     "unidecode",
-    "pyaarlo @ git+https://github.com/twrecked/pyaarlo.git@2cc4d133c85049938ef4a7af5f7c996e6a4a3189",
+    "pyaarlo @ git+https://github.com/twrecked/pyaarlo.git@3a9ded474cd447ca2aca5095e67c62de7b859c9b",
     "aiofiles"
   ],
   "version": "0.9.0-alpha.2"
