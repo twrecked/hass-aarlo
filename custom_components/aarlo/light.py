@@ -433,7 +433,7 @@ class ArloSpotlight(ArloLight):
         """Turn the entity on."""
         _LOGGER.debug(f"turning on {self._attr_name} (with args {pprint.pformat(kwargs)})")
 
-        await self._light.set_spotlight_on()
+        await self._light.spotlight_on()
         if ATTR_BRIGHTNESS in kwargs:
             await self._light.set_spotlight_brightness(kwargs[ATTR_BRIGHTNESS])
         self._attr_is_on = True
@@ -442,6 +442,6 @@ class ArloSpotlight(ArloLight):
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
         _LOGGER.debug(f"turning off {self._attr_name} (with args {pprint.pformat(kwargs)})")
-        await self._light.set_spotlight_off()
+        await self._light.spotlight_off()
         self._attr_is_on = False
         self.async_write_ha_state()

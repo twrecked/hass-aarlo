@@ -658,9 +658,8 @@ class ArloCam(Camera):
         return self._camera.last_video
 
     def stop_activity(self):
-        res = self._camera.stop_activity()
-        if asyncio.iscoroutine(res):
-            asyncio.create_task(res)
+        """Move camera to idle state (sync wrapper)."""
+        self.hass.async_create_task(self.async_stop_activity())
         return True
 
     async def async_stop_activity(self):
@@ -682,13 +681,9 @@ class ArloCam(Camera):
                 # A local decoder failure must not prevent the requested
                 # camera/cloud stop. Preserve errors instead of hiding them.
                 if hasattr(self._camera, "stop_activity"):
-                    res = self._camera.stop_activity()
-                    if asyncio.iscoroutine(res):
-                        stopped = await res
-                    else:
-                        stopped = res
+                    stopped = await self._camera.stop_activity()
                 else:
-                    stopped = await self.hass.async_add_executor_job(self.stop_activity)
+                    stopped = True
             return stopped
 
     async def async_siren_on(self, duration=30, volume=10):
