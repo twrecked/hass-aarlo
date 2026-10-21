@@ -521,6 +521,13 @@ class PyaarloCfg(object):
                 "enable packet tracing in configuration.yaml via 'logger: logs: pyaarlo.packet: debug'"
             )
 
+        if options.get("reconnect_every"):
+            _LOGGER.warning(
+                "reconnect_every in aarlo configuration is deprecated and ignored; "
+                "session tokens are now renewed automatically before expiration"
+            )
+            options.pop("reconnect_every", None)
+
         _LOGGER.debug(f"config={config}")
         _LOGGER.debug(f"options={options}")
 
