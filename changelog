@@ -4,7 +4,7 @@
   - Stream Teardown:
     - Streamlined async_stop_activity() with direct async coroutine dispatch and non-blocking task creation.
   - Requirements:
-    - Bumped pyaarlo to 0.9.0-alpha.2 (ebd732e4fd149689f330e7b357dceed11f7bac3a).
+    - Bumped pyaarlo to 0.9.0-alpha.2 (3077837bb36a720a6a4002e010405e56f47d3d2f).
 
 0.9.0-alpha.1
   - Major modernization refactoring the integration to use pyaarlo v0.9 native asyncio.
