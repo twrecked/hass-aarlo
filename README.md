@@ -260,6 +260,7 @@ Most Arlo devices are supported, including:
 
 - [Advanced Configuration Guide](docs/README-advanced.md) — Custom video directories, raw entity naming, and advanced parameters.
 - [Legacy v0.8 Documentation](docs/README_v8.md) — Preserved synchronous v0.8 documentation.
+- [v0.9.0-alpha.2 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.2.md) — Session stability, request draining, V3 mode sync, and API normalization.
 - [v0.9.0-alpha.1 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.1.md) — Detailed overview of the v0.9 async rewrite.
 
 ---
