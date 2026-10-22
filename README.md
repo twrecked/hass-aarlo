@@ -22,7 +22,7 @@ _Aarlo_ provides, amongst other things:
 >
 > If you encounter issues, regressions, or unexpected behavior with your hardware, please [open a GitHub issue](https://github.com/twrecked/hass-aarlo/issues). Please include your Home Assistant version, Arlo device models, and relevant logs.
 >
-> If you need the legacy v0.8 documentation, it is archived in [README_v8.md](README_v8.md).
+> If you need the legacy v0.8 documentation, it is archived in [docs/README_v8.md](docs/README_v8.md).
 
 ---
 
@@ -55,7 +55,7 @@ _Aarlo_ interacts with the [Arlo Web APIs](https://my.arlo.com/#/home) to provid
 
 With v0.9, all network requests, event listeners, streaming handoffs, and entity controls run asynchronously on Home Assistant's event loop with zero thread-blocking calls.
 
-For advanced configurations (such as customizing video download directories or raw entity naming), see [README-advanced.md](README-advanced.md).
+For advanced configurations (such as customizing video download directories or raw entity naming), see [docs/README-advanced.md](docs/README-advanced.md).
 
 ---
 
@@ -253,6 +253,14 @@ Most Arlo devices are supported, including:
 - **Doorbells:** Audio Doorbell (AAD1001), Video Doorbell Wired & Wireless (AVD1001, AVD2001, AVD3001, AVD4001).
 - **Lights:** Arlo Light (AL1101), Pro 3 Floodlight (FB1001).
 - **Sensors & Base Stations:** All-in-One Sensor (MS1001), Base Station (VMB3000/VMB4000/VMB4500/VMB5000).
+
+---
+
+# Documentation Links
+
+- [Advanced Configuration Guide](docs/README-advanced.md) — Custom video directories, raw entity naming, and advanced parameters.
+- [Legacy v0.8 Documentation](docs/README_v8.md) — Preserved synchronous v0.8 documentation.
+- [v0.9.0-alpha.1 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.1.md) — Detailed overview of the v0.9 async rewrite.
 
 ---
 
