@@ -86,8 +86,8 @@ SNAPSHOT_TIMEOUT_DEFAULT = timedelta(seconds=60)
 
 # This is the current aarlo main config.
 AARLO_SCHEMA = vol.Schema({
-    vol.Optional(CONF_HOST, default=DEFAULT_HOST): cv.url,
-    vol.Optional(CONF_AUTH_HOST, default=DEFAULT_AUTH_HOST): cv.url,
+    vol.Optional(CONF_HOST): cv.url,
+    vol.Optional(CONF_AUTH_HOST): cv.url,
     vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
     vol.Optional(CONF_PACKET_DUMP, default=PACKET_DUMP): cv.boolean,
     vol.Optional(CONF_CACHE_VIDEOS, default=CACHE_VIDEOS): cv.boolean,
@@ -527,6 +527,14 @@ class PyaarloCfg(object):
                 "session tokens are now renewed automatically before expiration"
             )
             options.pop("reconnect_every", None)
+
+        for key in ("host", "auth_host", "mqtt_host", "mqtt_port"):
+            if options.get(key):
+                _LOGGER.warning(
+                    "Configuring '%s' (%s) in aarlo configuration or aarlo.yaml is discouraged and may cause connection failures.",
+                    key,
+                    options[key],
+                )
 
         _LOGGER.debug(f"config={config}")
         _LOGGER.debug(f"options={options}")

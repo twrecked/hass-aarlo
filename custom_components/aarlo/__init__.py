@@ -62,8 +62,8 @@ CONFIG_SCHEMA = vol.Schema(
             {
                 vol.Required(CONF_USERNAME): cv.string,
                 vol.Required(CONF_PASSWORD): cv.string,
-                vol.Optional(CONF_HOST, default=DEFAULT_HOST): cv.url,
-                vol.Optional(CONF_AUTH_HOST, default=DEFAULT_AUTH_HOST): cv.url,
+                vol.Optional(CONF_HOST): cv.url,
+                vol.Optional(CONF_AUTH_HOST): cv.url,
                 vol.Optional(CONF_SCAN_INTERVAL, default=SCAN_INTERVAL): cv.time_period,
                 vol.Optional(CONF_PACKET_DUMP, default=PACKET_DUMP): cv.boolean,
                 vol.Optional(CONF_CACHE_VIDEOS, default=CACHE_VIDEOS): cv.boolean,
