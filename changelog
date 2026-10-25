@@ -1,3 +1,12 @@
+0.9.0-alpha.3
+  - Configuration Warnings:
+    - Added runtime warnings when configuring fragile network settings (`host`, `auth_host`, `mqtt_host`, `mqtt_port`) in `aarlo.yaml`.
+    - Removed artificial default values for `host` and `auth_host` from `AARLO_SCHEMA` to allow dynamic `pyaarlo` defaults.
+  - Requirements:
+    - Bumped `pyaarlo` requirement to `v0.9.0-alpha.3`.
+  - Documentation:
+    - Added release notes for v0.9.0-alpha.3.
+
 0.9.0-alpha.2
   - Spotlight & Lighting:
     - Aligned entity action calls with normalized pyaarlo API (spotlight_on(), spotlight_off()).
