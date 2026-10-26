@@ -1,3 +1,11 @@
+0.9.0-alpha.4
+  - Diagnostics & Troubleshooting:
+    - Added `AGENTS.issues.md` diagnostic lookup matrix covering 1 year of historical issues across authentication/2FA, device discovery, V3 modes, live streaming, and Home Assistant OS compatibility.
+  - Requirements:
+    - Bumped `pyaarlo` requirement to `v0.9.0-alpha.4` (includes push 2FA rate-limit protection and troubleshooting matrix).
+  - Documentation:
+    - Added release notes for v0.9.0-alpha.4.
+
 0.9.0-alpha.3
   - Configuration Warnings:
     - Added runtime warnings when configuring fragile network settings (`host`, `auth_host`, `mqtt_host`, `mqtt_port`) in `aarlo.yaml`.
