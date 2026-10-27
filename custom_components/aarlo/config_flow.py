@@ -225,7 +225,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
             return await self.async_step_alarm_control_panel(None)
 
         options = dict(self._config_entry.options)
-        yaml_config = await _async_load_yaml(_default_config_file(self.hass))
+        yaml_config = await _async_load_yaml(self.hass, _default_config_file(self.hass))
         aarlo_yaml = yaml_config.get(COMPONENT_DOMAIN, {})
 
         backend_default = options.get("backend", aarlo_yaml.get("backend", "auto"))

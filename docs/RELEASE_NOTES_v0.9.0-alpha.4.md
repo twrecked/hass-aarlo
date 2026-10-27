@@ -16,7 +16,11 @@
 - **Early Exit on Expiration:** Aborts immediately if the push prompt expires on Arlo's servers (`"Maximum permitted time for authentication exceeded"`).
 - **Clear Guidance:** Logs an actionable error message advising the user that the account is rate-limited and to wait 24 hours before retrying.
 
-### 2. Troubleshooting Knowledge Base (`AGENTS.issues.md`)
+### 2. Dropped `aiofiles` Dependency & Atomic Config Writes
+- **Native Home Assistant Executor:** Eliminated the third-party `aiofiles` requirement from `manifest.json`. Reading and writing `/config/aarlo.yaml` now uses Home Assistant's native executor (`hass.async_add_executor_job`) with standard `pathlib.Path`.
+- **Atomic File Writes:** Saving configuration writes to a `.tmp` file before atomically replacing the target, protecting `aarlo.yaml` against corruption during sudden restarts or power loss.
+
+### 3. Troubleshooting Knowledge Base (`AGENTS.issues.md`)
 - Added a comprehensive diagnostic issue cache and troubleshooting lookup table in `AGENTS.issues.md`.
 - Synthesizes 1 year of historical issues across 5 core categories:
   1. Authentication & 2FA (Gmail app passwords, error 9306, error 9261, 401 token renewal).

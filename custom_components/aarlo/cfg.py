@@ -14,7 +14,8 @@ There are 2 pieces:
   layout.
 """
 
-import aiofiles
+import asyncio
+from pathlib import Path
 import copy
 import logging
 
@@ -288,22 +289,59 @@ def _default_config_file(hass) -> str:
     return hass.config.path("aarlo.yaml")
 
 
-async def _async_load_yaml(file_name):
+def _read_file(file_name: str) -> str:
+    """Read file content synchronously in executor."""
+    return Path(file_name).read_text(encoding="utf-8")
+
+
+def _write_file(file_name: str, content: str) -> None:
+    """Write file content atomically in executor."""
+    path = Path(file_name)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_file = path.with_name(f"{path.name}.tmp")
+    temp_file.write_text(content, encoding="utf-8")
+    temp_file.replace(path)
+
+
+async def _async_load_yaml(hass_or_filename, maybe_filename=None):
+    if maybe_filename is not None:
+        hass = hass_or_filename
+        file_name = maybe_filename
+    elif hasattr(hass_or_filename, "async_add_executor_job"):
+        hass = hass_or_filename
+        file_name = _default_config_file(hass)
+    else:
+        hass = None
+        file_name = hass_or_filename
+
     try:
-        async with aiofiles.open(file_name, 'r') as yaml_file:
-            contents = await yaml_file.read()
-            return parse_yaml(contents)
-    except Exception:
+        if hass is not None and hasattr(hass, "async_add_executor_job"):
+            content = await hass.async_add_executor_job(_read_file, file_name)
+        else:
+            content = await asyncio.to_thread(_read_file, file_name)
+        return parse_yaml(content)
+    except (FileNotFoundError, PermissionError, ValueError, OSError):
         return {}
 
 
-async def _async_save_yaml(file_name, data):
+async def _async_save_yaml(hass_or_filename, data_or_filename, maybe_data=None):
+    if maybe_data is not None:
+        hass = hass_or_filename
+        file_name = data_or_filename
+        data = maybe_data
+    else:
+        hass = None
+        file_name = hass_or_filename
+        data = data_or_filename
+
     try:
-        async with aiofiles.open(file_name, 'w') as yaml_file:
-            data = dump(data)
-            await yaml_file.write(data)
-    except Exception:
-        pass
+        content = dump(data)
+        if hass is not None and hasattr(hass, "async_add_executor_job"):
+            await hass.async_add_executor_job(_write_file, file_name, content)
+        else:
+            await asyncio.to_thread(_write_file, file_name, content)
+    except (OSError, PermissionError) as err:
+        _LOGGER.debug("_async_save_yaml failed for %s: %s", file_name, err)
 
 
 def _fix_config(config):
@@ -356,7 +394,7 @@ class BlendedCfg(object):
         """Load extra config from aarlo.yaml file."""
 
         # Read in current config
-        config = await _async_load_yaml(_default_config_file(self._hass))
+        config = await _async_load_yaml(self._hass, _default_config_file(self._hass))
 
         # Bring in all the defaults then overwrite them. I'm trying to decouple
         # the pyaarlo config from this config.
@@ -446,7 +484,7 @@ class UpgradeCfg(object):
         # to move any into the file we can read it from here.
 
         # Save it out.
-        await _async_save_yaml(_default_config_file(hass), {
+        await _async_save_yaml(hass, _default_config_file(hass), {
             "version": 1,
             COMPONENT_DOMAIN: file_config,
         })
