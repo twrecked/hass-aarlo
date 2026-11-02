@@ -153,3 +153,120 @@ async def test_first_import_still_creates_entry():
         result = await flow.async_step_import({})
     assert result["type"] == "create_entry"
     write_config.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_reauth_step_shows_form():
+    flow = AarloFlowHandler()
+    flow.hass = SimpleNamespace(data={})
+    entry = SimpleNamespace(
+        entry_id="test_entry_1",
+        data={"username": "user@example.com", "password": "old_password", "tfa": "push"},
+    )
+    flow.context = {"entry_id": "test_entry_1"}
+    with patch.object(flow, "_get_entry", return_value=entry):
+        result = await flow.async_step_reauth({})
+    assert result["type"] == "form"
+    assert result["step_id"] == "reauth_confirm"
+    assert result["description_placeholders"]["username"] == "user@example.com"
+
+
+@pytest.mark.asyncio
+async def test_reauth_confirm_updates_entry_and_aborts():
+    flow = AarloFlowHandler()
+    entry = SimpleNamespace(
+        entry_id="test_entry_1",
+        data={"username": "user@example.com", "password": "old_password"},
+    )
+    flow.hass = SimpleNamespace(
+        data={},
+        config_entries=SimpleNamespace(
+            async_update_entry=MagicMock(),
+            async_reload=AsyncMock(),
+        ),
+    )
+    with (
+        patch.object(flow, "_get_entry", return_value=entry),
+        patch.object(flow, "async_update_reload_and_abort", return_value={"type": "abort", "reason": "reauth_successful"}) as mock_abort,
+    ):
+        result = await flow.async_step_reauth_confirm({"password": "new_password"})
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reauth_successful"
+    mock_abort.assert_called_once_with(
+        entry,
+        data={"username": "user@example.com", "password": "new_password"},
+        reason="reauth_successful",
+    )
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_step_shows_form_with_existing_values():
+    flow = AarloFlowHandler()
+    flow.hass = SimpleNamespace(data={})
+    entry = SimpleNamespace(
+        entry_id="test_entry_1",
+        data={"username": "user@example.com", "password": "old_password", "tfa": "push"},
+    )
+    with patch.object(flow, "_get_entry", return_value=entry):
+        result = await flow.async_step_reconfigure()
+    assert result["type"] == "form"
+    assert result["step_id"] == "reconfigure"
+    assert result["description_placeholders"]["username"] == "user@example.com"
+
+
+@pytest.mark.asyncio
+async def test_reconfigure_step_updates_credentials_and_aborts():
+    flow = AarloFlowHandler()
+    entry = SimpleNamespace(
+        entry_id="test_entry_1",
+        data={"username": "old@example.com", "password": "old_password", "tfa": "push"},
+    )
+    flow.hass = SimpleNamespace(
+        data={},
+        config_entries=SimpleNamespace(
+            async_update_entry=MagicMock(),
+            async_reload=AsyncMock(),
+        ),
+    )
+    reconfig_input = {
+        "username": "new@example.com",
+        "password": "new_password",
+        "tfa_type": "PUSH",
+        "add_aarlo_prefix": True,
+    }
+    with (
+        patch.object(flow, "_get_entry", return_value=entry),
+        patch.object(flow, "async_update_reload_and_abort", return_value={"type": "abort", "reason": "reconfigure_successful"}) as mock_abort,
+    ):
+        result = await flow.async_step_reconfigure(reconfig_input)
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "reconfigure_successful"
+    mock_abort.assert_called_once()
+    saved_data = mock_abort.call_args[1]["data"]
+    assert saved_data["username"] == "new@example.com"
+    assert saved_data["password"] == "new_password"
+    assert saved_data["tfa"] == "push"
+
+
+@pytest.mark.asyncio
+async def test_async_login_bad_credentials_raises_auth_failed():
+    from custom_components.aarlo import async_login
+    from homeassistant.exceptions import ConfigEntryAuthFailed
+
+    mock_hass = MagicMock()
+    mock_client = MagicMock()
+    mock_client.is_connected = False
+    mock_client.last_error = "login failed: 401 - {'meta': {'code': 400, 'error': 9015, 'message': 'Password not correct'}}"
+    mock_client.stop = AsyncMock()
+
+    with (
+        patch("pyaarlo.PyArlo.create", AsyncMock(return_value=mock_client)),
+        patch("homeassistant.components.persistent_notification.async_create"),
+    ):
+        with pytest.raises(ConfigEntryAuthFailed) as exc_info:
+            await async_login(mock_hass, {"username": "user@example.com", "password": "bad_password"})
+
+        assert "Password not correct" in str(exc_info.value) or "9015" in str(exc_info.value)
+    mock_client.stop.assert_awaited_once()

@@ -29,7 +29,7 @@ from homeassistant.core import (
     HomeAssistant,
     callback
 )
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.issue_registry import (
     async_create_issue,
@@ -417,7 +417,20 @@ async def async_login(hass: HomeAssistant, conf: dict):
             if arlo.is_connected:
                 _LOGGER.debug("login succeeded, attempt=%s", attempt)
                 return arlo
+
+            last_err = str(arlo.last_error or "")
             await arlo.stop()
+
+            # Fail fast if credentials were explicitly rejected by Arlo
+            if any(err in last_err for err in ("Password not correct", "9015", "login failed: 401")):
+                _LOGGER.error("Arlo rejected login credentials: %s", last_err)
+                persistent_notification.async_create(
+                    hass=hass,
+                    message=f"Arlo login failed: {last_err}. Please re-authenticate.",
+                    title=NOTIFICATION_TITLE,
+                    notification_id=NOTIFICATION_ID,
+                )
+                raise ConfigEntryAuthFailed(f"Invalid Arlo credentials: {last_err}")
 
             if attempt == 1:
                 persistent_notification.async_create(
@@ -436,6 +449,8 @@ async def async_login(hass: HomeAssistant, conf: dict):
                 arlo.last_error,
             )
 
+        except ConfigEntryAuthFailed:
+            raise
         except Exception as ex:
             if attempt == 1:
                 persistent_notification.async_create(

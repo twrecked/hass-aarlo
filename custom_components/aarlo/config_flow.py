@@ -93,6 +93,82 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         self._tfa_password: str = ""
         self._tfa_host: str = ""
         self._add_prefix: bool = True
+        self._reauth_entry: config_entries.ConfigEntry | None = None
+        self._reconfigure_entry: config_entries.ConfigEntry | None = None
+
+    def _get_entry(self) -> config_entries.ConfigEntry | None:
+        """Get the target config entry for reauth or reconfigure."""
+        if getattr(self, "_reauth_entry", None) is not None:
+            return self._reauth_entry
+        if getattr(self, "_reconfigure_entry", None) is not None:
+            return self._reconfigure_entry
+        if hasattr(self, "_get_reauth_entry"):
+            try:
+                return self._get_reauth_entry()
+            except Exception:
+                pass
+        if hasattr(self, "_get_reconfigure_entry"):
+            try:
+                return self._get_reconfigure_entry()
+            except Exception:
+                pass
+        entry_id = self.context.get("entry_id")
+        if entry_id and hasattr(self, "hass") and self.hass:
+            return self.hass.config_entries.async_get_entry(entry_id)
+        entries = self._async_current_entries()
+        return entries[0] if entries else None
+
+    @staticmethod
+    def _process_flow_input(info: dict[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
+        """Transform raw UI form input into persisted entry data."""
+        errors: dict[str, str] = {}
+        config: dict[str, Any] = {
+            CONF_USERNAME: info[CONF_USERNAME],
+            CONF_PASSWORD: info[CONF_PASSWORD],
+            CONF_TFA_TYPE: "none",
+            CONF_ADD_AARLO_PREFIX: info.get(CONF_ADD_AARLO_PREFIX, True),
+        }
+
+        tfa_choice = info.get(CONF_TFA_TYPE, "NONE")
+        if tfa_choice == "NONE":
+            config.update({
+                CONF_TFA_TYPE: "none",
+                "tfa": "none",
+            })
+        elif tfa_choice == "PUSH":
+            config.update({
+                CONF_TFA_TYPE: "push",
+                CONF_TFA_SOURCE: "push",
+                "tfa": "push",
+            })
+        elif tfa_choice == "IMAP":
+            if (not info.get(CONF_TFA_USERNAME) or not info.get(CONF_TFA_PASSWORD)
+                    or not info.get(CONF_TFA_HOST)):
+                errors["base"] = "missing_imap_fields"
+            else:
+                config.update({
+                    CONF_TFA_TYPE: "email",
+                    CONF_TFA_SOURCE: "imap",
+                    "tfa": "email:imap",
+                    CONF_TFA_HOST: info[CONF_TFA_HOST],
+                    CONF_TFA_USERNAME: info[CONF_TFA_USERNAME],
+                    CONF_TFA_PASSWORD: info[CONF_TFA_PASSWORD],
+                })
+        elif tfa_choice == "RESTAPI":
+            if (not info.get(CONF_TFA_USERNAME) or not info.get(CONF_TFA_PASSWORD)
+                    or not info.get(CONF_TFA_HOST)):
+                errors["base"] = "missing_restapi_fields"
+            else:
+                config.update({
+                    CONF_TFA_TYPE: "sms",
+                    CONF_TFA_SOURCE: "rest-api",
+                    "tfa": "sms",
+                    CONF_TFA_HOST: info[CONF_TFA_HOST],
+                    CONF_TFA_USERNAME: info[CONF_TFA_USERNAME],
+                    CONF_TFA_PASSWORD: info[CONF_TFA_PASSWORD],
+                })
+
+        return config, errors
 
     async def async_step_user(self, info: dict | None = None):
         """Handle user initiated flow."""
@@ -102,57 +178,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
 
         errors = {}
         if info is not None:
-
-            # applies to all
-            config = {
-                CONF_USERNAME: info[CONF_USERNAME],
-                CONF_PASSWORD: info[CONF_PASSWORD],
-                CONF_TFA_TYPE: "none",
-                CONF_ADD_AARLO_PREFIX: info[CONF_ADD_AARLO_PREFIX]
-            }
-
-            # Lets look at what we have.
-            _LOGGER.debug(f"info={info}")
-            if info[CONF_TFA_TYPE] == "NONE":
-                config.update({
-                    CONF_TFA_TYPE: "none",
-                    "tfa": "none",
-                })
-
-            elif info[CONF_TFA_TYPE] == "PUSH":
-                config.update({
-                    CONF_TFA_TYPE: "push",
-                    CONF_TFA_SOURCE: "push",
-                    "tfa": "push",
-                })
-
-            elif info[CONF_TFA_TYPE] == "IMAP":
-                if (not info.get(CONF_TFA_USERNAME) or not info.get(CONF_TFA_PASSWORD)
-                        or not info.get(CONF_TFA_HOST)):
-                    errors["base"] = "missing_imap_fields"
-                else:
-                    config.update({
-                        CONF_TFA_TYPE: "email",
-                        CONF_TFA_SOURCE: "imap",
-                        "tfa": "email:imap",
-                        CONF_TFA_HOST: info[CONF_TFA_HOST],
-                        CONF_TFA_USERNAME: info[CONF_TFA_USERNAME],
-                        CONF_TFA_PASSWORD: info[CONF_TFA_PASSWORD],
-                    })
-
-            elif info[CONF_TFA_TYPE] == "RESTAPI":
-                if (not info.get(CONF_TFA_USERNAME) or not info.get(CONF_TFA_PASSWORD)
-                        or not info.get(CONF_TFA_HOST)):
-                    errors["base"] = "missing_restapi_fields"
-                else:
-                    config.update({
-                        CONF_TFA_TYPE: "sms",
-                        CONF_TFA_SOURCE: "rest-api",
-                        "tfa": "sms",
-                        CONF_TFA_HOST: info[CONF_TFA_HOST],
-                        CONF_TFA_USERNAME: info[CONF_TFA_USERNAME],
-                        CONF_TFA_PASSWORD: info[CONF_TFA_PASSWORD],
-                    })
+            config, errors = self._process_flow_input(info)
 
             # Looks good, then create it.
             if not errors:
@@ -168,7 +194,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             self._tfa_username = info.get(CONF_TFA_USERNAME, "")
             self._tfa_password = info.get(CONF_TFA_PASSWORD, "")
             self._tfa_host = info.get(CONF_TFA_HOST, "")
-            self._add_prefix = info[CONF_ADD_AARLO_PREFIX]
+            self._add_prefix = info.get(CONF_ADD_AARLO_PREFIX, True)
 
         data_schema = {
             vol.Required(CONF_USERNAME, default=self._username): str,
@@ -182,6 +208,103 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
 
         return self.async_show_form(
             step_id="user", data_schema=vol.Schema(data_schema), errors=errors
+        )
+
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> Any:
+        """Handle initiated reauth flow."""
+        self._reauth_entry = self._get_entry()
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> Any:
+        """Confirm reauth dialog to update password."""
+        entry = self._get_entry()
+        if not entry:
+            return self.async_abort(reason="reauth_failed")
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            new_data = dict(entry.data)
+            new_data[CONF_PASSWORD] = user_input[CONF_PASSWORD]
+            if user_input.get(CONF_TFA_PASSWORD):
+                new_data[CONF_TFA_PASSWORD] = user_input[CONF_TFA_PASSWORD]
+
+            if hasattr(self, "async_update_reload_and_abort"):
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data=new_data,
+                    reason="reauth_successful",
+                )
+            if hasattr(self, "hass") and self.hass:
+                self.hass.config_entries.async_update_entry(entry, data=new_data)
+                await self.hass.config_entries.async_reload(entry.entry_id)
+            return self.async_abort(reason="reauth_successful")
+
+        schema_dict: dict[Any, Any] = {
+            vol.Required(CONF_PASSWORD): str,
+        }
+        tfa_raw = str(entry.data.get("tfa") or entry.data.get(CONF_TFA_TYPE, "")).lower()
+        if tfa_raw in ("email", "email:imap", "imap"):
+            schema_dict[vol.Optional(CONF_TFA_PASSWORD, default=entry.data.get(CONF_TFA_PASSWORD, ""))] = str
+
+        username = entry.data.get(CONF_USERNAME, "")
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema(schema_dict),
+            description_placeholders={"username": username},
+            errors=errors,
+        )
+
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> Any:
+        """Handle voluntary reconfiguration of credentials and TFA settings."""
+        entry = self._get_entry()
+        if not entry:
+            return self.async_abort(reason="reconfigure_failed")
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            config, errors = self._process_flow_input(user_input)
+            if not errors:
+                new_data = dict(entry.data)
+                new_data.update(config)
+                if hasattr(self, "async_update_reload_and_abort"):
+                    return self.async_update_reload_and_abort(
+                        entry,
+                        data=new_data,
+                        reason="reconfigure_successful",
+                    )
+                if hasattr(self, "hass") and self.hass:
+                    self.hass.config_entries.async_update_entry(entry, data=new_data)
+                    await self.hass.config_entries.async_reload(entry.entry_id)
+                return self.async_abort(reason="reconfigure_successful")
+
+        # Map existing TFA to selector value
+        tfa_type_val = "IMAP"
+        tfa_raw = str(entry.data.get("tfa") or entry.data.get(CONF_TFA_TYPE, "")).lower()
+        if tfa_raw in ("none",):
+            tfa_type_val = "NONE"
+        elif tfa_raw in ("push",):
+            tfa_type_val = "PUSH"
+        elif tfa_raw in ("sms", "rest-api", "restapi"):
+            tfa_type_val = "RESTAPI"
+        elif tfa_raw in ("email", "email:imap", "imap"):
+            tfa_type_val = "IMAP"
+
+        data_schema = {
+            vol.Required(CONF_USERNAME, default=entry.data.get(CONF_USERNAME, "")): str,
+            vol.Required(CONF_PASSWORD, default=entry.data.get(CONF_PASSWORD, "")): str,
+            vol.Required(CONF_TFA_TYPE, default=tfa_type_val): TFA_SELECTOR,
+            vol.Optional(CONF_TFA_USERNAME, default=entry.data.get(CONF_TFA_USERNAME, "")): str,
+            vol.Optional(CONF_TFA_PASSWORD, default=entry.data.get(CONF_TFA_PASSWORD, "")): str,
+            vol.Optional(CONF_TFA_HOST, default=entry.data.get(CONF_TFA_HOST, "")): str,
+            vol.Required(CONF_ADD_AARLO_PREFIX, default=entry.data.get(CONF_ADD_AARLO_PREFIX, True)): bool,
+        }
+
+        username = entry.data.get(CONF_USERNAME, "")
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(data_schema),
+            description_placeholders={"username": username},
+            errors=errors,
         )
 
     async def async_step_import(self, import_data):

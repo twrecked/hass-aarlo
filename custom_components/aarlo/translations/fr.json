@@ -1,7 +1,7 @@
 {
   "config": {
     "abort": {
-      "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
+      "single_instance_allowed": "Une seule instance d'Aarlo est autorisée."
     },
     "error": {
       "missing_imap_fields": "Veuillez remplir tous les champs TFA pour IMAP.",
@@ -12,8 +12,8 @@
         "title": "Détails de Connexion Arlo",
         "description": "Entrez les informations de votre compte Home Assistant Arlo.\nSi nécessaire, entrez les détails de votre authentification à deux facteurs.\nPour ajuster les paramètres, consultez '/config/aarlo.yaml'.",
         "data": {
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]",
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe",
           "tfa_type": "Authentification à Deux Facteurs",
           "tfa_host": "Hôte TFA",
           "tfa_username": "Nom d'utilisateur TFA",
@@ -23,7 +23,6 @@
       }
     }
   },
-
   "options": {
     "step": {
       "alarm_control_panel": {
@@ -145,7 +144,6 @@
         }
       }
     },
-
     "siren_on": {
       "name": "Sirène Activée",
       "description": "Activer une sirène à un volume donné et pour une durée donnée.",
@@ -164,7 +162,6 @@
       "name": "Sirène Désactivée",
       "description": "Désactiver une sirène."
     },
-
     "sirens_on": {
       "name": "Sirènes Activées",
       "description": "Activer toutes les sirènes à un volume donné et pour une durée donnée.",
@@ -183,7 +180,6 @@
       "name": "Sirènes Désactivées",
       "description": "Désactiver toutes les sirènes."
     },
-
     "inject_response": {
       "name": "Injecter un Paquet Factice",
       "description": "Pour les tests, injecter un paquet factice dans le flux d'événements.",
