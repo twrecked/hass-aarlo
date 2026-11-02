@@ -24,6 +24,12 @@ Fixes secondary entity registration when editing configuration entries:
 
 Special thanks to **[@mtthsbrd](https://github.com/mtthsbrd)** for identifying the issues and contributing the fix!
 
+### 3. UI Re-authentication & Reconfiguration Support (Resolves Issue #1178)
+Addresses credential updates and locked accounts when passwords change:
+- **Automatic Re-authentication (`reauth`):** When Arlo rejects account credentials (such as Error `9015: Password not correct`), Aarlo now raises `ConfigEntryAuthFailed`. Home Assistant immediately prompts the user with an **"Attention Required: Reauthenticate"** banner on the dashboard, allowing them to enter the corrected password directly in the UI without modifying `.storage/core.config_entries` or deleting the integration.
+- **Fast Auth Failure:** Bypasses futile connection retry loops when passwords are explicitly rejected by Arlo's cloud authentication service, preventing account lockouts and IP throttling.
+- **Voluntary Reconfiguration (`reconfigure`):** Users can now click the three dots on the Aarlo integration card and select **"Reconfigure"** at any time to modify their Arlo username, password, or Two-Factor Authentication (2FA) mechanism and settings.
+
 ---
 
 ## 📋 Upgrading

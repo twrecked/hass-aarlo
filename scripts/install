@@ -1,6 +1,9 @@
 #!/bin/bash
 #
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${REPO_ROOT}" || exit 1
+
 if [[ "${1}" == "go" ]]; then
 	ECHO=
 	shift
@@ -19,19 +22,8 @@ if [[ ! -d "${DEST}" ]]; then
 fi
 
 if [[ -n "${ECHO}" ]]; then
-	echo "**** would run the following commands, use './install go $1' to do the work"
+	echo "**** would run the following commands, use './scripts/install go ${DEST}' to do the work"
 fi
-
-if [[ -f "${DEST}/custom_components/sensor/aarlo.py" ]]; then
-	echo "****"
-	echo "**** it looks like you have aarlo files using an old layout, you should remove it first with, see how by running:"
-	echo "**** ./remove_old ${1}"
-	echo "****"
-	echo "****"
-fi
-
-#${ECHO} mkdir -p "${DEST}/www"
-#${ECHO} cp -afv dist/hass-aarlo.js "${DEST}/www/aarlo-glance.js"
 
 echo -- installing
 ${ECHO} mkdir -p "${DEST}/custom_components"

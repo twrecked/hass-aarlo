@@ -1,0 +1,45 @@
+#!/bin/bash
+# Publish a release to GitHub using gh CLI
+
+set -e
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${REPO_ROOT}" || exit 1
+
+VERSION="${1}"
+
+if [[ -z "${VERSION}" ]]; then
+    echo "Usage: ./scripts/publish-release <version> (e.g. ./scripts/publish-release v0.9.0-alpha.6)"
+    exit 1
+fi
+
+# Ensure leading 'v' in tag
+if [[ "${VERSION}" != v* ]]; then
+    TAG="v${VERSION}"
+else
+    TAG="${VERSION}"
+fi
+
+TITLE_VER="${TAG#v}"
+NOTES_FILE="docs/RELEASE_NOTES_${TAG}.md"
+TARGET_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+if [[ ! -f "${NOTES_FILE}" ]]; then
+    echo "Error: Release notes file '${NOTES_FILE}' not found."
+    exit 1
+fi
+
+# Only set --prerelease for alpha or beta tags
+EXTRA_FLAGS=()
+if [[ "${TAG,,}" =~ (alpha|beta) ]]; then
+    EXTRA_FLAGS+=(--prerelease)
+fi
+
+echo "Publishing ${TAG} on branch ${TARGET_BRANCH} to GitHub..."
+env -u GH_TOKEN gh release create "${TAG}" \
+  --target "${TARGET_BRANCH}" \
+  --title "version ${TITLE_VER}" \
+  --notes-file "${NOTES_FILE}" \
+  "${EXTRA_FLAGS[@]}"
+
+echo "Successfully published ${TAG} on ${TARGET_BRANCH}!"
