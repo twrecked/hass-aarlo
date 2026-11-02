@@ -363,7 +363,7 @@ class BlendedCfg(object):
         # Bring in all the defaults then overwrite them. I'm trying to decouple
         # the pyaarlo config from this config.
         self._main_config = AARLO_SCHEMA({})
-        self._main_config.update(config.get(COMPONENT_DOMAIN, {}))
+        self._main_config.update((config or {}).get(COMPONENT_DOMAIN) or {})
 
         _LOGGER.debug(f"l-config-file={_default_config_file(self._hass)}")
         _LOGGER.debug(f"l-main-config={self._main_config}")
@@ -371,9 +371,7 @@ class BlendedCfg(object):
     def _merge(self, data, options):
         """Rebuild config from flow data and options."""
 
-        if not options:
-            _LOGGER.debug("empty options, using defaults")
-            options = DEFAULT_OPTIONS
+        options = {**DEFAULT_OPTIONS, **(options or {})}
 
         self._main_config = {**data, **self._main_config}
         self._alarm_config = ALARM_SCHEMA(_extract_platform_config(options, "alarm_control_panel_"))
