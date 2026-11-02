@@ -58,3 +58,22 @@ async def test_async_load_yaml_missing_file_returns_empty(tmp_path):
     missing_path = str(tmp_path / "nonexistent.yaml")
     loaded = await _async_load_yaml(missing_path)
     assert loaded == {}
+
+
+@pytest.mark.asyncio
+async def test_async_load_yaml_empty_file(tmp_path):
+    empty_file = str(tmp_path / "empty.yaml")
+    with open(empty_file, "w") as f:
+        f.write("")
+    loaded = await _async_load_yaml(empty_file)
+    # parse_yaml on empty string returns None
+    assert loaded is None or loaded == {}
+
+
+@pytest.mark.asyncio
+async def test_async_load_yaml_comment_only_file(tmp_path):
+    comment_file = str(tmp_path / "comment.yaml")
+    with open(comment_file, "w") as f:
+        f.write("# only comments\n# no yaml content\n")
+    loaded = await _async_load_yaml(comment_file)
+    assert loaded is None or loaded == {}

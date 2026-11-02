@@ -398,8 +398,9 @@ class BlendedCfg(object):
 
         # Bring in all the defaults then overwrite them. I'm trying to decouple
         # the pyaarlo config from this config.
+        # Defensively handle None config or empty aarlo entry (#1179 by @mtthsbrd)
         self._main_config = AARLO_SCHEMA({})
-        self._main_config.update(config.get(COMPONENT_DOMAIN, {}))
+        self._main_config.update((config or {}).get(COMPONENT_DOMAIN) or {})
 
         _LOGGER.debug(f"l-config-file={_default_config_file(self._hass)}")
         _LOGGER.debug(f"l-main-config={self._main_config}")
@@ -407,9 +408,8 @@ class BlendedCfg(object):
     def _merge(self, data, options):
         """Rebuild config from flow data and options."""
 
-        if not options:
-            _LOGGER.debug("empty options, using defaults")
-            options = DEFAULT_OPTIONS
+        # Preserve default options when options dict contains only partial keys (#1179 by @mtthsbrd)
+        options = {**DEFAULT_OPTIONS, **(options or {})}
 
         self._main_config = {**data, **self._main_config}
         for opt_key in ("backend", "http_backend", "save_media_to"):
