@@ -176,7 +176,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
 
-        errors = {}
+        errors: dict[str, str] = {}
         if info is not None:
             config, errors = self._process_flow_input(info)
 
