@@ -96,7 +96,17 @@ aarlo:
 
 The first time you configure `save_media_to` the system can take several minutes to download all the currently available media. The download is throttled to not overload _Home Assistant_ or _Arlo_. Once the initial download is completed updates should happen a lot faster.
 
-The code doesn't provide any management of the downloads, it will keep downloading them until your device is full. It also doesn't provide a _NAS_ interface, you need to mount the _NAS_ device and point `save_media_to` at it.
+### Media Retention & Automatic Pruning
+
+By default, downloaded recordings are preserved indefinitely (`media_retention_days: 0`). You can configure automated retention management by setting `media_retention_days` (in the Home Assistant UI Configure options or in YAML):
+
+```yaml
+aarlo:
+  save_media_to: "/config/media/${SN}/${Y}/${m}/${d}/${T}"
+  media_retention_days: 30
+```
+
+When `media_retention_days` is configured (> 0), _Aarlo_ runs an initial background cleanup pass 30 seconds after startup and continues checking daily every 24 hours. Expired recordings are pruned non-blocking in a background threadpool, and empty parent date directories are cleanly removed without touching the media root.
 
 # Streaming
 
@@ -207,7 +217,7 @@ The following additional parameters can be specified in `/config/aarlo.yaml` for
 | `media_retry`           | list(ints)  | `[]`                         | Empty by default. Media notifications arrive via real-time MQTT push events. Can specify fallback retry seconds if needed (e.g. `[15]`).                                                                  |
 | `mode_api`              | string      | `auto`                       | available options: [`v1`, `v2`, `v3`] You can override this by setting this option to v1, v2, or v3. Default is auto.                                                                                     |
 | `save_updates_to`       | string      | ''                           | A directory to automatically save updated camera images to. Has format `$save_updates_to/$unique_id.jpg`                                                                                                   |
-| `save_media_to`         | string      | ''                           | A string describing where to save new media files. This include both video and snapshots. See the "Save Media" section.                                                                                    |
+| `save_media_to`         | string      | ''                           | A string describing where to save new media files. This include both video and snapshots. See the "Save Media" section.                                                                                    |\n| `media_retention_days`   | integer     | `0` (indefinite)             | Number of days to retain locally downloaded recordings before pruning. 0 keeps files indefinitely.                                                                          |
 | `verbose_debug`         | boolean     | `False`                      | *Deprecated.* Enable verbose packet logging in `configuration.yaml` via `logger: logs: pyaarlo.packet: debug`.                                                                                            |
 | `library_days`          | integer     | `27` (days)                  | Change the number of days of video the component downloads from Arlo.                                                                                                                                     |
 | `injection_service`     | boolean     | `False`                      | If `True` enable the packet injection service.                                                                                                                                                                                           |

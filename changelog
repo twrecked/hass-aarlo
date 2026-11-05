@@ -1,3 +1,13 @@
+0.9.0-alpha.7
+  - Features & Media Retention:
+    - Added `media_retention_days` configuration option in Home Assistant UI options flow and YAML config.
+    - Automated background cleanup of local recordings older than the retention threshold, running 30 seconds after startup and daily every 24 hours without blocking the asyncio loop.
+    - Automatic removal of empty parent date directories left behind after media pruning.
+  - Requirements:
+    - Bumped `pyaarlo` requirement to `v0.9.0-alpha.7`.
+  - Documentation:
+    - Added release notes for v0.9.0-alpha.7.
+
 0.9.0-alpha.6
   - Features & UI Configuration:
     - Added UI Re-authentication (`reauth`) and Reconfiguration (`reconfigure`) flows, allowing users to update their username, password, and 2FA credentials directly from Home Assistant without modifying storage or recreating entries (#1178).
