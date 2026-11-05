@@ -354,6 +354,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
         backend_default = options.get("backend", aarlo_yaml.get("backend", "auto"))
         http_backend_default = options.get("http_backend", aarlo_yaml.get("http_backend", "curl_cffi"))
         save_media_default = options.get("save_media_to", aarlo_yaml.get("save_media_to", ""))
+        media_retention_default = options.get("media_retention_days", aarlo_yaml.get("media_retention_days", 0))
 
         return self.async_show_form(
             step_id="general",
@@ -361,6 +362,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required("backend", default=backend_default): BACKEND_SELECTOR,
                 vol.Required("http_backend", default=http_backend_default): HTTP_BACKEND_SELECTOR,
                 vol.Optional("save_media_to", default=save_media_default): str,
+                vol.Optional("media_retention_days", default=media_retention_default): int,
             })
         )
 

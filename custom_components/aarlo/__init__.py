@@ -242,10 +242,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     injection_service = domain_config.get(CONF_INJECTION_SERVICE, False)
 
     # Seed entry.options from aarlo.yaml if missing
-    if any(k not in entry.options for k in ("backend", "http_backend", "save_media_to")):
+    if any(k not in entry.options for k in ("backend", "http_backend", "save_media_to", "media_retention_days")):
         new_options = dict(entry.options)
         updated = False
-        for k in ("backend", "http_backend", "save_media_to"):
+        for k in ("backend", "http_backend", "save_media_to", "media_retention_days"):
             if k not in new_options and k in domain_config:
                 new_options[k] = domain_config[k]
                 updated = True

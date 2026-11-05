@@ -183,8 +183,10 @@ async def test_options_flow_general_step_first():
         "backend": "mqtt",
         "http_backend": "curl_cffi",
         "save_media_to": "/config/media/test",
+        "media_retention_days": 14,
     })
     assert next_step["type"] == "form"
     assert next_step["step_id"] == "alarm_control_panel"
     assert handler._config["backend"] == "mqtt"
     assert handler._config["save_media_to"] == "/config/media/test"
+    assert handler._config["media_retention_days"] == 14

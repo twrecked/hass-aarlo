@@ -282,6 +282,7 @@ DEFAULT_OPTIONS = {
     "backend": "auto",
     "http_backend": "curl_cffi",
     "save_media_to": "",
+    "media_retention_days": 0,
 }
 
 
@@ -412,7 +413,7 @@ class BlendedCfg(object):
         options = {**DEFAULT_OPTIONS, **(options or {})}
 
         self._main_config = {**data, **self._main_config}
-        for opt_key in ("backend", "http_backend", "save_media_to"):
+        for opt_key in ("backend", "http_backend", "save_media_to", "media_retention_days"):
             if opt_key in options:
                 self._main_config[opt_key] = options[opt_key]
         self._alarm_config = ALARM_SCHEMA(_extract_platform_config(options, "alarm_control_panel_"))

@@ -57,7 +57,8 @@
         "data": {
           "backend": "Event Stream Backend",
           "http_backend": "HTTP Client Backend",
-          "save_media_to": "Save Media Path Template"
+          "save_media_to": "Save Media Path Template",
+          "media_retention_days": "Media Retention Period in Days (0 to keep indefinitely)"
         }
       },
       "alarm_control_panel": {
