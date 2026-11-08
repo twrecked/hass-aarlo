@@ -94,3 +94,21 @@ async def test_pending_stream_start_preserves_existing_stream(camera):
 def test_failed_decoder_is_not_hidden_as_available(camera):
     camera.stream = SimpleNamespace(available=False)
     assert not camera.available
+
+
+@pytest.mark.asyncio
+async def test_async_create_stream_recreates_unavailable_stream(camera, monkeypatch):
+    old_stream = SimpleNamespace(available=False)
+    camera.stream = old_stream
+    camera.async_stop_activity = AsyncMock(return_value=True)
+
+    new_stream = SimpleNamespace(available=True)
+    async def fake_super_create(self_arg):
+        camera.stream = new_stream
+        return new_stream
+
+    monkeypatch.setattr("homeassistant.components.camera.Camera.async_create_stream", fake_super_create)
+
+    res = await camera.async_create_stream()
+    camera.async_stop_activity.assert_awaited_once()
+    assert res is new_stream

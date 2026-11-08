@@ -657,6 +657,15 @@ class ArloCam(Camera):
     def get_video(self):
         return self._camera.last_video
 
+    async def async_create_stream(self):
+        """Create a Stream for stream_source, ensuring dead streams are recreated."""
+        if self.stream is not None and not getattr(self.stream, "available", True):
+            _LOGGER.debug(
+                "%s: stream is unavailable, stopping and recreating", self.unique_id
+            )
+            await self.async_stop_activity()
+        return await super().async_create_stream()
+
     def stop_activity(self):
         """Move camera to idle state (sync wrapper)."""
         self.hass.async_create_task(self.async_stop_activity())

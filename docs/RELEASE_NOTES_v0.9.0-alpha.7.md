@@ -24,7 +24,11 @@
 - **Non-Blocking Daily Pruning:** Filesystem scanning and deletion run inside background worker threads (`loop.run_in_executor`), ensuring Home Assistant's event loop remains completely responsive.
 - **Orphan Directory Pruning:** When old recordings are purged, empty date subdirectories (`YYYY/MM/DD/`) are pruned bottom-up without touching the base media folder.
 
-### 2. Dependency Update
+### 2. Live Stream Recovery & Reliability
+- **Automatic Dead Stream Recovery:** Overrode `async_create_stream()` in `ArloCam` so that if an existing Home Assistant `Stream` decoder becomes unavailable (`stream.available is False`), `hass-aarlo` automatically tears it down and negotiates a fresh stream with Arlo Cloud rather than letting Home Assistant core loop indefinitely on an expired URL.
+- **Credit:** Special thanks to **[@alexmarco10](https://github.com/alexmarco10)** for the in-depth investigation and architectural recommendation in [#1156](https://github.com/twrecked/hass-aarlo/issues/1156).
+
+### 3. Dependency Update
 - Bumped `pyaarlo` requirement to `v0.9.0-alpha.7`.
 
 ---
