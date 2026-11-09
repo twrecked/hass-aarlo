@@ -551,6 +551,8 @@ class ArloCam(Camera):
             "device_brand": COMPONENT_BRAND,
             "device_id": self._camera.device_id,
             "device_model": self._camera.model_id,
+            "frontend_stream_type": "web_rtc" if isinstance(self, ArloSipCam) else "hls",
+            "sip_streaming": isinstance(self, ArloSipCam),
         })
 
         return attrs
