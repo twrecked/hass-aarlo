@@ -132,6 +132,7 @@ AARLO_SCHEMA = vol.Schema({
     vol.Optional(CONF_MQTT_HOST): cv.string,
     vol.Optional(CONF_MQTT_HOSTNAME_CHECK, default=DEFAULT_MQTT_HOSTNAME_CHECK): cv.boolean,
     vol.Optional(CONF_MQTT_TRANSPORT): cv.string,
+    vol.Optional(CONF_WEBRTC, default=DEFAULT_WEBRTC): cv.boolean,
 
     # Deprecated
     vol.Optional(CONF_HIDE_DEPRECATED_SERVICES, default=True): cv.boolean,

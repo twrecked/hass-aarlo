@@ -59,6 +59,7 @@ CONF_CIPHER_LIST = "cipher_list"
 CONF_MQTT_HOST = "mqtt_host"
 CONF_MQTT_HOSTNAME_CHECK = "mqtt_hostname_check"
 CONF_MQTT_TRANSPORT = "mqtt_transport"
+CONF_WEBRTC = "webrtc"
 
 # Deprecated
 CONF_HIDE_DEPRECATED_SERVICES = "hide_deprecated_services"
@@ -110,6 +111,7 @@ DEFAULT_BACKEND = "auto"
 DEFAULT_CIPHER_LIST = ""
 DEFAULT_MQTT_HOSTNAME_CHECK = True
 DEFAULT_MQTT_TRANSPORT = "tcp"
+DEFAULT_WEBRTC = True
 
 # All attributes
 ATTR_BATTERY_TECH = "battery_tech"

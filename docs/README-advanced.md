@@ -130,6 +130,41 @@ Internally the code will use non-direct streaming as needed. For example, to sav
 
 To use it on your `aarlo-glance` card you need to add `direct` to the `image_view` options of the card. You can mix direct and non-direct cards on the UI.
 
+## SIP/WebRTC Streaming
+
+Newer _Arlo_ cameras support a second, completely separate live-view engine:
+signalling over SIP-in-a-WebSocket, media over _WebRTC_. This is what
+`my.arlo.com` and the official apps actually use. There is no `rtsps://` relay
+and no `ffmpeg` transcode - the video goes straight from the camera to your
+browser, so it starts faster and costs your _Home Assistant_ server almost
+nothing.
+
+There is nothing to configure. At startup the integration asks _Arlo_ which of
+your cameras declare SIP support, and those cameras are set up as native
+_WebRTC_ cameras. Everything else - snapshots, the library, the siren,
+recording, and the `aarlo-glance` card's own streaming - is unchanged and still
+goes over RTSPS. Cameras that don't declare SIP support are untouched.
+
+Things worth knowing:
+
+- A _WebRTC_ camera advertises `web_rtc` to the frontend **instead of** `hls`.
+  The standard more-info dialog will use _WebRTC_ for those cameras. The
+  `aarlo-glance` card uses its own websocket and is not affected either way.
+- The camera serves one live stream at a time. Opening the stream in a second
+  place hangs up the first.
+- _Arlo_'s firmware will not run both engines at once - you will see
+  _"SIP Streaming in progress, RTSP Streaming is not allowed"_ if something
+  tries to start a recording while a _WebRTC_ stream is live.
+- Media is peer-to-peer between your browser and _Arlo_. If the browser is on a
+  network that blocks outbound UDP it will fall back to _Arlo_'s TURN servers,
+  which the integration passes through automatically.
+- **Disabling WebRTC**:
+  If you need to revert all cameras to the traditional RTSPS/HLS streaming path, WebRTC can be disabled globally in `aarlo.yaml`:
+  ```yaml
+  aarlo:
+    webrtc: False
+  ```
+
 ## Further Help
 
 If you are still having issues please read these 3 posts:
