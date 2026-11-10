@@ -1,0 +1,8 @@
+homeassistant
+homeassistant-stubs
+pytest
+pytest-asyncio
+mypy
+ha-ffmpeg
+numpy
+webrtc-models
