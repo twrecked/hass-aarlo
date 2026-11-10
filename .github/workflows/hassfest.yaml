@@ -4,19 +4,21 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - master
-      - version-0.7.x
+      - main
+      - 'version-*'
   pull_request:
     branches:
-      - master
-      - version-0.7.x
+      - main
+      - 'version-*'
   schedule:
     - cron: '0 1 * * *'
 
 jobs:
   validate:
     name: hassfest Validation
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     steps:
-        - uses: "actions/checkout@v2"
-        - uses: "home-assistant/actions/hassfest@master"
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Hassfest Validation
+        uses: home-assistant/actions/hassfest@master
