@@ -4,21 +4,23 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - master
-      - version-0.7.x
+      - main
+      - 'version-*'
   pull_request:
     branches:
-      - master
-      - version-0.7.x
+      - main
+      - 'version-*'
   schedule:
-    - cron: "0 2 * * *"
+    - cron: '0 2 * * *'
 
 jobs:
   hacs:
     name: HACS Validation
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
       - name: HACS Validation
-        uses: "hacs/action@main"
+        uses: hacs/action@main
         with:
           category: "integration"

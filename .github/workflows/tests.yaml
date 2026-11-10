@@ -1,0 +1,49 @@
+name: CI Tests & Typing
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'version-*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Pytest & Mypy (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12']
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'requirements-test.txt'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-test.txt
+          python -c "
+          import json, subprocess, sys
+          manifest = json.load(open('custom_components/aarlo/manifest.json'))
+          for req in manifest.get('requirements', []):
+              res = subprocess.run([sys.executable, '-m', 'pip', 'install', req])
+              if res.returncode != 0 and 'pyaarlo' in req:
+                  print('Pinned pyaarlo requirement failed, falling back to git main')
+                  subprocess.run([sys.executable, '-m', 'pip', 'install', 'git+https://github.com/twrecked/pyaarlo.git@main'], check=True)
+          "
+
+      - name: Run Pytest
+        run: PYTHONPATH=. pytest tests/
+
+      - name: Run Mypy
+        run: mypy --ignore-missing-imports custom_components/aarlo
