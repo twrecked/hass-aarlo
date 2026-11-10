@@ -28,7 +28,10 @@ from homeassistant.components.camera import (
     CameraEntityFeature,
     DOMAIN as CAMERA_DOMAIN,
     SERVICE_RECORD,
-    StreamType
+    StreamType,
+    WebRTCAnswer,
+    WebRTCClientConfiguration,
+    WebRTCSendMessage,
 )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
 from homeassistant.const import (
@@ -37,7 +40,9 @@ from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_FILENAME,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from webrtc_models import RTCIceServer
+from pyaarlo.sip import ArloSipError
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
@@ -71,6 +76,8 @@ from .const import (
     CONF_ADD_AARLO_PREFIX,
     CONF_SAVE_UPDATES_TO,
     CONF_STREAM_SNAPSHOT,
+    CONF_WEBRTC,
+    DEFAULT_WEBRTC,
     STATE_ALARM_ARLO_ARMED,
     STATE_ALARM_ARLO_DISARMED,
 )
@@ -120,6 +127,9 @@ SERVICE_REQUEST_VIDEO_TO_FILE = "camera_request_video_to_file"
 SERVICE_STOP_ACTIVITY = "camera_stop_activity"
 SERVICE_RECORD_START = "camera_start_recording"
 SERVICE_RECORD_STOP = "camera_stop_recording"
+
+ICE_GATHER_DEBOUNCE_SECONDS = 0.3
+ICE_GATHER_MAX_WAIT_SECONDS = 2.0
 SIREN_ON_SCHEMA = vol.Schema({
     vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
     vol.Required(ATTR_DURATION): cv.positive_int,
@@ -192,11 +202,22 @@ async def async_setup_entry(
 
     arlo = hass.data[COMPONENT_DATA]
     aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
+    webrtc_enabled = aarlo_config.get(CONF_WEBRTC, DEFAULT_WEBRTC)
 
-    cameras = []
+    cameras: list[ArloCam] = []
     cameras_with_siren = False
     for camera in arlo.cameras:
-        cameras.append(ArloCam(camera, aarlo_config, hass))
+        if webrtc_enabled and hasattr(camera, "async_update_capabilities"):
+            try:
+                await camera.async_update_capabilities()
+            except Exception as e:
+                _LOGGER.debug(f"could not pre-fetch capabilities for {camera.name}: {e}")
+
+        if webrtc_enabled and getattr(camera, "supports_sip_streaming", False):
+            _LOGGER.info(f"{camera.name} supports SIP/WebRTC streaming")
+            cameras.append(ArloSipCam(camera, aarlo_config, hass))
+        else:
+            cameras.append(ArloCam(camera, aarlo_config, hass))
         if camera.has_capability(SIREN_STATE_KEY):
             cameras_with_siren = True
 
@@ -530,6 +551,8 @@ class ArloCam(Camera):
             "device_brand": COMPONENT_BRAND,
             "device_id": self._camera.device_id,
             "device_model": self._camera.model_id,
+            "frontend_stream_type": "web_rtc" if isinstance(self, ArloSipCam) else "hls",
+            "sip_streaming": isinstance(self, ArloSipCam),
         })
 
         return attrs
@@ -740,6 +763,156 @@ class ArloCam(Camera):
 
     def stop_recording(self):
         self.hass.async_create_task(self.async_stop_recording())
+
+
+def _merge_trickled_candidates(
+    offer_sdp: str, candidates: list[tuple[int, str]]
+) -> str:
+    """Splice trickled ICE candidates into their `m=` sections of an offer.
+
+    `candidates` is `(sdp_m_line_index, candidate_line)` pairs, `candidate_line`
+    already formatted as a bare `a=candidate:...` attribute line. Insertion
+    happens from the last `m=` section backward so earlier insertions can't
+    shift the line numbers of sections still to be processed.
+    """
+    if not candidates:
+        return offer_sdp
+
+    lines = offer_sdp.replace("\r\n", "\n").split("\n")
+    m_line_positions = [i for i, line in enumerate(lines) if line.startswith("m=")]
+
+    by_m_line: dict[int, list[str]] = {}
+    for index, line in candidates:
+        by_m_line.setdefault(index, []).append(line)
+
+    for m_line_index in reversed(range(len(m_line_positions))):
+        extra_lines = by_m_line.get(m_line_index)
+        if not extra_lines:
+            continue
+        insert_at = m_line_positions[m_line_index] + 1
+        lines[insert_at:insert_at] = extra_lines
+
+    return "\r\n".join(line for line in lines if line != "") + "\r\n"
+
+
+class ArloSipCam(ArloCam):
+    """An Arlo camera that streams live video over SIP/WebRTC.
+
+    SIP over WebSocket carries the offer/answer exchange and media flows
+    peer-to-peer over WebRTC directly to the browser.
+    """
+
+    def __init__(self, camera, aarlo_config, hass):
+        super().__init__(camera, aarlo_config, hass)
+        self._ice_servers: list[RTCIceServer] = []
+        self._sip_session_id: str | None = None
+        self._pending_candidates: dict[str, tuple[list[tuple[int, str]], asyncio.Event]] = {}
+
+    async def async_added_to_hass(self):
+        await super().async_added_to_hass()
+        self.hass.async_create_background_task(
+            self._async_refresh_ice_servers(),
+            f"aarlo sip ice servers {self.entity_id}",
+        )
+
+    async def _async_refresh_ice_servers(self) -> None:
+        """Re-read Arlo's published STUN/TURN servers."""
+        try:
+            info = await self._camera.get_sip_info()
+        except Exception as e:
+            _LOGGER.debug(f"{self._attr_unique_id} could not refresh ICE servers: {e}")
+            return
+        self._ice_servers = [
+            RTCIceServer(
+                urls=server["urls"],
+                username=server.get("username"),
+                credential=server.get("credential"),
+            )
+            for server in info.get("ice_servers", [])
+        ]
+
+    @callback
+    def _async_get_webrtc_client_configuration(self) -> WebRTCClientConfiguration:
+        """Hand the browser Arlo's STUN/TURN servers."""
+        config = WebRTCClientConfiguration()
+        config.configuration.ice_servers.extend(self._ice_servers)
+        return config
+
+    async def _wait_for_ice_gathering(self, session_id: str) -> list[tuple[int, str]]:
+        """Buffers trickled candidates until gathering looks finished."""
+        candidates: list[tuple[int, str]] = []
+        new_candidate = asyncio.Event()
+        self._pending_candidates[session_id] = (candidates, new_candidate)
+        try:
+            deadline = self.hass.loop.time() + ICE_GATHER_MAX_WAIT_SECONDS
+            while True:
+                new_candidate.clear()
+                remaining = deadline - self.hass.loop.time()
+                if remaining <= 0:
+                    break
+                try:
+                    await asyncio.wait_for(
+                        new_candidate.wait(), timeout=min(ICE_GATHER_DEBOUNCE_SECONDS, remaining)
+                    )
+                except (asyncio.TimeoutError, TimeoutError):
+                    break
+        finally:
+            self._pending_candidates.pop(session_id, None)
+        return candidates
+
+    async def async_handle_async_webrtc_offer(
+        self, offer_sdp: str, session_id: str, send_message: WebRTCSendMessage
+    ) -> None:
+        """Negotiate a live stream for the browser's offer."""
+        candidates = await self._wait_for_ice_gathering(session_id)
+        full_offer_sdp = _merge_trickled_candidates(offer_sdp, candidates)
+        try:
+            await self._camera.stop_sip_stream()
+            await self._camera.get_sip_info()
+            answer_sdp = await self._camera.start_sip_stream(full_offer_sdp)
+        except ArloSipError as e:
+            raise HomeAssistantError(
+                f"SIP negotiation failed for {self._attr_name}: {e}"
+            ) from e
+
+        self._sip_session_id = session_id
+        _LOGGER.debug(f"{self._attr_unique_id} SIP session {session_id} established")
+        send_message(WebRTCAnswer(answer_sdp))
+
+        self.hass.async_create_background_task(
+            self._async_refresh_ice_servers(),
+            f"aarlo sip ice servers {self.entity_id}",
+        )
+
+    async def async_on_webrtc_candidate(self, session_id: str, candidate: Any) -> None:
+        """Buffers a trickled candidate for the offer still being assembled."""
+        pending = self._pending_candidates.get(session_id)
+        if pending is None:
+            return
+        candidates, new_candidate = pending
+        cand_str = getattr(candidate, "candidate", None)
+        if cand_str:
+            if not cand_str.startswith("candidate:") and not cand_str.startswith("a=candidate:"):
+                cand_str = f"candidate:{cand_str}"
+            if not cand_str.startswith("a="):
+                cand_str = f"a={cand_str}"
+            index = getattr(candidate, "sdp_m_line_index", 0) or 0
+            candidates.append((index, cand_str))
+        new_candidate.set()
+
+    @callback
+    def close_webrtc_session(self, session_id: str) -> None:
+        """Hang up the SIP call behind a session the frontend has dropped."""
+        if self._sip_session_id == session_id:
+            self._sip_session_id = None
+            _LOGGER.debug(f"{self._attr_unique_id} closing SIP session {session_id}")
+            self.hass.async_create_task(self._camera.stop_sip_stream())
+        super().close_webrtc_session(session_id)
+
+    async def async_will_remove_from_hass(self):
+        await super().async_will_remove_from_hass()
+        if self._sip_session_id is not None:
+            self.close_webrtc_session(self._sip_session_id)
 
 
 @websocket_api.async_response

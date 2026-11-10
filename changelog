@@ -1,3 +1,17 @@
+0.9.0-alpha.8
+  - Native WebRTC Camera Streaming:
+    - Added native Home Assistant WebRTC streaming protocol support (`ArloSipCam`) for cameras declaring SIP capability.
+    - Zero transcode overhead: signaling is handled via `pyaarlo` coroutines and media flows directly peer-to-peer between the browser and Arlo.
+    - Trickle-ICE candidate buffering with configurable debouncing (`_wait_for_ice_gathering`) and reverse SDP candidate splicing (`_merge_trickled_candidates`).
+    - Automated retrieval and refresh of Arlo STUN/TURN ICE servers passed through to the browser.
+    - Added `webrtc: False` configuration option in `aarlo.yaml` to allow reverting all cameras to standard RTSP/HLS mode if needed.
+    - Non-SIP cameras automatically maintain standard `ArloCam` (RTSP/HLS) operation for full backwards compatibility.
+    - Based on foundational work, design, and PR #1153 by Edwin Anne (@edwin-anne).
+  - Requirements:
+    - Bumped `pyaarlo` requirement to `v0.9.0-alpha.8`.
+  - Documentation:
+    - Added release notes for v0.9.0-alpha.8 and updated advanced streaming guide.
+
 0.9.0-alpha.7
   - Features & Media Retention:
     - Added `media_retention_days` configuration option in Home Assistant UI options flow and YAML config.

@@ -5,6 +5,7 @@ _Aarlo_ is a custom component for [Home Assistant](https://www.home-assistant.io
 _Aarlo_ provides, amongst other things:
 - Access to cameras, base stations, sirens, doorbells, and lights.
 - Asynchronous, real-time notification of motion, sound, and doorbell press events via MQTT/WebSockets.
+- Native peer-to-peer WebRTC live streaming for capable cameras, with instant startup and zero transcode overhead.
 - Media playback, snapshots, and direct camera streaming in Home Assistant.
 - Environmental sensors (temperature, humidity, air quality) from supported base stations.
 - Dedicated switches for alarms, camera snapshots, and doorbell muting.
@@ -12,7 +13,7 @@ _Aarlo_ provides, amongst other things:
 
 ---
 
-> ### ⚠️ Major Rewrite Notice (`v0.9.0-alpha.7`)
+> ### ⚠️ Major Rewrite Notice (`v0.9.0-alpha.8`)
 >
 > **Aarlo v0.9 is a major rewrite transitioning the integration and underlying `pyaarlo` library to native Python `asyncio`.**
 >
@@ -260,7 +261,7 @@ Most Arlo devices are supported, including:
 
 - [Advanced Configuration Guide](docs/README-advanced.md) — Custom video directories, raw entity naming, and advanced parameters.
 - [Legacy v0.8 Documentation](docs/README_v8.md) — Preserved synchronous v0.8 documentation.
-- [v0.9.0-alpha.7 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.7.md) — Media retention policies and automated disk cleanup.\n- [v0.9.0-alpha.6 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.6.md) — Defensive YAML loading and default options preservation.
+- [v0.9.0-alpha.8 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.8.md) — Media retention policies and automated disk cleanup.\n- [v0.9.0-alpha.6 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.6.md) — Defensive YAML loading and default options preservation.
 - [v0.9.0-alpha.5 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.5.md) — Fix SSE stream connectivity with curl_cffi and pyaarlo v0.9.0-alpha.5.
 - [v0.9.0-alpha.4 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.4.md) — Push 2FA rate-limit protection, troubleshooting matrix, and pyaarlo v0.9.0-alpha.4.
 - [v0.9.0-alpha.3 Release Notes](docs/RELEASE_NOTES_v0.9.0-alpha.3.md) — Discouraged configuration warnings, session transaction refactor, and pyaarlo v0.9.0-alpha.3.
