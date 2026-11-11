@@ -264,3 +264,68 @@ async def test_entity_modern_naming_and_object_ids(mock_device):
     assert snap_switch._attr_name == "Snapshot"
     assert snap_switch.suggested_object_id == "aarlo_front_door_snapshot"
     assert snap_switch.entity_id == "switch.aarlo_front_door_snapshot"
+
+
+@pytest.mark.asyncio
+async def test_light_async_setup_entry_maps_pyaarlo_lights():
+    from custom_components.aarlo.light import async_setup_entry, ArloSpotlight, ArloFloodLight, ArloLight, ArloNightLight
+    from custom_components.aarlo.const import COMPONENT_DATA, COMPONENT_CONFIG, COMPONENT_DOMAIN
+    from pyaarlo.constant import NIGHTLIGHT_KEY
+
+    mock_spotlight = MagicMock()
+    mock_spotlight.is_spotlight = True
+    mock_spotlight.is_floodlight = False
+    mock_spotlight.name = "Driveway Spotlight"
+    mock_spotlight.parent_name = "Driveway"
+    mock_spotlight.device_id = "CAM-01"
+    mock_spotlight.entity_id = "driveway_spotlight"
+
+    mock_floodlight = MagicMock()
+    mock_floodlight.is_spotlight = False
+    mock_floodlight.is_floodlight = True
+    mock_floodlight.name = "Backyard Floodlight"
+    mock_floodlight.parent_name = "Backyard"
+    mock_floodlight.device_id = "CAM-02"
+    mock_floodlight.entity_id = "backyard_floodlight"
+
+    mock_standalone = MagicMock()
+    mock_standalone.is_spotlight = False
+    mock_standalone.is_floodlight = False
+    mock_standalone.name = "Car Port Light"
+    mock_standalone.device_id = "LIGHT-01"
+    mock_standalone.entity_id = "car_port_light"
+
+    mock_camera_nl = MagicMock()
+    mock_camera_nl.name = "Nursery"
+    mock_camera_nl.device_id = "CAM-03"
+    mock_camera_nl.entity_id = "nursery"
+    mock_camera_nl.has_capability = lambda cap: cap == NIGHTLIGHT_KEY
+
+    mock_camera_normal = MagicMock()
+    mock_camera_normal.name = "Driveway"
+    mock_camera_normal.device_id = "CAM-01"
+    mock_camera_normal.entity_id = "driveway"
+    mock_camera_normal.has_capability = lambda cap: False
+
+    mock_arlo = MagicMock()
+    mock_arlo.lights = [mock_spotlight, mock_floodlight, mock_standalone]
+    mock_arlo.cameras = [mock_camera_nl, mock_camera_normal]
+
+    hass = MagicMock()
+    hass.data = {
+        COMPONENT_DATA: mock_arlo,
+        COMPONENT_CONFIG: {COMPONENT_DOMAIN: {}},
+    }
+
+    added = []
+    await async_setup_entry(hass, MagicMock(), lambda entities: added.extend(entities))
+
+    assert len(added) == 4
+    assert isinstance(added[0], ArloSpotlight)
+    assert added[0].suggested_object_id == "aarlo_driveway_spotlight"
+    assert isinstance(added[1], ArloFloodLight)
+    assert added[1].suggested_object_id == "aarlo_backyard_floodlight"
+    assert isinstance(added[2], ArloLight)
+    assert added[2].suggested_object_id == "aarlo_car_port_light"
+    assert isinstance(added[3], ArloNightLight)
+    assert added[3].suggested_object_id == "aarlo_nursery_nightlight"
