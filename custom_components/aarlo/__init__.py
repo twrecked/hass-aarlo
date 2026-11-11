@@ -369,6 +369,40 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle removal of an entry and purge stale session/cookies files."""
+    import glob
+    import os
+
+    username = entry.data.get("username", "")
+    safe_name = username.replace("@", "_").replace(".", "_") if username else ""
+    storage_dir = hass.config.path(".aarlo")
+
+    def _cleanup_stale_files():
+        if not os.path.isdir(storage_dir):
+            return
+        patterns = []
+        if safe_name:
+            patterns.extend([
+                os.path.join(storage_dir, f"{safe_name}.session"),
+                os.path.join(storage_dir, f"{safe_name}.cookies"),
+            ])
+        else:
+            patterns.extend([
+                os.path.join(storage_dir, "*.session"),
+                os.path.join(storage_dir, "*.cookies"),
+            ])
+        for p in patterns:
+            for f in glob.glob(p):
+                try:
+                    os.unlink(f)
+                    _LOGGER.info(f"removed stale session file {f}")
+                except Exception as e:
+                    _LOGGER.warning(f"failed to remove {f}: {e}")
+
+    await hass.async_add_executor_job(_cleanup_stale_files)
+
+
 async def async_remove_config_entry_device(
     hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry
 ) -> bool:
