@@ -108,7 +108,6 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_TFA_PASSWORD, default=DEFAULT_TFA_PASSWORD
                 ): cv.string,
-                vol.Optional(CONF_TFA_FACTOR_ID): cv.string,
                 vol.Optional(CONF_TFA_TIMEOUT, default=DEFAULT_TFA_TIMEOUT): cv.time_period,
                 vol.Optional(CONF_TFA_TOTAL_TIMEOUT, default=DEFAULT_TFA_TOTAL_TIMEOUT): cv.time_period,
                 vol.Optional(
