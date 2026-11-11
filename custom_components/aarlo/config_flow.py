@@ -1,6 +1,5 @@
 """Config flow for Aarlo"""
 
-import asyncio
 import logging
 import voluptuous as vol
 from typing import Any
@@ -14,15 +13,8 @@ from homeassistant.core import callback
 from homeassistant.helpers.selector import SelectOptionDict, \
     SelectSelector, SelectSelectorConfig, SelectSelectorMode
 
-try:
-    from pyaarlo import ArloLogin, LoginStep
-except ImportError:  # pragma: no cover - pyaarlo without the step by step login
-    ArloLogin = None  # type: ignore[assignment, misc]
-    LoginStep = None  # type: ignore[assignment, misc]
-
 from .const import (
     CONF_ADD_AARLO_PREFIX,
-    CONF_TFA_FACTOR_ID,
     CONF_TFA_HOST,
     CONF_TFA_PASSWORD,
     CONF_TFA_SOURCE,
@@ -34,15 +26,12 @@ from .const import (
     STATE_ALARM_ARLO_HOME,
     STATE_ALARM_ARLO_NIGHT
 )
-from .cfg import BlendedCfg, PyaarloCfg, UpgradeCfg, _async_load_yaml, _default_config_file
+from .cfg import UpgradeCfg, _async_load_yaml, _default_config_file
 
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_IMPORTED_NAME = "imported"
-CONF_MANUAL_TFA = "manual_tfa"
-CONF_FACTOR_ID = "factor_id"
-CONF_CODE = "code"
 
 # TFA types. We actually map these to the correct source/type pairing.
 TFA_TYPES = [
@@ -83,33 +72,6 @@ HTTP_BACKEND_SELECTOR = SelectSelector(
 )
 
 
-def _factor_label(factor: dict[str, Any]) -> str:
-    name = factor.get("displayName") or factor.get("factorNickname") or factor.get("factorId", "?")
-    kind = str(factor.get("factorType", "?"))
-    if kind.upper() == "PUSH":
-        kind = "Arlo app"
-    elif kind.upper() == "SMS":
-        kind = "SMS"
-    else:
-        kind = kind.title()
-    return f"{name} ({kind})"
-
-
-def _factor_selector(factors: list[dict[str, Any]]) -> SelectSelector:
-    """A picker built from the account's real factors, so the user picks
-    "Pixel 9" or "home@example.com" instead of guessing a mechanism.
-    """
-    return SelectSelector(
-        SelectSelectorConfig(
-            options=[
-                SelectOptionDict(value=factor["factorId"], label=_factor_label(factor))
-                for factor in factors
-            ],
-            mode=SelectSelectorMode.LIST,
-        )
-    )
-
-
 class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
     """Aarlo config flow."""
 
@@ -133,12 +95,6 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         self._add_prefix: bool = True
         self._reauth_entry: config_entries.ConfigEntry | None = None
         self._reconfigure_entry: config_entries.ConfigEntry | None = None
-
-        # State for the step by step login, see `async_step_user`.
-        self._login: Any = None
-        self._factor: dict[str, Any] | None = None
-        self._push_task: asyncio.Task[Any] | None = None
-        self._flow_error: str | None = None
 
     def _get_entry(self) -> config_entries.ConfigEntry | None:
         """Get the target config entry for reauth or reconfigure."""
@@ -214,240 +170,45 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
 
         return config, errors
 
-    def _base_config(self) -> dict[str, Any]:
-        return {
-            CONF_USERNAME: self._username,
-            CONF_PASSWORD: self._password,
-            CONF_ADD_AARLO_PREFIX: self._add_prefix,
-        }
-
-    async def _async_close_login(self) -> None:
-        if self._push_task is not None and not self._push_task.done():
-            self._push_task.cancel()
-        self._push_task = None
-        if self._login is not None:
-            try:
-                await self._login.close()
-            except Exception as e:
-                _LOGGER.debug(f"aarlo-login-close-failed={e}")
-        self._login = None
-
-    async def _async_create_login_entry(self, config: dict[str, Any]):
-        await self._async_close_login()
-        config = {**self._base_config(), **config}
-        _LOGGER.debug(f"aarlo-config={ {k: v for k, v in config.items() if k != CONF_PASSWORD} }")
-        return self.async_create_entry(title=f"Aarlo for {self._username}", data=config)
-
-    async def _async_login_options(self) -> dict[str, Any]:
-        """The options the integration itself will log in with.
-
-        Built the same way as at runtime so the session, the cookies and
-        the trusted "browser" saved here - storage_dir, user_agent and so
-        on - are exactly the ones the integration picks up afterwards.
-        """
-        cfg = BlendedCfg(self.hass)
-        await cfg.async_load_and_merge(
-            {CONF_USERNAME: self._username, CONF_PASSWORD: self._password}, {}
-        )
-        return PyaarloCfg.create_options(self.hass, cfg.domain_config)
-
     async def async_step_user(self, info: dict | None = None):
-        """Collect the credentials, then log in and see what 2FA the account
-        needs, rather than asking the user to guess the mechanism up front.
-        """
+        """Handle user initiated flow."""
 
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
 
         errors: dict[str, str] = {}
         if info is not None:
+            config, errors = self._process_flow_input(info)
+
+            # Looks good, then create it.
+            if not errors:
+                _LOGGER.debug(f"aarlo-config={config}")
+                return self.async_create_entry(
+                    title=f"Aarlo for {info[CONF_USERNAME]}",
+                    data=config
+                )
+
+            # Pass broken one into the GUI.
             self._username = info[CONF_USERNAME]
             self._password = info[CONF_PASSWORD]
+            self._tfa_username = info.get(CONF_TFA_USERNAME, "")
+            self._tfa_password = info.get(CONF_TFA_PASSWORD, "")
+            self._tfa_host = info.get(CONF_TFA_HOST, "")
             self._add_prefix = info.get(CONF_ADD_AARLO_PREFIX, True)
-
-            if info.get(CONF_MANUAL_TFA) or ArloLogin is None:
-                return await self.async_step_manual_tfa()
-
-            await self._async_close_login()
-            self._login = ArloLogin(**await self._async_login_options())
-            step = await self._login.start()
-
-            # Arlo already trusts this browser, or the account has no 2FA.
-            # Nothing to set up; a later re-login uses the trust.
-            if step == LoginStep.SUCCESS:
-                return await self._async_create_login_entry({
-                    CONF_TFA_TYPE: "none",
-                    "tfa": "none",
-                })
-
-            if step == LoginStep.NEEDS_FACTOR:
-                return await self.async_step_choose_factor()
-
-            _LOGGER.warning(f"aarlo login failed: {self._login.last_error}")
-            await self._async_close_login()
-            errors["base"] = "invalid_auth"
 
         data_schema = {
             vol.Required(CONF_USERNAME, default=self._username): str,
             vol.Required(CONF_PASSWORD, default=self._password): str,
+            vol.Required(CONF_TFA_TYPE, default="IMAP"): TFA_SELECTOR,
+            vol.Optional(CONF_TFA_USERNAME, default=self._tfa_username): str,
+            vol.Optional(CONF_TFA_PASSWORD, default=self._tfa_password): str,
+            vol.Optional(CONF_TFA_HOST, default=self._tfa_host): str,
             vol.Required(CONF_ADD_AARLO_PREFIX, default=self._add_prefix): bool,
-            vol.Optional(CONF_MANUAL_TFA, default=False): bool,
         }
 
         return self.async_show_form(
             step_id="user", data_schema=vol.Schema(data_schema), errors=errors
         )
-
-    async def async_step_choose_factor(self, user_input: dict[str, Any] | None = None):
-        """Let the user pick one of the account's own 2FA factors."""
-
-        errors: dict[str, str] = {}
-        if self._flow_error is not None:
-            errors["base"] = self._flow_error
-            self._flow_error = None
-
-        if user_input is not None:
-            factor_id = user_input[CONF_FACTOR_ID]
-            self._factor = next(
-                (f for f in self._login.factors if f.get("factorId") == factor_id), None
-            )
-            step = await self._login.choose_factor(factor_id)
-            if step == LoginStep.AWAITING_PUSH:
-                self._push_task = None
-                return await self.async_step_await_push()
-            if step == LoginStep.AWAITING_CODE:
-                return await self.async_step_enter_code()
-            _LOGGER.warning(f"aarlo 2fa start failed: {self._login.last_error}")
-            errors["base"] = "tfa_start_failed"
-
-        return self.async_show_form(
-            step_id="choose_factor",
-            data_schema=vol.Schema({
-                vol.Required(CONF_FACTOR_ID): _factor_selector(self._login.factors),
-            }),
-            errors=errors,
-        )
-
-    async def _async_wait_for_push(self) -> Any:
-        step = await self._login.poll_push()
-        while step == LoginStep.AWAITING_PUSH:
-            await asyncio.sleep(self._login.push_poll)
-            step = await self._login.poll_push()
-        return step
-
-    async def async_step_await_push(self, user_input: dict[str, Any] | None = None):
-        """Wait for the user to approve the login in the Arlo app."""
-
-        if self._push_task is None:
-            self._push_task = self.hass.async_create_task(self._async_wait_for_push())
-
-        if not self._push_task.done():
-            return self.async_show_progress(
-                step_id="await_push",
-                progress_action="waiting_for_push",
-                progress_task=self._push_task,
-            )
-
-        try:
-            step = self._push_task.result()
-        except Exception as e:
-            _LOGGER.warning(f"aarlo push wait failed: {e}")
-            step = LoginStep.FAILED
-        self._push_task = None
-
-        if step == LoginStep.SUCCESS:
-            return self.async_show_progress_done(next_step_id="push_done")
-        _LOGGER.warning(f"aarlo push failed: {self._login.last_error}")
-        return self.async_show_progress_done(next_step_id="push_failed")
-
-    async def async_step_push_done(self, user_input: dict[str, Any] | None = None):
-        """The push was approved. Keep using that phone for later logins."""
-        return await self._async_create_login_entry({
-            CONF_TFA_TYPE: "push",
-            CONF_TFA_SOURCE: "push",
-            "tfa": "push",
-            CONF_TFA_FACTOR_ID: (self._factor or {}).get("factorId"),
-        })
-
-    async def async_step_push_failed(self, user_input: dict[str, Any] | None = None):
-        """Denied or not approved in time, let the user try again."""
-        self._flow_error = "push_failed"
-        return await self.async_step_choose_factor()
-
-    async def async_step_enter_code(self, user_input: dict[str, Any] | None = None):
-        """Collect the code Arlo sent by email or SMS."""
-
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            step = await self._login.submit_code(user_input[CONF_CODE])
-            if step == LoginStep.SUCCESS:
-                # Nothing can type a code in later, so a re-login only works
-                # while Arlo trusts this browser. Say so explicitly instead of
-                # leaving pyaarlo to its own default.
-                factor_type = str((self._factor or {}).get("factorType", "email")).lower()
-                return await self._async_create_login_entry({
-                    CONF_TFA_TYPE: factor_type,
-                    CONF_TFA_SOURCE: "console",
-                    "tfa": f"{factor_type}:console",
-                    CONF_TFA_FACTOR_ID: (self._factor or {}).get("factorId"),
-                })
-            if step == LoginStep.AWAITING_CODE:
-                errors["base"] = "wrong_code"
-            else:
-                _LOGGER.warning(f"aarlo code login failed: {self._login.last_error}")
-                self._flow_error = "code_failed"
-                return await self.async_step_choose_factor()
-
-        return self.async_show_form(
-            step_id="enter_code",
-            data_schema=vol.Schema({vol.Required(CONF_CODE): str}),
-            description_placeholders={
-                "factor": _factor_label(self._factor) if self._factor else "",
-            },
-            errors=errors,
-        )
-
-    async def async_step_manual_tfa(self, info: dict | None = None):
-        """Set up 2FA by hand instead of logging in now, e.g. to give the
-        integration an IMAP mailbox it can read codes from on its own.
-        """
-
-        errors: dict[str, str] = {}
-        if info is not None:
-            config, errors = self._process_flow_input({**info, **self._base_config()})
-
-            # Looks good, then create it.
-            if not errors:
-                _LOGGER.debug(f"aarlo-config={ {k: v for k, v in config.items() if k != CONF_PASSWORD} }")
-                return self.async_create_entry(
-                    title=f"Aarlo for {self._username}",
-                    data=config
-                )
-
-            # Pass broken one into the GUI.
-            self._tfa_username = info.get(CONF_TFA_USERNAME, "")
-            self._tfa_password = info.get(CONF_TFA_PASSWORD, "")
-            self._tfa_host = info.get(CONF_TFA_HOST, "")
-
-        data_schema = {
-            vol.Required(CONF_TFA_TYPE, default="IMAP"): TFA_SELECTOR,
-            vol.Optional(CONF_TFA_USERNAME, default=self._tfa_username): str,
-            vol.Optional(CONF_TFA_PASSWORD, default=self._tfa_password): str,
-            vol.Optional(CONF_TFA_HOST, default=self._tfa_host): str,
-        }
-
-        return self.async_show_form(
-            step_id="manual_tfa", data_schema=vol.Schema(data_schema), errors=errors
-        )
-
-    @callback
-    def async_remove(self) -> None:
-        """The flow was abandoned, drop the half finished login."""
-        if self._push_task is not None and not self._push_task.done():
-            self._push_task.cancel()
-        if self._login is not None and getattr(self, "hass", None) is not None:
-            self.hass.async_create_task(self._login.close())
-        self._login = None
 
     async def async_step_reauth(self, entry_data: dict[str, Any]) -> Any:
         """Handle initiated reauth flow."""
@@ -505,9 +266,6 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             if not errors:
                 new_data = dict(entry.data)
                 new_data.update(config)
-                # A pinned factor wins over the mechanism in pyaarlo, so it
-                # would quietly undo the choice made here.
-                new_data.pop(CONF_TFA_FACTOR_ID, None)
                 if hasattr(self, "async_update_reload_and_abort"):
                     return self.async_update_reload_and_abort(
                         entry,
