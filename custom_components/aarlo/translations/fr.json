@@ -5,51 +5,22 @@
     },
     "error": {
       "missing_imap_fields": "Veuillez remplir tous les champs TFA pour IMAP.",
-      "missing_restapi_fields": "Veuillez remplir tous les champs TFA pour RESTAPI.",
-      "tfa_start_failed": "Arlo a refusé de démarrer la double authentification avec cette méthode. Essayez-en une autre.",
-      "push_failed": "La connexion a été refusée, ou pas approuvée à temps, dans l'application Arlo. Réessayez.",
-      "wrong_code": "Ce code n'a pas été accepté. Vérifiez-le et réessayez.",
-      "code_failed": "Le code n'a pas pu être vérifié. Choisissez une méthode pour en recevoir un nouveau.",
-      "invalid_auth": "Nom d'utilisateur ou mot de passe incorrect."
+      "missing_restapi_fields": "Veuillez remplir tous les champs TFA pour RESTAPI."
     },
     "step": {
       "user": {
         "title": "Détails de Connexion Arlo",
-        "description": "Saisissez les identifiants de votre compte Arlo. Si le compte utilise la double authentification, l'étape suivante affiche les méthodes configurées dessus : il suffit d'en choisir une.\nPour affiner les réglages, voir '/config/aarlo.yaml'.",
+        "description": "Entrez les informations de votre compte Home Assistant Arlo.\nSi nécessaire, entrez les détails de votre authentification à deux facteurs.\nPour ajuster les paramètres, consultez '/config/aarlo.yaml'.",
         "data": {
           "username": "Nom d'utilisateur",
           "password": "Mot de passe",
-          "add_aarlo_prefix": "Utiliser le préfixe `aarlo_` pour les entités",
-          "manual_tfa": "Configurer la double authentification à la main (IMAP, ...) à la place"
-        }
-      },
-      "choose_factor": {
-        "title": "Double authentification",
-        "description": "Arlo veut confirmer cette connexion. Choisissez où la confirmer.\nL'application Arlo est recommandée : Home Assistant pourra la solliciter seul quand Arlo cessera de lui faire confiance. Un code reçu par e-mail ou SMS doit être saisi ici, il faudra donc peut-être reconfigurer plus tard.",
-        "data": {
-          "factor_id": "Méthode"
-        }
-      },
-      "enter_code": {
-        "title": "Saisir le code",
-        "description": "Arlo a envoyé un code à {factor}. Saisissez-le ci-dessous.",
-        "data": {
-          "code": "Code"
-        }
-      },
-      "manual_tfa": {
-        "title": "Double authentification",
-        "description": "Choisissez comment l'intégration obtient les codes de double authentification.\nPour affiner les réglages, voir '/config/aarlo.yaml'.",
-        "data": {
-          "tfa_type": "Mécanisme de double authentification",
+          "tfa_type": "Authentification à Deux Facteurs",
           "tfa_host": "Hôte TFA",
-          "tfa_username": "Utilisateur TFA",
-          "tfa_password": "Mot de passe TFA"
+          "tfa_username": "Nom d'utilisateur TFA",
+          "tfa_password": "Mot de passe TFA",
+          "add_aarlo_prefix": "Utiliser le préfixe `aarlo_` pour les entités"
         }
       }
-    },
-    "progress": {
-      "waiting_for_push": "Approuvez la connexion dans l'application Arlo sur votre téléphone. Attente jusqu'à 5 minutes."
     }
   },
   "options": {
