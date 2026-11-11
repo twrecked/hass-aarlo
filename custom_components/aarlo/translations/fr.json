@@ -9,7 +9,8 @@
       "tfa_start_failed": "Arlo a refusé de démarrer la double authentification avec cette méthode. Essayez-en une autre.",
       "push_failed": "La connexion a été refusée, ou pas approuvée à temps, dans l'application Arlo. Réessayez.",
       "wrong_code": "Ce code n'a pas été accepté. Vérifiez-le et réessayez.",
-      "code_failed": "Le code n'a pas pu être vérifié. Choisissez une méthode pour en recevoir un nouveau."
+      "code_failed": "Le code n'a pas pu être vérifié. Choisissez une méthode pour en recevoir un nouveau.",
+      "invalid_auth": "Nom d'utilisateur ou mot de passe incorrect."
     },
     "step": {
       "user": {
