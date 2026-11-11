@@ -1,8 +1,6 @@
 # 🚀 Aarlo v0.9.0-alpha.9 — Release Notes
 
-> Version `0.9.0-alpha.9` modernizes entity naming across all platforms with `_attr_has_entity_name = True`, introduces dynamic 2FA factor selection during setup and re-authentication (PR #1184 by Edwin ANNE), unifies camera spotlights and floodlights directly from PyArlo, adds Home Assistant Device Registry device removal support, and updates the `pyaarlo` requirement to `v0.9.0-alpha.9`.
->
-> **Special Thanks:** Dynamic 2FA factor selection, resumable setup flow, and translations contributed by **Edwin ANNE ([@edwin-anne](https://github.com/edwin-anne))** in [PR #1184](https://github.com/twrecked/hass-aarlo/pull/1184).
+> Version `0.9.0-alpha.9` modernizes entity naming across all platforms with `_attr_has_entity_name = True`, unifies camera spotlights and floodlights directly from PyArlo, adds Home Assistant Device Registry device removal support, and updates the `pyaarlo` requirement to `v0.9.0-alpha.9`.
 
 ---
 
@@ -15,23 +13,17 @@ Entities across all platforms (`camera`, `light`, `siren`, `sensor`, `binary_sen
 * **Preserved `aarlo_` Entity ID Prefix**: All generated entity IDs preserve the clean `aarlo_` prefix (`sensor.aarlo_car_port_light_battery_level`, `light.aarlo_car_port_light`, `light.aarlo_driveway_spotlight`) using `suggested_object_id`.
 * **Zero Automation / Dashboard Breakage**: Existing installations retain their current `entity_id` mappings across upgrades thanks to stable `unique_id` definitions.
 
-### 2. Interactive 2FA Factor Selection During Setup & Reauth (PR #1184)
-*Contributed by [Edwin ANNE](https://github.com/edwin-anne) (@edwin-anne).*
-* **Zero Guesswork**: The setup wizard no longer asks users to guess a 2FA mechanism up front. It takes your credentials, logs in via PyArlo's `ArloLogin`, and dynamically displays the 2FA methods actually configured on your Arlo account (e.g., `"Pixel 9 (Arlo app)"`, `"home@example.com (Email)"`).
-* **In-UI Push Approval**: Selecting the Arlo app displays a progress spinner while you approve the prompt on your phone (waiting up to 5 minutes, stopping immediately on denial).
-* **Email & SMS Code Entry**: Entering an incorrect code prompts for an inline retry without starting over.
-* **Trusted Browser Session**: Options and paired user agents match the runtime, ensuring the session and cookies saved during setup are reused across restarts without prompting for 2FA again.
-* **Manual Setup Fallback**: A checkbox allows configuring automated IMAP mailbox code retrieval if preferred.
-* **Localization**: Full English (`en`) and French (`fr`) translations.
-
-### 3. Unified Light Platform (`pyaarlo::ArloLight`)
+### 2. Unified Light Platform (`pyaarlo::ArloLight`)
 * `custom_components/aarlo/light.py` directly consumes `pyaarlo::ArloLight` objects from `arlo.lights`, cleanly mapping standalone smart lights, camera spotlights, and camera floodlights.
 * Spotlight and floodlight controls natively call `turn_on()` and `turn_off()` with percentage brightness scaling.
 * Automatically prevents generating duplicate battery, motion, and connectivity sensors for camera child lights in `sensor.py` and `binary_sensor.py`.
 
-### 4. Device Registry Device Removal (`async_remove_config_entry_device`)
+### 3. Device Registry Device Removal (`async_remove_config_entry_device`)
 * Allows users to remove retired or orphaned Arlo devices directly from Home Assistant's **Settings -> Devices** interface.
 * Verifies against active Arlo Cloud hardware before allowing deletion, preventing accidental removal of live devices while cleanly purging old ones.
+
+### 4. Lifecycle Session Cleanup (`async_remove_entry`)
+* Automatically removes `.session`, `.cookies`, and cache files from `.aarlo/` when the integration is deleted from Home Assistant, ensuring clean re-adds.
 
 ### 5. Requirements & Dependencies
 * Updated `pyaarlo` requirement to `v0.9.0-alpha.9` featuring dynamic cloud capability document resolution and unified camera lights.
