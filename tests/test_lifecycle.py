@@ -270,3 +270,27 @@ async def test_async_login_bad_credentials_raises_auth_failed():
 
         assert "Password not correct" in str(exc_info.value) or "9015" in str(exc_info.value)
     mock_client.stop.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_async_remove_config_entry_device():
+    from custom_components.aarlo import async_remove_config_entry_device
+    from custom_components.aarlo.const import COMPONENT_DATA, COMPONENT_DOMAIN
+
+    mock_client = MagicMock()
+    mock_client.lookup_device_by_id = lambda dev_id: "camera_obj" if dev_id == "ACTIVE_CAM" else None
+    hass = SimpleNamespace(data={COMPONENT_DATA: mock_client})
+
+    # 1. Device entry that is still active on account (deletion should be blocked)
+    active_entry = MagicMock()
+    active_entry.identifiers = {(COMPONENT_DOMAIN, "ACTIVE_CAM")}
+    can_remove_active = await async_remove_config_entry_device(hass, MagicMock(), active_entry)
+    assert can_remove_active is False
+
+    # 2. Device entry that is no longer on account (e.g. "parking" - deletion should be allowed)
+    orphaned_entry = MagicMock()
+    orphaned_entry.identifiers = {(COMPONENT_DOMAIN, "ORPHANED_CAM")}
+    orphaned_entry.name = "parking"
+    orphaned_entry.id = "dev_123"
+    can_remove_orphaned = await async_remove_config_entry_device(hass, MagicMock(), orphaned_entry)
+    assert can_remove_orphaned is True

@@ -190,3 +190,77 @@ async def test_options_flow_general_step_first():
     assert handler._config["backend"] == "mqtt"
     assert handler._config["save_media_to"] == "/config/media/test"
     assert handler._config["media_retention_days"] == 14
+
+
+@pytest.mark.asyncio
+async def test_entity_modern_naming_and_object_ids(mock_device):
+    from custom_components.aarlo.camera import ArloCam
+    from custom_components.aarlo.light import ArloFloodLight
+    from custom_components.aarlo.binary_sensor import ArloBinarySensor, SENSOR_TYPES as BINARY_SENSOR_TYPES
+    from custom_components.aarlo.siren import AarloAllSirens
+
+    hass = MagicMock()
+    hass.data = {"ffmpeg": MagicMock()}
+
+    # Camera
+    cam = ArloCam(mock_device, {}, hass)
+    assert cam.has_entity_name is True
+    assert cam._attr_name is None
+    assert cam.suggested_object_id == "aarlo_front_door"
+    assert cam.entity_id == "camera.aarlo_front_door"
+
+    # Standalone Light
+    light = ArloLight(mock_device, {})
+    assert light.has_entity_name is True
+    assert light._attr_name is None
+    assert light.suggested_object_id == "aarlo_front_door"
+    assert light.entity_id == "light.aarlo_front_door"
+
+    # Camera Spotlight
+    spotlight = ArloSpotlight(mock_device, {})
+    assert spotlight.has_entity_name is True
+    assert spotlight._attr_name == "Spotlight"
+    assert spotlight.suggested_object_id == "aarlo_front_door_spotlight"
+    assert spotlight.entity_id == "light.aarlo_front_door_spotlight"
+
+    # Camera Floodlight
+    floodlight = ArloFloodLight(mock_device, {})
+    assert floodlight.has_entity_name is True
+    assert floodlight._attr_name == "Floodlight"
+    assert floodlight.suggested_object_id == "aarlo_front_door_floodlight"
+    assert floodlight.entity_id == "light.aarlo_front_door_floodlight"
+
+    # Siren
+    siren = AarloSiren(mock_device)
+    assert siren.has_entity_name is True
+    assert siren._attr_name == "Siren"
+    assert siren.suggested_object_id == "aarlo_front_door_siren"
+    assert siren.entity_id == "siren.aarlo_front_door_siren"
+
+    # All Sirens Virtual Entity
+    all_sirens = AarloAllSirens(MagicMock(), [mock_device])
+    assert all_sirens.has_entity_name is False
+    assert all_sirens._attr_name == "All Arlo Sirens"
+    assert all_sirens.suggested_object_id == "aarlo_all_sirens"
+    assert all_sirens.entity_id == "siren.aarlo_all_sirens"
+
+    # Sensor
+    sensor = ArloSensor(None, mock_device, {}, "battery_level", SENSOR_TYPES["battery_level"])
+    assert sensor.has_entity_name is True
+    assert sensor._attr_name == "Battery Level"
+    assert sensor.suggested_object_id == "aarlo_front_door_battery_level"
+    assert sensor.entity_id == "sensor.aarlo_front_door_battery_level"
+
+    # Binary Sensor
+    binary_sensor = ArloBinarySensor(mock_device, {}, "motion", BINARY_SENSOR_TYPES["motion"])
+    assert binary_sensor.has_entity_name is True
+    assert binary_sensor._attr_name == "Motion"
+    assert binary_sensor.suggested_object_id == "aarlo_front_door_motion"
+    assert binary_sensor.entity_id == "binary_sensor.aarlo_front_door_motion"
+
+    # Snapshot Switch
+    snap_switch = AarloSnapshotSwitch({}, {}, mock_device)
+    assert snap_switch.has_entity_name is True
+    assert snap_switch._attr_name == "Snapshot"
+    assert snap_switch.suggested_object_id == "aarlo_front_door_snapshot"
+    assert snap_switch.entity_id == "switch.aarlo_front_door_snapshot"

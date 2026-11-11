@@ -36,6 +36,7 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.util import slugify
 
 from pyaarlo.constant import (
     MODE_KEY,
@@ -201,6 +202,16 @@ def _get_location_from_entity_id(hass, entity_id):
 class ArloBaseStation(AlarmControlPanelEntity):
     """Representation of an Arlo Alarm Control Panel."""
 
+    _attr_suggested_object_id: str | None = None
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        return self._attr_suggested_object_id
+
+    @suggested_object_id.setter
+    def suggested_object_id(self, value: str | None) -> None:
+        self._attr_suggested_object_id = value
+
     _timer: Callable[[], None] | None = None
 
     def __init__(self, device, aarlo_config, config):
@@ -218,11 +229,12 @@ class ArloBaseStation(AlarmControlPanelEntity):
         self._timer = None
         _LOGGER.debug(f"alarm-code={self._code}")
 
-        self._attr_name = device.name
+        self._attr_has_entity_name = True
+        self._attr_name = None
         self._attr_unique_id = device.entity_id
-        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
-            self.entity_id = f"{ALARM_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
-        _LOGGER.debug(f"alarm-entity-id={self.entity_id}")
+        dev_name = device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "alarm"))
+        self.suggested_object_id = f"aarlo_{slugify(dev_name)}"
+        self.entity_id = f"{ALARM_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_code_format = _code_format(config.get(CONF_CODE))
         self._attr_code_arm_required = config.get(CONF_CODE_ARM_REQUIRED)
@@ -237,7 +249,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
             identifiers={(COMPONENT_DOMAIN, self._base.device_id)},
             manufacturer=COMPONENT_BRAND,
         )
-        _LOGGER.info(f"ArloBaseStation: {self._attr_name} created")
+        _LOGGER.info(f"ArloBaseStation: {self._base.name} created")
 
     def _get_state_from_ha(self, mode):
         """Convert Arlo mode to Home Assistant state."""
@@ -256,7 +268,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
 
     async def _async_stop_trigger(self, *_args: Any) -> None:
         if self._trigger_till is not None:
-            _LOGGER.info(f"{self._attr_name}: untriggered")
+            _LOGGER.info(f"{self.name or self._base.name}: untriggered")
             await self.async_alarm_clear()
             self._trigger_till = None
             self.async_schedule_update_ha_state()
@@ -301,7 +313,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
 
     async def async_alarm_trigger(self, code=None):
         if self._trigger_till is None:
-            _LOGGER.info(f"{self._attr_name}: triggered")
+            _LOGGER.info(f"{self.name or self._base.name}: triggered")
             if int(self._alarm_volume) != 0:
                 await self._base.siren_on(
                     duration=self._trigger_time.total_seconds(),
@@ -328,21 +340,21 @@ class ArloBaseStation(AlarmControlPanelEntity):
         """convert Home Assistant state to Arlo mode."""
         if mode.lower() == self._disarmed_mode_name.lower():
             if self._trigger_till is not None:
-                _LOGGER.debug(f"{self._attr_name} disarming/silencing")
+                _LOGGER.debug(f"{self.name or self._base.name} disarming/silencing")
                 await self.async_alarm_clear()
-        _LOGGER.debug(f"{self._attr_name} set mode to {mode}")
+        _LOGGER.debug(f"{self.name or self._base.name} set mode to {mode}")
         await self._base.set_mode(mode)
 
     async def async_siren_on(self, duration=30, volume=10):
         if self._base.has_capability(SIREN_STATE_KEY):
-            _LOGGER.debug(f"{self._attr_name} siren on {volume}/{duration}")
+            _LOGGER.debug(f"{self.name or self._base.name} siren on {volume}/{duration}")
             await self._base.siren_on(duration=duration, volume=volume)
             return True
         return False
 
     async def async_siren_off(self):
         if self._base.has_capability(SIREN_STATE_KEY):
-            _LOGGER.debug(f"{self._attr_name} siren off")
+            _LOGGER.debug(f"{self.name or self._base.name} siren off")
             await self._base.siren_off()
             return True
         return False
@@ -352,7 +364,7 @@ class ArloBaseStation(AlarmControlPanelEntity):
         """Return the state attributes."""
         return {
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
-            "name": self._attr_name,
+            "name": self.name or (self._base.name if hasattr(self, "_base") else self._location.name),
             "device_brand": COMPONENT_BRAND,
             "device_id": self._base.device_id,
             "device_model": self._base.model_id,
@@ -364,6 +376,16 @@ class ArloBaseStation(AlarmControlPanelEntity):
 class ArloLocation(AlarmControlPanelEntity):
     """Representation of an Arlo Alarm Control Panel."""
 
+    _attr_suggested_object_id: str | None = None
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        return self._attr_suggested_object_id
+
+    @suggested_object_id.setter
+    def suggested_object_id(self, value: str | None) -> None:
+        self._attr_suggested_object_id = value
+
     def __init__(self, location, aarlo_config, config):
         """Initialize the alarm control panel."""
 
@@ -371,10 +393,12 @@ class ArloLocation(AlarmControlPanelEntity):
 
         self._code = config.get(CONF_CODE)
 
-        self._attr_name = location.name
+        self._attr_has_entity_name = True
+        self._attr_name = None
         self._attr_unique_id = location.entity_id
-        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
-            self.entity_id = f"{ALARM_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        loc_name = location.name if isinstance(getattr(location, "name", None), str) else str(getattr(location, "device_id", "location"))
+        self.suggested_object_id = f"aarlo_{slugify(loc_name)}"
+        self.entity_id = f"{ALARM_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_code_format = _code_format(config.get(CONF_CODE))
         self._attr_code_arm_required = config.get(CONF_CODE_ARM_REQUIRED)
@@ -389,11 +413,11 @@ class ArloLocation(AlarmControlPanelEntity):
             manufacturer=COMPONENT_BRAND,
         )
 
-        _LOGGER.info(f"ArloLocation: {self._attr_name} created")
+        _LOGGER.info(f"ArloLocation: {self._location.name} created")
 
     def _get_state_from_ha(self, mode):
         """Convert Arlo mode to Home Assistant state."""
-        _LOGGER.info(f"{self._attr_name}: mode check: mode={mode}")
+        _LOGGER.info(f"{self.name or self._location.name}: mode check: mode={mode}")
         if self._location.is_armed_away:
             return AlarmControlPanelState.ARMED_AWAY
         if self._location.is_armed_home:
@@ -416,19 +440,19 @@ class ArloLocation(AlarmControlPanelEntity):
         return self._attr_alarm_state
 
     async def async_alarm_disarm(self, code=None):
-        _LOGGER.debug(f"Location {self._attr_name} disarm.  Code: {code}")
+        _LOGGER.debug(f"Location {self.name or self._location.name} disarm.  Code: {code}")
         if self._attr_code_disarm_required and not _code_validate(self._code, code, "disarming"):
             return
         await self._location.stand_by()
 
     async def async_alarm_arm_away(self, code=None):
-        _LOGGER.debug(f"Location {self._attr_name} arm away.  Code: {code}")
+        _LOGGER.debug(f"Location {self.name or self._location.name} arm away.  Code: {code}")
         if self._attr_code_arm_required and not _code_validate(self._code, code, "arming away"):
             return
         await self._location.arm_away()
 
     async def async_alarm_arm_home(self, code=None):
-        _LOGGER.debug(f"Location {self._attr_name} arm home.  Code: {code}")
+        _LOGGER.debug(f"Location {self.name or self._location.name} arm home.  Code: {code}")
         if self._attr_code_arm_required and not _code_validate(self._code, code, "arming home"):
             return
         await self._location.arm_home()
@@ -447,7 +471,7 @@ class ArloLocation(AlarmControlPanelEntity):
 
     async def async_set_mode_in_ha(self, mode):
         """convert Home Assistant state to Arlo mode."""
-        _LOGGER.debug(f"{self._attr_name} set mode to {mode}")
+        _LOGGER.debug(f"{self.name or self._base.name} set mode to {mode}")
         await self._location.set_mode(mode)
 
     async def async_siren_on(self, duration=30, volume=10):
@@ -461,7 +485,7 @@ class ArloLocation(AlarmControlPanelEntity):
         """Return the state attributes."""
         return {
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
-            "name": self._attr_name,
+            "name": self.name or (self._base.name if hasattr(self, "_base") else self._location.name),
             "device_brand": COMPONENT_BRAND,
         }
 

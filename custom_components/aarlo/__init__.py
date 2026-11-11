@@ -368,6 +368,25 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow removal of devices that are no longer present on the Arlo account."""
+    arlo = hass.data.get(COMPONENT_DATA)
+    if not arlo:
+        return True
+
+    for domain, identifier in device_entry.identifiers:
+        if domain == COMPONENT_DOMAIN:
+            # If the device is still active on Arlo, block deletion
+            if arlo.lookup_device_by_id(identifier):
+                _LOGGER.debug(f"device {identifier} still present in Arlo account, deletion blocked")
+                return False
+
+    _LOGGER.info(f"device {device_entry.name} ({device_entry.id}) removed from device registry")
+    return True
+
+
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
     unload_ok = await hass.config_entries.async_unload_platforms(entry, ARLO_PLATFORMS)
     if not unload_ok:

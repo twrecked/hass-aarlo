@@ -154,6 +154,16 @@ async def async_setup_entry(
 class ArloBinarySensor(BinarySensorEntity):
     """An implementation of a Netgear Arlo IP sensor."""
 
+    _attr_suggested_object_id: str | None = None
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        return self._attr_suggested_object_id
+
+    @suggested_object_id.setter
+    def suggested_object_id(self, value: str | None) -> None:
+        self._attr_suggested_object_id = value
+
     def __init__(self, device, aarlo_config, sensor_type, sensor_value):
         """Initialize an Arlo sensor."""
 
@@ -161,11 +171,12 @@ class ArloBinarySensor(BinarySensorEntity):
         self._sensor_type = sensor_type
         self._main_attrs = sensor_value["keys"]
 
-        self._attr_name = f"{sensor_value['description']} {device.name}"
+        self._attr_has_entity_name = True
+        self._attr_name = sensor_value["description"]
         self._attr_unique_id = slugify(f"{sensor_value['description']}_{device.entity_id}")
-        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
-            self.entity_id = f"{BINARY_SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
-        _LOGGER.debug(f"binary-sensor-entity-id={self.entity_id}")
+        dev_name = device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "device"))
+        self.suggested_object_id = f"aarlo_{slugify(dev_name)}_{slugify(sensor_value['description'])}"
+        self.entity_id = f"{BINARY_SENSOR_DOMAIN}.{self.suggested_object_id}"
 
         self._other_attrs = sensor_value.get("other_keys", [])
         self._attr_icon = sensor_value.get("icon", None)
@@ -178,7 +189,7 @@ class ArloBinarySensor(BinarySensorEntity):
             manufacturer=COMPONENT_BRAND,
         )
 
-        _LOGGER.info(f"ArloBinarySensor: {self._attr_name} created")
+        _LOGGER.info(f"ArloBinarySensor: {self.name} created")
 
     def _map_value(self, attr, value):
         if attr == CONNECTION_KEY:
@@ -189,7 +200,7 @@ class ArloBinarySensor(BinarySensorEntity):
         """Register callbacks."""
 
         def update_state(_device, attr, value):
-            _LOGGER.debug("callback:" + self._attr_name + ":" + attr + ":" + str(value)[:80])
+            _LOGGER.debug("callback:" + str(self.name) + ":" + attr + ":" + str(value)[:80])
             if attr in self._main_attrs:
                 self._attr_is_on = self._map_value(attr, value)
             self.schedule_update_ha_state()
@@ -207,7 +218,7 @@ class ArloBinarySensor(BinarySensorEntity):
         """Return the device state attributes."""
         attrs = {
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
-            "name": self._attr_name,
+            "name": self.name,
             "device_brand": COMPONENT_BRAND,
             "device_name": self._device.name,
             "device_id": self._device.device_id,

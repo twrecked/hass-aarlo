@@ -25,6 +25,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.util import slugify
 
 from pyaarlo.constant import MEDIA_PLAYER_KEY
 
@@ -88,6 +89,16 @@ async def async_setup_entry(
 class ArloMediaPlayer(MediaPlayerEntity):
     """Representation of an arlo media player."""
 
+    _attr_suggested_object_id: str | None = None
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        return self._attr_suggested_object_id
+
+    @suggested_object_id.setter
+    def suggested_object_id(self, value: str | None) -> None:
+        self._attr_suggested_object_id = value
+
     def __init__(self, device, aarlo_config):
         """Initialize an Arlo media player."""
 
@@ -96,11 +107,12 @@ class ArloMediaPlayer(MediaPlayerEntity):
         self._track_id = None
         self._playlist = []
 
-        self._attr_name = device.name
+        self._attr_has_entity_name = True
+        self._attr_name = None
         self._attr_unique_id = device.entity_id
-        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
-            self.entity_id = f"{MEDIA_PLAYER_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
-        _LOGGER.debug(f"media-player-entity-id={self.entity_id}")
+        dev_name = device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "media_player"))
+        self.suggested_object_id = f"aarlo_{slugify(dev_name)}"
+        self.entity_id = f"{MEDIA_PLAYER_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_device_class = MediaPlayerDeviceClass.SPEAKER
         self._attr_icon = "mdi:speaker"
@@ -115,13 +127,13 @@ class ArloMediaPlayer(MediaPlayerEntity):
             identifiers={(COMPONENT_DOMAIN, self._device.device_id)},
             manufacturer=COMPONENT_BRAND,
         )
-        _LOGGER.info(f"ArloMediaPlayer: {self._attr_name} created")
+        _LOGGER.info(f"ArloMediaPlayer: {self._device.name} created")
 
     async def async_added_to_hass(self):
         """Register callbacks."""
 
         def update_state(_device, attr, props):
-            _LOGGER.info(f"callback:{self._attr_name}:{attr}:{str(props)[:80]}")
+            _LOGGER.info(f"callback:{self._device.name}:{attr}:{str(props)[:80]}")
             if attr == "status":
                 status = props.get("status")
                 if status == "playing":
@@ -219,7 +231,7 @@ class ArloMediaPlayer(MediaPlayerEntity):
         """Return the device state attributes."""
         return {
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
-            "name": self._attr_name,
+            "name": self.name or self._device.name,
             "device_brand": COMPONENT_BRAND,
             "device_name": self._device.name,
             "device_id": self._device.device_id,

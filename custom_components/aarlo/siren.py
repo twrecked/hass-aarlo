@@ -72,12 +72,26 @@ async def async_setup_entry(
 class AarloSirenBase(SirenEntity):
     """Representation of an Aarlo Siren."""
 
-    def __init__(self, sirens, name, unique_id, device_id, ):
+    _attr_suggested_object_id: str | None = None
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        return self._attr_suggested_object_id
+
+    @suggested_object_id.setter
+    def suggested_object_id(self, value: str | None) -> None:
+        self._attr_suggested_object_id = value
+
+    def __init__(self, sirens, name, unique_id, device_id, suggested_object_id=None, has_entity_name=True):
 
         self._sirens = sirens
 
+        self._attr_has_entity_name = has_entity_name
         self._attr_name = name
         self._attr_unique_id = unique_id
+        if suggested_object_id:
+            self.suggested_object_id = suggested_object_id
+            self.entity_id = f"{SIREN_DOMAIN}.{self.suggested_object_id}"
         self._attr_is_on = False
         self._attr_should_poll = False
         self._attr_supported_features = SirenEntityFeature(
@@ -91,14 +105,13 @@ class AarloSirenBase(SirenEntity):
             manufacturer=COMPONENT_BRAND,
         )
 
-        self.entity_id = f"{SIREN_DOMAIN}.{COMPONENT_DOMAIN}_{slugify(self._attr_name)}"
-        _LOGGER.info(f"ArloSirenBase: {self._attr_name} created")
+        _LOGGER.info(f"ArloSirenBase: {self.name} created")
 
     async def async_added_to_hass(self):
         """Register callbacks."""
 
         def update_state(_device, attr, value):
-            _LOGGER.debug(f"siren-callback:{self._attr_name}:{attr}:{str(value)[:80]}")
+            _LOGGER.debug(f"siren-callback:{self.name}:{attr}:{str(value)[:80]}")
             self._attr_is_on = any(to_bool(siren.siren_state) for siren in self._sirens)
             self.schedule_update_ha_state()
 
@@ -110,7 +123,7 @@ class AarloSirenBase(SirenEntity):
         """Turn the sirens on."""
         volume = int(kwargs.get("volume_level", 1.0) * 8)
         duration = kwargs.get("duration", 10)
-        _LOGGER.debug("%s sirens on vol=%s, dur=%s", self._attr_name, volume, duration)
+        _LOGGER.debug("%s sirens on vol=%s, dur=%s", self.name, volume, duration)
         await asyncio.gather(*(
             siren.siren_on(duration=duration, volume=volume)
             for siren in self._sirens
@@ -122,7 +135,7 @@ class AarloSirenBase(SirenEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turn the sirens off."""
-        _LOGGER.debug("%s sirens off", self._attr_name)
+        _LOGGER.debug("%s sirens off", self.name)
         await asyncio.gather(*(
             siren.siren_off()
             for siren in self._sirens
@@ -138,12 +151,14 @@ class AarloSiren(AarloSirenBase):
 
         super().__init__(
             [device],
-            f"{device.name} Siren",
+            "Siren",
             f"{COMPONENT_DOMAIN}_siren_{device.device_id}",
-            device.device_id
+            device.device_id,
+            suggested_object_id=f"aarlo_{slugify(device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "device")))}_siren",
+            has_entity_name=True,
         )
 
-        _LOGGER.info(f"ArloSiren: {self._attr_name} created")
+        _LOGGER.info(f"ArloSiren: {self.name} created")
 
 
 class AarloAllSirens(AarloSirenBase):
@@ -155,7 +170,9 @@ class AarloAllSirens(AarloSirenBase):
             devices,
             "All Arlo Sirens",
             f"{COMPONENT_DOMAIN}_all_sirens",
-            arlo.device_id
+            arlo.device_id,
+            suggested_object_id="aarlo_all_sirens",
+            has_entity_name=False,
         )
 
         _LOGGER.info(f"ArloAllSirens: {self._attr_name} created")

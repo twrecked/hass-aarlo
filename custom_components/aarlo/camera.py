@@ -48,6 +48,7 @@ from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.util import slugify
 
 import pyaarlo
 from pyaarlo.constant import (
@@ -314,6 +315,16 @@ async def async_setup_entry(
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
+    _attr_suggested_object_id: str | None = None
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        return self._attr_suggested_object_id
+
+    @suggested_object_id.setter
+    def suggested_object_id(self, value: str | None) -> None:
+        self._attr_suggested_object_id = value
+
     _camera: Any
     _state: str | None = None
     _recent: bool = False
@@ -334,11 +345,12 @@ class ArloCam(Camera):
         self._save_updates_to = aarlo_config.get(CONF_SAVE_UPDATES_TO)
         self._ffmpeg = hass.data[DATA_FFMPEG]
 
-        self._attr_name = camera.name
+        self._attr_has_entity_name = True
+        self._attr_name = None
         self._attr_unique_id = camera.entity_id
-        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
-            self.entity_id = f"{CAMERA_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
-        _LOGGER.debug(f"camera-entity-id={self.entity_id}")
+        cam_name = camera.name if isinstance(getattr(camera, "name", None), str) else str(getattr(camera, "device_id", "camera"))
+        self.suggested_object_id = f"aarlo_{slugify(cam_name)}"
+        self.entity_id = f"{CAMERA_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_brand = COMPONENT_BRAND
         # removed for issue #1019
@@ -351,13 +363,13 @@ class ArloCam(Camera):
             identifiers={(COMPONENT_DOMAIN, self._camera.device_id)},
             manufacturer=COMPONENT_BRAND,
         )
-        _LOGGER.info(f"ArloCam: {self._attr_name} created")
+        _LOGGER.info(f"ArloCam: {self._camera.name} created")
 
     async def async_added_to_hass(self):
         """Register callbacks."""
 
         def update_state(_device, attr, value):
-            _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:120]}")
+            _LOGGER.debug(f"callback:{self._camera.name}:{attr}:{str(value)[:120]}")
 
             # set state
             if attr == ACTIVITY_STATE_KEY or attr == CONNECTION_KEY:
@@ -455,7 +467,7 @@ class ArloCam(Camera):
 
         if not video:
             error_msg = (
-                f"Video not found for {self._attr_name}. "
+                f"Video not found for {self._camera.name}. "
                 f"Is it older than {self._camera.min_days_vdo_cache} days?"
             )
             _LOGGER.error(error_msg)
@@ -476,7 +488,7 @@ class ArloCam(Camera):
             try:
                 await stream.close()
             except Exception as e:
-                _LOGGER.debug(f"problem with stream close for {self._attr_name} {str(e)}")
+                _LOGGER.debug(f"problem with stream close for {self._camera.name} {str(e)}")
 
     def clear_stream(self):
         """Clear out inactive stream.
@@ -546,7 +558,7 @@ class ArloCam(Camera):
 
         attrs.update({
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
-            "name": self._attr_name,
+            "name": self._camera.name,
             "has_siren": self._camera.has_capability(SIREN_STATE_KEY),
             "device_brand": COMPONENT_BRAND,
             "device_id": self._camera.device_id,
@@ -872,7 +884,7 @@ class ArloSipCam(ArloCam):
             answer_sdp = await self._camera.start_sip_stream(full_offer_sdp)
         except ArloSipError as e:
             raise HomeAssistantError(
-                f"SIP negotiation failed for {self._attr_name}: {e}"
+                f"SIP negotiation failed for {self._camera.name}: {e}"
             ) from e
 
         self._sip_session_id = session_id

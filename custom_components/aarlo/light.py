@@ -31,6 +31,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.util import slugify
 
 from pyaarlo.constant import (
     BRIGHTNESS_KEY,
@@ -78,8 +79,10 @@ async def async_setup_entry(
     aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
 
     lights = []
+    camera_ids = {c.device_id for c in arlo.cameras}
     for light in arlo.lights:
-        lights.append(ArloLight(light, aarlo_config))
+        if light.device_id not in camera_ids:
+            lights.append(ArloLight(light, aarlo_config))
     for camera in arlo.cameras:
         if camera.has_capability(NIGHTLIGHT_KEY):
             lights.append(ArloNightLight(camera, aarlo_config))
@@ -93,6 +96,16 @@ async def async_setup_entry(
 
 class ArloLight(LightEntity):
 
+    _attr_suggested_object_id: str | None = None
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        return self._attr_suggested_object_id
+
+    @suggested_object_id.setter
+    def suggested_object_id(self, value: str | None) -> None:
+        self._attr_suggested_object_id = value
+
     _attr_min_color_temp_kelvin = DEFAULT_MIN_KELVIN
     _attr_max_color_temp_kelvin = DEFAULT_MAX_KELVIN
 
@@ -101,11 +114,12 @@ class ArloLight(LightEntity):
 
         self._light = light
 
-        self._attr_name = light.name
+        self._attr_has_entity_name = True
+        self._attr_name = None
         self._attr_unique_id = light.entity_id
-        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
-            self.entity_id = f"{LIGHT_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
-        _LOGGER.debug(f"light-entity-id={self.entity_id}")
+        lt_name = light.name if isinstance(getattr(light, "name", None), str) else str(getattr(light, "device_id", "light"))
+        self.suggested_object_id = f"aarlo_{slugify(lt_name)}"
+        self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_brightness = None
         self._attr_is_on = False
@@ -119,13 +133,13 @@ class ArloLight(LightEntity):
             manufacturer=COMPONENT_BRAND,
         )
         
-        _LOGGER.info(f"ArloLight: {self._attr_name} created")
+        _LOGGER.info(f"ArloLight: {self.name or self._light.name} created")
 
     async def async_added_to_hass(self):
         """Register callbacks."""
 
         def update_state(_light, attr, value):
-            _LOGGER.debug(f"callback:{self._attr_name}:attr:{str(value)[:80]}")
+            _LOGGER.debug(f"callback:{self.name or self._light.name}:attr:{str(value)[:80]}")
             if attr == LAMP_STATE_KEY:
                 self._attr_is_on = to_bool(value)
             if attr == BRIGHTNESS_KEY:
@@ -141,7 +155,7 @@ class ArloLight(LightEntity):
 
     async def async_turn_on(self, **kwargs):
         """Turn the light on."""
-        _LOGGER.debug(f"turning on {self._attr_name} (with args {pprint.pformat(kwargs)})")
+        _LOGGER.debug(f"turning on {self.name or self._light.name} (with args {pprint.pformat(kwargs)})")
 
         rgb = kwargs.get(ATTR_HS_COLOR, None)
         if rgb is not None:
@@ -154,7 +168,7 @@ class ArloLight(LightEntity):
 
     async def async_turn_off(self, **kwargs):
         """Turn the light off."""
-        _LOGGER.debug(f"turning off {self._attr_name} (with args {pprint.pformat(kwargs)})")
+        _LOGGER.debug(f"turning off {self.name or self._light.name} (with args {pprint.pformat(kwargs)})")
         await self._light.turn_off()
         self._attr_is_on = False
         self.async_write_ha_state()
@@ -177,7 +191,7 @@ class ArloLight(LightEntity):
 
         attrs.update({
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
-            "name": self._attr_name,
+            "name": self.name or self._light.name,
             "device_brand": COMPONENT_BRAND,
             "device_id": self._light.device_id,
             "device_model": self._light.model_id,
@@ -189,6 +203,13 @@ class ArloLight(LightEntity):
 class ArloNightLight(ArloLight):
     def __init__(self, camera, aarlo_config):
         super().__init__(camera, aarlo_config)
+
+        self._attr_has_entity_name = True
+        self._attr_name = "Nightlight"
+        self._attr_unique_id = slugify(f"nightlight_{camera.entity_id}")
+        cam_name = camera.name if isinstance(getattr(camera, "name", None), str) else str(getattr(camera, "device_id", "camera"))
+        self.suggested_object_id = f"aarlo_{slugify(cam_name)}_nightlight"
+        self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_brightness = None
         self._attr_color_temp = None
@@ -206,10 +227,10 @@ class ArloNightLight(ArloLight):
             LightEntityFeature.EFFECT
         )
 
-        _LOGGER.info(f"ArloNightLight: {self._attr_name} created")
+        _LOGGER.info(f"ArloNightLight: {self.name or self._light.name} created")
 
     def _set_light_mode(self, light_mode):
-        _LOGGER.debug(f"ArloNightLight: {self._attr_name} light mode {light_mode}")
+        _LOGGER.debug(f"ArloNightLight: {self.name or self._light.name} light mode {light_mode}")
         if light_mode is None:
             return
 
@@ -242,7 +263,7 @@ class ArloNightLight(ArloLight):
         """Register callbacks."""
 
         def update_attr(_light, attr, value):
-            _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:80]}")
+            _LOGGER.debug(f"callback:{self.name or self._light.name}:{attr}:{str(value)[:80]}")
             if attr == LIGHT_BRIGHTNESS_KEY:
                 self._attr_brightness = value
             if attr == LIGHT_MODE_KEY:
@@ -258,7 +279,7 @@ class ArloNightLight(ArloLight):
 
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        _LOGGER.debug(f"turning on {self._attr_name} (with args {pprint.pformat(kwargs)})")
+        _LOGGER.debug(f"turning on {self.name or self._light.name} (with args {pprint.pformat(kwargs)})")
 
         rgb = None
         if ATTR_HS_COLOR in kwargs:
@@ -295,7 +316,7 @@ class ArloNightLight(ArloLight):
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        _LOGGER.debug(f"turning off {self._attr_name} (with args {pprint.pformat(kwargs)})")
+        _LOGGER.debug(f"turning off {self.name or self._light.name} (with args {pprint.pformat(kwargs)})")
         await self._light.nightlight_off()
         self._attr_is_on = False
         self.async_write_ha_state()
@@ -304,6 +325,13 @@ class ArloNightLight(ArloLight):
 class ArloFloodLight(ArloLight):
     def __init__(self, camera, aarlo_config):
         super().__init__(camera, aarlo_config)
+
+        self._attr_has_entity_name = True
+        self._attr_name = "Floodlight"
+        self._attr_unique_id = slugify(f"floodlight_{camera.entity_id}")
+        cam_name = camera.name if isinstance(getattr(camera, "name", None), str) else str(getattr(camera, "device_id", "camera"))
+        self.suggested_object_id = f"aarlo_{slugify(cam_name)}_floodlight"
+        self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 
         self._mode = None
         self._duration = None
@@ -318,7 +346,7 @@ class ArloFloodLight(ArloLight):
             ColorMode.BRIGHTNESS
         }
 
-        _LOGGER.info(f"ArloFloodLight: {self._attr_name} created")
+        _LOGGER.info(f"ArloFloodLight: {self.name or self._light.name} created")
 
     async def async_added_to_hass(self):
         """Register callbacks."""
@@ -344,7 +372,7 @@ class ArloFloodLight(ArloLight):
                 self._sleep_time_rel = None
 
         def update_attr(_light, attr, value):
-            _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:80]}")
+            _LOGGER.debug(f"callback:{self.name or self._light.name}:{attr}:{str(value)[:80]}")
             set_states(value)
             self.schedule_update_ha_state()
 
@@ -355,7 +383,7 @@ class ArloFloodLight(ArloLight):
 
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        _LOGGER.debug(f"turning on {self._attr_name} (with args {pprint.pformat(kwargs)})")
+        _LOGGER.debug(f"turning on {self.name or self._light.name} (with args {pprint.pformat(kwargs)})")
 
         await self._light.floodlight_on()
         if ATTR_BRIGHTNESS in kwargs:
@@ -365,7 +393,7 @@ class ArloFloodLight(ArloLight):
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        _LOGGER.debug(f"turning off {self._attr_name} (with args {pprint.pformat(kwargs)})")
+        _LOGGER.debug(f"turning off {self.name or self._light.name} (with args {pprint.pformat(kwargs)})")
         await self._light.floodlight_off()
         self._attr_is_on = False
         self.async_write_ha_state()
@@ -399,6 +427,13 @@ class ArloSpotlight(ArloLight):
     def __init__(self, camera, aarlo_config):
         super().__init__(camera, aarlo_config)
 
+        self._attr_has_entity_name = True
+        self._attr_name = "Spotlight"
+        self._attr_unique_id = slugify(f"spotlight_{camera.entity_id}")
+        cam_name = camera.name if isinstance(getattr(camera, "name", None), str) else str(getattr(camera, "device_id", "camera"))
+        self.suggested_object_id = f"aarlo_{slugify(cam_name)}_spotlight"
+        self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
+
         self._attr_brightness = None
         self._attr_effect = None
         self._attr_color_mode = ColorMode.BRIGHTNESS
@@ -409,13 +444,13 @@ class ArloSpotlight(ArloLight):
             LightEntityFeature.EFFECT
         )
 
-        _LOGGER.info(f"ArloSpotlight: {self._attr_name} created")
+        _LOGGER.info(f"ArloSpotlight: {self.name or self._light.name} created")
 
     async def async_added_to_hass(self):
         """Register callbacks."""
 
         def update_attr(_light, attr, value):
-            _LOGGER.debug(f"callback:{self._attr_name}:{attr}:{str(value)[:80]}")
+            _LOGGER.debug(f"callback:{self.name or self._light.name}:{attr}:{str(value)[:80]}")
             if attr == SPOTLIGHT_KEY:
                 self._attr_is_on = to_bool(value)
             if attr == SPOTLIGHT_BRIGHTNESS_KEY:
@@ -431,7 +466,7 @@ class ArloSpotlight(ArloLight):
 
     async def async_turn_on(self, **kwargs):
         """Turn the entity on."""
-        _LOGGER.debug(f"turning on {self._attr_name} (with args {pprint.pformat(kwargs)})")
+        _LOGGER.debug(f"turning on {self.name or self._light.name} (with args {pprint.pformat(kwargs)})")
 
         await self._light.spotlight_on()
         if ATTR_BRIGHTNESS in kwargs:
@@ -441,7 +476,7 @@ class ArloSpotlight(ArloLight):
 
     async def async_turn_off(self, **kwargs):
         """Turn the entity off."""
-        _LOGGER.debug(f"turning off {self._attr_name} (with args {pprint.pformat(kwargs)})")
+        _LOGGER.debug(f"turning off {self.name or self._light.name} (with args {pprint.pformat(kwargs)})")
         await self._light.spotlight_off()
         self._attr_is_on = False
         self.async_write_ha_state()
