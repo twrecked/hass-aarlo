@@ -10,20 +10,21 @@
     "error": {
       "missing_imap_fields": "Please fill in all the TFA fields for IMAP.",
       "missing_restapi_fields": "Please fill in all the TFA fields for RESTAPI.",
-      "invalid_auth": "Invalid username or password."
+      "invalid_auth": "Invalid username or password.",
+      "tfa_start_failed": "Arlo refused to start Two Factor Authentication with that method. Try another one.",
+      "push_failed": "The login was denied, or not approved in time, in the Arlo app. Try again.",
+      "wrong_code": "That code was not accepted. Check it and try again.",
+      "code_failed": "The code could not be checked. Pick a method to get a new one."
     },
     "step": {
       "user": {
         "title": "Arlo Login Details",
-        "description": "Enter your Home Assistant Arlo account details.\nIf needed, enter your Two Factor Authentication details.\nTo fine tune settings, look into '/config/aarlo.yaml'.",
+        "description": "Enter your Arlo account details. If the account uses Two Factor Authentication the next step shows the methods set up on it, so you can just pick one.\nTo fine tune settings, look into '/config/aarlo.yaml'.",
         "data": {
           "username": "Username",
           "password": "Password",
-          "tfa_type": "Two Factor Mechanism",
-          "tfa_host": "TFA Host",
-          "tfa_username": "TFA Username",
-          "tfa_password": "TFA Password",
-          "add_aarlo_prefix": "Use `aarlo_` prefix for entities"
+          "add_aarlo_prefix": "Use `aarlo_` prefix for entities",
+          "manual_tfa": "Set up Two Factor Authentication by hand (IMAP, ...) instead"
         }
       },
       "reauth_confirm": {
@@ -46,7 +47,34 @@
           "tfa_password": "TFA Password",
           "add_aarlo_prefix": "Use `aarlo_` prefix for entities"
         }
+      },
+      "choose_factor": {
+        "title": "Two Factor Authentication",
+        "description": "Arlo wants to confirm this login. Pick where to confirm it.\nThe Arlo app is recommended: Home Assistant can ask it again on its own whenever Arlo stops trusting it. A code sent by email or SMS has to be typed in here, so later you may have to reconfigure.",
+        "data": {
+          "factor_id": "Method"
+        }
+      },
+      "enter_code": {
+        "title": "Enter the code",
+        "description": "Arlo sent a code to {factor}. Enter it below.",
+        "data": {
+          "code": "Code"
+        }
+      },
+      "manual_tfa": {
+        "title": "Two Factor Authentication",
+        "description": "Choose how the integration gets Two Factor Authentication codes.\nTo fine tune settings, look into '/config/aarlo.yaml'.",
+        "data": {
+          "tfa_type": "Two Factor Mechanism",
+          "tfa_host": "TFA Host",
+          "tfa_username": "TFA Username",
+          "tfa_password": "TFA Password"
+        }
       }
+    },
+    "progress": {
+      "waiting_for_push": "Approve the login in the Arlo app on your phone. Waiting up to 5 minutes."
     }
   },
   "options": {
