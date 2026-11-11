@@ -21,6 +21,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.util import slugify
+from .utils import get_entity_identifiers
 
 from pyaarlo.constant import (
     SIREN_STATE_KEY
@@ -54,13 +55,15 @@ async def async_setup_entry(
             seen_ids.add(dev.device_id)
             all_devices.append(dev)
 
+    aarlo_config = hass.data.get(COMPONENT_CONFIG, {}).get(COMPONENT_DOMAIN, {})
+
     # We have at least one.
     if all_devices:
         sirens: list[SirenEntity] = []
         for device in all_devices:
-            sirens.append(AarloSiren(device))
+            sirens.append(AarloSiren(device, aarlo_config))
 
-        sirens.append(AarloAllSirens(arlo, all_devices))
+        sirens.append(AarloAllSirens(arlo, all_devices, aarlo_config))
 
         async_add_entities(sirens)
 
@@ -143,14 +146,17 @@ class AarloSirenBase(SirenEntity):
 class AarloSiren(AarloSirenBase):
     """Representation of an Aarlo Siren."""
 
-    def __init__(self, device):
-
+    def __init__(self, device, aarlo_config=None):
+        cfg = aarlo_config or {}
+        _, suggested_object_id = get_entity_identifiers(
+            cfg, device, "siren", legacy_name="siren"
+        )
         super().__init__(
             [device],
             "Siren",
             f"{COMPONENT_DOMAIN}_siren_{device.device_id}",
             device.device_id,
-            suggested_object_id=f"aarlo_{slugify(device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "device")))}_siren",
+            suggested_object_id=suggested_object_id,
             has_entity_name=True,
         )
 
@@ -160,7 +166,7 @@ class AarloSiren(AarloSirenBase):
 class AarloAllSirens(AarloSirenBase):
     """Representation of an Aarlo Siren."""
 
-    def __init__(self, arlo, devices):
+    def __init__(self, arlo, devices, aarlo_config=None):
 
         super().__init__(
             devices,

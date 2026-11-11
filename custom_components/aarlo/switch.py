@@ -27,6 +27,7 @@ from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.util import slugify
+from .utils import get_entity_identifiers
 
 from pyaarlo.constant import (
     ACTIVITY_STATE_KEY,
@@ -129,9 +130,9 @@ class AarloSwitch(SwitchEntity):
 
         self._attr_has_entity_name = True
         self._attr_name = name
-        self._attr_unique_id = slugify(identifier)
-        dev_name = device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "aarlo"))
-        self.suggested_object_id = f"aarlo_{slugify(dev_name)}_{slugify(name)}"
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, device, name, legacy_name=identifier
+        )
         self.entity_id = f"{SWITCH_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_icon = f"mdi:{icon}"

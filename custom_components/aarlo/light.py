@@ -32,6 +32,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.util import slugify
+from .utils import get_entity_identifiers
 
 from pyaarlo.constant import (
     BRIGHTNESS_KEY,
@@ -116,9 +117,9 @@ class ArloLight(LightEntity):
 
         self._attr_has_entity_name = True
         self._attr_name = None
-        self._attr_unique_id = light.entity_id
-        lt_name = light.name if isinstance(getattr(light, "name", None), str) else str(getattr(light, "device_id", "light"))
-        self.suggested_object_id = f"aarlo_{slugify(lt_name)}"
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, light
+        )
         self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_brightness = None
@@ -206,9 +207,9 @@ class ArloNightLight(ArloLight):
 
         self._attr_has_entity_name = True
         self._attr_name = "Nightlight"
-        self._attr_unique_id = slugify(f"nightlight_{camera.entity_id}")
-        cam_name = camera.name if isinstance(getattr(camera, "name", None), str) else str(getattr(camera, "device_id", "camera"))
-        self.suggested_object_id = f"aarlo_{slugify(cam_name)}_nightlight"
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, camera, "nightlight", legacy_name="nightlight"
+        )
         self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_brightness = None
@@ -328,11 +329,17 @@ class ArloFloodLight(ArloLight):
 
         self._attr_has_entity_name = True
         self._attr_name = "Floodlight"
-        self._attr_unique_id = slugify(f"floodlight_{light.entity_id}")
-        parent_name = light.parent_name if isinstance(getattr(light, "parent_name", None), str) else (
+        p_name = light.parent_name if isinstance(getattr(light, "parent_name", None), str) else (
             light.name if isinstance(getattr(light, "name", None), str) else str(getattr(light, "device_id", "floodlight"))
         )
-        self.suggested_object_id = f"aarlo_{slugify(parent_name)}_floodlight"
+        target_dev = type('ParentDev', (), {
+            'name': p_name,
+            'entity_id': slugify(p_name),
+            'device_id': getattr(light, "device_id", "floodlight"),
+        })()
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, target_dev, "floodlight", legacy_name="floodlight"
+        )
         self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 
         self._mode = None
@@ -445,11 +452,17 @@ class ArloSpotlight(ArloLight):
 
         self._attr_has_entity_name = True
         self._attr_name = "Spotlight"
-        self._attr_unique_id = slugify(f"spotlight_{light.entity_id}")
-        parent_name = light.parent_name if isinstance(getattr(light, "parent_name", None), str) else (
+        p_name = light.parent_name if isinstance(getattr(light, "parent_name", None), str) else (
             light.name if isinstance(getattr(light, "name", None), str) else str(getattr(light, "device_id", "spotlight"))
         )
-        self.suggested_object_id = f"aarlo_{slugify(parent_name)}_spotlight"
+        target_dev = type('ParentDev', (), {
+            'name': p_name,
+            'entity_id': slugify(p_name),
+            'device_id': getattr(light, "device_id", "spotlight"),
+        })()
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, target_dev, "spotlight", legacy_name="spotlight"
+        )
         self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_brightness = None

@@ -45,6 +45,7 @@ from . import (
     CONF_ADD_AARLO_PREFIX
 )
 from homeassistant.util import slugify
+from .utils import get_entity_identifiers
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -175,9 +176,9 @@ class ArloBinarySensor(BinarySensorEntity):
 
         self._attr_has_entity_name = True
         self._attr_name = sensor_value["description"]
-        self._attr_unique_id = slugify(f"{sensor_value['description']}_{device.entity_id}")
-        dev_name = device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "device"))
-        self.suggested_object_id = f"aarlo_{slugify(dev_name)}_{slugify(sensor_value['description'])}"
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, device, sensor_value["description"]
+        )
         self.entity_id = f"{BINARY_SENSOR_DOMAIN}.{self.suggested_object_id}"
 
         self._other_attrs = sensor_value.get("other_keys", [])

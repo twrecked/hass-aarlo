@@ -49,6 +49,7 @@ from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.util import slugify
+from .utils import get_entity_identifiers
 
 import pyaarlo
 from pyaarlo.constant import (
@@ -347,9 +348,9 @@ class ArloCam(Camera):
 
         self._attr_has_entity_name = True
         self._attr_name = None
-        self._attr_unique_id = camera.entity_id
-        cam_name = camera.name if isinstance(getattr(camera, "name", None), str) else str(getattr(camera, "device_id", "camera"))
-        self.suggested_object_id = f"aarlo_{slugify(cam_name)}"
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, camera
+        )
         self.entity_id = f"{CAMERA_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_brand = COMPONENT_BRAND

@@ -27,6 +27,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.util import slugify
+from .utils import get_entity_identifiers
 
 from pyaarlo.constant import MEDIA_PLAYER_KEY
 
@@ -110,9 +111,9 @@ class ArloMediaPlayer(MediaPlayerEntity):
 
         self._attr_has_entity_name = True
         self._attr_name = None
-        self._attr_unique_id = device.entity_id
-        dev_name = device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "media_player"))
-        self.suggested_object_id = f"aarlo_{slugify(dev_name)}"
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, device
+        )
         self.entity_id = f"{MEDIA_PLAYER_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_device_class = MediaPlayerDeviceClass.SPEAKER

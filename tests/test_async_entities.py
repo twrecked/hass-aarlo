@@ -62,7 +62,7 @@ async def test_light_async_turn_on_and_off(mock_device):
 
 @pytest.mark.asyncio
 async def test_siren_async_turn_on_and_off(mock_device):
-    siren = AarloSiren(mock_device)
+    siren = AarloSiren(mock_device, {"device_first_naming": True})
     siren.hass = MagicMock()
     siren.async_write_ha_state = MagicMock()
 
@@ -217,21 +217,21 @@ async def test_entity_modern_naming_and_object_ids(mock_device):
     assert light.entity_id == "light.aarlo_front_door"
 
     # Camera Spotlight
-    spotlight = ArloSpotlight(mock_device, {})
+    spotlight = ArloSpotlight(mock_device, {"device_first_naming": True})
     assert spotlight.has_entity_name is True
     assert spotlight._attr_name == "Spotlight"
     assert spotlight.suggested_object_id == "aarlo_front_door_spotlight"
     assert spotlight.entity_id == "light.aarlo_front_door_spotlight"
 
     # Camera Floodlight
-    floodlight = ArloFloodLight(mock_device, {})
+    floodlight = ArloFloodLight(mock_device, {"device_first_naming": True})
     assert floodlight.has_entity_name is True
     assert floodlight._attr_name == "Floodlight"
     assert floodlight.suggested_object_id == "aarlo_front_door_floodlight"
     assert floodlight.entity_id == "light.aarlo_front_door_floodlight"
 
     # Siren
-    siren = AarloSiren(mock_device)
+    siren = AarloSiren(mock_device, {"device_first_naming": True})
     assert siren.has_entity_name is True
     assert siren._attr_name == "Siren"
     assert siren.suggested_object_id == "aarlo_front_door_siren"
@@ -244,22 +244,36 @@ async def test_entity_modern_naming_and_object_ids(mock_device):
     assert all_sirens.suggested_object_id == "aarlo_all_sirens"
     assert all_sirens.entity_id == "siren.aarlo_all_sirens"
 
-    # Sensor
-    sensor = ArloSensor(None, mock_device, {}, "battery_level", SENSOR_TYPES["battery_level"])
+    # Sensor - Modern (device_first_naming=True)
+    sensor = ArloSensor(None, mock_device, {"device_first_naming": True}, "battery_level", SENSOR_TYPES["battery_level"])
     assert sensor.has_entity_name is True
     assert sensor._attr_name == "Battery Level"
     assert sensor.suggested_object_id == "aarlo_front_door_battery_level"
     assert sensor.entity_id == "sensor.aarlo_front_door_battery_level"
+    assert sensor.unique_id == "front_door_battery_level"
 
-    # Binary Sensor
-    binary_sensor = ArloBinarySensor(mock_device, {}, "motion", BINARY_SENSOR_TYPES["motion"])
+    # Sensor - Legacy (device_first_naming=False, default for upgrades)
+    sensor_legacy = ArloSensor(None, mock_device, {"device_first_naming": False}, "battery_level", SENSOR_TYPES["battery_level"])
+    assert sensor_legacy.suggested_object_id == "aarlo_battery_level_front_door"
+    assert sensor_legacy.entity_id == "sensor.aarlo_battery_level_front_door"
+    assert sensor_legacy.unique_id == "battery_level_front_door"
+
+    # Binary Sensor - Modern
+    binary_sensor = ArloBinarySensor(mock_device, {"device_first_naming": True}, "motion", BINARY_SENSOR_TYPES["motion"])
     assert binary_sensor.has_entity_name is True
     assert binary_sensor._attr_name == "Motion"
     assert binary_sensor.suggested_object_id == "aarlo_front_door_motion"
     assert binary_sensor.entity_id == "binary_sensor.aarlo_front_door_motion"
+    assert binary_sensor.unique_id == "front_door_motion"
 
-    # Snapshot Switch
-    snap_switch = AarloSnapshotSwitch({}, {}, mock_device)
+    # Binary Sensor - Legacy
+    binary_sensor_legacy = ArloBinarySensor(mock_device, {"device_first_naming": False}, "motion", BINARY_SENSOR_TYPES["motion"])
+    assert binary_sensor_legacy.suggested_object_id == "aarlo_motion_front_door"
+    assert binary_sensor_legacy.entity_id == "binary_sensor.aarlo_motion_front_door"
+    assert binary_sensor_legacy.unique_id == "motion_front_door"
+
+    # Snapshot Switch - Modern
+    snap_switch = AarloSnapshotSwitch({"device_first_naming": True}, {}, mock_device)
     assert snap_switch.has_entity_name is True
     assert snap_switch._attr_name == "Snapshot"
     assert snap_switch.suggested_object_id == "aarlo_front_door_snapshot"
@@ -314,7 +328,7 @@ async def test_light_async_setup_entry_maps_pyaarlo_lights():
     hass = MagicMock()
     hass.data = {
         COMPONENT_DATA: mock_arlo,
-        COMPONENT_CONFIG: {COMPONENT_DOMAIN: {}},
+        COMPONENT_CONFIG: {COMPONENT_DOMAIN: {"device_first_naming": True}},
     }
 
     added = []

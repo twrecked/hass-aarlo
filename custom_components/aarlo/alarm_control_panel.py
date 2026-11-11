@@ -37,6 +37,7 @@ from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.util import slugify
+from .utils import get_entity_identifiers
 
 from pyaarlo.constant import (
     MODE_KEY,
@@ -231,9 +232,9 @@ class ArloBaseStation(AlarmControlPanelEntity):
 
         self._attr_has_entity_name = True
         self._attr_name = None
-        self._attr_unique_id = device.entity_id
-        dev_name = device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "alarm"))
-        self.suggested_object_id = f"aarlo_{slugify(dev_name)}"
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, device
+        )
         self.entity_id = f"{ALARM_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_code_format = _code_format(config.get(CONF_CODE))
@@ -395,9 +396,9 @@ class ArloLocation(AlarmControlPanelEntity):
 
         self._attr_has_entity_name = True
         self._attr_name = None
-        self._attr_unique_id = location.entity_id
-        loc_name = location.name if isinstance(getattr(location, "name", None), str) else str(getattr(location, "device_id", "location"))
-        self.suggested_object_id = f"aarlo_{slugify(loc_name)}"
+        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+            aarlo_config, location
+        )
         self.entity_id = f"{ALARM_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_code_format = _code_format(config.get(CONF_CODE))
