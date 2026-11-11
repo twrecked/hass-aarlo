@@ -77,16 +77,12 @@ async def async_setup_entry(
     devices: list[SwitchEntity] = []
     adevices = []
 
-    # See what cameras and bases have sirens.
-    for base in arlo.base_stations:
-        if base.has_capability(SIREN_STATE_KEY):
-            adevices.append(base)
-    for camera in arlo.cameras:
-        if camera.has_capability(SIREN_STATE_KEY):
-            adevices.append(camera)
-    for doorbell in arlo.doorbells:
-        if doorbell.has_capability(SIREN_STATE_KEY):
-            adevices.append(doorbell)
+    # See what cameras and bases have sirens (deduplicating cameras that are their own base stations).
+    seen_ids = set()
+    for dev in (*arlo.base_stations, *arlo.cameras, *arlo.doorbells):
+        if dev.device_id not in seen_ids and dev.has_capability(SIREN_STATE_KEY):
+            seen_ids.add(dev.device_id)
+            adevices.append(dev)
 
     # Create individual switches if asked for
     if config.get(CONF_SIRENS) is True:

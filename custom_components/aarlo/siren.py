@@ -46,17 +46,13 @@ async def async_setup_entry(
     if not arlo:
         return
 
-    # See what devices have sirens.
+    # See what devices have sirens (deduplicating cameras that are their own base stations).
     all_devices = []
-    for base in arlo.base_stations:
-        if base.has_capability(SIREN_STATE_KEY):
-            all_devices.append(base)
-    for camera in arlo.cameras:
-        if camera.has_capability(SIREN_STATE_KEY):
-            all_devices.append(camera)
-    for doorbell in arlo.doorbells:
-        if doorbell.has_capability(SIREN_STATE_KEY):
-            all_devices.append(doorbell)
+    seen_ids = set()
+    for dev in (*arlo.base_stations, *arlo.cameras, *arlo.doorbells):
+        if dev.device_id not in seen_ids and dev.has_capability(SIREN_STATE_KEY):
+            seen_ids.add(dev.device_id)
+            all_devices.append(dev)
 
     # We have at least one.
     if all_devices:
