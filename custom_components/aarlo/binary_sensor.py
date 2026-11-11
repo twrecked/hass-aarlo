@@ -142,6 +142,8 @@ async def async_setup_entry(
             if doorbell.has_capability(sensor_value["keys"][0]):
                 sensors.append(ArloBinarySensor(doorbell, aarlo_config, sensor_type, sensor_value))
         for light in arlo.lights:
+            if getattr(light, "is_spotlight", False) or getattr(light, "is_floodlight", False):
+                continue
             if light.has_capability(sensor_value["keys"][0]):
                 sensors.append(ArloBinarySensor(light, aarlo_config, sensor_type, sensor_value))
         for sensor in arlo.sensors:
