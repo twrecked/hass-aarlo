@@ -373,9 +373,10 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Handle removal of an entry and purge stale session/cookies files."""
     import glob
     import os
+    import re
 
     username = entry.data.get("username", "")
-    safe_name = username.replace("@", "_").replace(".", "_") if username else ""
+    safe_name = re.sub(r'[^0-9a-zA-Z]+', '_', username) if username else ""
     storage_dir = hass.config.path(".aarlo")
 
     def _cleanup_stale_files():
@@ -387,11 +388,11 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
                 os.path.join(storage_dir, f"{safe_name}.session"),
                 os.path.join(storage_dir, f"{safe_name}.cookies"),
             ])
-        else:
-            patterns.extend([
-                os.path.join(storage_dir, "*.session"),
-                os.path.join(storage_dir, "*.cookies"),
-            ])
+        patterns.extend([
+            os.path.join(storage_dir, "*.session"),
+            os.path.join(storage_dir, "*.cookies"),
+            os.path.join(storage_dir, "*.pickle"),
+        ])
         for p in patterns:
             for f in glob.glob(p):
                 try:
