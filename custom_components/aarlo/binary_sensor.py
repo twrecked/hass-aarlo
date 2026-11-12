@@ -177,7 +177,7 @@ class ArloBinarySensor(BinarySensorEntity):
         self._attr_has_entity_name = True
         self._attr_name = sensor_value["description"]
         self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
-            aarlo_config, device, sensor_value["description"]
+            aarlo_config, device, sensor_value["description"], can_flip=True
         )
         self.entity_id = f"{BINARY_SENSOR_DOMAIN}.{self.suggested_object_id}"
 
