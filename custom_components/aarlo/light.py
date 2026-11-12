@@ -208,7 +208,7 @@ class ArloNightLight(ArloLight):
         self._attr_has_entity_name = True
         self._attr_name = "Nightlight"
         self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
-            aarlo_config, camera, "nightlight", legacy_name="nightlight"
+            aarlo_config, camera, "nightlight"
         )
         self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 
@@ -338,7 +338,7 @@ class ArloFloodLight(ArloLight):
             'device_id': getattr(light, "device_id", "floodlight"),
         })()
         self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
-            aarlo_config, target_dev, "floodlight", legacy_name="floodlight"
+            aarlo_config, target_dev, "floodlight"
         )
         self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 
@@ -461,7 +461,7 @@ class ArloSpotlight(ArloLight):
             'device_id': getattr(light, "device_id", "spotlight"),
         })()
         self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
-            aarlo_config, target_dev, "spotlight", legacy_name="spotlight"
+            aarlo_config, target_dev, "spotlight"
         )
         self.entity_id = f"{LIGHT_DOMAIN}.{self.suggested_object_id}"
 

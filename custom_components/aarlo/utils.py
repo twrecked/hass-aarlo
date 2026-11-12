@@ -11,16 +11,12 @@ def get_entity_identifiers(
     aarlo_config: dict[str, Any],
     device: Any,
     function_name: str | None = None,
-    legacy_name: str | None = None,
-    can_flip: bool = False,
 ) -> tuple[str, str]:
     """Calculate (unique_id, suggested_object_id) for an entity.
 
     :param aarlo_config: integration configuration dictionary
     :param device: the PyArlo device (camera, light, doorbell, base station, etc.)
-    :param function_name: functional suffix (e.g. "battery_level", "motion", "spotlight", "siren")
-    :param legacy_name: optional legacy identifier if different from function_name
-    :param can_flip: whether legacy naming flips order to <function>_<device> (only used by sensor and binary_sensor)
+    :param function_name: functional suffix (e.g. "battery_level", "motion", "spotlight", "siren", "snapshot")
     :return: (unique_id, suggested_object_id)
     """
     prefix = "aarlo_" if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True) else ""
@@ -39,20 +35,13 @@ def get_entity_identifiers(
     # 2. Functional child entities
     fn_slug = slugify(function_name)
 
-    if can_flip and not device_first:
-        # Legacy flipped ordering (only used by sensor and binary_sensor)
-        leg_fn = slugify(legacy_name or function_name)
-        unique_id = f"{leg_fn}_{dev_entity_id}"
-        suggested_object_id = f"{prefix}{leg_fn}_{dev_slug}"
-        return unique_id, suggested_object_id
-
-    # Standard / Modern ordering (<device>_<function>)
-    if legacy_name and not device_first:
-        unique_id = slugify(legacy_name)
-    else:
+    if device_first:
         unique_id = f"{dev_entity_id}_{fn_slug}"
+        suggested_object_id = f"{prefix}{dev_slug}_{fn_slug}"
+    else:
+        unique_id = f"{fn_slug}_{dev_entity_id}"
+        suggested_object_id = f"{prefix}{fn_slug}_{dev_slug}"
 
-    suggested_object_id = f"{prefix}{dev_slug}_{fn_slug}"
     return unique_id, suggested_object_id
 
 import logging

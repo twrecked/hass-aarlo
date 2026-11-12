@@ -189,7 +189,7 @@ class ArloSensor(SensorEntity):
             self._attr_name = sensor_value["description"]
             self._device = device
             self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
-                aarlo_config, device, sensor_value["description"], can_flip=True
+                aarlo_config, device, sensor_value["description"]
             )
 
         self.entity_id = f"{SENSOR_DOMAIN}.{self.suggested_object_id}"

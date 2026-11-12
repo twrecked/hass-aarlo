@@ -130,9 +130,14 @@ class AarloSwitch(SwitchEntity):
 
         self._attr_has_entity_name = True
         self._attr_name = name
-        self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
-            aarlo_config, device, name, legacy_name=identifier
-        )
+        if identifier is not None:
+            prefix = "aarlo_" if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True) else ""
+            self._attr_unique_id = slugify(identifier)
+            self.suggested_object_id = f"{prefix}{self._attr_unique_id}"
+        else:
+            self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+                aarlo_config, device, name
+            )
         self.entity_id = f"{SWITCH_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_icon = f"mdi:{icon}"
@@ -223,7 +228,7 @@ class AarloSirenSwitch(AarloSirenBaseSwitch):
         super().__init__(
             device, aarlo_config,
             "Siren",
-            f"siren_{device.entity_id}",
+            None,
             "alarm-bell",
             config.get(CONF_SIREN_DURATION),
             config.get(CONF_SIREN_ALLOW_OFF),
@@ -313,7 +318,7 @@ class AarloSnapshotSwitch(AarloSwitch):
         super().__init__(
             camera, aarlo_config,
             "Snapshot",
-            f"snapshot_{camera.entity_id}",
+            None,
             "camera",
         )
 

@@ -278,6 +278,25 @@ async def test_entity_modern_naming_and_object_ids(mock_device):
     assert snap_switch._attr_name == "Snapshot"
     assert snap_switch.suggested_object_id == "aarlo_front_door_snapshot"
     assert snap_switch.entity_id == "switch.aarlo_front_door_snapshot"
+    assert snap_switch.unique_id == "front_door_snapshot"
+
+    # Snapshot Switch - Legacy
+    snap_switch_legacy = AarloSnapshotSwitch({"device_first_naming": False}, {}, mock_device)
+    assert snap_switch_legacy.suggested_object_id == "aarlo_snapshot_front_door"
+    assert snap_switch_legacy.entity_id == "switch.aarlo_snapshot_front_door"
+    assert snap_switch_legacy.unique_id == "snapshot_front_door"
+
+    # Siren Switch - Modern
+    siren_switch = AarloSirenSwitch({"device_first_naming": True}, {}, mock_device)
+    assert siren_switch.suggested_object_id == "aarlo_front_door_siren"
+    assert siren_switch.entity_id == "switch.aarlo_front_door_siren"
+    assert siren_switch.unique_id == "front_door_siren"
+
+    # Siren Switch - Legacy
+    siren_switch_legacy = AarloSirenSwitch({"device_first_naming": False}, {}, mock_device)
+    assert siren_switch_legacy.suggested_object_id == "aarlo_siren_front_door"
+    assert siren_switch_legacy.entity_id == "switch.aarlo_siren_front_door"
+    assert siren_switch_legacy.unique_id == "siren_front_door"
 
 
 @pytest.mark.asyncio

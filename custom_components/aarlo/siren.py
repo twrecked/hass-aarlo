@@ -148,9 +148,9 @@ class AarloSiren(AarloSirenBase):
 
     def __init__(self, device, aarlo_config=None):
         cfg = aarlo_config or {}
-        _, suggested_object_id = get_entity_identifiers(
-            cfg, device, "siren", legacy_name="siren"
-        )
+        prefix = "aarlo_" if cfg.get(CONF_ADD_AARLO_PREFIX, True) else ""
+        dev_name = device.name if isinstance(getattr(device, "name", None), str) else str(getattr(device, "device_id", "device"))
+        suggested_object_id = f"{prefix}{slugify(dev_name)}_siren"
         super().__init__(
             [device],
             "Siren",
