@@ -14,6 +14,7 @@ from homeassistant.helpers.selector import SelectOptionDict, \
     SelectSelector, SelectSelectorConfig, SelectSelectorMode
 
 from .const import (
+    CONF_DEVICE_FIRST_NAMING,
     CONF_ADD_AARLO_PREFIX,
     CONF_TFA_HOST,
     CONF_TFA_PASSWORD,
@@ -127,6 +128,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             CONF_PASSWORD: info[CONF_PASSWORD],
             CONF_TFA_TYPE: "none",
             CONF_ADD_AARLO_PREFIX: info.get(CONF_ADD_AARLO_PREFIX, True),
+            CONF_DEVICE_FIRST_NAMING: info.get(CONF_DEVICE_FIRST_NAMING, True),
         }
 
         tfa_choice = info.get(CONF_TFA_TYPE, "NONE")
@@ -355,6 +357,8 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
         http_backend_default = options.get("http_backend", aarlo_yaml.get("http_backend", "curl_cffi"))
         save_media_default = options.get("save_media_to", aarlo_yaml.get("save_media_to", ""))
         media_retention_default = options.get("media_retention_days", aarlo_yaml.get("media_retention_days", 0))
+        entry_data = getattr(self._config_entry, "data", {})
+        device_first_default = options.get(CONF_DEVICE_FIRST_NAMING, aarlo_yaml.get(CONF_DEVICE_FIRST_NAMING, entry_data.get(CONF_DEVICE_FIRST_NAMING, False)))
 
         return self.async_show_form(
             step_id="general",
@@ -363,6 +367,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required("http_backend", default=http_backend_default): HTTP_BACKEND_SELECTOR,
                 vol.Optional("save_media_to", default=save_media_default): str,
                 vol.Optional("media_retention_days", default=media_retention_default): int,
+                vol.Optional(CONF_DEVICE_FIRST_NAMING, default=device_first_default): bool,
             })
         )
 

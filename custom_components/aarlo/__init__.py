@@ -52,7 +52,7 @@ from .utils import get_entity_from_domain
 from .cfg import BlendedCfg, PyaarloCfg
 
 
-__version__ = "0.9.0-alpha.8"
+__version__ = "0.9.0-alpha.9"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -366,6 +366,60 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug(f"ok={unload_ok}")
 
     return unload_ok
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle removal of an entry and purge stale session/cookies files."""
+    import glob
+    import os
+    import re
+
+    username = entry.data.get("username", "")
+    safe_name = re.sub(r'[^0-9a-zA-Z]+', '_', username) if username else ""
+    storage_dir = hass.config.path(".aarlo")
+
+    def _cleanup_stale_files():
+        if not os.path.isdir(storage_dir):
+            return
+        patterns = []
+        if safe_name:
+            patterns.extend([
+                os.path.join(storage_dir, f"{safe_name}.session"),
+                os.path.join(storage_dir, f"{safe_name}.cookies"),
+            ])
+        patterns.extend([
+            os.path.join(storage_dir, "*.session"),
+            os.path.join(storage_dir, "*.cookies"),
+            os.path.join(storage_dir, "*.pickle"),
+        ])
+        for p in patterns:
+            for f in glob.glob(p):
+                try:
+                    os.unlink(f)
+                    _LOGGER.info(f"removed stale session file {f}")
+                except Exception as e:
+                    _LOGGER.warning(f"failed to remove {f}: {e}")
+
+    await hass.async_add_executor_job(_cleanup_stale_files)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: ConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow removal of devices that are no longer present on the Arlo account."""
+    arlo = hass.data.get(COMPONENT_DATA)
+    if not arlo:
+        return True
+
+    for domain, identifier in device_entry.identifiers:
+        if domain == COMPONENT_DOMAIN:
+            # If the device is still active on Arlo, block deletion
+            if arlo.lookup_device_by_id(identifier):
+                _LOGGER.debug(f"device {identifier} still present in Arlo account, deletion blocked")
+                return False
+
+    _LOGGER.info(f"device {device_entry.name} ({device_entry.id}) removed from device registry")
+    return True
 
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry):

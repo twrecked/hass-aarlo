@@ -133,6 +133,7 @@ AARLO_SCHEMA = vol.Schema({
     vol.Optional(CONF_MQTT_HOSTNAME_CHECK, default=DEFAULT_MQTT_HOSTNAME_CHECK): cv.boolean,
     vol.Optional(CONF_MQTT_TRANSPORT): cv.string,
     vol.Optional(CONF_WEBRTC, default=DEFAULT_WEBRTC): cv.boolean,
+    vol.Optional(CONF_DEVICE_FIRST_NAMING, default=DEFAULT_DEVICE_FIRST_NAMING): cv.boolean,
 
     # Deprecated
     vol.Optional(CONF_HIDE_DEPRECATED_SERVICES, default=True): cv.boolean,
@@ -414,9 +415,18 @@ class BlendedCfg(object):
         options = {**DEFAULT_OPTIONS, **(options or {})}
 
         self._main_config = {**data, **self._main_config}
-        for opt_key in ("backend", "http_backend", "save_media_to", "media_retention_days"):
+        for opt_key in (
+            "backend",
+            "http_backend",
+            "save_media_to",
+            "media_retention_days",
+            CONF_DEVICE_FIRST_NAMING,
+            CONF_ADD_AARLO_PREFIX,
+        ):
             if opt_key in options:
                 self._main_config[opt_key] = options[opt_key]
+            elif opt_key in data:
+                self._main_config[opt_key] = data[opt_key]
         self._alarm_config = ALARM_SCHEMA(_extract_platform_config(options, "alarm_control_panel_"))
         self._binary_sensor_config = _extract_monitored_conditions(options, "binary_sensor_")
         self._sensor_config = _extract_monitored_conditions(options, "sensor_")

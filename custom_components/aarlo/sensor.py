@@ -27,6 +27,7 @@ from homeassistant.components.sensor import (
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.util import slugify
+from .utils import get_entity_identifiers
 
 from pyaarlo.constant import (
     AIR_QUALITY_KEY,
@@ -147,6 +148,8 @@ async def async_setup_entry(
                 if doorbell.has_capability(sensor_value["key"]):
                     sensors.append(ArloSensor(arlo, doorbell, aarlo_config, sensor_type, sensor_value))
             for light in arlo.lights:
+                if getattr(light, "is_spotlight", False) or getattr(light, "is_floodlight", False):
+                    continue
                 if light.has_capability(sensor_value["key"]):
                     sensors.append(ArloSensor(arlo, light, aarlo_config, sensor_type, sensor_value))
             for sensor in arlo.sensors:
@@ -159,6 +162,16 @@ async def async_setup_entry(
 class ArloSensor(SensorEntity):
     """An implementation of a Netgear Arlo IP sensor."""
 
+    _attr_suggested_object_id: str | None = None
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        return self._attr_suggested_object_id
+
+    @suggested_object_id.setter
+    def suggested_object_id(self, value: str | None) -> None:
+        self._attr_suggested_object_id = value
+
     def __init__(self, arlo, device, aarlo_config, sensor_type, sensor_value):
         """Initialize an Arlo sensor."""
 
@@ -166,16 +179,20 @@ class ArloSensor(SensorEntity):
         self._main_attr = sensor_value["key"]
 
         if device is None:
+            self._attr_has_entity_name = False
             self._attr_name = sensor_value["description"]
             self._attr_unique_id = sensor_type
             self._device = arlo
+            self.suggested_object_id = f"aarlo_{slugify(sensor_value['description'])}"
         else:
-            self._attr_name = f"{sensor_value['description']} {device.name}"
-            self._attr_unique_id = slugify(f"{sensor_value['description']}_{device.entity_id}")
+            self._attr_has_entity_name = True
+            self._attr_name = sensor_value["description"]
             self._device = device
+            self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
+                aarlo_config, device, sensor_value["description"]
+            )
 
-        if aarlo_config.get(CONF_ADD_AARLO_PREFIX, True):
-            self.entity_id = f"{SENSOR_DOMAIN}.{COMPONENT_DOMAIN}_{self._attr_unique_id}"
+        self.entity_id = f"{SENSOR_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_device_class = sensor_value.get("class", None)
         self._attr_icon = sensor_value.get("icon", None)
@@ -188,13 +205,13 @@ class ArloSensor(SensorEntity):
             manufacturer=COMPONENT_BRAND,
         )
 
-        _LOGGER.info(f"ArloSensor: {self._attr_name} created")
+        _LOGGER.info(f"ArloSensor: {self.name} created")
 
     async def async_added_to_hass(self):
         """Register callbacks."""
 
         def update_state(_device, attr, value):
-            _LOGGER.debug("callback:%s:%s:%s", self._attr_name, attr, str(value)[:80])
+            _LOGGER.debug("callback:%s:%s:%s", self.name, attr, str(value)[:80])
             self._attr_native_value = value
             self.schedule_update_ha_state()
 
@@ -207,7 +224,7 @@ class ArloSensor(SensorEntity):
         """Return the device state attributes."""
         attrs = {
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
-            "name": self._attr_name,
+            "name": self.name,
             "device_brand": COMPONENT_BRAND,
             "device_name": self._device.name,
             "device_id": self._device.device_id,
