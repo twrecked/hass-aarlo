@@ -405,8 +405,9 @@ class ArloLocation(AlarmControlPanelEntity):
 
         self._code = config.get(CONF_CODE)
 
-        self._attr_has_entity_name = True
-        self._attr_name = None
+        loc_name = location.name.replace("_", " ").title()
+        self._attr_has_entity_name = False
+        self._attr_name = loc_name
         self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
             aarlo_config, location
         )
@@ -422,6 +423,7 @@ class ArloLocation(AlarmControlPanelEntity):
         )
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._location.device_id)},
+            name=loc_name,
             manufacturer=COMPONENT_BRAND,
         )
 

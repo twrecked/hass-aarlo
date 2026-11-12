@@ -454,3 +454,82 @@ async def test_alarm_control_panel_hide_base_stations_with_locations():
     await async_setup_entry(hass, MagicMock(), lambda entities: added_entities_3.extend(entities))
     assert len(added_entities_3) == 1
     assert isinstance(added_entities_3[0], ArloBaseStation)
+
+
+@pytest.mark.asyncio
+async def test_location_alarm_entity_naming():
+    from custom_components.aarlo.alarm_control_panel import ArloLocation
+
+    mock_user_loc = MagicMock()
+    mock_user_loc.name = "user_location_Home"
+    mock_user_loc.device_id = "USER-LOC-01"
+    mock_user_loc.entity_id = "user_location_home"
+    mock_user_loc.attribute = lambda attr, default=None: default
+
+    mock_loc = MagicMock()
+    mock_loc.name = "location_Home"
+    mock_loc.device_id = "LOC-01"
+    mock_loc.entity_id = "location_home"
+    mock_loc.attribute = lambda attr, default=None: default
+
+    config = {
+        "disarmed_mode_name": "disarmed",
+        "home_mode_name": "home",
+        "away_mode_name": "away",
+        "night_mode_name": "night",
+        "alarm_volume": 8,
+        "trigger_time": 30,
+        "code": None,
+        "code_arm_required": False,
+        "code_disarm_required": False,
+    }
+
+    panel_user = ArloLocation(mock_user_loc, {"add_aarlo_prefix": True}, config)
+    assert panel_user.name == "User Location Home"
+    assert panel_user._attr_has_entity_name is False
+    assert panel_user.device_info["name"] == "User Location Home"
+    assert panel_user.suggested_object_id == "aarlo_user_location_home"
+    assert panel_user.entity_id == "alarm_control_panel.aarlo_user_location_home"
+
+    panel_loc = ArloLocation(mock_loc, {"add_aarlo_prefix": True}, config)
+    assert panel_loc.name == "Location Home"
+    assert panel_loc._attr_has_entity_name is False
+    assert panel_loc.device_info["name"] == "Location Home"
+    assert panel_loc.suggested_object_id == "aarlo_location_home"
+    assert panel_loc.entity_id == "alarm_control_panel.aarlo_location_home"
+
+
+@pytest.mark.asyncio
+async def test_config_flow_configurable_title():
+    from custom_components.aarlo.config_flow import AarloFlowHandler
+    from homeassistant.const import CONF_NAME, CONF_PASSWORD, CONF_USERNAME
+    from custom_components.aarlo.const import CONF_TFA_TYPE, CONF_ADD_AARLO_PREFIX
+
+    handler = AarloFlowHandler()
+    handler.hass = MagicMock()
+    handler._async_current_entries = lambda: []
+
+    # Case 1: Custom name specified
+    res1 = await handler.async_step_user({
+        CONF_NAME: "My Custom Arlo",
+        CONF_USERNAME: "user@example.com",
+        CONF_PASSWORD: "secretpassword",
+        CONF_TFA_TYPE: "NONE",
+        CONF_ADD_AARLO_PREFIX: True,
+    })
+    assert res1["type"] == "create_entry"
+    assert res1["title"] == "My Custom Arlo"
+
+    # Case 2: No custom name specified -> defaults to "Aarlo for <email>"
+    handler2 = AarloFlowHandler()
+    handler2.hass = MagicMock()
+    handler2._async_current_entries = lambda: []
+    res2 = await handler2.async_step_user({
+        CONF_NAME: "",
+        CONF_USERNAME: "other@example.com",
+        CONF_PASSWORD: "secretpassword",
+        CONF_TFA_TYPE: "NONE",
+        CONF_ADD_AARLO_PREFIX: True,
+    })
+    assert res2["type"] == "create_entry"
+    assert res2["title"] == "Aarlo for other@example.com"

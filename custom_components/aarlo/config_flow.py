@@ -6,6 +6,7 @@ from typing import Any
 
 from homeassistant import config_entries
 from homeassistant.const import (
+    CONF_NAME,
     CONF_PASSWORD,
     CONF_USERNAME,
 )
@@ -90,6 +91,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
 
     def __init__(self) -> None:
         """Initialize the config flow."""
+        self._name: str = ""
         self._username: str = ""
         self._password: str = ""
         self._tfa_username: str = ""
@@ -187,12 +189,15 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             # Looks good, then create it.
             if not errors:
                 _LOGGER.debug(f"aarlo-config={config}")
+                name = info.get(CONF_NAME, "").strip() if isinstance(info.get(CONF_NAME), str) else ""
+                title = name if name else f"Aarlo for {info[CONF_USERNAME]}"
                 return self.async_create_entry(
-                    title=f"Aarlo for {info[CONF_USERNAME]}",
+                    title=title,
                     data=config
                 )
 
             # Pass broken one into the GUI.
+            self._name = info.get(CONF_NAME, "")
             self._username = info[CONF_USERNAME]
             self._password = info[CONF_PASSWORD]
             self._tfa_username = info.get(CONF_TFA_USERNAME, "")
@@ -201,6 +206,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             self._add_prefix = info.get(CONF_ADD_AARLO_PREFIX, True)
 
         data_schema = {
+            vol.Optional(CONF_NAME, default=self._name): str,
             vol.Required(CONF_USERNAME, default=self._username): str,
             vol.Required(CONF_PASSWORD, default=self._password): str,
             vol.Required(CONF_TFA_TYPE, default="IMAP"): TFA_SELECTOR,
@@ -322,8 +328,10 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         data = UpgradeCfg.create_flow_data(import_data)
         options = UpgradeCfg.create_flow_options(import_data)
 
+        name = import_data.get(CONF_NAME, "").strip() if isinstance(import_data.get(CONF_NAME), str) else ""
+        title = name if name else f"Aarlo for {data[CONF_USERNAME]} (imported)"
         return self.async_create_entry(
-            title=f"Aarlo for {data[CONF_USERNAME]} (imported)",
+            title=title,
             data=data,
             options=options
         )
