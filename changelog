@@ -1,3 +1,10 @@
+Unreleased
+  - Sirens:
+    - Removed legacy siren switch entities in favor of native Home Assistant siren entities (`siren.*`).
+    - Ignored legacy siren switch options in configuration and removed them from the options flow UI.
+  - Alarms:
+    - Hide base station alarm control panels by default when a location-level alarm is detected, with a configuration option to override.
+
 0.9.0-alpha.9
   - Modern Entity Naming Architecture:
     - Implemented `_attr_has_entity_name = True` across all platforms (sensors, binary sensors, cameras, lights, sirens, switches, alarm control panels, and media players).

@@ -16,6 +16,8 @@ from homeassistant.helpers.selector import SelectOptionDict, \
 from .const import (
     CONF_DEVICE_FIRST_NAMING,
     CONF_ADD_AARLO_PREFIX,
+    CONF_HIDE_BASE_STATION_ALARMS,
+    DEFAULT_HIDE_BASE_STATION_ALARMS,
     CONF_TFA_HOST,
     CONF_TFA_PASSWORD,
     CONF_TFA_SOURCE,
@@ -359,6 +361,13 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
         media_retention_default = options.get("media_retention_days", aarlo_yaml.get("media_retention_days", 0))
         entry_data = getattr(self._config_entry, "data", {})
         device_first_default = options.get(CONF_DEVICE_FIRST_NAMING, aarlo_yaml.get(CONF_DEVICE_FIRST_NAMING, entry_data.get(CONF_DEVICE_FIRST_NAMING, False)))
+        hide_base_station_alarms_default = options.get(
+            CONF_HIDE_BASE_STATION_ALARMS,
+            aarlo_yaml.get(
+                CONF_HIDE_BASE_STATION_ALARMS,
+                entry_data.get(CONF_HIDE_BASE_STATION_ALARMS, DEFAULT_HIDE_BASE_STATION_ALARMS),
+            ),
+        )
 
         return self.async_show_form(
             step_id="general",
@@ -368,6 +377,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional("save_media_to", default=save_media_default): str,
                 vol.Optional("media_retention_days", default=media_retention_default): int,
                 vol.Optional(CONF_DEVICE_FIRST_NAMING, default=device_first_default): bool,
+                vol.Optional(CONF_HIDE_BASE_STATION_ALARMS, default=hide_base_station_alarms_default): bool,
             })
         )
 
@@ -498,16 +508,6 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="switch",
             data_schema=vol.Schema({
-                vol.Required("switch_siren",
-                             default=options.get("switch_siren", True)): bool,
-                vol.Required("switch_all_sirens",
-                             default=options.get("switch_all_sirens", True)): bool,
-                vol.Required("switch_siren_allow_off",
-                             default=options.get("switch_siren_allow_off", True)): bool,
-                vol.Required("switch_siren_volume",
-                             default=options.get("switch_siren_volume", 3)): int,
-                vol.Required("switch_siren_duration",
-                             default=options.get("switch_siren_duration", 10)): int,
                 vol.Required("switch_snapshot",
                              default=options.get("switch_snapshot", True)): bool,
                 vol.Required("switch_snapshot_timeout",

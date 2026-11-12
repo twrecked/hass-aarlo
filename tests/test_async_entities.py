@@ -13,7 +13,7 @@ from custom_components.aarlo.light import ArloLight, ArloNightLight, ArloSpotlig
 from custom_components.aarlo.media_player import ArloMediaPlayer
 from custom_components.aarlo.sensor import ArloSensor, SENSOR_TYPES
 from custom_components.aarlo.siren import AarloSiren
-from custom_components.aarlo.switch import AarloSnapshotSwitch, AarloSirenSwitch
+from custom_components.aarlo.switch import AarloSnapshotSwitch
 from custom_components.aarlo import async_login
 
 
@@ -286,17 +286,7 @@ async def test_entity_modern_naming_and_object_ids(mock_device):
     assert snap_switch_legacy.entity_id == "switch.aarlo_snapshot_front_door"
     assert snap_switch_legacy.unique_id == "snapshot_front_door"
 
-    # Siren Switch - Modern
-    siren_switch = AarloSirenSwitch({"device_first_naming": True}, {}, mock_device)
-    assert siren_switch.suggested_object_id == "aarlo_front_door_siren"
-    assert siren_switch.entity_id == "switch.aarlo_front_door_siren"
-    assert siren_switch.unique_id == "front_door_siren"
 
-    # Siren Switch - Legacy
-    siren_switch_legacy = AarloSirenSwitch({"device_first_naming": False}, {}, mock_device)
-    assert siren_switch_legacy.suggested_object_id == "aarlo_siren_front_door"
-    assert siren_switch_legacy.entity_id == "switch.aarlo_siren_front_door"
-    assert siren_switch_legacy.unique_id == "siren_front_door"
 
 
 @pytest.mark.asyncio
@@ -362,3 +352,105 @@ async def test_light_async_setup_entry_maps_pyaarlo_lights():
     assert added[2].suggested_object_id == "aarlo_car_port_light"
     assert isinstance(added[3], ArloNightLight)
     assert added[3].suggested_object_id == "aarlo_nursery_nightlight"
+
+
+@pytest.mark.asyncio
+async def test_options_flow_switch_step_no_siren_switches():
+    from custom_components.aarlo.config_flow import ArloOptionsFlowHandler
+
+    mock_entry = SimpleNamespace(
+        options={},
+        entry_id="test_entry",
+    )
+    handler = ArloOptionsFlowHandler(mock_entry)
+    handler.hass = SimpleNamespace(config=SimpleNamespace(path=lambda p: f"/tmp/{p}"))
+
+    result = await handler.async_step_switch()
+    assert result["type"] == "form"
+    assert result["step_id"] == "switch"
+    schema_keys = [k.schema if hasattr(k, "schema") else k for k in result["data_schema"].schema.keys()]
+    assert "switch_siren" not in schema_keys
+    assert "switch_all_sirens" not in schema_keys
+    assert "switch_snapshot" in schema_keys
+    assert "switch_doorbell_silence" in schema_keys
+
+
+@pytest.mark.asyncio
+async def test_alarm_control_panel_hide_base_stations_with_locations():
+    from custom_components.aarlo.alarm_control_panel import (
+        async_setup_entry,
+        ArloBaseStation,
+        ArloLocation,
+    )
+    from custom_components.aarlo.const import (
+        COMPONENT_DATA,
+        COMPONENT_CONFIG,
+        COMPONENT_DOMAIN,
+        COMPONENT_SERVICES,
+        CONF_HIDE_BASE_STATION_ALARMS,
+    )
+    from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
+    from datetime import timedelta
+
+    mock_base = MagicMock()
+    mock_base.name = "Front"
+    mock_base.device_id = "BASE-01"
+    mock_base.entity_id = "front"
+    mock_base.has_capability = lambda cap: False
+    mock_base.attribute = lambda attr, default=None: default
+
+    mock_loc = MagicMock()
+    mock_loc.name = "Home"
+    mock_loc.device_id = "LOC-01"
+    mock_loc.entity_id = "home"
+    mock_loc.attribute = lambda attr, default=None: default
+    mock_loc.is_armed_away = False
+    mock_loc.is_armed_home = False
+
+    mock_arlo = MagicMock()
+    mock_arlo.base_stations = [mock_base]
+    mock_arlo.locations = [mock_loc]
+
+    # Case 1: hide_base_station_alarms = True (default) -> only Location added
+    hass = MagicMock()
+    hass.data = {
+        COMPONENT_DATA: mock_arlo,
+        COMPONENT_CONFIG: {
+            COMPONENT_DOMAIN: {CONF_HIDE_BASE_STATION_ALARMS: True},
+            ALARM_DOMAIN: {
+                "disarmed_mode_name": "disarmed",
+                "home_mode_name": "home",
+                "away_mode_name": "away",
+                "night_mode_name": "night",
+                "alarm_volume": 8,
+                "trigger_time": timedelta(seconds=30),
+                "code": None,
+                "code_arm_required": False,
+                "code_disarm_required": False,
+            },
+        },
+        COMPONENT_SERVICES: {},
+    }
+    added_entities_1 = []
+    await async_setup_entry(hass, MagicMock(), lambda entities: added_entities_1.extend(entities))
+    assert len(added_entities_1) == 1
+    assert isinstance(added_entities_1[0], ArloLocation)
+
+    # Case 2: hide_base_station_alarms = False -> both BaseStation and Location added
+    hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN][CONF_HIDE_BASE_STATION_ALARMS] = False
+    added_entities_2 = []
+    await async_setup_entry(hass, MagicMock(), lambda entities: added_entities_2.extend(entities))
+    assert len(added_entities_2) == 2
+    assert any(isinstance(e, ArloBaseStation) for e in added_entities_2)
+    assert any(isinstance(e, ArloLocation) for e in added_entities_2)
+
+    # Case 3: No locations -> BaseStation added regardless
+    mock_arlo_no_loc = MagicMock()
+    mock_arlo_no_loc.base_stations = [mock_base]
+    mock_arlo_no_loc.locations = []
+    hass.data[COMPONENT_DATA] = mock_arlo_no_loc
+    hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN][CONF_HIDE_BASE_STATION_ALARMS] = True
+    added_entities_3 = []
+    await async_setup_entry(hass, MagicMock(), lambda entities: added_entities_3.extend(entities))
+    assert len(added_entities_3) == 1
+    assert isinstance(added_entities_3[0], ArloBaseStation)
