@@ -77,3 +77,30 @@ async def test_async_load_yaml_comment_only_file(tmp_path):
         f.write("# only comments\n# no yaml content\n")
     loaded = await _async_load_yaml(comment_file)
     assert loaded is None or loaded == {}
+
+
+@pytest.mark.asyncio
+async def test_blended_cfg_device_first_naming_precedence():
+    from custom_components.aarlo.cfg import BlendedCfg
+    from custom_components.aarlo.const import CONF_DEVICE_FIRST_NAMING
+
+    mock_hass = MagicMock()
+    mock_hass.config.path.return_value = "/nonexistent/aarlo.yaml"
+
+    # 1. Config flow setup (in data)
+    cfg = BlendedCfg(mock_hass)
+    cfg._main_config = {"device_first_naming": False}
+    cfg._merge({"username": "test", "device_first_naming": True}, {})
+    assert cfg.domain_config[CONF_DEVICE_FIRST_NAMING] is True
+
+    # 2. Upgrade / legacy (not in data or options)
+    cfg2 = BlendedCfg(mock_hass)
+    cfg2._main_config = {"device_first_naming": False}
+    cfg2._merge({"username": "test"}, {})
+    assert cfg2.domain_config[CONF_DEVICE_FIRST_NAMING] is False
+
+    # 3. Options flow override (in options)
+    cfg3 = BlendedCfg(mock_hass)
+    cfg3._main_config = {"device_first_naming": False}
+    cfg3._merge({"username": "test", "device_first_naming": False}, {"device_first_naming": True})
+    assert cfg3.domain_config[CONF_DEVICE_FIRST_NAMING] is True
