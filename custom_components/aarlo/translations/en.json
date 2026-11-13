@@ -24,7 +24,8 @@
           "tfa_username": "TFA Username",
           "tfa_password": "TFA Password",
           "add_aarlo_prefix": "Use `aarlo_` prefix for entities",
-          "name": "Integration Name (optional, defaults to 'Aarlo for <email>')"
+          "name": "Integration Name (optional, defaults to 'Aarlo for <email>')",
+          "device_first_naming": "Use Device First Naming"
         }
       },
       "reauth_confirm": {
@@ -60,7 +61,6 @@
           "http_backend": "HTTP Client Backend",
           "save_media_to": "Save Media Path Template",
           "media_retention_days": "Media Retention Period in Days (0 to keep indefinitely)",
-          "device_first_naming": "Use Device First Naming",
           "hide_base_station_alarms": "Hide base station alarms when location is present"
         }
       },

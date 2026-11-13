@@ -503,24 +503,33 @@ async def test_location_alarm_entity_naming():
 async def test_config_flow_configurable_title():
     from custom_components.aarlo.config_flow import AarloFlowHandler
     from homeassistant.const import CONF_NAME, CONF_PASSWORD, CONF_USERNAME
-    from custom_components.aarlo.const import CONF_TFA_TYPE, CONF_ADD_AARLO_PREFIX
+    from custom_components.aarlo.const import CONF_TFA_TYPE, CONF_ADD_AARLO_PREFIX, CONF_DEVICE_FIRST_NAMING
 
     handler = AarloFlowHandler()
     handler.hass = MagicMock()
     handler._async_current_entries = lambda: []
 
-    # Case 1: Custom name specified
+    # Verify form schema includes CONF_DEVICE_FIRST_NAMING
+    form = await handler.async_step_user(None)
+    assert form["type"] == "form"
+    schema_keys = [k.schema if hasattr(k, "schema") else k for k in form["data_schema"].schema.keys()]
+    assert CONF_DEVICE_FIRST_NAMING in schema_keys
+    assert CONF_ADD_AARLO_PREFIX in schema_keys
+
+    # Case 1: Custom name and legacy device naming specified
     res1 = await handler.async_step_user({
         CONF_NAME: "My Custom Arlo",
         CONF_USERNAME: "user@example.com",
         CONF_PASSWORD: "secretpassword",
         CONF_TFA_TYPE: "NONE",
         CONF_ADD_AARLO_PREFIX: True,
+        CONF_DEVICE_FIRST_NAMING: False,
     })
     assert res1["type"] == "create_entry"
     assert res1["title"] == "My Custom Arlo"
+    assert res1["data"][CONF_DEVICE_FIRST_NAMING] is False
 
-    # Case 2: No custom name specified -> defaults to "Aarlo for <email>"
+    # Case 2: No custom name specified -> defaults to "Aarlo for <email>", device_first defaults to True
     handler2 = AarloFlowHandler()
     handler2.hass = MagicMock()
     handler2._async_current_entries = lambda: []
@@ -530,6 +539,8 @@ async def test_config_flow_configurable_title():
         CONF_PASSWORD: "secretpassword",
         CONF_TFA_TYPE: "NONE",
         CONF_ADD_AARLO_PREFIX: True,
+        CONF_DEVICE_FIRST_NAMING: True,
     })
     assert res2["type"] == "create_entry"
     assert res2["title"] == "Aarlo for other@example.com"
+    assert res2["data"][CONF_DEVICE_FIRST_NAMING] is True

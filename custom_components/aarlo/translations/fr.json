@@ -19,7 +19,8 @@
           "tfa_username": "Nom d'utilisateur TFA",
           "tfa_password": "Mot de passe TFA",
           "add_aarlo_prefix": "Utiliser le préfixe `aarlo_` pour les entités",
-          "name": "Nom de l'intégration (optionnel, par défaut 'Aarlo pour <e-mail>')"
+          "name": "Nom de l'intégration (optionnel, par défaut 'Aarlo pour <e-mail>')",
+          "device_first_naming": "Utiliser le nom de l'appareil en premier"
         }
       }
     }
@@ -89,7 +90,6 @@
           "http_backend": "Backend client HTTP",
           "save_media_to": "Modèle de chemin d'enregistrement des médias",
           "media_retention_days": "Période de rétention des médias en jours (0 pour conserver indéfiniment)",
-          "device_first_naming": "Utiliser le nom de l'appareil en premier",
           "hide_base_station_alarms": "Masquer les alarmes des stations de base si un emplacement est présent"
         }
       }

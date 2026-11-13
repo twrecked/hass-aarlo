@@ -7,6 +7,7 @@ Unreleased
     - Set explicit entity and device names for location alarms (e.g. "User Location Home" and "Location Home").
   - Configuration:
     - Added configurable integration name field during initial setup flow (defaults to "Aarlo for <email>").
+    - Moved `device_first_naming` toggle to initial setup flow alongside `add_aarlo_prefix`.
 
 0.9.0-alpha.9
   - Modern Entity Naming Architecture:

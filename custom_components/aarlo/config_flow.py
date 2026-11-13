@@ -98,6 +98,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         self._tfa_password: str = ""
         self._tfa_host: str = ""
         self._add_prefix: bool = True
+        self._device_first_naming: bool = True
         self._reauth_entry: config_entries.ConfigEntry | None = None
         self._reconfigure_entry: config_entries.ConfigEntry | None = None
 
@@ -204,6 +205,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             self._tfa_password = info.get(CONF_TFA_PASSWORD, "")
             self._tfa_host = info.get(CONF_TFA_HOST, "")
             self._add_prefix = info.get(CONF_ADD_AARLO_PREFIX, True)
+            self._device_first_naming = info.get(CONF_DEVICE_FIRST_NAMING, True)
 
         data_schema = {
             vol.Optional(CONF_NAME, default=self._name): str,
@@ -214,6 +216,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             vol.Optional(CONF_TFA_PASSWORD, default=self._tfa_password): str,
             vol.Optional(CONF_TFA_HOST, default=self._tfa_host): str,
             vol.Required(CONF_ADD_AARLO_PREFIX, default=self._add_prefix): bool,
+            vol.Required(CONF_DEVICE_FIRST_NAMING, default=self._device_first_naming): bool,
         }
 
         return self.async_show_form(
@@ -368,7 +371,6 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
         save_media_default = options.get("save_media_to", aarlo_yaml.get("save_media_to", ""))
         media_retention_default = options.get("media_retention_days", aarlo_yaml.get("media_retention_days", 0))
         entry_data = getattr(self._config_entry, "data", {})
-        device_first_default = options.get(CONF_DEVICE_FIRST_NAMING, aarlo_yaml.get(CONF_DEVICE_FIRST_NAMING, entry_data.get(CONF_DEVICE_FIRST_NAMING, False)))
         hide_base_station_alarms_default = options.get(
             CONF_HIDE_BASE_STATION_ALARMS,
             aarlo_yaml.get(
@@ -384,7 +386,6 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required("http_backend", default=http_backend_default): HTTP_BACKEND_SELECTOR,
                 vol.Optional("save_media_to", default=save_media_default): str,
                 vol.Optional("media_retention_days", default=media_retention_default): int,
-                vol.Optional(CONF_DEVICE_FIRST_NAMING, default=device_first_default): bool,
                 vol.Optional(CONF_HIDE_BASE_STATION_ALARMS, default=hide_base_station_alarms_default): bool,
             })
         )
