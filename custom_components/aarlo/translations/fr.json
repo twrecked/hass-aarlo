@@ -19,7 +19,7 @@
           "tfa_username": "Nom d'utilisateur TFA",
           "tfa_password": "Mot de passe TFA",
           "add_aarlo_prefix": "Utiliser le préfixe `aarlo_` pour les entités",
-          "name": "Nom de l'intégration (optionnel, par défaut 'Aarlo pour <e-mail>')",
+          "name": "Nom de l'intégration (optionnel, par défaut 'Aarlo pour nom d'utilisateur')",
           "device_first_naming": "Utiliser le nom de l'appareil en premier"
         }
       }

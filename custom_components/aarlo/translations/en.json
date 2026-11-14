@@ -24,7 +24,7 @@
           "tfa_username": "TFA Username",
           "tfa_password": "TFA Password",
           "add_aarlo_prefix": "Use `aarlo_` prefix for entities",
-          "name": "Integration Name (optional, defaults to 'Aarlo for <email>')",
+          "name": "Integration Name (optional, defaults to 'Aarlo for username')",
           "device_first_naming": "Use Device First Naming"
         }
       },
