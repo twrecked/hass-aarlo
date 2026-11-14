@@ -23,7 +23,9 @@
           "tfa_host": "TFA Host",
           "tfa_username": "TFA Username",
           "tfa_password": "TFA Password",
-          "add_aarlo_prefix": "Use `aarlo_` prefix for entities"
+          "add_aarlo_prefix": "Use `aarlo_` prefix for entities",
+          "name": "Integration Name (optional, defaults to 'Aarlo for username')",
+          "device_first_naming": "Use Device First Naming"
         }
       },
       "reauth_confirm": {
@@ -58,7 +60,8 @@
           "backend": "Event Stream Backend",
           "http_backend": "HTTP Client Backend",
           "save_media_to": "Save Media Path Template",
-          "media_retention_days": "Media Retention Period in Days (0 to keep indefinitely)"
+          "media_retention_days": "Media Retention Period in Days (0 to keep indefinitely)",
+          "hide_base_station_alarms": "Hide base station alarms when location is present"
         }
       },
       "alarm_control_panel": {
@@ -111,11 +114,6 @@
         "title": "Switches",
         "description": "Enable which switches?\nNOTE: not all switches will be available for every device.",
         "data": {
-          "switch_siren": "Switches to turn sirens on",
-          "switch_all_sirens": "A switch turn all sirens on",
-          "switch_siren_allow_off": "Allow sirens to be turned off.",
-          "switch_siren_volume": "Siren switch volume",
-          "switch_siren_duration": "Siren switch duration",
           "switch_snapshot": "Switches to request cameras take a snapshot",
           "switch_snapshot_timeout": "Camera snapshot timeout",
           "switch_doorbell_silence": "Switches to silence doorbell chimes"

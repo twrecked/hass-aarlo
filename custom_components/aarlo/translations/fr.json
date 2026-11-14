@@ -18,7 +18,9 @@
           "tfa_host": "Hôte TFA",
           "tfa_username": "Nom d'utilisateur TFA",
           "tfa_password": "Mot de passe TFA",
-          "add_aarlo_prefix": "Utiliser le préfixe `aarlo_` pour les entités"
+          "add_aarlo_prefix": "Utiliser le préfixe `aarlo_` pour les entités",
+          "name": "Nom de l'intégration (optionnel, par défaut 'Aarlo pour nom d'utilisateur')",
+          "device_first_naming": "Utiliser le nom de l'appareil en premier"
         }
       }
     }
@@ -75,14 +77,20 @@
         "title": "Interrupteurs",
         "description": "Activer quels interrupteurs ?\nNOTE : tous les interrupteurs ne seront pas disponibles pour chaque appareil.",
         "data": {
-          "switch_siren": "Activer les sirènes",
-          "switch_all_sirens": "Activer toutes les sirènes",
-          "switch_siren_allow_off": "Autoriser l'arrêt des sirènes.",
-          "switch_siren_volume": "Volume de l'interrupteur de sirène",
-          "switch_siren_duration": "Durée de l'interrupteur de sirène",
           "switch_snapshot": "Prendre une photo sur toutes les caméras",
           "switch_snapshot_timeout": "Délai d'attente de la capture d'écran de la caméra",
           "switch_doorbell_silence": "Désactiver les carillons de la sonnette"
+        }
+      },
+      "general": {
+        "title": "Paramètres du backend et des médias",
+        "description": "Configurer le protocole de flux d'événements, le client HTTP et le stockage local des enregistrements.",
+        "data": {
+          "backend": "Backend du flux d'événements",
+          "http_backend": "Backend client HTTP",
+          "save_media_to": "Modèle de chemin d'enregistrement des médias",
+          "media_retention_days": "Période de rétention des médias en jours (0 pour conserver indéfiniment)",
+          "hide_base_station_alarms": "Masquer les alarmes des stations de base si un emplacement est présent"
         }
       }
     }

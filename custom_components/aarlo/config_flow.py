@@ -6,6 +6,7 @@ from typing import Any
 
 from homeassistant import config_entries
 from homeassistant.const import (
+    CONF_NAME,
     CONF_PASSWORD,
     CONF_USERNAME,
 )
@@ -16,6 +17,8 @@ from homeassistant.helpers.selector import SelectOptionDict, \
 from .const import (
     CONF_DEVICE_FIRST_NAMING,
     CONF_ADD_AARLO_PREFIX,
+    CONF_HIDE_BASE_STATION_ALARMS,
+    DEFAULT_HIDE_BASE_STATION_ALARMS,
     CONF_TFA_HOST,
     CONF_TFA_PASSWORD,
     CONF_TFA_SOURCE,
@@ -88,12 +91,14 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
 
     def __init__(self) -> None:
         """Initialize the config flow."""
+        self._name: str = ""
         self._username: str = ""
         self._password: str = ""
         self._tfa_username: str = ""
         self._tfa_password: str = ""
         self._tfa_host: str = ""
         self._add_prefix: bool = True
+        self._device_first_naming: bool = True
         self._reauth_entry: config_entries.ConfigEntry | None = None
         self._reconfigure_entry: config_entries.ConfigEntry | None = None
 
@@ -185,20 +190,25 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             # Looks good, then create it.
             if not errors:
                 _LOGGER.debug(f"aarlo-config={config}")
+                name = info.get(CONF_NAME, "").strip() if isinstance(info.get(CONF_NAME), str) else ""
+                title = name if name else f"Aarlo for {info[CONF_USERNAME]}"
                 return self.async_create_entry(
-                    title=f"Aarlo for {info[CONF_USERNAME]}",
+                    title=title,
                     data=config
                 )
 
             # Pass broken one into the GUI.
+            self._name = info.get(CONF_NAME, "")
             self._username = info[CONF_USERNAME]
             self._password = info[CONF_PASSWORD]
             self._tfa_username = info.get(CONF_TFA_USERNAME, "")
             self._tfa_password = info.get(CONF_TFA_PASSWORD, "")
             self._tfa_host = info.get(CONF_TFA_HOST, "")
             self._add_prefix = info.get(CONF_ADD_AARLO_PREFIX, True)
+            self._device_first_naming = info.get(CONF_DEVICE_FIRST_NAMING, True)
 
         data_schema = {
+            vol.Optional(CONF_NAME, default=self._name): str,
             vol.Required(CONF_USERNAME, default=self._username): str,
             vol.Required(CONF_PASSWORD, default=self._password): str,
             vol.Required(CONF_TFA_TYPE, default="IMAP"): TFA_SELECTOR,
@@ -206,6 +216,7 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
             vol.Optional(CONF_TFA_PASSWORD, default=self._tfa_password): str,
             vol.Optional(CONF_TFA_HOST, default=self._tfa_host): str,
             vol.Required(CONF_ADD_AARLO_PREFIX, default=self._add_prefix): bool,
+            vol.Required(CONF_DEVICE_FIRST_NAMING, default=self._device_first_naming): bool,
         }
 
         return self.async_show_form(
@@ -320,8 +331,10 @@ class AarloFlowHandler(config_entries.ConfigFlow, domain=COMPONENT_DOMAIN):
         data = UpgradeCfg.create_flow_data(import_data)
         options = UpgradeCfg.create_flow_options(import_data)
 
+        name = import_data.get(CONF_NAME, "").strip() if isinstance(import_data.get(CONF_NAME), str) else ""
+        title = name if name else f"Aarlo for {data[CONF_USERNAME]} (imported)"
         return self.async_create_entry(
-            title=f"Aarlo for {data[CONF_USERNAME]} (imported)",
+            title=title,
             data=data,
             options=options
         )
@@ -358,7 +371,13 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
         save_media_default = options.get("save_media_to", aarlo_yaml.get("save_media_to", ""))
         media_retention_default = options.get("media_retention_days", aarlo_yaml.get("media_retention_days", 0))
         entry_data = getattr(self._config_entry, "data", {})
-        device_first_default = options.get(CONF_DEVICE_FIRST_NAMING, aarlo_yaml.get(CONF_DEVICE_FIRST_NAMING, entry_data.get(CONF_DEVICE_FIRST_NAMING, False)))
+        hide_base_station_alarms_default = options.get(
+            CONF_HIDE_BASE_STATION_ALARMS,
+            aarlo_yaml.get(
+                CONF_HIDE_BASE_STATION_ALARMS,
+                entry_data.get(CONF_HIDE_BASE_STATION_ALARMS, DEFAULT_HIDE_BASE_STATION_ALARMS),
+            ),
+        )
 
         return self.async_show_form(
             step_id="general",
@@ -367,7 +386,7 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required("http_backend", default=http_backend_default): HTTP_BACKEND_SELECTOR,
                 vol.Optional("save_media_to", default=save_media_default): str,
                 vol.Optional("media_retention_days", default=media_retention_default): int,
-                vol.Optional(CONF_DEVICE_FIRST_NAMING, default=device_first_default): bool,
+                vol.Optional(CONF_HIDE_BASE_STATION_ALARMS, default=hide_base_station_alarms_default): bool,
             })
         )
 
@@ -498,16 +517,6 @@ class ArloOptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="switch",
             data_schema=vol.Schema({
-                vol.Required("switch_siren",
-                             default=options.get("switch_siren", True)): bool,
-                vol.Required("switch_all_sirens",
-                             default=options.get("switch_all_sirens", True)): bool,
-                vol.Required("switch_siren_allow_off",
-                             default=options.get("switch_siren_allow_off", True)): bool,
-                vol.Required("switch_siren_volume",
-                             default=options.get("switch_siren_volume", 3)): int,
-                vol.Required("switch_siren_duration",
-                             default=options.get("switch_siren_duration", 10)): int,
                 vol.Required("switch_snapshot",
                              default=options.get("switch_snapshot", True)): bool,
                 vol.Required("switch_snapshot_timeout",

@@ -106,21 +106,28 @@ async def async_setup_entry(
     """Set up the Arlo Alarm Control Panels."""
 
     arlo = hass.data[COMPONENT_DATA]
-    if not arlo.base_stations:
+    if not arlo.base_stations and not arlo.locations:
         return
 
     aarlo_config = hass.data[COMPONENT_CONFIG][COMPONENT_DOMAIN]
     config = hass.data[COMPONENT_CONFIG][ALARM_DOMAIN]
     _LOGGER.debug(f"alarm={config}")
 
+    has_locations = bool(arlo.locations)
+    hide_base_stations = aarlo_config.get(
+        CONF_HIDE_BASE_STATION_ALARMS, DEFAULT_HIDE_BASE_STATION_ALARMS
+    )
+    add_base_stations = not has_locations or not hide_base_stations
+
     base_stations = []
     base_stations_with_sirens = False
-    for base_station in arlo.base_stations:
-        base_stations.append(ArloBaseStation(base_station, aarlo_config, config))
-        if base_station.has_capability(SIREN_STATE_KEY):
-            base_stations_with_sirens = True
+    if add_base_stations:
+        for base_station in arlo.base_stations:
+            base_stations.append(ArloBaseStation(base_station, aarlo_config, config))
+            if base_station.has_capability(SIREN_STATE_KEY):
+                base_stations_with_sirens = True
 
-    async_add_entities(base_stations)
+        async_add_entities(base_stations)
 
     _LOGGER.debug("Adding Locations")
     locations = []
@@ -148,7 +155,11 @@ async def async_setup_entry(
         )
 
     # Websockets.
-    if base_stations_with_sirens:
+    has_alarm_sirens = (
+        base_stations_with_sirens
+        or (has_locations and any(dev.has_capability(SIREN_STATE_KEY) for dev in (*arlo.base_stations, *arlo.cameras)))
+    )
+    if has_alarm_sirens:
         websocket_api.async_register_command(
             hass, WS_TYPE_SIREN_ON, websocket_siren_on, SCHEMA_WS_SIREN_ON
         )
@@ -394,8 +405,9 @@ class ArloLocation(AlarmControlPanelEntity):
 
         self._code = config.get(CONF_CODE)
 
-        self._attr_has_entity_name = True
-        self._attr_name = None
+        loc_name = location.name.replace("_", " ").title()
+        self._attr_has_entity_name = False
+        self._attr_name = loc_name
         self._attr_unique_id, self.suggested_object_id = get_entity_identifiers(
             aarlo_config, location
         )
@@ -411,6 +423,7 @@ class ArloLocation(AlarmControlPanelEntity):
         )
         self._attr_device_info = DeviceInfo(
             identifiers={(COMPONENT_DOMAIN, self._location.device_id)},
+            name=loc_name,
             manufacturer=COMPONENT_BRAND,
         )
 

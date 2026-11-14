@@ -273,11 +273,6 @@ DEFAULT_OPTIONS = {
     "sensor_temperature": True,
     "sensor_humidity": True,
     "sensor_air_quality": True,
-    "switch_siren": True,
-    "switch_all_sirens": True,
-    "switch_siren_allow_off": True,
-    "switch_siren_volume": 3,
-    "switch_siren_duration": 10,
     "switch_snapshot": True,
     "switch_snapshot_timeout": 15,
     "switch_doorbell_silence": True,
@@ -285,6 +280,7 @@ DEFAULT_OPTIONS = {
     "http_backend": "curl_cffi",
     "save_media_to": "",
     "media_retention_days": 0,
+    CONF_HIDE_BASE_STATION_ALARMS: True,
 }
 
 
@@ -422,6 +418,7 @@ class BlendedCfg(object):
             "media_retention_days",
             CONF_DEVICE_FIRST_NAMING,
             CONF_ADD_AARLO_PREFIX,
+            CONF_HIDE_BASE_STATION_ALARMS,
         ):
             if opt_key in options:
                 self._main_config[opt_key] = options[opt_key]
