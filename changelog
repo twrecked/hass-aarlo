@@ -1,4 +1,4 @@
-Unreleased
+0.9.0-beta.1
   - Sirens:
     - Removed legacy siren switch entities in favor of native Home Assistant siren entities (`siren.*`).
     - Ignored legacy siren switch options in configuration and removed them from the options flow UI.
@@ -6,7 +6,7 @@ Unreleased
     - Hide base station alarm control panels by default when a location-level alarm is detected, with a configuration option to override.
     - Set explicit entity and device names for location alarms (e.g. "User Location Home" and "Location Home").
   - Configuration:
-    - Added configurable integration name field during initial setup flow (defaults to "Aarlo for <email>").
+    - Added configurable integration name field during initial setup flow (defaults to "Aarlo for username").
     - Moved `device_first_naming` toggle to initial setup flow alongside `add_aarlo_prefix`.
 
 0.9.0-alpha.9
