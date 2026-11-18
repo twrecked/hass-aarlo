@@ -224,5 +224,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "restricted_access": {
+      "title": "Restricted access rights on {device_name}",
+      "description": "{device_name} is shared from another Arlo account without 'Allow Access Rights' (userRole: {user_role}).\\n\\nControl features, capabilities, and live streams may be missing or non-functional.\\n\\nTo resolve this, open the Arlo app on the primary account, navigate to **Settings → Access Control / Grant Access**, select this account, and enable **Allow Access Rights** for this device."
+    }
   }
 }

@@ -198,5 +198,11 @@
         }
       }
     }
+  },
+  "issues": {
+    "restricted_access": {
+      "title": "Droits d'accès restreints sur {device_name}",
+      "description": "{device_name} est partagé depuis un autre compte Arlo sans l'option « Autoriser les droits d'accès » (userRole : {user_role}).\\n\\nLes fonctions de contrôle, les capacités et le streaming peuvent être absents ou inopérants.\\n\\nPour résoudre ce problème, ouvrez l'application Arlo sur le compte principal, allez dans **Paramètres → Gestion des accès**, sélectionnez ce compte et activez **Autoriser les droits d'accès** pour cet appareil."
+    }
   }
 }

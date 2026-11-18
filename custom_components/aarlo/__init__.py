@@ -285,6 +285,41 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Create the entities.
     await hass.config_entries.async_forward_entry_setups(entry, ARLO_PLATFORMS)
 
+    # Check for shared devices with restricted permissions (repairs issue & warning)
+    from homeassistant.helpers.issue_registry import (
+        IssueSeverity,
+        async_create_issue,
+        async_delete_issue,
+    )
+
+    for dev in getattr(arlo, "all_devices", []):
+        is_shared = getattr(dev, "is_shared", False)
+        has_access = getattr(dev, "has_access_rights", True)
+        issue_id = f"restricted_access_{dev.device_id}"
+
+        if is_shared and not has_access:
+            role = str(getattr(dev, "user_role", "GUEST"))
+            _LOGGER.warning(
+                f"Device '{dev.name}' ({dev.device_id}) is shared without 'Allow Access Rights' "
+                f"(userRole={role}). Control and status entities may be missing or non-functional. "
+                f"Please grant 'Allow Access Rights' to this account in the primary Arlo app under Grant Access."
+            )
+            async_create_issue(
+                hass,
+                COMPONENT_DOMAIN,
+                issue_id,
+                is_fixable=False,
+                severity=IssueSeverity.WARNING,
+                translation_key="restricted_access",
+                translation_placeholders={
+                    "device_name": dev.name,
+                    "user_role": role,
+                },
+                learn_more_url="https://github.com/twrecked/hass-aarlo/blob/main/README.md",
+            )
+        else:
+            async_delete_issue(hass, COMPONENT_DOMAIN, issue_id)
+
     # Make sure we pick up config changes.
     entry.async_on_unload(entry.add_update_listener(update_listener))
 
