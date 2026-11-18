@@ -1,3 +1,13 @@
+0.9.0-beta.3
+  - Repairs:
+    - Restricted Shared Device Detection: Creates a Home Assistant Repairs issue and logs
+      a warning when shared Arlo devices lack administrative access rights (`userRole != "ADMIN"`).
+    - Auto-Resolution: Automatically cleans up and resolves the Repairs issue once full access
+      rights are granted and the integration reloads.
+    - Localization: Added Repairs issue strings in English and French.
+  - Requirements:
+    - Bumped `pyaarlo` requirement to `v0.9.0-beta.3`.
+
 0.9.0-beta.2
   - Sensors:
     - Real-Time MS1001 Contact State: Supports live door and window open/close events on
