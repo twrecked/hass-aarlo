@@ -320,3 +320,57 @@ async def test_async_remove_entry(tmp_path):
 
     assert not session_file.exists()
     assert not cookies_file.exists()
+
+
+@pytest.mark.asyncio
+async def test_setup_entry_restricted_access_issue_and_warning():
+    from custom_components.aarlo import async_setup_entry
+    from unittest.mock import MagicMock, AsyncMock, patch
+
+    mock_dev_restricted = MagicMock()
+    mock_dev_restricted.name = "Front Light"
+    mock_dev_restricted.device_id = "LIGHT-01"
+    mock_dev_restricted.is_shared = True
+    mock_dev_restricted.has_access_rights = False
+    mock_dev_restricted.user_role = "GUEST"
+
+    mock_dev_ok = MagicMock()
+    mock_dev_ok.name = "Back Camera"
+    mock_dev_ok.device_id = "CAM-01"
+    mock_dev_ok.is_shared = False
+    mock_dev_ok.has_access_rights = True
+    mock_dev_ok.user_role = "ADMIN"
+
+    mock_arlo = MagicMock()
+    mock_arlo.is_connected = True
+    mock_arlo.name = "ARLO"
+    mock_arlo.device_id = "ARLO"
+    mock_arlo.model_id = "ARLO CONTROLLER"
+    mock_arlo.devices = []
+    mock_arlo.all_devices = [mock_dev_restricted, mock_dev_ok]
+    mock_arlo.cameras = []
+    mock_arlo.base_stations = []
+
+    hass = MagicMock()
+    hass.data = {}
+    hass.async_add_executor_job = AsyncMock(return_value="{}")
+    entry = MagicMock()
+    entry.data = {"username": "test@example.com"}
+    entry.options = {}
+    entry.entry_id = "test_entry_id"
+
+    with patch("custom_components.aarlo.async_login", return_value=mock_arlo):
+        with patch("custom_components.aarlo._async_get_or_create_momentary_device_in_registry", new_callable=AsyncMock):
+            with patch.object(hass.config_entries, "async_forward_entry_setups", new_callable=AsyncMock):
+                with patch("homeassistant.helpers.issue_registry.async_create_issue") as mock_create_issue:
+                    with patch("homeassistant.helpers.issue_registry.async_delete_issue") as mock_delete_issue:
+                        result = await async_setup_entry(hass, entry)
+                        assert result is True
+
+                        mock_create_issue.assert_called_once()
+                        call_args = mock_create_issue.call_args[0]
+                        assert call_args[2] == "restricted_access_LIGHT-01"
+
+                        mock_delete_issue.assert_called_once()
+                        del_args = mock_delete_issue.call_args[0]
+                        assert del_args[2] == "restricted_access_CAM-01"
