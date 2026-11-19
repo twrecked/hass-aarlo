@@ -10,12 +10,10 @@ from __future__ import annotations
 import asyncio
 import base64
 import logging
-import os
 import voluptuous as vol
 from collections.abc import Callable
-from pathlib import Path
 from typing import Any
-from uuid import uuid4
+from urllib.parse import urlsplit
 from haffmpeg.camera import CameraMjpeg
 
 import homeassistant.helpers.config_validation as cv
@@ -25,12 +23,9 @@ from homeassistant.components.camera.const import (
 )
 from homeassistant.components.camera import (
     ATTR_FILENAME,
-    CONF_DURATION,
-    CONF_LOOKBACK,
     Camera,
     CameraEntityFeature,
     DOMAIN as CAMERA_DOMAIN,
-    SERVICE_RECORD,
     StreamType,
     WebRTCAnswer,
     WebRTCClientConfiguration,
@@ -41,7 +36,6 @@ from homeassistant.const import (
     ATTR_ATTRIBUTION,
     ATTR_BATTERY_LEVEL,
     ATTR_ENTITY_ID,
-    CONF_FILENAME,
 )
 from homeassistant.core import HomeAssistant, callback
 from webrtc_models import RTCIceServer
@@ -316,31 +310,6 @@ async def async_setup_entry(
         )
 
 
-def _hidden_recording_path(hass: HomeAssistant) -> Path:
-    """Pick a writable scratch path inside a configured HA media directory."""
-    media_dirs = hass.config.media_dirs
-    for key in sorted(media_dirs, key=lambda key: key != "local"):
-        root = media_dirs[key]
-        try:
-            media_dir = Path(root).resolve(strict=True)
-            scratch_dir = media_dir / "aarlo-temp"
-            # Reject symlinks for the integration-owned scratch directory.
-            if scratch_dir.is_symlink():
-                continue
-            path = scratch_dir / f"aarlo-hidden-{uuid4().hex}.mp4"
-            if not hass.config.is_allowed_path(str(path)):
-                continue
-            scratch_dir.mkdir(mode=0o700, exist_ok=True)
-            if os.access(scratch_dir, os.W_OK | os.X_OK):
-                return path
-        except (OSError, RuntimeError, ValueError) as err:
-            _LOGGER.debug("Cannot use Arlo recording media directory %s: %s", root, err)
-    raise HomeAssistantError(
-        "Aarlo needs a writable Home Assistant media directory for temporary "
-        "recordings. Check homeassistant.media_dirs and the media mount permissions."
-    )
-
-
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
@@ -374,7 +343,7 @@ class ArloCam(Camera):
         self._save_updates_to = aarlo_config.get(CONF_SAVE_UPDATES_TO)
         self._ffmpeg = hass.data[DATA_FFMPEG]
         self._recording_start_lock = asyncio.Lock()
-        self._hidden_recording_task: asyncio.Task[None] | None = None
+        self._recording_consumer_task: asyncio.Task[None] | None = None
 
         self._attr_has_entity_name = True
         self._attr_name = None
@@ -673,49 +642,93 @@ class ArloCam(Camera):
     def disable_motion_detection(self):
         self.hass.async_create_task(self.async_disable_motion_detection())
 
-    async def _async_record_hidden_stream(self, path: Path, duration: int) -> None:
-        """Consume the stream until HA finishes the temporary local recording."""
-        data = {
-            ATTR_ENTITY_ID: self.entity_id,
-            CONF_FILENAME: str(path),
-            CONF_DURATION: duration,
-            CONF_LOOKBACK: 0,
-        }
+    async def _async_consume_recording_stream(
+        self, source: str, timeout: int, launched: asyncio.Event
+    ) -> None:
+        """Keep the Arlo stream active without writing or remuxing an MP4."""
         try:
-            await self.hass.services.async_call(
-                CAMERA_DOMAIN, SERVICE_RECORD, data, blocking=True
-            )
-        finally:
-            for scratch_file in (path, path.with_suffix(".mp4.tmp")):
-                try:
-                    await self.hass.async_add_executor_job(scratch_file.unlink, True)
-                except OSError as err:
-                    _LOGGER.warning(
-                        "Cannot remove temporary recording %s: %s", scratch_file, err
-                    )
+            url = urlsplit(source)
+            if not url.hostname or url.scheme not in {"rtsp", "rtsps", "http", "https"}:
+                raise ValueError
+        except ValueError:
+            raise HomeAssistantError("Unsupported Arlo recording stream URL") from None
 
-    async def _async_attach_hidden_stream(self, path: Path, duration: int) -> bool:
-        recorder = self._hidden_recording_task = self.hass.async_create_background_task(
-            self._async_record_hidden_stream(path, duration),
-            f"aarlo hidden recording for {self.entity_id}",
+        input_options: tuple[str, ...]
+        if url.scheme in {"rtsp", "rtsps"}:
+            input_options = (
+                "-protocol_whitelist", "rtsp,rtsps,rtp,tcp,tls", "-rtsp_transport", "tcp"
+            )
+        else:
+            input_options = ("-protocol_whitelist", "http,https,tcp,tls")
+
+        process = None
+        try:
+            async with asyncio.timeout(timeout):
+                process = await asyncio.create_subprocess_exec(
+                    self._ffmpeg.binary,
+                    "-nostdin", "-loglevel", "error",
+                    *input_options,
+                    "-i", source,
+                    "-map", "0:v:0", "-c:v", "copy", "-f", "null", "-",
+                    stdin=asyncio.subprocess.DEVNULL,
+                    stdout=asyncio.subprocess.DEVNULL,
+                    # FFmpeg errors may contain the signed Arlo URL.
+                    stderr=asyncio.subprocess.DEVNULL,
+                )
+                launched.set()
+                status = await process.wait()
+                if status != 0:
+                    raise HomeAssistantError(
+                        f"Arlo recording stream consumer exited (FFmpeg status {status})"
+                    )
+                _LOGGER.debug("Arlo recording stream consumer finished for %s", self.entity_id)
+        except TimeoutError:
+            _LOGGER.debug(
+                "Arlo recording stream consumer reached its time limit for %s", self.entity_id
+            )
+        except OSError as err:
+            raise HomeAssistantError("Could not launch the Arlo recording stream consumer") from err
+        finally:
+            if process is not None and process.returncode is None:
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
+                await process.wait()
+
+    async def _async_attach_recording_consumer(self, source: str, duration: int) -> bool:
+        launched = asyncio.Event()
+
+        async def wait_for_stream() -> bool:
+            await launched.wait()
+            return bool(await self._camera.wait_for_user_stream())
+
+        consumer = self._recording_consumer_task = self.hass.async_create_background_task(
+            # Allow up to 20 seconds for stream startup and 10 for recording teardown.
+            self._async_consume_recording_stream(source, duration + 30, launched),
+            f"aarlo recording stream consumer for {self.entity_id}",
         )
-        recorder.add_done_callback(self._hidden_recording_finished)
-        ready = asyncio.create_task(self._camera.wait_for_user_stream())
+        consumer.add_done_callback(self._recording_consumer_finished)
+        ready = asyncio.create_task(wait_for_stream())
         try:
             await asyncio.wait(
-                (recorder, ready), return_when=asyncio.FIRST_COMPLETED
+                (consumer, ready), timeout=20, return_when=asyncio.FIRST_COMPLETED
             )
-            # A finished or failed recorder can no longer keep the stream open.
-            return not recorder.done() and bool(ready.result())
+            return not consumer.done() and ready.done() and ready.result()
         finally:
             ready.cancel()
             await asyncio.gather(ready, return_exceptions=True)
 
-    def _hidden_recording_finished(self, task: asyncio.Task[None]) -> None:
-        if self._hidden_recording_task is task:
-            self._hidden_recording_task = None
+    def _recording_consumer_finished(self, task: asyncio.Task[None]) -> None:
+        if self._recording_consumer_task is task:
+            self._recording_consumer_task = None
         if not task.cancelled() and (err := task.exception()) is not None:
-            _LOGGER.error("Temporary recording failed for %s: %s", self.entity_id, err)
+            _LOGGER.error("Recording stream consumer failed for %s: %s", self.entity_id, err)
+
+    async def _async_stop_recording_consumer(self) -> None:
+        if (consumer := self._recording_consumer_task) is not None:
+            consumer.cancel()
+            await asyncio.gather(consumer, return_exceptions=True)
 
     async def _async_start_snapshot_stream(self):
         if self._stream_snapshot:
@@ -815,26 +828,48 @@ class ArloCam(Camera):
     async def async_start_recording(self, duration: int = 30) -> str | None:
         """Create a recording in the Arlo library."""
         async with self._recording_start_lock:
-            if self._hidden_recording_task is not None:
-                _LOGGER.warning("Temporary recording already running for %s", self.entity_id)
+            if self._recording_consumer_task is not None:
+                _LOGGER.warning("Recording stream consumer already running for %s", self.entity_id)
                 return None
-            path = await self.hass.async_add_executor_job(_hidden_recording_path, self.hass)
             source = await self._camera.start_recording_stream(user_agent="arlo")
-            if source:
-                started = False
-                try:
-                    if await self._async_attach_hidden_stream(path, duration + 10):
-                        started = bool(await self._camera.start_recording(duration=duration))
-                        if started:
-                            return source
-                finally:
-                    if not started:
-                        await self._camera.stop_recording_stream()
-            _LOGGER.warning("failed to start recording for %s", self._camera.name)
-            return None
+            if not source:
+                _LOGGER.warning("Arlo did not return a recording stream for %s", self.entity_id)
+                return None
 
-    async def async_stop_recording(self):
-        await self._camera.stop_recording_stream()
+            started = False
+            try:
+                if not await self._async_attach_recording_consumer(source, duration):
+                    _LOGGER.warning("Arlo recording stream did not become ready for %s", self.entity_id)
+                    return None
+                _LOGGER.info(
+                    "Arlo recording stream ready for %s; requesting cloud recording", self.entity_id
+                )
+                started = bool(await self._camera.start_recording(
+                    duration=duration, fallback_timezone=self.hass.config.time_zone
+                ))
+                if started:
+                    _LOGGER.debug("Arlo accepted the cloud recording request for %s", self.entity_id)
+                    return source
+                _LOGGER.warning("Arlo cloud recording did not start for %s", self.entity_id)
+                return None
+            finally:
+                if not started:
+                    await self._async_stop_recording_consumer()
+                    await self._camera.stop_recording_stream()
+
+    async def async_stop_recording(self) -> None:
+        async with self._recording_start_lock:
+            await self._async_stop_recording_consumer()
+            await self._camera.stop_recording_stream()
+
+    async def async_will_remove_from_hass(self) -> None:
+        try:
+            async with self._recording_start_lock:
+                if self._recording_consumer_task is not None:
+                    await self._async_stop_recording_consumer()
+                    await self._camera.stop_recording_stream()
+        finally:
+            await super().async_will_remove_from_hass()
 
     def start_recording(self, duration=30):
         self.hass.async_create_task(self.async_start_recording(duration=duration))

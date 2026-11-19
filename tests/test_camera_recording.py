@@ -1,7 +1,6 @@
-"""Regression tests for the hidden stream used for Arlo cloud recordings."""
+"""Regression tests for the file-free Arlo recording stream consumer."""
 
 import asyncio
-from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
@@ -12,106 +11,127 @@ from homeassistant.exceptions import HomeAssistantError
 from custom_components.aarlo.camera import ArloCam
 
 
+SOURCE = "rtsps://example.test/stream?token=signed-url"
+
+
+class FakeProcess:
+    def __init__(self):
+        self.returncode = None
+        self.exited = asyncio.Event()
+        self.reaped = False
+
+    async def wait(self):
+        await self.exited.wait()
+        self.reaped = True
+        return self.returncode
+
+    def exit(self, code):
+        self.returncode = code
+        self.exited.set()
+
+    def kill(self):
+        self.exit(-9)
+
+
 @pytest.fixture
-def camera(tmp_path):
-    media = tmp_path / "media"
-    media.mkdir()
-    device = MagicMock(name="Arlo device")
+def camera():
+    device = MagicMock()
     device.name = "Test camera"
     device.entity_id = "test_camera"
-    device.start_recording_stream = AsyncMock(return_value="rtsps://example.test/stream")
-    device.start_recording = AsyncMock(return_value="rtsps://example.test/stream")
+    device.start_recording_stream = AsyncMock(return_value=SOURCE)
+    device.start_recording = AsyncMock(return_value=SOURCE)
     device.stop_recording_stream = AsyncMock()
     device.wait_for_user_stream = AsyncMock(return_value=True)
     hass = SimpleNamespace(
-        data={DATA_FFMPEG: MagicMock()},
-        config=SimpleNamespace(
-            media_dirs={"local": str(media)},
-            is_allowed_path=MagicMock(return_value=True),
-        ),
-        services=SimpleNamespace(async_call=AsyncMock()),
-        async_add_executor_job=asyncio.to_thread,
+        data={DATA_FFMPEG: SimpleNamespace(binary="ffmpeg")},
+        config=SimpleNamespace(time_zone="America/New_York"),
         async_create_background_task=lambda coro, name: asyncio.create_task(coro, name=name),
     )
-    cam = ArloCam(device, {}, hass)
-    cam.hass = hass
-    return cam
+    camera = ArloCam(device, {}, hass)
+    camera.hass = hass
+    return camera
+
+
+@pytest.fixture
+def ffmpeg(monkeypatch):
+    process = FakeProcess()
+    launch = AsyncMock(return_value=process)
+    monkeypatch.setattr(asyncio, "create_subprocess_exec", launch)
+    return process, launch
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("media_key", ["local", "recordings"])
-async def test_recording_uses_media_dir_and_cleans_up_after_recorder(camera, tmp_path, media_key):
-    media_dir = tmp_path / ("media" if media_key == "local" else "custom_media")
-    media_dir.mkdir(exist_ok=True)
-    camera.hass.config.media_dirs = {media_key: str(media_dir)}
-    if media_key == "local":
-        camera.hass.config.media_dirs = {
-            "recordings": str(tmp_path), "local": str(media_dir)
-        }
-    recording = asyncio.Event()
-    finish = asyncio.Event()
-
-    async def record(domain, service, data, *, blocking):
-        assert (domain, service, blocking) == ("camera", "record", True)
-        assert data["entity_id"] == camera.entity_id
-        assert data["duration"] == 30
-        path = Path(data["filename"])
-        assert path.parent == media_dir / "aarlo-temp"
-        assert path.suffix == ".mp4"
-        path.write_bytes(b"recording")
-        path.with_suffix(".mp4.tmp").write_bytes(b"partial recording")
-        recording.set()
-        await finish.wait()
-
-    camera.hass.services.async_call.side_effect = record
-    camera._camera.wait_for_user_stream.side_effect = recording.wait
-
-    assert await camera.async_start_recording(duration=20)
-    camera._camera.start_recording.assert_awaited_once_with(duration=20)
-    camera.hass.config.is_allowed_path.assert_called_once_with(
-        camera.hass.services.async_call.call_args.args[2]["filename"]
-    )
-    assert len(list((media_dir / "aarlo-temp").iterdir())) == 2
-
-    task = camera._hidden_recording_task
-    assert task is not None
-    finish.set()
-    await task
-    assert not list((media_dir / "aarlo-temp").iterdir())
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("invalid", ["unconfigured", "disallowed", "symlink"])
-async def test_unusable_media_dir_is_rejected_before_cloud_stream(camera, tmp_path, invalid):
-    if invalid == "unconfigured":
-        camera.hass.config.media_dirs = {}
-    elif invalid == "disallowed":
-        camera.hass.config.is_allowed_path.return_value = False
-    else:
-        (tmp_path / "media" / "aarlo-temp").symlink_to(tmp_path, target_is_directory=True)
-    with pytest.raises(HomeAssistantError, match="writable Home Assistant media directory"):
-        await camera.async_start_recording()
-    camera._camera.start_recording_stream.assert_not_awaited()
-    camera.hass.services.async_call.assert_not_awaited()
-
-
-@pytest.mark.asyncio
-async def test_recorder_error_releases_cloud_stream_and_cleans_partial_file(camera, tmp_path, caplog):
-    waiting = asyncio.Event()
-
-    async def record(domain, service, data, *, blocking):
-        await waiting.wait()
-        Path(data["filename"]).with_suffix(".mp4.tmp").touch()
-        raise HomeAssistantError("disk full")
+@pytest.mark.parametrize("stop_method", ["async_stop_recording", "async_will_remove_from_hass"])
+async def test_keeps_file_free_consumer_until_stop(camera, ffmpeg, stop_method):
+    process, launch = ffmpeg
 
     async def wait_for_stream():
-        waiting.set()
-        await asyncio.Future()
+        launch.assert_awaited_once()
+        camera._camera.start_recording.assert_not_awaited()
+        return True
 
-    camera.hass.services.async_call.side_effect = record
     camera._camera.wait_for_user_stream.side_effect = wait_for_stream
-    assert await asyncio.wait_for(camera.async_start_recording(), timeout=5) is None
-    camera._camera.start_recording.assert_not_awaited()
+    assert await camera.async_start_recording(duration=30) == SOURCE
+    camera._camera.start_recording.assert_awaited_once_with(
+        duration=30, fallback_timezone="America/New_York"
+    )
+    args = launch.await_args.args
+    assert args[0] == "ffmpeg"
+    assert args[args.index("-i") + 1] == SOURCE
+    assert args[-3:] == ("-f", "null", "-")
+    assert process.returncode is None
+
+    await getattr(camera, stop_method)()
+    assert process.returncode == -9 and process.reaped
     camera._camera.stop_recording_stream.assert_awaited_once()
-    assert not list((tmp_path / "media" / "aarlo-temp").iterdir())
-    assert "disk full" in caplog.text
+    assert camera._recording_consumer_task is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("failure", ["early_exit", "launch_error", "not_ready", "cloud_error"])
+async def test_start_failure_releases_stream(camera, ffmpeg, caplog, failure):
+    process, launch = ffmpeg
+    if failure == "early_exit":
+        process.exit(1)
+    elif failure == "launch_error":
+        launch.side_effect = OSError("FFmpeg missing")
+    elif failure == "not_ready":
+        camera._camera.wait_for_user_stream.return_value = False
+    else:
+        camera._camera.start_recording.return_value = None
+
+    assert await asyncio.wait_for(camera.async_start_recording(), timeout=2) is None
+    if failure != "cloud_error":
+        camera._camera.start_recording.assert_not_awaited()
+    camera._camera.stop_recording_stream.assert_awaited_once()
+    assert camera._recording_consumer_task is None
+    if failure != "launch_error":
+        assert process.reaped
+    assert SOURCE not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_kills_and_reaps_consumer_at_deadline(camera, ffmpeg):
+    process, _ = ffmpeg
+    await camera._async_consume_recording_stream(SOURCE, 0, asyncio.Event())
+    assert process.returncode == -9 and process.reaped
+
+
+@pytest.mark.asyncio
+async def test_rejects_file_url(camera, ffmpeg):
+    _, launch = ffmpeg
+    with pytest.raises(HomeAssistantError, match="Unsupported Arlo recording stream URL"):
+        await camera._async_consume_recording_stream("file:///not-a-stream", 10, asyncio.Event())
+    launch.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_clean_consumer_exit_after_start_is_not_an_error(camera, ffmpeg, caplog):
+    process, _ = ffmpeg
+    assert await camera.async_start_recording() == SOURCE
+    task = camera._recording_consumer_task
+    assert task is not None
+    process.exit(0)
+    await task
+    assert camera._recording_consumer_task is None
+    assert "Recording stream consumer failed" not in caplog.text
