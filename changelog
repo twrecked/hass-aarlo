@@ -1,3 +1,12 @@
+0.9.0-beta.4
+  - Camera recording:
+    - Keep the camera stream open for Arlo cloud recording without writing a temporary MP4,
+      avoiding local path restrictions and MP4 timestamp errors (#1135).
+    - Use the Home Assistant time zone if Arlo omits it from the camera, base station,
+      and matched location.
+  - Requirements:
+    - Pin `pyaarlo` to `v0.9.0-beta.4`.
+
 0.9.0-beta.3
   - Repairs:
     - Restricted Shared Device Detection: Creates a Home Assistant Repairs issue and logs
