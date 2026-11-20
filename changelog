@@ -1,3 +1,8 @@
+0.9.0-beta.6
+  - Breaking change: Move Recent Activity from `sensor` to `binary_sensor` with `on` and
+    `off` states. The existing enable/disable option and camera attribute are unchanged.
+  - Document v0.9 upgrade changes in the README. PyArlo remains pinned to `v0.9.0-beta.5`.
+
 0.9.0-beta.5
   - Pin `pyaarlo` to `v0.9.0-beta.5` to avoid unsupported `audioPlayback` requests at
     startup for doorbells that advertise only `Melody`. Arlo Baby playback is unchanged.
