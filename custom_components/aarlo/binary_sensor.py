@@ -31,6 +31,7 @@ from pyaarlo.constant import (
     CRY_DETECTION_KEY,
     MOTION_DETECTED_KEY,
     MOTION_STATE_KEY,
+    RECENT_ACTIVITY_KEY,
     SILENT_MODE_KEY,
     TAMPER_STATE_KEY,
     WATER_STATE_KEY,
@@ -69,6 +70,11 @@ SENSOR_TYPES = {
         "description": "Motion",
         "keys": [MOTION_DETECTED_KEY, MOTION_STATE_KEY],
         "class": BinarySensorDeviceClass.MOTION,
+    },
+    "recent_activity": {
+        "description": "Recent Activity",
+        "keys": [RECENT_ACTIVITY_KEY],
+        "icon": "mdi:run-fast",
     },
     "ding": {
         "description": "Ding", 
@@ -209,7 +215,10 @@ class ArloBinarySensor(BinarySensorEntity):
             self.schedule_update_ha_state()
 
         for main_attr in self._main_attrs:
-            value = self._device.attribute(main_attr)
+            if main_attr == RECENT_ACTIVITY_KEY:
+                value = self._device.was_recently_active
+            else:
+                value = self._device.attribute(main_attr)
             if value is not None:
                 self._attr_is_on = self._map_value(main_attr, value)
             self._device.add_attr_callback(main_attr, update_state)
@@ -233,4 +242,3 @@ class ArloBinarySensor(BinarySensorEntity):
                 "calls_silenced": self._device.calls_are_silenced
             })
         return attrs
-

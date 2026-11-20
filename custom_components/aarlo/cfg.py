@@ -195,6 +195,7 @@ ALARM_SCHEMA = vol.Schema({
 BINARY_SENSOR_TYPES = {
     "sound": ["Sound", "sound", AUDIO_DETECTED_KEY, [], None],
     "motion": ["Motion", "motion", MOTION_DETECTED_KEY, [MOTION_STATE_KEY], None],
+    "recent_activity": ["Recent Activity", None, RECENT_ACTIVITY_KEY, [], "mdi:run-fast"],
     "ding": ["Ding", None, BUTTON_PRESSED_KEY, [SILENT_MODE_KEY], "mdi:doorbell"],
     "cry": ["Cry", "sound", CRY_DETECTION_KEY, [], None],
     "connectivity": ["Connected", "connectivity", CONNECTION_KEY, [], None],
@@ -215,7 +216,6 @@ BINARY_SENSOR_SCHEMA = vol.Schema({
 SENSOR_TYPES = {
     "last_capture": ["Last", None, "run-fast", LAST_CAPTURE_KEY],
     "total_cameras": ["Arlo Cameras", None, "video", TOTAL_CAMERAS_KEY],
-    "recent_activity": ["Recent Activity", None, "run-fast", RECENT_ACTIVITY_KEY],
     "captured_today": ["Captured Today", None, "file-video", CAPTURED_TODAY_KEY],
     "battery_level": ["Battery Level", "%", "battery-50", BATTERY_KEY],
     "signal_strength": ["Signal Strength", None, "signal", SIGNAL_STR_KEY],
@@ -425,6 +425,8 @@ class BlendedCfg(object):
             elif opt_key in data:
                 self._main_config[opt_key] = data[opt_key]
         self._alarm_config = ALARM_SCHEMA(_extract_platform_config(options, "alarm_control_panel_"))
+        # Keep the stored option key so existing on/off preferences survive the move.
+        options["binary_sensor_recent_activity"] = options.pop("sensor_recent_activity")
         self._binary_sensor_config = _extract_monitored_conditions(options, "binary_sensor_")
         self._sensor_config = _extract_monitored_conditions(options, "sensor_")
         self._switch_config = SWITCH_SCHEMA(_extract_platform_config(options, "switch_"))
@@ -529,7 +531,9 @@ class UpgradeCfg(object):
 
         # Move out of 'monitored_conditions' array and add platform prefix.
         options.update({f"sensor_{v}": True
-                        for v in _fix_config(config.get(Platform.SENSOR, {})).get(CONF_MONITORED_CONDITIONS, [])})
+                         for v in _fix_config(config.get(Platform.SENSOR, {})).get(CONF_MONITORED_CONDITIONS, [])})
+        if options.pop("binary_sensor_recent_activity", False):
+            options["sensor_recent_activity"] = True
 
         # Fill in the defaults, convert the time deltas and add the platform prefix.
         # switch_config = SWITCH_SCHEMA(_fix_config(config.get(Platform.SWITCH, {})))

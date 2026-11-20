@@ -92,6 +92,15 @@ In v0.9, the integration has been streamlined so that **`/config/aarlo.yaml` is 
    - Event stream protocol (`auto`, `mqtt`, `sse`), HTTP client (`curl_cffi`, `cloudscraper`), and local recording download templates (`save_media_to`) can now be managed directly in Home Assistant via **Configure**.
    - Any existing settings in `/config/aarlo.yaml` are automatically imported on startup.
 
+## Breaking changes when upgrading to v0.9
+
+- **Sirens:** Legacy siren `switch` entities are no longer provided. Update dashboards, scripts, and automations to use the corresponding `siren` entities and replace switch actions with `siren.turn_on` or `siren.turn_off`.
+- **Alarm panels:** Deprecated per-base-station alarm panels are no longer provided. Use the Arlo location alarm panel to control modes for the location.
+- **Recent Activity:** This entity moved from `sensor` to `binary_sensor`. Update references to use the new domain and check for `on` or `off` in state conditions. The camera's `recent_activity` attribute is unchanged.
+- **Entity IDs:** New setups can generate different entity IDs, including for camera spotlights. After upgrading or re-adding Aarlo, check dashboard and automation references against the entities Aarlo currently provides. Old IDs can remain in the entity registry even when Aarlo no longer provides them.
+
+You don't need to reinstall Aarlo to upgrade. If you choose to remove and re-add the integration, back up Home Assistant first.
+
 ---
 
 # Installing the Integration
