@@ -7,8 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.components.alarm_control_panel.const import AlarmControlPanelState
 from homeassistant.components.media_player.const import MediaPlayerState, MediaType
+from pyaarlo.constant import RECENT_ACTIVITY_KEY
 
 from custom_components.aarlo.alarm_control_panel import ArloBaseStation
+from custom_components.aarlo.binary_sensor import async_setup_entry as setup_binary_sensors
+from custom_components.aarlo.cfg import BlendedCfg
+from custom_components.aarlo.const import COMPONENT_CONFIG, COMPONENT_DATA
 from custom_components.aarlo.light import ArloLight, ArloNightLight, ArloSpotlight
 from custom_components.aarlo.media_player import ArloMediaPlayer
 from custom_components.aarlo.sensor import ArloSensor, SENSOR_TYPES
@@ -147,6 +151,50 @@ async def test_sensor_entity_native_value(mock_device):
     await sensor.async_added_to_hass()
     assert sensor.native_value == "50"
     assert sensor.native_unit_of_measurement == "%"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("options, enabled", [({}, True), ({"sensor_recent_activity": False}, False)])
+async def test_recent_activity_binary_sensor(mock_device, options, enabled):
+    mock_device.has_capability.side_effect = lambda key: key == RECENT_ACTIVITY_KEY
+    mock_device.was_recently_active = True
+    arlo = SimpleNamespace(
+        cameras=[mock_device], base_stations=[], doorbells=[], lights=[], sensors=[]
+    )
+    hass = MagicMock()
+    cfg = BlendedCfg(hass)
+    cfg._merge({}, options)
+    hass.data = {
+        COMPONENT_DATA: arlo,
+        COMPONENT_CONFIG: {
+            "aarlo": {"device_first_naming": True, "add_aarlo_prefix": True},
+            "binary_sensor": cfg.binary_sensor_config,
+            "sensor": cfg.sensor_config,
+        },
+    }
+    assert "recent_activity" not in cfg.sensor_config["monitored_conditions"]
+    assert "recent_activity" not in SENSOR_TYPES
+
+    add_entities = MagicMock()
+    await setup_binary_sensors(hass, MagicMock(), add_entities)
+    (entities,), _ = add_entities.call_args
+    if not enabled:
+        assert entities == []
+        return
+
+    sensor, = entities
+    assert sensor.entity_id == "binary_sensor.aarlo_front_door_recent_activity"
+    assert sensor.device_class is None
+    sensor.schedule_update_ha_state = MagicMock()
+    await sensor.async_added_to_hass()
+    assert sensor.is_on is True
+    (attr, callback), _ = mock_device.add_attr_callback.call_args
+    assert attr == RECENT_ACTIVITY_KEY
+    callback(mock_device, attr, False)
+    assert sensor.is_on is False
+    callback(mock_device, attr, True)
+    assert sensor.is_on is True
+    assert sensor.schedule_update_ha_state.call_count == 2
 
 
 @pytest.mark.asyncio

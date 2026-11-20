@@ -35,7 +35,6 @@ from pyaarlo.constant import (
     CAPTURED_TODAY_KEY,
     HUMIDITY_KEY,
     LAST_CAPTURE_KEY,
-    RECENT_ACTIVITY_KEY,
     SIGNAL_STR_KEY,
     TEMPERATURE_KEY,
     TOTAL_CAMERAS_KEY,
@@ -72,11 +71,6 @@ SENSOR_TYPES = {
         "description": "Arlo Cameras",
         "key": TOTAL_CAMERAS_KEY,
         "icon": "mdi:video",
-    },
-    "recent_activity": {
-        "description": "Recent Activity",
-        "key": RECENT_ACTIVITY_KEY,
-        "icon": "mdi:run-fast",
     },
     "captured_today": {
         "description": "Captured Today",

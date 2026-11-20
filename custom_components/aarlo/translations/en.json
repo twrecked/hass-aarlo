@@ -86,6 +86,7 @@
         "data": {
           "binary_sensor_sound": "Sound detection",
           "binary_sensor_motion": "Motion detection",
+          "sensor_recent_activity": "Recent activity detected",
           "binary_sensor_ding": "Doorbell presses",
           "binary_sensor_cry": "Cry detection",
           "binary_sensor_connectivity": "Device connectivity",
@@ -101,7 +102,6 @@
         "data": {
           "sensor_last_capture": "Last capture time",
           "sensor_total_cameras": "Total number of cameras detected",
-          "sensor_recent_activity": "Recent activity detected",
           "sensor_captured_today": "Number of videos/snapshots captured today",
           "sensor_battery_level": "Device battery level",
           "sensor_signal_strength": "WiFi signal strength",

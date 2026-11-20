@@ -49,6 +49,7 @@
         "data": {
           "binary_sensor_sound": "Détection de son",
           "binary_sensor_motion": "Détection de mouvement",
+          "sensor_recent_activity": "Activité récente détectée",
           "binary_sensor_ding": "Pressions sur la sonnette",
           "binary_sensor_cry": "Détection de pleurs",
           "binary_sensor_connectivity": "Connectivité de l'appareil",
@@ -64,7 +65,6 @@
         "data": {
           "sensor_last_capture": "Dernière heure de capture",
           "sensor_total_cameras": "Nombre total de caméras détectées",
-          "sensor_recent_activity": "Activité récente détectée",
           "sensor_captured_today": "Nombre de vidéos/captures d'écran capturées aujourd'hui",
           "sensor_battery_level": "Niveau de batterie de l'appareil",
           "sensor_signal_strength": "Force du signal WiFi",
