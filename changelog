@@ -1,3 +1,7 @@
+0.9.0-beta.5
+  - Pin `pyaarlo` to `v0.9.0-beta.5` to avoid unsupported `audioPlayback` requests at
+    startup for doorbells that advertise only `Melody`. Arlo Baby playback is unchanged.
+
 0.9.0-beta.4
   - Camera recording:
     - Keep the camera stream open for Arlo cloud recording without writing a temporary MP4,
