@@ -27,6 +27,7 @@ This file serves as a persistent diagnostic cache and troubleshooting knowledge 
    - [4.2 Snapshot Fails with Error 2503 Due to Active Stream Contention](#42-snapshot-fails-with-error-2503-due-to-active-stream-contention)
    - [4.3 RTSPS vs. DASH Session Negotiation Failures (AVD2001A / AVD4001A)](#43-rtsps-vs-dash-session-negotiation-failures-avd2001a--avd4001a)
    - [4.4 SmartHub Direct Local Storage Access (RaTLS) Port Failure](#44-smarthub-direct-local-storage-access-ratls-port-failure)
+   - [4.5 Check Which Stream Path Aarlo Selected](#45-check-which-stream-path-aarlo-selected)
 5. [Configuration & Home Assistant OS Environment](#5-configuration--home-assistant-os-environment)
    - [5.1 Fragile Host & Broker Overrides in `aarlo.yaml` (`host`, `auth_host`, `mqtt_host`)](#51-fragile-host--broker-overrides-in-aarloyaml-host-auth_host-mqtt_host)
    - [5.2 Entity IDs with Special Characters (Umlauts, Accents, Hyphens)](#52-entity-ids-with-special-characters-umlauts-accents-hyphens)
@@ -265,6 +266,18 @@ This file serves as a persistent diagnostic cache and troubleshooting knowledge 
 * **Resolution**:
   * `pyaarlo local-media` commands and the RaTLS client now ensure the event stream is connected before sending the notify request, and wait for the transaction response over MQTT.
 * **Related Issues**: `pyaarlo#191`
+
+---
+
+### 4.5 Check Which Stream Path Aarlo Selected
+
+1. In Home Assistant, open **Developer Tools → States** and select the affected `camera.aarlo_*` entity.
+2. Check and report `frontend_stream_type` and `sip_streaming`:
+   - `web_rtc` / `true`: Aarlo exposes SIP/WebRTC live view.
+   - `hls` / `false`: Aarlo exposes Home Assistant's HLS path. HLS describes what Home Assistant serves to the browser, not the upstream Arlo protocol or codec.
+3. Test live view in Home Assistant's built-in camera dialog first. The attributes describe what Aarlo advertises, not what a particular dashboard card played. In `custom:aarlo-glance`, `image_view: ha-stream` requests Home Assistant HLS, while `image_view: arlo-stream` requests direct Arlo MPEG-DASH. If a card behaves differently, include its `image_view` setting in the report.
+
+* **Related Issue**: `#1156`
 
 ---
 
