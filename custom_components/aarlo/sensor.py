@@ -23,6 +23,7 @@ from homeassistant.components.sensor import (
     DOMAIN as SENSOR_DOMAIN,
     SensorDeviceClass,
     SensorEntity,
+    SensorStateClass,
 )
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
@@ -58,6 +59,7 @@ DEPENDENCIES = [COMPONENT_DOMAIN]
 #  sensor_type: Home Assistant sensor type
 #    description: What the sensor does.
 #    class: Home Assistant sensor this represents
+#    state_class: Optional Home Assistant state class for statistics.
 #    units: Measurement unit.
 #    icon: Default ICON to use.
 #    key: Pyaarlo capability that indicates this device provides this sensor
@@ -81,6 +83,7 @@ SENSOR_TYPES = {
         "description": "Battery Level",
         "key": BATTERY_KEY,
         "class": SensorDeviceClass.BATTERY,
+        "state_class": SensorStateClass.MEASUREMENT,
         "units": "%",
     },
     "signal_strength": {
@@ -189,6 +192,7 @@ class ArloSensor(SensorEntity):
         self.entity_id = f"{SENSOR_DOMAIN}.{self.suggested_object_id}"
 
         self._attr_device_class = sensor_value.get("class", None)
+        self._attr_state_class = sensor_value.get("state_class")
         self._attr_icon = sensor_value.get("icon", None)
         self._attr_native_unit_of_measurement = sensor_value.get("units", None)
         self._attr_should_poll = False

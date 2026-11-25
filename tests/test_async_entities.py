@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.components.alarm_control_panel.const import AlarmControlPanelState
 from homeassistant.components.media_player.const import MediaPlayerState, MediaType
+from homeassistant.components.sensor import SensorStateClass
 from pyaarlo.constant import RECENT_ACTIVITY_KEY
 
 from custom_components.aarlo.alarm_control_panel import ArloBaseStation
@@ -143,7 +144,7 @@ async def test_alarm_control_panel_async_operations(mock_device):
 
 
 @pytest.mark.asyncio
-async def test_sensor_entity_native_value(mock_device):
+async def test_battery_sensor_measurement(mock_device):
     sensor = ArloSensor(None, mock_device, {}, "battery_level", SENSOR_TYPES["battery_level"])
     sensor.hass = MagicMock()
     sensor.schedule_update_ha_state = MagicMock()
@@ -151,6 +152,15 @@ async def test_sensor_entity_native_value(mock_device):
     await sensor.async_added_to_hass()
     assert sensor.native_value == "50"
     assert sensor.native_unit_of_measurement == "%"
+    assert sensor.state_class == SensorStateClass.MEASUREMENT
+    assert sensor.state == "50"
+
+
+def test_signal_strength_sensor_does_not_set_state_class(mock_device):
+    sensor = ArloSensor(
+        None, mock_device, {}, "signal_strength", SENSOR_TYPES["signal_strength"]
+    )
+    assert sensor.state_class is None
 
 
 @pytest.mark.asyncio
